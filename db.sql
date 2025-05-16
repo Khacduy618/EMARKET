@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: May 15, 2025 at 09:11 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Máy chủ: localhost:3306
+-- Thời gian đã tạo: Th5 16, 2025 lúc 02:05 PM
+-- Phiên bản máy phục vụ: 8.0.30
+-- Phiên bản PHP: 8.3.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,435 +18,454 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `ecommerce`
+-- Cơ sở dữ liệu: `sql`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `addresses`
+-- Cấu trúc bảng cho bảng `addresses`
 --
 
 CREATE TABLE `addresses` (
-  `AddressID` int(11) NOT NULL,
-  `UserID` int(11) NOT NULL,
-  `FullName` varchar(255) NOT NULL,
-  `PhoneNumber` varchar(20) NOT NULL,
-  `Street` varchar(255) NOT NULL,
-  `Ward` varchar(100) DEFAULT NULL,
-  `District` varchar(100) NOT NULL,
-  `City` varchar(100) NOT NULL,
-  `IsDefault` tinyint(1) NOT NULL DEFAULT 0,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `AddressID` int NOT NULL,
+  `UserID` int NOT NULL,
+  `FullName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `PhoneNumber` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Street` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Ward` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `District` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `City` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `IsDefault` tinyint(1) NOT NULL DEFAULT '0',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `banners`
+-- Cấu trúc bảng cho bảng `banners`
 --
 
 CREATE TABLE `banners` (
-  `BannerID` int(11) NOT NULL,
-  `Title` varchar(255) DEFAULT NULL,
-  `ImageURL` varchar(512) NOT NULL,
-  `LinkURL` varchar(512) DEFAULT NULL,
-  `Position` varchar(100) DEFAULT NULL,
-  `SortOrder` int(11) DEFAULT 0,
-  `IsActive` tinyint(1) NOT NULL DEFAULT 1,
+  `BannerID` int NOT NULL,
+  `Title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ImageURL` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `LinkURL` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `Position` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `SortOrder` int DEFAULT '0',
+  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
   `StartDate` datetime DEFAULT NULL,
   `EndDate` datetime DEFAULT NULL,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cartitems`
+-- Cấu trúc bảng cho bảng `cartitems`
 --
 
 CREATE TABLE `cartitems` (
-  `CartItemID` int(11) NOT NULL,
-  `CartID` int(11) NOT NULL,
-  `ProductID` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `Quantity` int(11) NOT NULL,
-  `AddedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `CartItemID` int NOT NULL,
+  `CartID` int NOT NULL,
+  `ProductID` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `Quantity` int NOT NULL,
+  `AddedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `carts`
+-- Cấu trúc bảng cho bảng `carts`
 --
 
 CREATE TABLE `carts` (
-  `CartID` int(11) NOT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `CartID` int NOT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `chatmessages`
+-- Cấu trúc bảng cho bảng `chatmessages`
 --
 
 CREATE TABLE `chatmessages` (
-  `MessageID` int(11) NOT NULL,
-  `ConversationID` int(11) NOT NULL,
-  `SenderUserID` int(11) NOT NULL,
-  `ReceiverUserID` int(11) NOT NULL,
-  `MessageContent` text NOT NULL,
-  `MessageType` enum('Text','Image','ProductLink') DEFAULT 'Text',
-  `IsRead` tinyint(1) DEFAULT 0,
+  `MessageID` int NOT NULL,
+  `ConversationID` int NOT NULL,
+  `SenderUserID` int NOT NULL,
+  `ReceiverUserID` int NOT NULL,
+  `MessageContent` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `MessageType` enum('Text','Image','ProductLink') COLLATE utf8mb4_unicode_ci DEFAULT 'Text',
+  `IsRead` tinyint(1) DEFAULT '0',
   `ReadAt` timestamp NULL DEFAULT NULL,
-  `SentAt` timestamp NOT NULL DEFAULT current_timestamp()
+  `SentAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `conversations`
+-- Cấu trúc bảng cho bảng `conversations`
 --
 
 CREATE TABLE `conversations` (
-  `ConversationID` int(11) NOT NULL,
-  `UserOneID` int(11) NOT NULL,
-  `UserTwoID` int(11) NOT NULL,
-  `LastMessageID` int(11) DEFAULT NULL,
+  `ConversationID` int NOT NULL,
+  `UserOneID` int NOT NULL,
+  `UserTwoID` int NOT NULL,
+  `LastMessageID` int DEFAULT NULL,
   `LastMessageAt` timestamp NULL DEFAULT NULL,
-  `UserOneUnreadCount` int(11) DEFAULT 0,
-  `UserTwoUnreadCount` int(11) DEFAULT 0,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `UserOneUnreadCount` int DEFAULT '0',
+  `UserTwoUnreadCount` int DEFAULT '0',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `orderitems`
+--
+
+CREATE TABLE `orderitems` (
+  `OrderItemID` int NOT NULL,
+  `ShopOrderID` int NOT NULL,
+  `ProductID` int NOT NULL,
+  `Quantity` int NOT NULL,
+  `PriceAtPurchase` decimal(12,2) NOT NULL,
+  `Subtotal` decimal(14,2) NOT NULL,
+  `ReturnStatus` enum('None','Requested','Approved','Rejected','Returned','Refunded') COLLATE utf8mb4_unicode_ci DEFAULT 'None',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `orders_buyer`
+--
+
+CREATE TABLE `orders_buyer` (
+  `OrderID` int NOT NULL,
+  `OrderCode` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `OrderDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `TotalAmount` decimal(14,2) NOT NULL,
+  `ShippingAddressID` int NOT NULL,
+  `ShippingFullName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ShippingPhoneNumber` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ShippingStreet` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ShippingWard` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ShippingDistrict` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ShippingCity` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Notes` text COLLATE utf8mb4_unicode_ci,
+  `PaymentMethod` enum('COD','BankTransfer','OnlineGateway') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `PaymentStatus` enum('Pending','Paid','Failed','Refunded') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pending',
+  `OverallStatus` enum('Pending','Processing','Shipped','Delivered','Cancelled','Returned','ReturnInProgress') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pending',
+  `PlatformVoucherCode` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `PlatformDiscountAmount` decimal(12,2) DEFAULT '0.00',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `platformcategories`
+--
+
+CREATE TABLE `platformcategories` (
+  `CategoryID` int NOT NULL,
+  `Name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Description` text COLLATE utf8mb4_unicode_ci,
+  `ParentCategoryID` int DEFAULT NULL,
+  `Slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ImageURL` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `productimages`
+--
+
+CREATE TABLE `productimages` (
+  `ImageID` int NOT NULL,
+  `ProductID` int NOT NULL,
+  `ImageURL` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `IsPrimary` tinyint(1) NOT NULL DEFAULT '0',
+  `SortOrder` int DEFAULT '0',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `productreviews`
+--
+
+CREATE TABLE `productreviews` (
+  `ReviewID` int NOT NULL,
+  `ProductID` int NOT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `ShopOrderID` int DEFAULT NULL,
+  `Rating` tinyint NOT NULL,
+  `Comment` text COLLATE utf8mb4_unicode_ci,
+  `ReviewImages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `IsApproved` tinyint(1) NOT NULL DEFAULT '1',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `orderitems`
---
-
-CREATE TABLE `orderitems` (
-  `OrderItemID` int(11) NOT NULL,
-  `ShopOrderID` int(11) NOT NULL,
-  `ProductID` int(11) NOT NULL,
-  `Quantity` int(11) NOT NULL,
-  `PriceAtPurchase` decimal(12,2) NOT NULL,
-  `Subtotal` decimal(14,2) NOT NULL,
-  `ReturnStatus` enum('None','Requested','Approved','Rejected','Returned','Refunded') DEFAULT 'None',
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `orders_buyer`
---
-
-CREATE TABLE `orders_buyer` (
-  `OrderID` int(11) NOT NULL,
-  `OrderCode` varchar(20) NOT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `OrderDate` timestamp NOT NULL DEFAULT current_timestamp(),
-  `TotalAmount` decimal(14,2) NOT NULL,
-  `ShippingAddressID` int(11) NOT NULL,
-  `ShippingFullName` varchar(255) NOT NULL,
-  `ShippingPhoneNumber` varchar(20) NOT NULL,
-  `ShippingStreet` varchar(255) NOT NULL,
-  `ShippingWard` varchar(100) DEFAULT NULL,
-  `ShippingDistrict` varchar(100) NOT NULL,
-  `ShippingCity` varchar(100) NOT NULL,
-  `Notes` text DEFAULT NULL,
-  `PaymentMethod` enum('COD','BankTransfer','OnlineGateway') NOT NULL,
-  `PaymentStatus` enum('Pending','Paid','Failed','Refunded') NOT NULL DEFAULT 'Pending',
-  `OverallStatus` enum('Pending','Processing','Shipped','Delivered','Cancelled','Returned','ReturnInProgress') NOT NULL DEFAULT 'Pending',
-  `PlatformVoucherCode` varchar(50) DEFAULT NULL,
-  `PlatformDiscountAmount` decimal(12,2) DEFAULT 0.00,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `platformcategories`
---
-
-CREATE TABLE `platformcategories` (
-  `CategoryID` int(11) NOT NULL,
-  `Name` varchar(255) NOT NULL,
-  `Description` text DEFAULT NULL,
-  `ParentCategoryID` int(11) DEFAULT NULL,
-  `Slug` varchar(255) NOT NULL,
-  `ImageURL` varchar(512) DEFAULT NULL,
-  `IsActive` tinyint(1) NOT NULL DEFAULT 1,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `productimages`
---
-
-CREATE TABLE `productimages` (
-  `ImageID` int(11) NOT NULL,
-  `ProductID` int(11) NOT NULL,
-  `ImageURL` varchar(512) NOT NULL,
-  `IsPrimary` tinyint(1) NOT NULL DEFAULT 0,
-  `SortOrder` int(11) DEFAULT 0,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `productreviews`
---
-
-CREATE TABLE `productreviews` (
-  `ReviewID` int(11) NOT NULL,
-  `ProductID` int(11) NOT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `ShopOrderID` int(11) DEFAULT NULL,
-  `Rating` tinyint(4) NOT NULL CHECK (`Rating` >= 1 and `Rating` <= 5),
-  `Comment` text DEFAULT NULL,
-  `ReviewImages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`ReviewImages`)),
-  `IsApproved` tinyint(1) NOT NULL DEFAULT 1,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `products`
+-- Cấu trúc bảng cho bảng `products`
 --
 
 CREATE TABLE `products` (
-  `ProductID` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `CategoryID` int(11) NOT NULL,
-  `Name` varchar(255) NOT NULL,
-  `Description` text DEFAULT NULL,
-  `SKU` varchar(100) DEFAULT NULL,
+  `ProductID` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `CategoryID` int NOT NULL,
+  `Name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Description` text COLLATE utf8mb4_unicode_ci,
+  `SKU` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `Price` decimal(12,2) NOT NULL,
-  `StockQuantity` int(11) NOT NULL DEFAULT 0,
-  `IsActive` tinyint(1) NOT NULL DEFAULT 1,
-  `AdminApprovalStatus` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
-  `ReasonForRejection` text DEFAULT NULL,
-  `AverageRating` float DEFAULT 0,
-  `ViewCount` int(11) DEFAULT 0,
-  `SoldCount` int(11) DEFAULT 0,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `StockQuantity` int NOT NULL DEFAULT '0',
+  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
+  `AdminApprovalStatus` enum('Pending','Approved','Rejected') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Pending',
+  `ReasonForRejection` text COLLATE utf8mb4_unicode_ci,
+  `AverageRating` float DEFAULT '0',
+  `ViewCount` int DEFAULT '0',
+  `SoldCount` int DEFAULT '0',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `returnrequests`
+-- Cấu trúc bảng cho bảng `returnrequests`
 --
 
 CREATE TABLE `returnrequests` (
-  `ReturnRequestID` int(11) NOT NULL,
-  `ShopOrderID` int(11) NOT NULL,
-  `OrderItemID` int(11) DEFAULT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `RequestType` enum('Return','Refund','ReturnAndRefund') NOT NULL,
-  `ReasonCode` varchar(50) DEFAULT NULL,
-  `ReasonDescription` text NOT NULL,
-  `EvidenceURLs` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`EvidenceURLs`)),
-  `Status` enum('PendingSellerApproval','SellerApproved_WaitForReturn','SellerReceivedProduct','RefundProcessing','Refunded','SellerRejected','BuyerCancelled','AdminIntervention','Closed') NOT NULL DEFAULT 'PendingSellerApproval',
-  `SellerNote` text DEFAULT NULL,
-  `AdminNote` text DEFAULT NULL,
-  `ResolutionType` enum('FullRefund','PartialRefund','ProductExchange','NoAction','StoreCredit') DEFAULT NULL,
+  `ReturnRequestID` int NOT NULL,
+  `ShopOrderID` int NOT NULL,
+  `OrderItemID` int DEFAULT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `RequestType` enum('Return','Refund','ReturnAndRefund') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ReasonCode` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ReasonDescription` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `EvidenceURLs` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `Status` enum('PendingSellerApproval','SellerApproved_WaitForReturn','SellerReceivedProduct','RefundProcessing','Refunded','SellerRejected','BuyerCancelled','AdminIntervention','Closed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PendingSellerApproval',
+  `SellerNote` text COLLATE utf8mb4_unicode_ci,
+  `AdminNote` text COLLATE utf8mb4_unicode_ci,
+  `ResolutionType` enum('FullRefund','PartialRefund','ProductExchange','NoAction','StoreCredit') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `RefundAmount` decimal(12,2) DEFAULT NULL,
-  `BuyerShippingInfoForReturn` text DEFAULT NULL,
-  `ShopShippingInfoForReturn` text DEFAULT NULL,
-  `RequestedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `LastUpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `BuyerShippingInfoForReturn` text COLLATE utf8mb4_unicode_ci,
+  `ShopShippingInfoForReturn` text COLLATE utf8mb4_unicode_ci,
+  `RequestedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `LastUpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shopfollows`
+-- Cấu trúc bảng cho bảng `role`
+--
+
+CREATE TABLE `role` (
+  `RoleID` int NOT NULL,
+  `Description` text,
+  `Permissions` varchar(300) NOT NULL,
+  `Deleted` tinyint NOT NULL DEFAULT '0',
+  `DeletedAt` datetime DEFAULT NULL,
+  `CreateAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdateAt` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `shopfollows`
 --
 
 CREATE TABLE `shopfollows` (
-  `FollowID` int(11) NOT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `FollowedAt` timestamp NOT NULL DEFAULT current_timestamp()
+  `FollowID` int NOT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `FollowedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shoporders`
+-- Cấu trúc bảng cho bảng `shoporders`
 --
 
 CREATE TABLE `shoporders` (
-  `ShopOrderID` int(11) NOT NULL,
-  `OrderID` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `ShopOrderCode` varchar(25) NOT NULL,
+  `ShopOrderID` int NOT NULL,
+  `OrderID` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `ShopOrderCode` varchar(25) COLLATE utf8mb4_unicode_ci NOT NULL,
   `SubtotalForShop` decimal(12,2) NOT NULL,
-  `ShippingFeeForShop` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `ShopVoucherCode` varchar(50) DEFAULT NULL,
-  `ShopDiscountAmount` decimal(12,2) DEFAULT 0.00,
+  `ShippingFeeForShop` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `ShopVoucherCode` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ShopDiscountAmount` decimal(12,2) DEFAULT '0.00',
   `TotalAmountForShop` decimal(12,2) NOT NULL,
-  `ShopOrderStatus` enum('PendingConfirmation','Processing','ReadyToShip','Shipped','Delivered','CancelledBySeller','CancelledByBuyer','Returned','ReturnRequested','ReturnApproved','ReturnRejected') NOT NULL DEFAULT 'PendingConfirmation',
+  `ShopOrderStatus` enum('PendingConfirmation','Processing','ReadyToShip','Shipped','Delivered','CancelledBySeller','CancelledByBuyer','Returned','ReturnRequested','ReturnApproved','ReturnRejected') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PendingConfirmation',
   `EstimatedDeliveryDate` date DEFAULT NULL,
-  `TrackingNumber` varchar(100) DEFAULT NULL,
-  `ShippingProvider` varchar(100) DEFAULT NULL,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `TrackingNumber` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ShippingProvider` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shopreviews`
+-- Cấu trúc bảng cho bảng `shopreviews`
 --
 
 CREATE TABLE `shopreviews` (
-  `ReviewID` int(11) NOT NULL,
-  `ShopID` int(11) NOT NULL,
-  `UserID_Buyer` int(11) NOT NULL,
-  `ShopOrderID` int(11) DEFAULT NULL,
-  `Rating` tinyint(4) NOT NULL CHECK (`Rating` >= 1 and `Rating` <= 5),
-  `Comment` text DEFAULT NULL,
-  `IsApproved` tinyint(1) NOT NULL DEFAULT 1,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `ReviewID` int NOT NULL,
+  `ShopID` int NOT NULL,
+  `UserID_Buyer` int NOT NULL,
+  `ShopOrderID` int DEFAULT NULL,
+  `Rating` tinyint NOT NULL,
+  `Comment` text COLLATE utf8mb4_unicode_ci,
+  `IsApproved` tinyint(1) NOT NULL DEFAULT '1',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `shops`
+-- Cấu trúc bảng cho bảng `shops`
 --
 
 CREATE TABLE `shops` (
-  `ShopID` int(11) NOT NULL,
-  `UserID_Owner` int(11) NOT NULL,
-  `ShopName` varchar(255) NOT NULL,
-  `Description` text DEFAULT NULL,
-  `LogoURL` varchar(512) DEFAULT NULL,
-  `CoverImageURL` varchar(512) DEFAULT NULL,
-  `ShopAddress` text DEFAULT NULL,
-  `ShopPhone` varchar(20) DEFAULT NULL,
-  `AverageRating` float DEFAULT 0,
-  `Status` enum('PendingApproval','Approved','Suspended','Rejected') NOT NULL DEFAULT 'PendingApproval',
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ShopID` int NOT NULL,
+  `UserID_Owner` int NOT NULL,
+  `ShopName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Description` text COLLATE utf8mb4_unicode_ci,
+  `LogoURL` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `CoverImageURL` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ShopAddress` text COLLATE utf8mb4_unicode_ci,
+  `ShopPhone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `AverageRating` float DEFAULT '0',
+  `Status` enum('PendingApproval','Approved','Suspended','Rejected') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PendingApproval',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sitesettings`
+-- Cấu trúc bảng cho bảng `sitesettings`
 --
 
 CREATE TABLE `sitesettings` (
-  `SettingKey` varchar(100) NOT NULL,
-  `SettingValue` text DEFAULT NULL,
-  `Description` varchar(255) DEFAULT NULL,
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `SettingKey` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `SettingValue` text COLLATE utf8mb4_unicode_ci,
+  `Description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Cấu trúc bảng cho bảng `users`
 --
 
 CREATE TABLE `users` (
-  `UserID` int(11) NOT NULL,
-  `Username` varchar(100) NOT NULL,
-  `Email` varchar(255) NOT NULL,
-  `PasswordHash` varchar(255) NOT NULL,
-  `FullName` varchar(255) DEFAULT NULL,
-  `DefaultShippingAddressID` int(11) DEFAULT NULL,
-  `Phone` varchar(20) DEFAULT NULL,
-  `Level` enum('Đồng','Bạc','Vàng','Bạch kim','Kim cương') NOT NULL DEFAULT 'Đồng',
-  `Role` enum('Buyer','Seller','Admin') NOT NULL DEFAULT 'Buyer',
-  `IsActive` tinyint(1) NOT NULL DEFAULT 1,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `UserID` int NOT NULL,
+  `Username` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `PasswordHash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `FullName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `DefaultShippingAddressID` int DEFAULT NULL,
+  `Phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `Level` enum('Đồng','Bạc','Vàng','Bạch kim','Kim cương') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đồng',
+  `RoleID` int NOT NULL DEFAULT '0',
+  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
+  `Token` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Deleted` tinyint NOT NULL DEFAULT '0',
+  `DeletedAt` datetime NOT NULL,
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `userusedvouchers`
+-- Cấu trúc bảng cho bảng `userusedvouchers`
 --
 
 CREATE TABLE `userusedvouchers` (
-  `UserUsedVoucherID` int(11) NOT NULL,
-  `UserID` int(11) NOT NULL,
-  `VoucherID` int(11) NOT NULL,
-  `ShopOrderID` int(11) NOT NULL,
-  `TimesUsedThisOrder` int(11) NOT NULL DEFAULT 1,
-  `UsedAt` timestamp NOT NULL DEFAULT current_timestamp()
+  `UserUsedVoucherID` int NOT NULL,
+  `UserID` int NOT NULL,
+  `VoucherID` int NOT NULL,
+  `ShopOrderID` int NOT NULL,
+  `TimesUsedThisOrder` int NOT NULL DEFAULT '1',
+  `UsedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `vouchers`
+-- Cấu trúc bảng cho bảng `vouchers`
 --
 
 CREATE TABLE `vouchers` (
-  `VoucherID` int(11) NOT NULL,
-  `Code` varchar(50) NOT NULL,
-  `Description` text DEFAULT NULL,
-  `DiscountType` enum('Percentage','FixedAmount') NOT NULL,
+  `VoucherID` int NOT NULL,
+  `Code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Description` text COLLATE utf8mb4_unicode_ci,
+  `DiscountType` enum('Percentage','FixedAmount') COLLATE utf8mb4_unicode_ci NOT NULL,
   `DiscountValue` decimal(10,2) NOT NULL,
   `MaxValueForPercentage` decimal(10,2) DEFAULT NULL,
-  `MinOrderValue` decimal(12,2) DEFAULT 0.00,
+  `MinOrderValue` decimal(12,2) DEFAULT '0.00',
   `StartDate` datetime NOT NULL,
   `EndDate` datetime NOT NULL,
-  `UsageLimitPerUser` int(11) DEFAULT NULL,
-  `UsageLimitTotal` int(11) DEFAULT NULL,
-  `TimesUsed` int(11) NOT NULL DEFAULT 0,
-  `Scope` enum('Platform','Shop') NOT NULL,
-  `ShopID` int(11) DEFAULT NULL,
-  `IsActive` tinyint(1) NOT NULL DEFAULT 1,
-  `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `UpdatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `UsageLimitPerUser` int DEFAULT NULL,
+  `UsageLimitTotal` int DEFAULT NULL,
+  `TimesUsed` int NOT NULL DEFAULT '0',
+  `Scope` enum('Platform','Shop') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ShopID` int DEFAULT NULL,
+  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
+  `CreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Indexes for dumped tables
+-- Chỉ mục cho các bảng đã đổ
 --
 
 --
--- Indexes for table `addresses`
+-- Chỉ mục cho bảng `addresses`
 --
 ALTER TABLE `addresses`
   ADD PRIMARY KEY (`AddressID`),
   ADD KEY `idx_addresses_user_id` (`UserID`);
 
 --
--- Indexes for table `banners`
+-- Chỉ mục cho bảng `banners`
 --
 ALTER TABLE `banners`
   ADD PRIMARY KEY (`BannerID`),
   ADD KEY `idx_banners_position_isactive` (`Position`,`IsActive`);
 
 --
--- Indexes for table `cartitems`
+-- Chỉ mục cho bảng `cartitems`
 --
 ALTER TABLE `cartitems`
   ADD PRIMARY KEY (`CartItemID`),
@@ -456,14 +475,14 @@ ALTER TABLE `cartitems`
   ADD KEY `idx_cartitems_product_id` (`ProductID`);
 
 --
--- Indexes for table `carts`
+-- Chỉ mục cho bảng `carts`
 --
 ALTER TABLE `carts`
   ADD PRIMARY KEY (`CartID`),
   ADD UNIQUE KEY `UserID_Buyer` (`UserID_Buyer`);
 
 --
--- Indexes for table `chatmessages`
+-- Chỉ mục cho bảng `chatmessages`
 --
 ALTER TABLE `chatmessages`
   ADD PRIMARY KEY (`MessageID`),
@@ -472,7 +491,7 @@ ALTER TABLE `chatmessages`
   ADD KEY `idx_chatmessages_receiver_id` (`ReceiverUserID`);
 
 --
--- Indexes for table `conversations`
+-- Chỉ mục cho bảng `conversations`
 --
 ALTER TABLE `conversations`
   ADD PRIMARY KEY (`ConversationID`),
@@ -481,7 +500,7 @@ ALTER TABLE `conversations`
   ADD KEY `fk_conversations_last_message` (`LastMessageID`);
 
 --
--- Indexes for table `orderitems`
+-- Chỉ mục cho bảng `orderitems`
 --
 ALTER TABLE `orderitems`
   ADD PRIMARY KEY (`OrderItemID`),
@@ -489,7 +508,7 @@ ALTER TABLE `orderitems`
   ADD KEY `idx_orderitems_product_id` (`ProductID`);
 
 --
--- Indexes for table `orders_buyer`
+-- Chỉ mục cho bảng `orders_buyer`
 --
 ALTER TABLE `orders_buyer`
   ADD PRIMARY KEY (`OrderID`),
@@ -501,7 +520,7 @@ ALTER TABLE `orders_buyer`
   ADD KEY `idx_orders_buyer_payment_status` (`PaymentStatus`);
 
 --
--- Indexes for table `platformcategories`
+-- Chỉ mục cho bảng `platformcategories`
 --
 ALTER TABLE `platformcategories`
   ADD PRIMARY KEY (`CategoryID`),
@@ -511,14 +530,14 @@ ALTER TABLE `platformcategories`
   ADD KEY `idx_platformcategories_slug` (`Slug`);
 
 --
--- Indexes for table `productimages`
+-- Chỉ mục cho bảng `productimages`
 --
 ALTER TABLE `productimages`
   ADD PRIMARY KEY (`ImageID`),
   ADD KEY `idx_productimages_product_id` (`ProductID`);
 
 --
--- Indexes for table `productreviews`
+-- Chỉ mục cho bảng `productreviews`
 --
 ALTER TABLE `productreviews`
   ADD PRIMARY KEY (`ReviewID`),
@@ -528,7 +547,7 @@ ALTER TABLE `productreviews`
   ADD KEY `idx_productreviews_user_id` (`UserID_Buyer`);
 
 --
--- Indexes for table `products`
+-- Chỉ mục cho bảng `products`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`ProductID`),
@@ -540,7 +559,7 @@ ALTER TABLE `products`
   ADD KEY `idx_products_admin_approval_status` (`AdminApprovalStatus`);
 
 --
--- Indexes for table `returnrequests`
+-- Chỉ mục cho bảng `returnrequests`
 --
 ALTER TABLE `returnrequests`
   ADD PRIMARY KEY (`ReturnRequestID`),
@@ -551,7 +570,13 @@ ALTER TABLE `returnrequests`
   ADD KEY `idx_returnrequests_status` (`Status`);
 
 --
--- Indexes for table `shopfollows`
+-- Chỉ mục cho bảng `role`
+--
+ALTER TABLE `role`
+  ADD PRIMARY KEY (`RoleID`);
+
+--
+-- Chỉ mục cho bảng `shopfollows`
 --
 ALTER TABLE `shopfollows`
   ADD PRIMARY KEY (`FollowID`),
@@ -559,7 +584,7 @@ ALTER TABLE `shopfollows`
   ADD KEY `ShopID` (`ShopID`);
 
 --
--- Indexes for table `shoporders`
+-- Chỉ mục cho bảng `shoporders`
 --
 ALTER TABLE `shoporders`
   ADD PRIMARY KEY (`ShopOrderID`),
@@ -569,7 +594,7 @@ ALTER TABLE `shoporders`
   ADD KEY `idx_shoporders_status` (`ShopOrderStatus`);
 
 --
--- Indexes for table `shopreviews`
+-- Chỉ mục cho bảng `shopreviews`
 --
 ALTER TABLE `shopreviews`
   ADD PRIMARY KEY (`ReviewID`),
@@ -579,7 +604,7 @@ ALTER TABLE `shopreviews`
   ADD KEY `idx_shopreviews_user_id` (`UserID_Buyer`);
 
 --
--- Indexes for table `shops`
+-- Chỉ mục cho bảng `shops`
 --
 ALTER TABLE `shops`
   ADD PRIMARY KEY (`ShopID`),
@@ -589,24 +614,24 @@ ALTER TABLE `shops`
   ADD KEY `idx_shops_status` (`Status`);
 
 --
--- Indexes for table `sitesettings`
+-- Chỉ mục cho bảng `sitesettings`
 --
 ALTER TABLE `sitesettings`
   ADD PRIMARY KEY (`SettingKey`);
 
 --
--- Indexes for table `users`
+-- Chỉ mục cho bảng `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`UserID`),
   ADD UNIQUE KEY `Username` (`Username`),
   ADD UNIQUE KEY `Email` (`Email`),
   ADD KEY `idx_users_email` (`Email`),
-  ADD KEY `idx_users_role` (`Role`),
+  ADD KEY `idx_users_role` (`RoleID`),
   ADD KEY `fk_users_default_address` (`DefaultShippingAddressID`);
 
 --
--- Indexes for table `userusedvouchers`
+-- Chỉ mục cho bảng `userusedvouchers`
 --
 ALTER TABLE `userusedvouchers`
   ADD PRIMARY KEY (`UserUsedVoucherID`),
@@ -615,7 +640,7 @@ ALTER TABLE `userusedvouchers`
   ADD KEY `ShopOrderID` (`ShopOrderID`);
 
 --
--- Indexes for table `vouchers`
+-- Chỉ mục cho bảng `vouchers`
 --
 ALTER TABLE `vouchers`
   ADD PRIMARY KEY (`VoucherID`),
@@ -625,141 +650,147 @@ ALTER TABLE `vouchers`
   ADD KEY `idx_vouchers_scope_shop_id` (`Scope`,`ShopID`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT cho các bảng đã đổ
 --
 
 --
--- AUTO_INCREMENT for table `addresses`
+-- AUTO_INCREMENT cho bảng `addresses`
 --
 ALTER TABLE `addresses`
-  MODIFY `AddressID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `AddressID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `banners`
+-- AUTO_INCREMENT cho bảng `banners`
 --
 ALTER TABLE `banners`
-  MODIFY `BannerID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `BannerID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `cartitems`
+-- AUTO_INCREMENT cho bảng `cartitems`
 --
 ALTER TABLE `cartitems`
-  MODIFY `CartItemID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `CartItemID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `carts`
+-- AUTO_INCREMENT cho bảng `carts`
 --
 ALTER TABLE `carts`
-  MODIFY `CartID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `CartID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `chatmessages`
+-- AUTO_INCREMENT cho bảng `chatmessages`
 --
 ALTER TABLE `chatmessages`
-  MODIFY `MessageID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MessageID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `conversations`
+-- AUTO_INCREMENT cho bảng `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `ConversationID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ConversationID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `orderitems`
+-- AUTO_INCREMENT cho bảng `orderitems`
 --
 ALTER TABLE `orderitems`
-  MODIFY `OrderItemID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `OrderItemID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `orders_buyer`
+-- AUTO_INCREMENT cho bảng `orders_buyer`
 --
 ALTER TABLE `orders_buyer`
-  MODIFY `OrderID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `OrderID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `platformcategories`
+-- AUTO_INCREMENT cho bảng `platformcategories`
 --
 ALTER TABLE `platformcategories`
-  MODIFY `CategoryID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `CategoryID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `productimages`
+-- AUTO_INCREMENT cho bảng `productimages`
 --
 ALTER TABLE `productimages`
-  MODIFY `ImageID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ImageID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `productreviews`
+-- AUTO_INCREMENT cho bảng `productreviews`
 --
 ALTER TABLE `productreviews`
-  MODIFY `ReviewID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ReviewID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `products`
+-- AUTO_INCREMENT cho bảng `products`
 --
 ALTER TABLE `products`
-  MODIFY `ProductID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ProductID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `returnrequests`
+-- AUTO_INCREMENT cho bảng `returnrequests`
 --
 ALTER TABLE `returnrequests`
-  MODIFY `ReturnRequestID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ReturnRequestID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `shopfollows`
+-- AUTO_INCREMENT cho bảng `role`
+--
+ALTER TABLE `role`
+  MODIFY `RoleID` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT cho bảng `shopfollows`
 --
 ALTER TABLE `shopfollows`
-  MODIFY `FollowID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `FollowID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `shoporders`
+-- AUTO_INCREMENT cho bảng `shoporders`
 --
 ALTER TABLE `shoporders`
-  MODIFY `ShopOrderID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ShopOrderID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `shopreviews`
+-- AUTO_INCREMENT cho bảng `shopreviews`
 --
 ALTER TABLE `shopreviews`
-  MODIFY `ReviewID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ReviewID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `shops`
+-- AUTO_INCREMENT cho bảng `shops`
 --
 ALTER TABLE `shops`
-  MODIFY `ShopID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ShopID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT cho bảng `users`
 --
 ALTER TABLE `users`
-  MODIFY `UserID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `UserID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `userusedvouchers`
+-- AUTO_INCREMENT cho bảng `userusedvouchers`
 --
 ALTER TABLE `userusedvouchers`
-  MODIFY `UserUsedVoucherID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `UserUsedVoucherID` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `vouchers`
+-- AUTO_INCREMENT cho bảng `vouchers`
 --
 ALTER TABLE `vouchers`
-  MODIFY `VoucherID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `VoucherID` int NOT NULL AUTO_INCREMENT;
 
 --
--- Constraints for dumped tables
+-- Ràng buộc đối với các bảng kết xuất
 --
 
 --
--- Constraints for table `addresses`
+-- Ràng buộc cho bảng `addresses`
 --
 ALTER TABLE `addresses`
   ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `cartitems`
+-- Ràng buộc cho bảng `cartitems`
 --
 ALTER TABLE `cartitems`
   ADD CONSTRAINT `cartitems_ibfk_1` FOREIGN KEY (`CartID`) REFERENCES `carts` (`CartID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -767,13 +798,13 @@ ALTER TABLE `cartitems`
   ADD CONSTRAINT `cartitems_ibfk_3` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `carts`
+-- Ràng buộc cho bảng `carts`
 --
 ALTER TABLE `carts`
   ADD CONSTRAINT `carts_ibfk_1` FOREIGN KEY (`UserID_Buyer`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `chatmessages`
+-- Ràng buộc cho bảng `chatmessages`
 --
 ALTER TABLE `chatmessages`
   ADD CONSTRAINT `chatmessages_ibfk_1` FOREIGN KEY (`ConversationID`) REFERENCES `conversations` (`ConversationID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -781,7 +812,7 @@ ALTER TABLE `chatmessages`
   ADD CONSTRAINT `chatmessages_ibfk_3` FOREIGN KEY (`ReceiverUserID`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `conversations`
+-- Ràng buộc cho bảng `conversations`
 --
 ALTER TABLE `conversations`
   ADD CONSTRAINT `conversations_ibfk_1` FOREIGN KEY (`UserOneID`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -789,33 +820,33 @@ ALTER TABLE `conversations`
   ADD CONSTRAINT `fk_conversations_last_message` FOREIGN KEY (`LastMessageID`) REFERENCES `chatmessages` (`MessageID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `orderitems`
+-- Ràng buộc cho bảng `orderitems`
 --
 ALTER TABLE `orderitems`
   ADD CONSTRAINT `orderitems_ibfk_1` FOREIGN KEY (`ShopOrderID`) REFERENCES `shoporders` (`ShopOrderID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `orderitems_ibfk_2` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `orders_buyer`
+-- Ràng buộc cho bảng `orders_buyer`
 --
 ALTER TABLE `orders_buyer`
   ADD CONSTRAINT `orders_buyer_ibfk_1` FOREIGN KEY (`UserID_Buyer`) REFERENCES `users` (`UserID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `orders_buyer_ibfk_2` FOREIGN KEY (`ShippingAddressID`) REFERENCES `addresses` (`AddressID`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `platformcategories`
+-- Ràng buộc cho bảng `platformcategories`
 --
 ALTER TABLE `platformcategories`
   ADD CONSTRAINT `platformcategories_ibfk_1` FOREIGN KEY (`ParentCategoryID`) REFERENCES `platformcategories` (`CategoryID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `productimages`
+-- Ràng buộc cho bảng `productimages`
 --
 ALTER TABLE `productimages`
   ADD CONSTRAINT `productimages_ibfk_1` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `productreviews`
+-- Ràng buộc cho bảng `productreviews`
 --
 ALTER TABLE `productreviews`
   ADD CONSTRAINT `productreviews_ibfk_1` FOREIGN KEY (`ProductID`) REFERENCES `products` (`ProductID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -823,14 +854,14 @@ ALTER TABLE `productreviews`
   ADD CONSTRAINT `productreviews_ibfk_3` FOREIGN KEY (`ShopOrderID`) REFERENCES `shoporders` (`ShopOrderID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `products`
+-- Ràng buộc cho bảng `products`
 --
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `products_ibfk_2` FOREIGN KEY (`CategoryID`) REFERENCES `platformcategories` (`CategoryID`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `returnrequests`
+-- Ràng buộc cho bảng `returnrequests`
 --
 ALTER TABLE `returnrequests`
   ADD CONSTRAINT `returnrequests_ibfk_1` FOREIGN KEY (`ShopOrderID`) REFERENCES `shoporders` (`ShopOrderID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -839,21 +870,21 @@ ALTER TABLE `returnrequests`
   ADD CONSTRAINT `returnrequests_ibfk_4` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `shopfollows`
+-- Ràng buộc cho bảng `shopfollows`
 --
 ALTER TABLE `shopfollows`
   ADD CONSTRAINT `shopfollows_ibfk_1` FOREIGN KEY (`UserID_Buyer`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `shopfollows_ibfk_2` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `shoporders`
+-- Ràng buộc cho bảng `shoporders`
 --
 ALTER TABLE `shoporders`
   ADD CONSTRAINT `shoporders_ibfk_1` FOREIGN KEY (`OrderID`) REFERENCES `orders_buyer` (`OrderID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `shoporders_ibfk_2` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `shopreviews`
+-- Ràng buộc cho bảng `shopreviews`
 --
 ALTER TABLE `shopreviews`
   ADD CONSTRAINT `shopreviews_ibfk_1` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -861,19 +892,20 @@ ALTER TABLE `shopreviews`
   ADD CONSTRAINT `shopreviews_ibfk_3` FOREIGN KEY (`ShopOrderID`) REFERENCES `shoporders` (`ShopOrderID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `shops`
+-- Ràng buộc cho bảng `shops`
 --
 ALTER TABLE `shops`
   ADD CONSTRAINT `shops_ibfk_1` FOREIGN KEY (`UserID_Owner`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `users`
+-- Ràng buộc cho bảng `users`
 --
 ALTER TABLE `users`
+  ADD CONSTRAINT `fk_role` FOREIGN KEY (`RoleID`) REFERENCES `role` (`RoleID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `fk_users_default_address` FOREIGN KEY (`DefaultShippingAddressID`) REFERENCES `addresses` (`AddressID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `userusedvouchers`
+-- Ràng buộc cho bảng `userusedvouchers`
 --
 ALTER TABLE `userusedvouchers`
   ADD CONSTRAINT `userusedvouchers_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `users` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -881,7 +913,7 @@ ALTER TABLE `userusedvouchers`
   ADD CONSTRAINT `userusedvouchers_ibfk_3` FOREIGN KEY (`ShopOrderID`) REFERENCES `shoporders` (`ShopOrderID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `vouchers`
+-- Ràng buộc cho bảng `vouchers`
 --
 ALTER TABLE `vouchers`
   ADD CONSTRAINT `vouchers_ibfk_1` FOREIGN KEY (`ShopID`) REFERENCES `shops` (`ShopID`) ON DELETE CASCADE ON UPDATE CASCADE;
