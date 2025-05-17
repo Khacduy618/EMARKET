@@ -1,0 +1,39 @@
+@host = http://localhost:8000/api
+@token = 1|3POSLpjjNbLQhYuvpgDz16Mhu2ZzKtrLZ8xKpvRB00eb197a
+
+
+### Đăng ký (Register)
+POST {{host}}/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Nguyen Van A",
+  "email": "nguyenvana@example.com",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
+
+###
+
+### Đăng nhập (Login)
+POST {{host}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "nguyenvana@example.com",
+  "password": "password123"
+}
+
+###
+
+### Lấy thông tin người dùng (Me)
+GET {{host}}/me
+Authorization: Bearer {{token}}
+
+###
+
+### Đăng xuất (Logout)
+POST {{host}}/logout
+Authorization: Bearer {{token}}

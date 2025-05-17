@@ -48,7 +48,6 @@ export default async function ProductsPage() {
     return (
         <div>
             <h1 className="text-2xl font-bold mb-4">Danh sách sản phẩm</h1>
-            <h2>Chúc ngủ ngon mơ đẹp đụ mẹ mày</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
