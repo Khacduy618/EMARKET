@@ -25,7 +25,7 @@ interface ProductData {
 
 async function fetchProducts(): Promise<Product[]> {
     try {
-        const apiUrl = 'http://backend:8000/api/v1/products';
+        const apiUrl = 'http://backend:8000/api/products';
         const response = await axios.get<ProductData[]>(apiUrl);
         const products: Product[] = response.data.map((data) => ({
             id: data.id,
@@ -48,7 +48,7 @@ export default async function ProductsPage() {
     return (
         <div>
             <h1 className="text-2xl font-bold mb-4">Danh sách sản phẩm</h1>
-            <h2>Chúc ngủ ngon mơ đẹp đụ mẹ mày</h2>
+            <h2>Chúc ngủ ngon</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
