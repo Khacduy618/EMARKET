@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 // Lấy API của Category Trả về dạng json theo CRUD 
@@ -14,3 +14,7 @@ Route::get('/Products' ,[ProductController::class , 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
 Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
+//API trả về giảm giá và % của product
+Route::get('/ProductFinalPrice', [ProductController::class, 'ProductFinalPrice']);
+// Laravel API – GET /api/products/best-selling
+Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);

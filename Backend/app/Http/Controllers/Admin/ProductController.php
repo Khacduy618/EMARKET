@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,11 +13,15 @@ class ProductController extends Controller
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
-    {
-        $products = Product::all();
+{
+    $products = DB::table('products')
+        ->leftJoin('productimages', 'products.ProductID', '=', 'productimages.ProductID')
+        ->select('products.*', 'productimages.ImageURL')
+        ->where('productimages.IsPrimary', 1)
+        ->get();
 
-        return response()->json($products);
-    }
+    return response()->json($products);
+}
     public function store(Request $request)
     {
         try {
@@ -143,5 +148,38 @@ public function destroy($id)
             'message' => 'Lỗi khi xóa sản phẩm: ' . $e->getMessage(),
         ], 500);
     }
-}  
+}
+public function ProductFinalPrice()
+{
+    $products = Product::where('discount', '>', 0)
+        ->get(['name','price', 'discount', 'AverageRating']);
+
+    return response()->json($products);
+}
+public function bestSelling()
+{
+    $products = DB::table('products')
+        ->leftJoin('productimages', function ($join) {
+            $join->on('products.ProductID', '=', 'productimages.ProductID')
+                 ->where('productimages.IsPrimary', '=', 1);
+        })
+        ->where('products.IsActive', 1)
+        ->where('products.AdminApprovalStatus', 'Approved')
+        ->orderByDesc('products.SoldCount')
+        ->limit(4)
+        ->select(
+            'products.ProductID',
+            'products.Name',
+            'products.Price',
+            'products.discount',
+            'products.AverageRating',
+            'products.SoldCount',
+            'products.ViewCount',
+            'productimages.ImageURL'
+        )
+        ->get();
+
+    return response()->json($products);
+}
+
 }

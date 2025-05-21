@@ -8,7 +8,7 @@ export default function BannerSlider() {
                     <button className="bg-white text-black px-4 py-2 rounded-md mt-2">Shop Now →</button>
                 </div>
                 <img src="https://genk.mediacdn.vn/139269124445442048/2020/6/6/2bf7d2554d50bdd42b91542ca59f0289-159145072518074589995.jpg"
-                    alt="iPhone" className="w-84 hover:w-96" />
+                    alt="iPhone" className="w-84 " />
             </div>
         </div>
     )

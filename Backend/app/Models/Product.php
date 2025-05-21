@@ -14,7 +14,12 @@ class Product extends Model
         'StockQuantity', 'IsActive', 'AdminApprovalStatus', 'ReasonForRejection',
         'AverageRating', 'ViewCount', 'SoldCount'
     ];
+    protected $appends = ['final_price'];
 
+    public function getFinalPriceAttribute()
+    {
+        return $this->price - ($this->price * ($this->discount / 100));
+    }
     public $timestamps = true;
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
