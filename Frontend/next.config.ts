@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 import type { Configuration as WebpackDevMiddlewareOptions } from 'webpack-dev-middleware';
 
 const nextConfig: NextConfig = {
+  images: {
+    domains: ['store.sony.com.vn', 'localhost'],
+  },
   webpackDevMiddleware: (config: WebpackDevMiddlewareOptions) => {
     config.watchOptions = {
       poll: 1000,
@@ -9,7 +12,6 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  
 };
 
 export default nextConfig;

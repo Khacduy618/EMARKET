@@ -8,7 +8,7 @@ export default function Layout() {
         <div>
             <Header />
             <SearchBar />
-            <div className="flex">
+            <div className="">
                 <NavMenu />
                 <BannerSlider />
             </div>

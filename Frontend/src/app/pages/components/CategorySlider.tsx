@@ -136,7 +136,7 @@ export default function CategorySlider() {
 
     useEffect(() => {
         axios
-            .get('http://localhost:8001/api/category')
+            .get('http://localhost:8001/api/categorySubMenu')
             .then((response) => {
                 const activeCategories = response.data.filter(
                     (cat: Category) => cat.IsActive
@@ -155,13 +155,12 @@ export default function CategorySlider() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6">
-            <div className="mb-4 flex items-center justify-between">
+        <div className="w-[1500px] mx-auto px-4 py-6">
+            <div className="mb-4 flex items-center justify-between ">
                 <div>
-                    <p className="text-red-500 text-sm font-semibold">Danh mục sản phẩm</p>
-                    <h2 className="text-xl font-bold">Khám phá theo danh mục</h2>
+                    <h2 className="text-3xl font-bold">Khám phá theo danh mục</h2>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 ">
                     <button
                         onClick={scrollLeft}
                         className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600"
@@ -185,13 +184,13 @@ export default function CategorySlider() {
                     {/* Nút "Tất cả danh mục" */}
                     <div
                         onClick={() => setActive(null)}
-                        className={`min-w-[110px] flex-shrink-0 border rounded-lg cursor-pointer flex flex-col items-center justify-center p-3 gap-1 transition-all
+                        className={`min-w-[110px] flex-shrink-0 rounded-lg  cursor-pointer flex flex-col items-center justify-center p-3 gap-1 transition-all
               ${active === null
-                                ? 'bg-red-500 text-white border-red-500'
+                                ? 'bg-blue-400 text-white border-blue-300'
                                 : 'hover:border-red-300 hover:bg-red-50'}
             `}
                     >
-                        <div className="w-10 h-10 flex items-center justify-center text-red-500">
+                        <div className="w-10 h-10 flex rounded-lg items-center justify-center text-red-500">
                             <FaListAlt size={20} className={active === null ? 'text-white' : 'text-red-500'} />
                         </div>
                         <p className="font-medium text-sm text-center">Tất cả</p>
@@ -202,10 +201,10 @@ export default function CategorySlider() {
                         <div
                             key={cat.CategoryID}
                             onClick={() => setActive(cat.CategoryID)}
-                            className={`min-w-[110px] flex-shrink-0 border rounded-lg cursor-pointer flex flex-col items-center justify-center p-3 gap-1 transition-all
+                            className={`min-w-[100px] w-[120px] h-[120px] border border-gray-400 rounded-lg flex-shrink-0  cursor-pointer flex flex-col items-center justify-center p-3 gap-1 transition-all
                 ${active === cat.CategoryID
-                                    ? 'bg-red-500 text-white border-red-500'
-                                    : 'hover:border-red-300 hover:bg-red-50'}
+                                    ? 'bg-blue-400 text-white border-blue-400'
+                                    : 'hover:bg-blue-300'}
               `}
                         >
                             <div className="w-10 h-10 flex items-center justify-center">
@@ -215,13 +214,13 @@ export default function CategorySlider() {
                                             ? cat.ImageURL
                                             : `http://localhost:8001${cat.ImageURL}`}
                                         alt={cat.Name}
-                                        className="max-w-full max-h-full object-contain"
+                                        className="max-w-full hover:scale-150 t-10 max-h-full object-contain"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-100 rounded-full"></div>
                                 )}
                             </div>
-                            <p className={`font-medium text-sm text-center ${active === cat.CategoryID ? 'text-white' : ''}`}>
+                            <p className={`font-medium text-sm  text-center ${active === cat.CategoryID ? 'text-white' : ''}`}>
                                 {cat.Name}
                             </p>
                         </div>
@@ -237,6 +236,12 @@ export default function CategorySlider() {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+                .swiper - button - next, .swiper - button - prev {color: #1f2937; background-color: rgba(255, 255, 255, 0.8); border-radius: 50%; width: 32px !important; height: 32px !important; top: 45% !important; }
+                .swiper-button-next::after, .swiper-button-prev::after {font - size: 14px !important; }
+                .swiper-button-next {right: 0px !important; } .swiper-button-prev {left: 0px !important; }
+                .line-clamp-2 {display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+                .no-scrollbar::-webkit-scrollbar {display: none; } .no-scrollbar {-ms - overflow - style: none; scrollbar-width: none; }
+           
       `}</style>
         </div>
     );
