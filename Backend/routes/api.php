@@ -28,3 +28,4 @@ Route::get('/flashSales', [ProductController::class, 'index']);
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
+Route::get('/banners', [BannerController::class, 'oki']);

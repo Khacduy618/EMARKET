@@ -33,7 +33,7 @@ class FlashSaleController extends Controller
         // Bạn có thể mở rộng danh sách này nếu muốn nhiều ngày hơn
         $datesToProcess = [
             $initialQueryDate->copy(),
-            // $initialQueryDate->copy()->addDay(), // Ngày tiếp theo
+            $initialQueryDate->copy()->addDay(), // Ngày tiếp theo
         ];
         // Nếu bạn chỉ muốn ngày được request và ngày tiếp theo, thì không cần addDay nếu dateInput đã có.
         // Hoặc, bạn có thể linh hoạt hơn, ví dụ: lấy N ngày kể từ initialQueryDate.
