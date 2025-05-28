@@ -88,21 +88,28 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
-public function destroy($id)
-{
-    $category = Category::find($id);
+    public function destroy($id)
+    {
+        $category = Category::find($id);
 
-    if (!$category) {
+        if (!$category) {
+            return response()->json([
+                'message' => 'Không tìm thấy danh mục với id: ' . $id,
+            ], 404);
+        }
+
+        $category->delete();
+
         return response()->json([
-            'message' => 'Không tìm thấy danh mục với id: ' . $id,
-        ], 404);
+            'message' => 'Xóa danh mục thành công!',
+        ]);
     }
 
-    $category->delete();
+    public function category_cha_con()
+    {
+        $categories = Category::with('children')->whereNull('ParentCategoryID')->get();
 
-    return response()->json([
-        'message' => 'Xóa danh mục thành công!',
-    ]);
-}
+        return response()->json($categories);
+    }
 
 }

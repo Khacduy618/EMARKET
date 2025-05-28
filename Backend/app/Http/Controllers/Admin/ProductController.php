@@ -149,13 +149,36 @@ public function destroy($id)
         ], 500);
     }
 }
+// public function ProductFinalPrice()
+// {
+//     $products = Product::where('discount', '>', 0)
+//         ->get(['name','price', 'discount','', 'AverageRating']);
+
+//     return response()->json($products);
+// }
 public function ProductFinalPrice()
 {
     $products = Product::where('discount', '>', 0)
-        ->get(['name','price', 'discount', 'AverageRating']);
+        ->with(['primaryImage'])
+        ->limit(11)
+        ->get(['ProductID', 'name', 'price', 'discount', 'AverageRating']);
 
-    return response()->json($products);
+
+    // Format dữ liệu trả về kèm ảnh
+    $productsWithImage = $products->map(function ($product) {
+        return [
+            'ProductID'=>$product->ProductID,
+            'name' => $product->name,
+            'price' => $product->price,
+            'discount' => $product->discount,
+            'AverageRating' => $product->AverageRating,
+            'ImageURL' => $product->primaryImage?->ImageURL ?? null, // sử dụng null-safe
+        ];
+    });
+
+    return response()->json($productsWithImage);
 }
+
 public function bestSelling()
 {
     $products = DB::table('products')
@@ -166,7 +189,7 @@ public function bestSelling()
         ->where('products.IsActive', 1)
         ->where('products.AdminApprovalStatus', 'Approved')
         ->orderByDesc('products.SoldCount')
-        ->limit(4)
+        ->limit(6)
         ->select(
             'products.ProductID',
             'products.Name',

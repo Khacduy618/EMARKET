@@ -14,6 +14,8 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    // 'timezone' => 'Asia/Ho_Chi_Minh',
+
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +124,7 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
 ];
