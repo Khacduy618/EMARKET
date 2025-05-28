@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
+use App\Http\Controllers\CartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 // Lấy API của Category Trả về dạng json theo CRUD 
@@ -28,3 +29,11 @@ Route::get('/flashSales', [ProductController::class, 'index']);
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
+
+// Cart routes
+Route::middleware('auth:api')->group(function () {
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
+    Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
+});

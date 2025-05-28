@@ -6,6 +6,7 @@ import BestSellingProducts from "./pages/components/BestSellingProducts";
 import HeroBanner from "./pages/components/banner";
 import ProductsCart from "./pages/components/ProductCard";
 import NewArrivalSection from "./pages/components/NewArrivalSection";
+import Footer from "./components/Footer";
 
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
       <HeroBanner />
       <ProductsCart />
       <NewArrivalSection />
+      <Footer />
     </div>
   );
 }

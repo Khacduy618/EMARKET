@@ -2,6 +2,7 @@
 import React from 'react';
 import ProductCard from './components/ProductCard';
 import axios from 'axios';
+import Layout from '../components/Layout'; // Import Layout
 
 interface Product {
     id: number;
@@ -25,7 +26,7 @@ interface ProductData {
 
 async function fetchProducts(): Promise<Product[]> {
     try {
-        const apiUrl = 'http://backend:8000/api/products';
+        const apiUrl = 'http://localhost:8001/api/Products';
         const response = await axios.get<ProductData[]>(apiUrl);
         const products: Product[] = response.data.map((data) => ({
             id: data.id,
@@ -46,7 +47,7 @@ export default async function ProductsPage() {
     const products = await fetchProducts();
 
     return (
-        <div>
+        <Layout> {/* Wrap content with Layout */}
             <h1 className="text-2xl font-bold mb-4">Danh sách sản phẩm</h1>
             <h2>Chúc ngủ ngon</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -54,6 +55,6 @@ export default async function ProductsPage() {
                     <ProductCard key={product.id} product={product} />
                 ))}
             </div>
-        </div>
+        </Layout> // Close Layout
     );
 }
