@@ -12,7 +12,7 @@ class Cart extends Model
     protected $primaryKey = 'CartID';
 
     protected $fillable = [
-        'UserID_Buyer',
+        'UserID',
     ];
 
     /**
@@ -28,6 +28,6 @@ class Cart extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'UserID_Buyer', 'UserID');
+        return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 }

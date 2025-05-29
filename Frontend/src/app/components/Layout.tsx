@@ -1,8 +1,7 @@
 import Header from './Header'
 import SearchBar from './SearchBar'
 import NavMenu from './NavMenu'
-import BannerSlider from './BannerSlider'
-import Footer from './Footer'
+import Footer from './Footer' // Assuming Footer should be part of the layout
 import React, { ReactNode } from 'react';
 
 
@@ -14,11 +13,15 @@ export default function Layout({ children }: LayoutProps) {
     return (
         <div>
             <Header />
-            <SearchBar />
-            <div className="">
-                <NavMenu />
-                <BannerSlider />
-            </div>
+            <main> {/* Wrap main content in <main> tag */}
+                <SearchBar />
+                <div className="">
+                    <NavMenu />
+                    
+                    {children} {/* Render the children prop here */}
+                </div>
+            </main>
+            <Footer />
         </div>
     )
 }

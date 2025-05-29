@@ -6,20 +6,21 @@ import BestSellingProducts from "./pages/components/BestSellingProducts";
 import HeroBanner from "./pages/components/banner";
 import ProductsCart from "./pages/components/ProductCard";
 import NewArrivalSection from "./pages/components/NewArrivalSection";
-import Footer from "./components/Footer";
+import BannerSlider from "./components/BannerSlider";
+// Footer is included in Layout, no need to import here
+// import Footer from "./components/Footer";
 
 
 export default function Home() {
   return (
-    <div>
-      <Layout />
+    <Layout>
+      <BannerSlider />
       <CategorySlider />
       <FlashSales />
       <BestSellingProducts />
       <HeroBanner />
       <ProductsCart />
       <NewArrivalSection />
-      <Footer />
-    </div>
+    </Layout> 
   );
 }

@@ -4,14 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon; // Import Carbon để xử lý ngày tháng
+use Carbon\Carbon;
 
 class Banner extends Model
 {
     use HasFactory;
 
-    protected $table = 'Banners'; // Tên bảng của bạn (chú ý chữ 'B' viết hoa nếu trong DB là vậy)
-    protected $primaryKey = 'BannerID'; // Khóa chính
+    protected $table = 'banners'; // Changed table name to lowercase
+    protected $primaryKey = 'BannerID';
 
     /**
      * The attributes that are mass assignable.

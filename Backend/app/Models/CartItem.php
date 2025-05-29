@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductVariant;
 
 class CartItem extends Model
 {
@@ -13,7 +14,7 @@ class CartItem extends Model
 
     protected $fillable = [
         'CartID',
-        'ProductID',
+        'VariantID',
         'ShopID',
         'Quantity',
     ];
@@ -27,11 +28,11 @@ class CartItem extends Model
     }
 
     /**
-     * Get the product associated with the cart item.
+     * Get the product variant associated with the cart item.
      */
-    public function product()
+    public function productVariant()
     {
-        return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
+        return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }
 
     /**

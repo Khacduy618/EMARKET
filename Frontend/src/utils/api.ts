@@ -20,10 +20,10 @@ const handleResponse = async (response: Response) => {
 };
 
 export const fetchCart = async (): Promise<Cart> => {
-    const token = getAuthToken();
+    // const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/cart`, {
         headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer `,
             'Content-Type': 'application/json',
         },
     });
@@ -55,8 +55,7 @@ export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
     return handleResponse(response);
 };
 
-// You might also need an addItem function
-/*
+
 export const addCartItem = async (productId: number, quantity: number, shopId: number): Promise<Cart> => {
     const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/cart/items`, {
@@ -69,4 +68,3 @@ export const addCartItem = async (productId: number, quantity: number, shopId: n
     });
     return handleResponse(response);
 };
-*/

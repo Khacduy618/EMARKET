@@ -4,6 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
+use App\Models\Product;
+use App\Models\ShopFollow;
+use App\Models\ReturnRequest;
+use App\Models\Voucher;
 
 class Shop extends Model
 {
@@ -12,54 +19,64 @@ class Shop extends Model
     protected $primaryKey = 'ShopID';
 
     protected $fillable = [
-        'UserID_Owner',
+        'UserID', // Changed from UserID_Owner
         'ShopName',
         'Description',
         'LogoURL',
         'CoverImageURL',
-        'ShopAddress',
+        'AddressStreet', // Updated address fields
+        'AddressWard',
+        'AddressDistrict',
+        'AddressCity',
         'ShopPhone',
-        'AverageRating',
+        'Level', // Added Level from schema
         'Status',
+    ];
+
+    protected $casts = [
+        // Add casts if needed, e.g., for Level enum
     ];
 
     /**
      * Get the user that owns the shop.
      */
-    public function owner()
+    public function user(): BelongsTo // Renamed owner to user
     {
-        return $this->belongsTo(User::class, 'UserID_Owner', 'UserID');
+        return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
     /**
      * Get the products for the shop.
      */
-    public function products()
+    public function products(): HasMany
     {
         return $this->hasMany(Product::class, 'ShopID', 'ShopID');
     }
 
     /**
-     * Get the shop orders for the shop.
-     */
-    public function shopOrders()
-    {
-        return $this->hasMany(ShopOrder::class, 'ShopID', 'ShopID');
-    }
-
-    /**
-     * Get the shop reviews for the shop.
-     */
-    public function shopReviews()
-    {
-        return $this->hasMany(ShopReview::class, 'ShopID', 'ShopID');
-    }
-
-    /**
      * Get the shop follows for the shop.
      */
-    public function shopFollows()
+    public function shopFollows(): HasMany
     {
         return $this->hasMany(ShopFollow::class, 'ShopID', 'ShopID');
     }
+
+    /**
+     * Get the return requests for the shop.
+     */
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class, 'ShopID', 'ShopID');
+    }
+
+    /**
+     * Get the vouchers created by the shop.
+     */
+    public function vouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class, 'ShopID', 'ShopID');
+    }
+
+    // Removed shopOrders and shopReviews relationships as they are not in the schema
+    // Removed AverageRating as it's not in the schema
 }

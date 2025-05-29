@@ -121,7 +121,7 @@ export default function BestSellingProducts() {
                         className="group bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200/80 hover:border-sky-300 flex flex-col transform hover:-translate-y-1"
                     >
                         {/* Product Image and Discount Badge Container */}
-                        <div className="relative p-3 sm:p-4 aspect-square"> {/* aspect-square để hình ảnh có không gian vuông */}
+                        <div className="relative w-full p-3 sm:p-4 aspect-square"> {/* aspect-square để hình ảnh có không gian vuông */}
                             {product.discountPercent > 0 && (
                                 <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full shadow-md">
                                     GIẢM {product.discountPercent.toFixed(0)}%

@@ -30,10 +30,9 @@ Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGro
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
 
-// Cart routes
-Route::middleware('auth:api')->group(function () {
+
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
-});
+
