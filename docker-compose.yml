@@ -274,9 +274,10 @@ services:
     ports:
       - "33061:3306" # Port 33061 trên host map vào port 3306 của container
     environment:
-      MYSQL_DATABASE: test_app       # Phải khớp với DB_DATABASE của backend
+      MYSQL_DATABASE: ecommerce       # Phải khớp với DB_DATABASE của backend
       MYSQL_ROOT_PASSWORD: ""        # Mật khẩu root rỗng
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Cho phép mật khẩu root rỗng
+      TZ: Asia/Ho_Chi_Minh 
     volumes:
       - ./ecommerce_db_data:/var/lib/mysql # Sử dụng named volume để persist data
     networks:

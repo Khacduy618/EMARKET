@@ -9,6 +9,16 @@ const nextConfig: NextConfig = {
     //   };
     //   return config;
     // },
+  images: {
+    domains: ['store.sony.com.vn', 'localhost'],
+  },
+  webpackDevMiddleware: (config: WebpackDevMiddlewareOptions) => {
+    config.watchOptions = {
+      poll: 1000,
+      aggregateTimeout: 300,
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
