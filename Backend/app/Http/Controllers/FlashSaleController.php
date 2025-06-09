@@ -25,8 +25,8 @@ class FlashSaleController extends Controller
             ['start' => 7,  'end' => 9],
             ['start' => 9,  'end' => 12],
             ['start' => 12,  'end' => 13],
-            ['start' => 13, 'end' => 15],
-            ['start' => 21, 'end' => 22],
+            ['start' => 16, 'end' => 17],
+            ['start' => 19, 'end' => 20],
         ];
 
         // Danh sách các ngày chúng ta muốn xử lý (ví dụ: ngày hiện tại và ngày mai)
@@ -48,11 +48,16 @@ class FlashSaleController extends Controller
             ->leftJoin('ProductImages as pi', function ($join) {
                 $join->on('p.ProductID', '=', 'pi.ProductID')
                      ->where('pi.IsPrimary', '=', 1);
+                
+            })
+            ->leftJoin('ProductVariants as oki', function ($join) {
+                $join->on('p.ProductID', '=', 'oki.ProductID');
+                
             })
             ->select(
                 'fs.FlashSaleID', 'fs.UserID', 'u.UserName', 'p.ProductID',
-                'p.Name as ProductName', 'p.Price as OriginalPrice',
-                'efs.Discount', 'efs.Quantity', 'fs.StartTime', 'fs.EndTime',
+                'p.Name as ProductName',
+                'efs.Discount', 'efs.Quantity','oki.Price', 'fs.StartTime', 'fs.EndTime',
                 'pi.ImageURL as ProductImage'
             )
             ->orderBy('fs.StartTime', 'ASC');

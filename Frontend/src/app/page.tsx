@@ -1,23 +1,21 @@
 import Image from "next/image";
-import Layout from "./components/Layout";
-import FlashSales from "./pages/components/FlashSales";
-import CategorySlider from "./pages/components/CategorySlider";
-import BestSellingProducts from "./pages/components/BestSellingProducts";
-import HeroBanner from "./pages/components/banner";
-import ProductsCart from "./pages/components/ProductCard";
-import NewArrivalSection from "./pages/components/NewArrivalSection";
+import CategorySlider from "./components/home/CategorySlider";
+import FlashSaleSection from "./components/home/FlashSales";
+import BestSellingProducts from "./components/home/BestSellingProducts";
+import HeroBannerSlider from "./components/home/banner";
+import ProductsCart from "./components/home/ProductCard";
+import NewArrivalsSection from "./components/home/NewArrivalSection";
 
 
 export default function Home() {
   return (
-    <div>
-      <Layout />
+    <>
       <CategorySlider />
-      <FlashSales />
+      <FlashSaleSection />
       <BestSellingProducts />
-      <HeroBanner />
+      <HeroBannerSlider />
       <ProductsCart />
-      <NewArrivalSection />
-    </div>
+      <NewArrivalsSection />
+    </>
   );
 }

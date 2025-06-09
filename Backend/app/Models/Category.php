@@ -27,8 +27,5 @@ class Category extends Model
     {
         return $this->belongsTo(Category::class, 'ParentCategoryID');
     }
-    public function primaryImage()
-    {
-        return $this->hasOne(ProductImage::class, 'ProductID', 'ProductID ')->where('IsPrimary', 1);
-    }
+   
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
 use Illuminate\Http\Request;
@@ -28,4 +29,5 @@ Route::get('/flashSales', [ProductController::class, 'index']);
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
-Route::get('/banners', [BannerController::class, 'oki']);
+//router cho sản phẩm mới nhất
+Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
