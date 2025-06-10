@@ -13,7 +13,7 @@ export default function SearchBar() {
             <div className="flex space-x-4 text-xl">
                 <FiSearch />
                 <FiHeart />
-                <FiShoppingCart />
+                <a href="/cart"><FiShoppingCart /></a>
             </div>
         </div>
     )

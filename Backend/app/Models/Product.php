@@ -4,10 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Shop;
+use App\Models\Category;
+use App\Models\ProductVariant;
+use App\Models\ProductImage;
+use App\Models\ProductReview;
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -249,5 +255,28 @@ class Product extends Model
         // Bạn có thể thêm các logic khác để tạo tags ở đây (ví dụ: "BÁN CHẠY", "NỔI BẬT" dựa trên các cột khác)
 
         return $tags;
+    }
+
+    /**
+     * Get the shop that owns the product.
+     */
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'ShopID', 'ShopID');
+    }
+
+    /**
+     * Get the category that the product belongs to.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'CategoryID', 'CategoryID');
+    }
+    /**
+     * Get the reviews for the product.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
 }

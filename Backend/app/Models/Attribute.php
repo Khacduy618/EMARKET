@@ -9,13 +9,17 @@ class Attribute extends Model
 {
     use HasFactory;
 
-    protected $table = 'attributes'; // Tên bảng giả định
     protected $primaryKey = 'AttributeID';
-    public $timestamps = false; // Giả sử
 
-    protected $fillable = ['Name'];
+    protected $fillable = [
+        // Add fillable fields here if needed
+        // e.g., 'name', 'type', etc.
+    ];
 
-    public function values()
+    /**
+     * Get the attribute values for the attribute.
+     */
+    public function attributeValues()
     {
         return $this->hasMany(AttributeValue::class, 'AttributeID', 'AttributeID');
     }

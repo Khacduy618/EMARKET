@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="bg-white">
+        <div className="bg-white dark:bg-gray-100 text-black">
           <Header />
           <main> {/* Wrap main content in <main> tag */}
             <SearchBar />

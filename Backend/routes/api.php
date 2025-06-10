@@ -7,6 +7,9 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
+
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -31,3 +34,22 @@ Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGro
 Route::get('/banners', [BannerController::class, 'index']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
+
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function (){
+    // Auth routes already defined above, removing duplicates
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Cart routes - require authentication
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
+    Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
+});
