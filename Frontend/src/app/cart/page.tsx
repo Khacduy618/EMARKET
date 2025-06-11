@@ -13,7 +13,7 @@ const CartPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [openDropdownItemId, setOpenDropdownItemId] = useState<number | null>(null);
     const [attributeOptions, setAttributeOptions] = useState<{ [key: string]: any } | null>(null);
-    // Removed selectedAttributes state as it's now managed within the dropdown
+    const [selectedAttributes, setSelectedAttributes] = useState<{ [key: string]: number[] }>({});
 
     useEffect(() => {
         const authToken = localStorage.getItem('authToken');
@@ -100,7 +100,7 @@ const CartPage: React.FC = () => {
                 {/* Cart Items List */}
                 <div className="mb-6">
                     {/* Table Header */}
-                    <div className="bg-white shadow-box mt-4 mb-4 grid grid-cols-12 text-gray-500 text-xs uppercase px-4 py-4">
+                    <div className="bg-white shadow-box mt-4 mb-4 grid grid-cols-12 rounded-sm text-gray-500 text-xs uppercase px-4 py-4">
                         <div className="col-span-4 flex items-center gap-2">
                             <input type="checkbox" className="form-checkbox text-red-500 rounded" />
                             Sản Phẩm
@@ -156,7 +156,7 @@ const CartPage: React.FC = () => {
                                                                         setError("Failed to load attribute options.");
                                                                     }
                                                                 }
-                                                                setOpenDropdownItemId(item.CartItemID);
+                                                                 setOpenDropdownItemId(item.CartItemID);
                                                             }}
                                                         >
                                                             <div className="flex flex-col items-center">
@@ -177,7 +177,11 @@ const CartPage: React.FC = () => {
                                                     productId={item.productVariant?.ProductID || 0}
                                                     attributeOptions={attributeOptions}
                                                     onAttributeSelected={(selectedAttributes) => {
+                                                        console.log("Selected attributes:", selectedAttributes);
                                                         // Implement logic to update the cart based on selectedAttributes
+                                                        // You'll need an API endpoint to update the cart item with the selected attributes
+                                                        // For example:
+                                                        // updateCartItemAttributes(item.CartItemID, selectedAttributes);
                                                     }}
                                                     onClose={() => setOpenDropdownItemId(null)}
                                                 />
@@ -268,12 +272,14 @@ const CartPage: React.FC = () => {
                 </div> */}
 
                 {/* Sticky Footer */}
-                <div className="sticky bottom-0 left-0 right-0 bg-white shadow-md z-10">
+                <div className="sticky bottom-0 left-0 right-0 bg-white shadow-md z-10 flex flex-col">
+                    <div className="w-full flex flex-row border-b"><a href="" className="w-50 text-red ms-auto  py-2">Thêm mã giảm giá</a></div>
                     <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" className="form-checkbox text-red-500 rounded" />
                                 <span className="text-sm text-gray-800">Chọn Tất Cả ({cart.cartItems.length})</span>
+                                
                             </div>
                             <button className="text-gray-600 hover:text-gray-800 text-sm">Xóa</button>
                             <button className="text-blue-500 hover:underline text-sm">Lưu vào mục Đã thích</button>

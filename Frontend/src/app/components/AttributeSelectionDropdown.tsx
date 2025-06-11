@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface AttributeSelectionDropdownProps {
     productId: number;
@@ -13,8 +13,24 @@ const AttributeSelectionDropdown: React.FC<AttributeSelectionDropdownProps> = ({
     onAttributeSelected,
     onClose,
 }) => {
+    const [selectedAttributes, setSelectedAttributes] = useState<{ [key: string]: number[] }>({});
+
     const handleAttributeClick = (attributeName: string, attributeValueId: number) => {
-        onAttributeSelected({ [attributeName]: [attributeValueId] });
+        setSelectedAttributes(prevSelectedAttributes => {
+            const newSelectedAttributes = { ...prevSelectedAttributes };
+            if (newSelectedAttributes[attributeName]) {
+                // If the attribute is already selected, toggle it off
+                if (newSelectedAttributes[attributeName]?.includes(attributeValueId)) {
+                    newSelectedAttributes[attributeName] = newSelectedAttributes[attributeName].filter(id => id !== attributeValueId);
+                } else {
+                    newSelectedAttributes[attributeName] = [attributeValueId];
+                }
+            } else {
+                newSelectedAttributes[attributeName] = [attributeValueId];
+            }
+            onAttributeSelected(newSelectedAttributes);
+            return newSelectedAttributes;
+        });
     };
 
     return (
@@ -26,15 +42,21 @@ const AttributeSelectionDropdown: React.FC<AttributeSelectionDropdownProps> = ({
                         <div key={attributeName} className="mb-2">
                             <span className="font-semibold text-sm text-gray-700">{attributeName}:</span>
                             <div className="flex flex-wrap gap-2 mt-1">
-                                {attributeValues.map((attrValue: any) => (
-                                    <button
-                                        key={attrValue.AttributeValueID}
-                                        className="px-4 py-2 border rounded-sm text-sm border-red-500 text-red-500" // Indicate selected
-                                        onClick={() => handleAttributeClick(attributeName, attrValue.AttributeValueID)}
-                                    >
-                                        {attrValue.Value}
-                                    </button>
-                                ))}
+                                {attributeValues.map((attrValue: any) => {
+                                    const isSelected = selectedAttributes[attributeName]?.includes(attrValue.AttributeValueID);
+                                    return (
+                                        <button
+                                            key={attrValue.AttributeValueID}
+                                            className={`px-4 py-2 border rounded-sm text-sm ${isSelected ? 'bg-red-500 text-white' : 'border-red-500 text-red-500'}`}
+                                            onClick={() => handleAttributeClick(attributeName, attrValue.AttributeValueID)}
+                                        >
+                                            {attrValue.Value}
+                                            {isSelected && (
+                                                <span className="ml-1">&#10004;</span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}

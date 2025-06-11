@@ -23,8 +23,7 @@ class FlashSaleController extends Controller
         // Định nghĩa các khung giờ trong một ngày.
         $slotsDefinition = [
             ['start' => 7,  'end' => 9],
-            ['start' => 9,  'end' => 12],
-            ['start' => 12,  'end' => 13],
+            ['start' => 11,  'end' => 12],
             ['start' => 16, 'end' => 17],
             ['start' => 19, 'end' => 20],
         ];
@@ -33,7 +32,7 @@ class FlashSaleController extends Controller
         // Bạn có thể mở rộng danh sách này nếu muốn nhiều ngày hơn
         $datesToProcess = [
             $initialQueryDate->copy(),
-            $initialQueryDate->copy()->addDay(), // Ngày tiếp theo
+            // $initialQueryDate->copy()->addDay(), // Ngày tiếp theo
         ];
         // Nếu bạn chỉ muốn ngày được request và ngày tiếp theo, thì không cần addDay nếu dateInput đã có.
         // Hoặc, bạn có thể linh hoạt hơn, ví dụ: lấy N ngày kể từ initialQueryDate.
