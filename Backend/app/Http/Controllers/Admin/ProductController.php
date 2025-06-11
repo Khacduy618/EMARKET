@@ -273,7 +273,7 @@ public function ProductFinalPrice()
             // CHỈNH SỬA Ở ĐÂY: Sắp xếp theo Discount giảm dần
             ->orderByDesc('p.Discount')
             ->orderByDesc('p.CreatedAt')
-            ->limit(8)
+            ->limit(6)
             ->select(
                 'p.ProductID',
                 'p.Name as ProductName',
@@ -327,4 +327,5 @@ public function ProductFinalPrice()
     
         return response()->json($processedProducts);
     }
+    
 }

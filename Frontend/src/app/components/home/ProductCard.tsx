@@ -1,212 +1,349 @@
-// 
-// ProductsCart.tsx
+// 'use client';
+// import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
+// import Link from 'next/link';
+
+// // Interfaces (giữ nguyên)
+// interface ApiProduct {
+//     ProductID: number;
+//     name: string;
+//     product_discount: number | null;
+//     average_rating: number | null;
+//     primary_image_url: string | null;
+//     variant_price: number | null;
+//     final_price: number | null;
+//     variant_specific_image_url: string | null;
+//     sold_count_per_month?: number;
+// }
+
+// interface ProcessedProduct {
+//     ProductID: number;
+//     name: string;
+//     ImageURL: string | null;
+//     originalPrice: number;
+//     finalPrice: number;
+//     discountPercent: number;
+//     soldCountDisplay: string;
+// }
+
+// export default function BestSellingProducts() {
+//     const [products, setProducts] = useState<ProcessedProduct[]>([]);
+//     const [loading, setLoading] = useState<boolean>(true);
+
+//     useEffect(() => {
+//         async function fetchProducts() {
+//             setLoading(true);
+//             try {
+//                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/ProductFinalPrice');
+//                 const apiProducts: ApiProduct[] = response.data;
+
+//                 const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
+//                     if (apiProd.final_price === null || apiProd.variant_price === null) return null;
+
+//                     const originalPriceNum = apiProd.variant_price;
+//                     const finalPriceNum = apiProd.final_price;
+//                     const discountPercentNum = originalPriceNum > 0 ? ((originalPriceNum - finalPriceNum) / originalPriceNum) * 100 : 0;
+
+//                     const soldCount = apiProd.sold_count_per_month ?? (Math.floor(Math.random() * 5000) + 50);
+//                     let soldCountDisplay = '';
+//                     if (soldCount > 1000) {
+//                         soldCountDisplay = `Đã bán ${(soldCount / 1000).toFixed(1)}k`.replace('.0', '');
+//                     } else if (soldCount > 0) {
+//                         soldCountDisplay = `Đã bán ${soldCount}`;
+//                     }
+
+//                     const imageUrl = apiProd.primary_image_url || apiProd.variant_specific_image_url;
+
+//                     return {
+//                         ProductID: Number(apiProd.ProductID),
+//                         name: apiProd.name,
+//                         ImageURL: imageUrl,
+//                         originalPrice: originalPriceNum,
+//                         finalPrice: finalPriceNum,
+//                         discountPercent: discountPercentNum,
+//                         soldCountDisplay: soldCountDisplay,
+//                     };
+//                 }).filter(Boolean) as ProcessedProduct[];
+
+//                 setProducts(processedData);
+//             } catch (error) {
+//                 console.error('Error fetching products:', error);
+//                 setProducts([]);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         }
+//         fetchProducts();
+//     }, []);
+
+//     const formatCurrency = (amount: number) => {
+//         // Trả về số không có ký hiệu tiền tệ để giống Shopee
+//         return new Intl.NumberFormat('vi-VN').format(amount);
+//     };
+
+//     if (loading) {
+//         return (
+//             <section className="py-6 bg-orange-50">
+//                 <div className="max-w-[1500px] mx-auto px-4">
+//                     <div className="text-center text-gray-500">Đang tải gợi ý...</div>
+//                 </div>
+//             </section>
+//         );
+//     }
+
+//     if (products.length === 0) return null;
+
+//     return (
+//         <section className="py-4 sm:py-6 bg-orange-50">
+//             <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+//                 {/* Header Section */}
+//                 <div className="mb-3 p-3 bg-white border-b-4 border-orange-500 text-center">
+//                     <h2 className="text-base sm:text-lg font-bold text-orange-500 uppercase">
+//                         GỢI Ý HÔM NAY
+//                     </h2>
+//                 </div>
+
+//                 {/* Product Grid */}
+//                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5">
+//                     {products.map((product) => (
+//                         <div
+//                             key={product.ProductID}
+//                             className="group bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-transparent hover:border-orange-500 flex flex-col transform hover:-translate-y-1"
+//                         >
+//                             <Link href="#" className="flex flex-col h-full">
+//                                 <div className="relative w-full aspect-square overflow-hidden">
+//                                     <img
+//                                         src={product.ImageURL || 'https://via.placeholder.com/200x200/F0F0F0/AAAAAA?text=No+Image'}
+//                                         alt={product.name}
+//                                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+//                                         loading="lazy"
+//                                     />
+//                                     {/* Yêu Thích+ Badge */}
+//                                     <div className="absolute top-2 left-0 bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-r-sm z-10">
+//                                         Yêu thích+
+//                                     </div>
+
+//                                     {/* Discount Badge */}
+//                                     {product.discountPercent > 1 && (
+//                                         <div className="absolute top-0 right-0 w-9 h-8 bg-yellow-400 text-center z-10 clip-discount-badge">
+//                                             <span className="block text-red-600 font-bold text-xs leading-tight mt-0.5">{product.discountPercent.toFixed(0)}%</span>
+//                                             <span className="block text-white font-bold text-[9px] leading-tight -mt-0.5">GIẢM</span>
+//                                         </div>
+//                                     )}
+//                                 </div>
+
+//                                 <div className="p-2 flex flex-col flex-grow">
+//                                     <Link href={`/productdetail/${product.ProductID}`}>
+//                                         <h3
+//                                             className="text-xs sm:text-sm font-normal text-gray-800 mb-2 h-8 leading-tight line-clamp-2"
+//                                             title={product.name}
+//                                         >
+//                                             {product.name}
+//                                         </h3>
+//                                     </Link>
+
+//                                     <div className="mt-auto flex items-center justify-between">
+//                                         <div className="flex items-baseline">
+//                                             <span className="text-orange-500 text-xs">₫</span>
+//                                             <span className="text-orange-500 font-semibold text-sm sm:text-base">
+//                                                 {formatCurrency(product.finalPrice)}
+//                                             </span>
+//                                         </div>
+//                                         <span className="text-gray-500 text-[10px] sm:text-xs">
+//                                             {product.soldCountDisplay}
+//                                         </span>
+//                                     </div>
+//                                 </div>
+//                             </Link>
+//                         </div>
+//                     ))}
+//                 </div>
+
+//                 {/* Load More Button */}
+//                 <div className="flex justify-center mt-6">
+//                     <button className="px-10 py-2 bg-white text-gray-700 border border-gray-300 rounded-sm shadow-sm hover:bg-gray-50 transition-colors">
+//                         Xem thêm
+//                     </button>
+//                 </div>
+//             </div>
+//             <style jsx>{`
+//                 .line-clamp-2 {
+//                     display: -webkit-box;
+//                     -webkit-line-clamp: 2;
+//                     -webkit-box-orient: vertical;
+//                     overflow: hidden;
+//                 }
+//                 .clip-discount-badge {
+//                     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+//                 }
+//             `}</style>
+//         </section>
+//     );
+// }
 'use client';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Link from 'next/link';
 
-// Interface khớp với JSON từ API /best-selling
-interface Product {
+// Interfaces (giữ nguyên)
+interface ApiProduct {
     ProductID: number;
-    ProductName: string;          // Từ JSON
-    ProductDescription?: string;  // Từ JSON (tùy chọn)
-    ProductLevelDiscount: number; // Từ JSON
-    Price: number;                // Giá biến thể thấp nhất từ JSON
-    CompareAtPrice?: number | null; // Giá gốc trước giảm giá từ JSON
-    SKU?: string;                 // Từ JSON (tùy chọn)
-    StockQuantity?: number;       // Từ JSON (tùy chọn)
-    ImageURL?: string | null;     // Từ JSON
-    FinalPrice: number;           // Giá cuối cùng sau khi áp dụng ProductLevelDiscount (đã tính ở backend hoặc client)
+    name: string;
+    product_discount: number | null;
+    primary_image_url: string | null;
+    variant_price: number | null;
+    final_price: number | null;
+    variant_specific_image_url: string | null;
+    sold_count_per_month?: number;
 }
 
-export default function ProductsCart() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null); // Thêm state cho lỗi
+interface ProcessedProduct {
+    ProductID: number;
+    name: string;
+    ImageURL: string | null;
+    finalPrice: number;
+    discountPercent: number;
+    soldCountDisplay: string;
+}
+
+export default function BestSellingProducts() {
+    const [products, setProducts] = useState<ProcessedProduct[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        setLoading(true);
-        setError(null); // Reset lỗi mỗi khi fetch
-        axios.get<Product[]>('http://localhost:8001/api/products/best-selling') // Sử dụng đúng API endpoint và kiểu dữ liệu trả về
-            .then(res => {
-                // API trả về trực tiếp mảng sản phẩm
-                // Backend đã tính FinalPrice, chúng ta chỉ cần đảm bảo nó là số
-                const fetchedProducts = res.data.map(p => ({
-                    ...p,
-                    Price: Number(p.Price),
-                    FinalPrice: Number(p.FinalPrice), // Đảm bảo FinalPrice là số
-                    ProductLevelDiscount: Number(p.ProductLevelDiscount),
-                    CompareAtPrice: p.CompareAtPrice ? Number(p.CompareAtPrice) : null,
-                }));
-                setProducts(fetchedProducts);
-            })
-            .catch(err => {
-                console.error('API error:', err);
-                let errorMessage = "Không thể tải danh sách sản phẩm nổi bật.";
-                if (axios.isAxiosError(err) && err.response) {
-                    errorMessage += ` (Lỗi: ${err.response.status} ${err.response.statusText || ''})`;
-                } else if (err instanceof Error) {
-                    errorMessage += ` (${err.message})`;
-                }
-                setError(errorMessage);
+        async function fetchProducts() {
+            setLoading(true);
+            try {
+                const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/ProductFinalPrice');
+                const apiProducts: ApiProduct[] = response.data;
+
+                const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
+                    if (apiProd.final_price === null || apiProd.variant_price === null) return null;
+
+                    const originalPriceNum = apiProd.variant_price;
+                    const finalPriceNum = apiProd.final_price;
+                    const discountPercentNum = originalPriceNum > 0 ? ((originalPriceNum - finalPriceNum) / originalPriceNum) * 100 : 0;
+
+                    const soldCount = apiProd.sold_count_per_month ?? (Math.floor(Math.random() * 5000) + 50);
+                    let soldCountDisplay = '';
+                    if (soldCount > 1000) {
+                        soldCountDisplay = `Đã bán ${(soldCount / 1000).toFixed(1)}k`.replace('.0', '');
+                    } else if (soldCount > 0) {
+                        soldCountDisplay = `Đã bán ${soldCount}`;
+                    }
+
+                    const imageUrl = apiProd.primary_image_url || apiProd.variant_specific_image_url;
+
+                    return {
+                        ProductID: Number(apiProd.ProductID),
+                        name: apiProd.name,
+                        ImageURL: imageUrl ?? null,
+                        finalPrice: finalPriceNum,
+                        discountPercent: discountPercentNum,
+                        soldCountDisplay: soldCountDisplay,
+                    };
+                }).filter(Boolean) as ProcessedProduct[];
+
+                setProducts(processedData);
+            } catch (error) {
+                console.error('Error fetching products:', error);
                 setProducts([]);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        }
+        fetchProducts();
     }, []);
 
-    const addToCart = (productId: number) => {
-        console.log(`Added product ${productId} to cart`);
-        // Implement your cart logic here
-    };
-
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        return new Intl.NumberFormat('vi-VN').format(amount);
     };
 
-    if (loading) {
-        return (
-            <section className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[500px] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto"></div>
-                    <p className="mt-4 text-sky-600 font-semibold">Đang tải sản phẩm nổi bật...</p>
-                </div>
-            </section>
-        );
-    }
-
-    if (error) {
-        return (
-            <section className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[500px] flex flex-col items-center justify-center text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                </svg>
-                <p className="text-red-600 font-semibold text-xl mb-2">Lỗi tải dữ liệu</p>
-                <p className="text-slate-700">{error}</p>
-                <button
-                    onClick={() => { /* Logic để thử lại, ví dụ gọi lại useEffect */ setLoading(true); setError(null); /* ... trigger fetch ... */ }}
-                    className="mt-6 bg-sky-500 text-white py-2 px-6 rounded-lg hover:bg-sky-600 transition-colors"
-                >
-                    Thử lại
-                </button>
-            </section>
-        );
-    }
-
+    if (loading) return null; // Hoặc một skeleton loader
+    if (products.length === 0) return null;
 
     return (
-        <section className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-slate-50">
-            <div className="text-center mb-12">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                    <div className="w-2 h-5 bg-sky-500 rounded-sm"></div>
-                    <h2 className="text-base font-semibold text-sky-600 uppercase tracking-wider">SẢN PHẨM NỔI BẬT</h2>
+        <section className="py-4 sm:py-6 bg-orange-50">
+            <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
+                {/* Header Section */}
+                <div className="mb-3 p-3 bg-white border-b-4 border-orange-500 text-center">
+                    <h2 className="text-base sm:text-lg font-bold text-orange-500 uppercase">
+                        GỢI Ý HÔM NAY
+                    </h2>
                 </div>
-                <h1 className="text-3xl font-bold text-slate-800 mb-2">KHÁM PHÁ SẢN PHẨM</h1>
-                <div className="w-20 h-1 bg-sky-500 mx-auto"></div>
-            </div>
 
-            {products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
-                    {products.map(product => {
-                        // Dữ liệu từ API /best-selling đã cung cấp Price (giá biến thể)
-                        // và FinalPrice (giá sau ProductLevelDiscount, nếu có)
-                        // ProductLevelDiscount là % giảm giá ở cấp sản phẩm
-                        const displayPrice = product.FinalPrice; // Giá cuối cùng để hiển thị
-                        const originalPriceToShow = product.CompareAtPrice && product.CompareAtPrice > displayPrice
-                            ? product.CompareAtPrice
-                            : (product.Price > displayPrice ? product.Price : null);
-
-
-                        return (
-                            <div
-                                key={product.ProductID}
-                                className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 flex flex-col shadow-lg hover:shadow-xl transition-all duration-300 group transform hover:-translate-y-1"
-                            >
-                                <div className="relative w-full aspect-square mb-3 overflow-hidden rounded-md">
-                                    {product.ProductLevelDiscount > 0 && ( // Chỉ hiển thị nếu có giảm giá ở cấp sản phẩm
-                                        <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow-md z-10">
-                                            -{product.ProductLevelDiscount.toFixed(0)}%
-                                        </div>
-                                    )}
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={
-                                            product.ImageURL
-                                                ? product.ImageURL.startsWith('http')
-                                                    ? product.ImageURL
-                                                    : `http://localhost:8001${product.ImageURL.startsWith('/') ? '' : '/'}${product.ImageURL}`
-                                                : 'https://via.placeholder.com/300x300/F0F0F0/AAAAAA?text=No+Image'
-                                        }
-                                        alt={product.ProductName}
-                                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                                        loading="lazy" // Lazy loading cho các ảnh không ở màn hình đầu
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300/F0F0F0/AAAAAA?text=Image+Error';
-                                        }}
-                                    />
+                {/* Product Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5">
+                    {products.map((product) => (
+                        // ===============================================
+                        // SỬA LỖI Ở ĐÂY: DÙNG MỘT LINK DUY NHẤT BỌC TẤT CẢ
+                        // ===============================================
+                        <Link
+                            href={`/productdetail/${product.ProductID}`}
+                            key={product.ProductID}
+                            className="group bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-transparent hover:border-orange-500 flex flex-col transform hover:-translate-y-1"
+                        >
+                            {/* Phần ảnh sản phẩm */}
+                            <div className="relative w-full aspect-square overflow-hidden">
+                                <img
+                                    src={product.ImageURL || 'https://via.placeholder.com/200x200/F0F0F0/AAAAAA?text=No+Image'}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    loading="lazy"
+                                />
+                                <div className="absolute top-2 left-0 bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-r-sm z-10">
+                                    Yêu thích+
                                 </div>
-
-                                <div className="flex flex-col flex-grow mt-1">
-                                    <h3
-                                        className="text-sm font-semibold text-slate-800 mb-1.5 h-10 leading-tight group-hover:text-sky-600 transition-colors"
-                                        style={{
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                        }}
-                                        title={product.ProductName}
-                                    >
-                                        {product.ProductName}
-                                    </h3>
-
-                                    <div className="mt-auto pt-1">
-                                        <div className="mb-2 min-h-[24px]"> {/* Đảm bảo chiều cao tối thiểu cho giá */}
-                                            <span className="text-sky-600 font-bold text-base sm:text-lg">
-                                                {formatCurrency(displayPrice)}
-                                            </span>
-                                            {originalPriceToShow && (
-                                                <span className="text-slate-400 text-xs sm:text-sm line-through ml-2">
-                                                    {formatCurrency(originalPriceToShow)}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Hiện không có Rating, SoldCount, ViewCount từ API này */}
-                                        {/* <div className="flex items-center justify-between text-xs text-slate-500 mb-3"> ... </div> */}
-
-                                        <button
-                                            onClick={() => addToCart(product.ProductID)}
-                                            className="w-full bg-sky-500 text-white py-2.5 px-4 rounded-lg hover:bg-sky-600 transition-colors duration-300 font-semibold text-sm shadow-md hover:shadow-lg transform group-hover:scale-105"
-                                        >
-                                            Thêm vào giỏ
-                                        </button>
+                                {product.discountPercent > 1 && (
+                                    <div className="absolute top-0 right-0 w-9 h-8 bg-yellow-400 text-center z-10 clip-discount-badge">
+                                        <span className="block text-red-600 font-bold text-xs leading-tight mt-0.5">{product.discountPercent.toFixed(0)}%</span>
+                                        <span className="block text-white font-bold text-[9px] leading-tight -mt-0.5">GIẢM</span>
                                     </div>
+                                )}
+                            </div>
+
+                            {/* Phần thông tin sản phẩm */}
+                            <div className="p-2 flex flex-col flex-grow">
+                                <h3
+                                    className="text-xs sm:text-sm font-normal text-gray-800 mb-2 h-8 leading-tight line-clamp-2"
+                                    title={product.name}
+                                >
+                                    {product.name}
+                                </h3>
+                                <div className="mt-auto flex items-center justify-between">
+                                    <div className="flex items-baseline">
+                                        <span className="text-orange-500 text-xs">₫</span>
+                                        <span className="text-orange-500 font-semibold text-sm sm:text-base">
+                                            {formatCurrency(product.finalPrice)}
+                                        </span>
+                                    </div>
+                                    <span className="text-gray-500 text-[10px] sm:text-xs">
+                                        {product.soldCountDisplay}
+                                    </span>
                                 </div>
                             </div>
-                        );
-                    })}
+                        </Link>
+                    ))}
                 </div>
-            ) : (
-                !loading && ( // Chỉ hiển thị "Không tìm thấy" nếu không loading và không có lỗi
-                    <div className="text-center py-16">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-slate-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                        </svg>
-                        <p className="text-slate-500 text-xl font-semibold">Không tìm thấy sản phẩm nào.</p>
-                        <p className="text-slate-400 mt-1">Vui lòng thử lại hoặc kiểm tra các danh mục khác.</p>
-                    </div>
-                )
-            )}
 
-            {products.length > 0 && (
-                <div className="flex justify-center mt-12 sm:mt-16">
-                    <button className="bg-white text-sky-600 border-2 border-sky-600 px-8 py-3 rounded-lg hover:bg-sky-600 hover:text-white transition-all duration-300 font-bold text-sm sm:text-base shadow-sm hover:shadow-md">
-                        XEM TẤT CẢ SẢN PHẨM
+                {/* Load More Button */}
+                <div className="flex justify-center mt-6">
+                    <button className="px-10 py-2 bg-white text-gray-700 border border-gray-300 rounded-sm shadow-sm hover:bg-gray-50 transition-colors">
+                        Xem thêm
                     </button>
                 </div>
-            )}
+            </div>
+            <style jsx>{`
+                .line-clamp-2 {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                .clip-discount-badge {
+                    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+                }
+            `}</style>
         </section>
     );
 }

@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
+use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -27,13 +29,17 @@ Route::get('/ProductFinalPrice', [ProductController::class, 'ProductFinalPrice']
 // Laravel API – GET /api/products/best-selling
 Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
 //flash sale 
-Route::get('/flashSales', [ProductController::class, 'index']);
+// Route::get('/flashSales', [ProductController::class, 'index']);
 /////////////////////////////
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
+Route::get('/products/{productId}', [ProductDetailController::class, 'show']);
+// router tìm kiếm lọc sản phẩm 
+Route::get('/search/suggest', [SearchController::class, 'suggest']);
+Route::get('/search', [SearchController::class, 'search']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
