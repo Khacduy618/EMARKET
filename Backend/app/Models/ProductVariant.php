@@ -50,8 +50,19 @@ class ProductVariant extends Model
     }
 
     /**
+     * Accessor cho phần trăm giảm giá của variant.
+     * Sẽ được gọi khi controller truy cập $variant->discount_percentage
+     */
+    public function getDiscountPercentageAttribute(): ?int
+    {
+        if ($this->CompareAtPrice && $this->Price < $this->CompareAtPrice && $this->CompareAtPrice > 0) {
+            return round((($this->CompareAtPrice - $this->Price) / $this->CompareAtPrice) * 100);
+        }
+        return null;
+    }
+    /**
      * Accessor cho giá gốc (so sánh) đã định dạng.
-     * Sẽ được gọi khi controller truy cập $variant->formatted_compare_at_price
+     * Sẽ được gọi khi truy cập $variant->formatted_compare_at_price.
      */
     public function getFormattedCompareAtPriceAttribute(): ?string
     {
@@ -63,22 +74,18 @@ class ProductVariant extends Model
     }
 
     /**
-     * Accessor cho phần trăm giảm giá của variant.
-     * Sẽ được gọi khi controller truy cập $variant->discount_percentage
+     * Accessor cho URL ảnh riêng của variant.
+     * Sẽ được gọi khi truy cập $variant->variant_image_url.
      */
-    public function getDiscountPercentageAttribute(): ?int
-    {
-        if ($this->CompareAtPrice && $this->Price < $this->CompareAtPrice && $this->CompareAtPrice > 0) {
-            return round((($this->CompareAtPrice - $this->Price) / $this->CompareAtPrice) * 100);
-        }
-        return null;
-    }
 
     /**
-     * Accessor cho URL ảnh riêng của variant.
-     * Controller đang map nó vào key 'image_url' của variant, và gọi là $variant->variant_image_url
-     * (Tên accessor là getVariantImageUrlAttribute)
+     * Accessor để chuyển đổi giá trị IsActive sang boolean.
+     * Sẽ được gọi khi truy cập $variant->is_active.
      */
+    public function getIsActiveAttribute($value): bool
+    {
+        return (bool) $value;
+    }
     public function getVariantImageUrlAttribute(): ?string
     {
         if ($this->ImageURL) { // ImageURL là tên cột trong bảng productvariants

@@ -21,7 +21,7 @@ class NewArrivalController extends Controller
             ])
             ->activeApproved() // Scope đã tạo
             ->orderByDesc('CreatedAt')
-            ->take(3) // Lấy 4 sản phẩm
+            ->take(30) // Lấy 4 sản phẩm
             ->get();
 
         // Chuyển đổi collection sang mảng với cấu trúc mong muốn
