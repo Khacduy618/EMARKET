@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\SellerRegisterController;
 
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
@@ -52,4 +53,11 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
 });
