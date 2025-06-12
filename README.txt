@@ -7,7 +7,8 @@ clear docker build lai docker
 pnpm add swiper
 //////
 Anh em pull về nhớ là máy phải có nodejs, pnpm
-Sau khi có 2 cái đó thì anh em mở terminal và nhập "pnpm i" trong thư mục EMARKET/FRONTEND
+Sau khi có 2 cái đó thì anh em mở terminal và cd vào Frontend và nhập "pnpm i" trong thư mục EMARKET/FRONTEND
+Sau khi cài pnpm i thì cd vào backend và nhập Composer install để cài thư viện 
 Sau khi chạy thành công tất cả thư viện cho frontend thì anh em nhập vào terminal "docker compose up --build -d" trong thư mục EMARKET
 Sau khi xong thì anh em vào phpmyadmin với host 8081 và import file sql vào. 
 Sau đó thì vào trang chính là localhost cổng 80.
