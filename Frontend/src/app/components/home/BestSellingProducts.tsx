@@ -299,7 +299,7 @@ export default function ProductsCart() {
     if (products.length === 0) return null; // Không render gì nếu không có sản phẩm
 
     return (
-        <section className="max-w-[1500px] mx-auto px-2 sm:px-4 py-8 sm:py-12 bg-orange-50">
+        <section className="max-w-[1500px] mx-auto px-2 sm:px-4 py-8 sm:py-12 bg-white">
             {/* Header Section */}
             <div className="text-center mb-8">
                 <h2 className="text-lg sm:text-xl font-bold text-orange-600 uppercase tracking-widest">
