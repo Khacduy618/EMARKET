@@ -24,3 +24,47 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.user-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px); /* Position below the button */
+  z-index: 10;
+  width: 160px; /* Adjust width as needed */
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  /* Add a triangle/arrow */
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    right: 8px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent white transparent;
+  }
+}
+
+.user-dropdown-button:hover + .user-dropdown-menu,
+.user-dropdown-menu:hover {
+  display: block;
+}
+
+.user-dropdown-menu a,
+.user-dropdown-menu button {
+  color: #333; /* Darker text color */
+  padding: 8px 12px;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.user-dropdown-menu a:hover,
+.user-dropdown-menu button:hover {
+  background-color: #f0f0f0; /* Light gray background on hover */
+}

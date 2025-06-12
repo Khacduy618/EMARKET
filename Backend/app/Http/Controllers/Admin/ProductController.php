@@ -157,52 +157,175 @@ public function destroy($id)
 //     return response()->json($products);
 // }
 public function ProductFinalPrice()
-{
-    $products = Product::where('discount', '>', 0)
-        ->with(['primaryImage'])
-        ->limit(11)
-        ->get(['ProductID', 'name', 'price', 'discount', 'AverageRating']);
+    {
+        $products = Product::where('products.IsActive', 1) // Chỉ định rõ bảng cho cột IsActive
+            ->where('products.AdminApprovalStatus', 'Approved') // Chỉ định rõ bảng
+            ->where('products.Discount', '>', 0) // Lấy sản phẩm có giảm giá (từ bảng products)
+            ->with([
+                // Lấy ảnh chính từ bảng ProductImages
+                'primaryImage:ProductID,ImageURL', // Chỉ chọn cột cần thiết
 
+                // Lấy thông tin các biến thể từ bảng ProductVariants
+                // Chúng ta sẽ lấy biến thể đầu tiên hoặc một biến thể mặc định
+                'defaultVariant' => function ($query) {
+                    $query->select('VariantID', 'ProductID', 'SKU', 'Price', 'ImageURL as VariantImageURL') // Chọn cột từ ProductVariants
+                          ->with([
+                              // Lấy các thuộc tính của biến thể đó
+                              // thông qua ProductVariantAttribute -> AttributeValues -> Attributes
+                              'attributeValues' => function ($q_attr_val) {
+                                  $q_attr_val->select('attributevalues.AttributeValueID', 'attributevalues.Value', 'attributevalues.AttributeID')
+                                             ->with('attribute:AttributeID,Name'); // Lấy tên thuộc tính (Màu sắc, Kích thước)
+                              }
+                          ]);
+                },
+            ])
+            ->limit(11)
+            ->select('products.ProductID', 'products.Name', 'products.Discount') // Chọn cột từ bảng products
+            ->get();
 
-    // Format dữ liệu trả về kèm ảnh
-    $productsWithImage = $products->map(function ($product) {
-        return [
-            'ProductID'=>$product->ProductID,
-            'name' => $product->name,
-            'price' => $product->price,
-            'discount' => $product->discount,
-            'AverageRating' => $product->AverageRating,
-            'ImageURL' => $product->primaryImage?->ImageURL ?? null, // sử dụng null-safe
-        ];
-    });
+        $formattedProducts = $products->map(function ($product) {
+            $variant = $product->defaultVariant; // Lấy biến thể đã eager load
+            $variantPrice = null;
+            $variantSku = null;
+            $variantSpecificImage = null;
+            $attributesDescription = [];
+            $finalPrice = 0;
 
-    return response()->json($productsWithImage);
-}
+            if ($variant) {
+                $variantPrice = $variant->Price;
+                $variantSku = $variant->SKU;
+                $variantSpecificImage = $variant->VariantImageURL; // Ảnh riêng của biến thể (nếu có)
 
-public function bestSelling()
-{
-    $products = DB::table('products')
-        ->leftJoin('productimages', function ($join) {
-            $join->on('products.ProductID', '=', 'productimages.ProductID')
-                 ->where('productimages.IsPrimary', '=', 1);
-        })
-        ->where('products.IsActive', 1)
-        ->where('products.AdminApprovalStatus', 'Approved')
-        ->orderByDesc('products.SoldCount')
-        ->limit(6)
-        ->select(
-            'products.ProductID',
-            'products.Name',
-            'products.Price',
-            'products.discount',
-            'products.AverageRating',
-            'products.SoldCount',
-            'products.ViewCount',
-            'productimages.ImageURL'
-        )
-        ->get();
+                if ($variant->attributeValues->isNotEmpty()) {
+                    foreach ($variant->attributeValues as $attrValue) {
+                        if ($attrValue->attribute) { // Đảm bảo attribute được load
+                            $attributesDescription[] = $attrValue->attribute->Name . ': ' . $attrValue->Value;
+                        }
+                    }
+                }
 
-    return response()->json($products);
-}
+                // Tính giá cuối cùng: Giá biến thể trừ đi khuyến mãi của sản phẩm
+                // Giả sử Product.Discount là số tiền giảm giá trực tiếp
+                if ($product->Discount > 0 && $variantPrice !== null) {
+                    $finalPrice = $variantPrice - $product->Discount;
+                } else {
+                    $finalPrice = $variantPrice;
+                }
+                $finalPrice = max(0, $finalPrice ?? 0); // Đảm bảo giá không âm
+            }
 
+            return [
+                'ProductID'        => $product->ProductID,
+                'name'             => $product->Name,
+                'product_discount' => $product->Discount, // Khuyến mãi của sản phẩm
+                'average_rating'   => $product->AverageRating,
+                'primary_image_url'=> $product->primaryImage?->ImageURL ?? null,
+                'variant_sku'      => $variantSku,
+                'variant_price'    => $variantPrice, // Giá gốc của biến thể
+                'final_price'      => $finalPrice,   // Giá sau khi áp dụng khuyến mãi sản phẩm
+                'variant_specific_image_url' => $variantSpecificImage, // Ảnh của biến thể
+                'attributes'       => implode(', ', $attributesDescription), // Mô tả thuộc tính của biến thể
+            ];
+        });
+
+        return response()->json($formattedProducts);
+    }
+    public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
+    {
+        $productsData = DB::table('products as p')
+            ->leftJoin('productimages as pi', function ($join) {
+                $join->on('p.ProductID', '=', 'pi.ProductID')
+                     ->where('pi.IsPrimary', '=', 1);
+            })
+            ->leftJoin(DB::raw('(
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info'), function ($join) {
+                $join->on('p.ProductID', '=', 'variant_info.ProductID');
+            })
+            ->where('p.IsActive', 1)
+            ->where('p.AdminApprovalStatus', 'Approved') // Đảm bảo 'Approved' trong dấu nháy
+            ->whereNotNull('variant_info.VariantMinPrice')
+            // CHỈNH SỬA Ở ĐÂY: Sắp xếp theo Discount giảm dần
+            ->orderByDesc('p.Discount')
+            ->orderByDesc('p.CreatedAt')
+            ->limit(6)
+            ->select(
+                'p.ProductID',
+                'p.Name as ProductName',
+                'p.Description as ProductDescription',
+                'p.Discount as ProductLevelDiscount', // Chọn cột Discount để có thể thấy giá trị
+                'variant_info.VariantMinPrice as Price',
+                'variant_info.VariantCompareAtPrice as CompareAtPrice',
+                'variant_info.VariantSKU as SKU',
+                'variant_info.VariantMinStockQuantity as StockQuantity',
+                DB::raw('COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL')
+            )
+            ->get();
+    
+        $processedProducts = $productsData->map(function ($product) {
+            // Xử lý ImageURL
+            if ($product->ImageURL && !(str_starts_with($product->ImageURL, 'http://') || str_starts_with($product->ImageURL, 'https://'))) {
+                $product->ImageURL = asset($product->ImageURL);
+            } else if (empty($product->ImageURL)) {
+                // $product->ImageURL = asset('images/default-product.png'); // Hoặc ảnh placeholder của bạn
+            }
+    
+            // Tính toán giá sau khi áp dụng ProductLevelDiscount (nếu cần hiển thị)
+            // Logic này phụ thuộc vào việc p.Discount là % hay số tiền cố định
+            $product->FinalPrice = $product->Price; // Mặc định giá cuối bằng giá biến thể
+    
+            if (!is_null($product->Price) && !is_null($product->ProductLevelDiscount) && $product->ProductLevelDiscount > 0) {
+                // Nếu p.Discount là phần trăm
+                $discountValue = ($product->ProductLevelDiscount / 100) * $product->Price;
+                $product->FinalPrice = $product->Price - $discountValue;
+            } else {
+                $product->FinalPrice = $product->Price;
+            }
+            
+            // Đảm bảo CompareAtPrice chỉ hiển thị nếu nó lớn hơn giá bán
+            if (!is_null($product->CompareAtPrice) && !is_null($product->FinalPrice) && $product->CompareAtPrice <= $product->FinalPrice) {
+                $product->CompareAtPrice = null;
+            }
+            if (!is_null($product->CompareAtPrice) && is_null($product->FinalPrice) && !is_null($product->Price) && $product->CompareAtPrice <= $product->Price) {
+                 $product->CompareAtPrice = null;
+            }
+    
+    
+            // Làm tròn giá
+            if(isset($product->Price)) $product->Price = round($product->Price);
+            if(isset($product->FinalPrice)) $product->FinalPrice = round($product->FinalPrice);
+            if(isset($product->CompareAtPrice)) $product->CompareAtPrice = round($product->CompareAtPrice);
+    
+    
+            return $product;
+        });
+    
+        return response()->json($processedProducts);
+    }
+    
 }

@@ -3,32 +3,58 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Product;
+
 class Category extends Model
 {
-    protected $table = 'platformcategories';
+    use HasFactory;
+
+    protected $table = 'PlatformCategories';
     protected $primaryKey = 'CategoryID';
 
-    // Cho phép mass assignment (nếu dùng create())
     protected $fillable = [
-        'Name', 'Description', 'ParentCategoryID', 'Slug', 'ImageURL', 'IsActive'
+        'Name',
+        'Description',
+        'ParentCategoryID',
+        'Slug',
+        'ImageURL',
+        'IsActive',
     ];
 
-    // Tắt timestamps nếu không dùng cột created_at / updated_at mặc định của Laravel
+    protected $casts = [
+        'IsActive' => 'boolean',
+    ];
+
     public $timestamps = true;
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
-    //cha con category
-    public function children()
+
+    /**
+     * Get the child categories for the category.
+     */
+    public function children(): HasMany
     {
-        return $this->hasMany(Category::class, 'ParentCategoryID');
+        return $this->hasMany(Category::class, 'ParentCategoryID', 'CategoryID');
     }
 
-    public function parent()
+    /**
+     * Get the parent category for the category.
+     */
+    public function parent(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'ParentCategoryID');
+        return $this->belongsTo(Category::class, 'ParentCategoryID', 'CategoryID');
     }
-    public function primaryImage()
+
+    /**
+     * Get the products for the category.
+     */
+    public function products(): HasMany
     {
-        return $this->hasOne(ProductImage::class, 'ProductID', 'ProductID ')->where('IsPrimary', 1);
+        return $this->hasMany(Product::class, 'CategoryID', 'CategoryID');
     }
+
+    // Removed primaryImage relationship as it's incorrect for categories
 }
