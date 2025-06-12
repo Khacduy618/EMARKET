@@ -95,11 +95,11 @@ export default function NavMenu() {
     }, [data]);
 
 
-    if (error) return <div className="h-[56px] bg-red-100 flex items-center justify-center text-red-600 font-semibold">Lỗi tải danh mục!</div>
-    if (!data || !activeTheme) return <div className="h-[56px] bg-gray-200 animate-pulse" />
+    if (error) return <div className="h-[30px] bg-red-100 flex items-center justify-center text-red-600 font-semibold">Lỗi tải danh mục!</div>
+    if (!data || !activeTheme) return <div className="h-[30px] bg-gray-200 animate-pulse" />
 
     return (
-        <div className={`md:sticky top-0 z-50 h-[56px] transition-all duration-300 ${activeTheme.navClass} ${isScrolled ? 'shadow-lg' : ''} flex items-center`}>
+        <div className={`md:sticky top-0 z-50 h-[30px] transition-all duration-300 ${activeTheme.navClass} ${isScrolled ? 'shadow-lg' : ''} flex items-center`}>
             <div className="container mx-auto px-4 w-full h-full flex items-center">
                 <nav className="flex w-full h-full items-center">
                     <style jsx>{`

@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Search, ShoppingCart, ChevronDown, User, Menu, Store } from 'lucide-react';
+import { api } from '@/services/cart';
+import UserDropdown from './UserDropdown';
+
+interface User {
+    id: number;
+    name: string;
+    avatar?: string;
+}
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
@@ -34,9 +42,9 @@ const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: Seaso
     if (!theme || !theme.itemClass) return null; // Guard clause
     const finalClass = isScrolled
         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
-        : `${theme.itemClass.base} ${theme.itemClass.hover}`;
+        : `${theme.itemClass.base}`;
     return (
-        <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap px-3 py-3 font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
+        <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
             <span>{item.Name}</span>
         </a>
     );
@@ -51,7 +59,11 @@ export default function Header() {
     const [selectedLanguage, setSelectedLanguage] = useState('Tiếng Việt');
     const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const router = useRouter();
+
+    const [user, setUser] = useState<User | null>(null);
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
     // --- State và logic cho thanh tìm kiếm ---
     const [searchQuery, setSearchQuery] = useState('');
@@ -112,6 +124,42 @@ export default function Header() {
             router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
+    useEffect(() => {
+        // Check if authToken exists in localStorage
+        const authToken = localStorage.getItem('authToken');
+        setIsLoggedIn(!!authToken); // Set isLoggedIn based on token presence
+
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const parsedUser: User = JSON.parse(storedUser);
+                setUser(parsedUser);
+            } catch (error) {
+                console.error("Error parsing user from localStorage:", error);
+                localStorage.removeItem('user'); // Remove invalid user data
+            }
+        }
+    }, []); // Empty dependency array means this effect runs once on mount
+
+    const handleLogout = async () => {
+        try {
+            // Call the backend logout endpoint
+            await api.post('/logout', {}); // Assuming logout is a POST request to /api/logout
+
+            // Remove the token from localStorage
+            localStorage.removeItem('authToken');
+
+            // Update state and redirect to login page
+            setIsLoggedIn(false);
+            router.push('/login');
+        } catch (error) {
+            console.error("Logout failed:", error);
+            // Even if API call fails, attempt to remove token and redirect
+            localStorage.removeItem('authToken');
+            setIsLoggedIn(false);
+            router.push('/login');
+        }
+    };
 
     // ===================================================================================
     // ===                                   PHẦN JSX                                  ===
@@ -125,7 +173,6 @@ export default function Header() {
                 <div className="container mx-auto px-4">
                     <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
                         <a href="#" className="hover:text-gray-200">Kênh Người Bán</a>
-                        <a href="#" className="hover:text-gray-200">Tải ứng dụng</a>
                         <div className="relative">
                             <button className="flex items-center gap-1 hover:text-gray-200" onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}>
                                 {selectedLanguage} <ChevronDown size={14} />
@@ -133,6 +180,20 @@ export default function Header() {
                             {isLanguageDropdownOpen && (
                                 <div className="absolute right-0 mt-2 w-32 bg-white text-gray-800 rounded-sm shadow-lg z-10">
                                     <ul className="py-1"><li className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => { setSelectedLanguage('Tiếng Việt'); setIsLanguageDropdownOpen(false); }}>Tiếng Việt</li><li className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => { setSelectedLanguage('English'); setIsLanguageDropdownOpen(false); }}>English</li></ul>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center">
+                            {isLoggedIn ? (
+                                <>
+                                    {/* Hiển thị Avatar và tên user.  Chưa có thông tin user, sẽ để placeholder*/}
+                                    <UserDropdown handleLogout={handleLogout} />
+                                </>
+                            ) : (
+                                <div className="hidden lg:flex items-center space-x-2 text-sm">
+                                    <Link href="/signup" className="hover:text-gray-200">Đăng ký</Link>
+                                    <div className="h-4 border-l border-orange-400"></div>
+                                    <Link href="/login" className="hover:text-gray-200">Đăng nhập</Link>
                                 </div>
                             )}
                         </div>
@@ -153,10 +214,13 @@ export default function Header() {
                             )}
                         </div>
 
+                        
                         <div className="flex items-center space-x-2 md:space-x-4 order-2 md:order-3">
-                            <Link href="/cart" className="relative p-1 md:p-2 hover:opacity-80"><ShoppingCart size={26} /><span className="absolute top-0 right-0 bg-white text-orange-500 rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">0</span></Link>
-                            <div className="hidden lg:flex items-center space-x-2 text-sm"><Link href="/signup" className="hover:text-gray-200">Đăng ký</Link><div className="h-4 border-l border-orange-400"></div><Link href="/login" className="hover:text-gray-200">Đăng nhập</Link></div>
-                            <Link href="/profile" className="p-1 hover:opacity-80 lg:hidden"><User size={26} /></Link>
+                            <Link href="/cart" className="relative p-1 md:p-2 hover:opacity-80">
+                                <ShoppingCart size={26} />
+                                <span className="absolute top-0 right-0 bg-white text-orange-500 rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">0</span>
+                            </Link>
+                            
                         </div>
                     </div>
                 </div>
@@ -165,7 +229,7 @@ export default function Header() {
             {/* PHẦN 2: NAV MENU (thanh danh mục) - Phần này KHÔNG cần sticky nữa */}
             {activeTheme && (
                 // Bỏ class `md:sticky` và `top-0` ở đây
-                <div className={`h-[56px] transition-colors duration-300 ${activeTheme.navClass} flex items-center`}>
+                <div className={`h-[30px] transition-colors duration-300 ${activeTheme.navClass} flex items-center`}>
                     <div className="container mx-auto px-4 w-full h-full flex items-center">
                         <nav className="flex w-full h-full items-center">
                             <style jsx>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
