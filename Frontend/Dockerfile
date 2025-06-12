@@ -12,7 +12,6 @@ RUN touch pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml* ./
 
 RUN pnpm install
-RUN pnpm lucide-react
 
 EXPOSE 3000
 CMD ["pnpm", "run", "dev"]
