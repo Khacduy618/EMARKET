@@ -503,7 +503,7 @@ const FlashSaleSection: React.FC = () => {
     useEffect(() => {
         async function fetchFlashSaleData() {
             setLoading(true);
-            setError(null);
+            setError(null); 
             try {
                 const response = await fetch('http://localhost:8001/api/flash-sales/active');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -614,7 +614,7 @@ const FlashSaleSection: React.FC = () => {
                     </div>
                 </div>
                 {allValidSlotsWithClientStatus.length > 0 && (
-                    <div className="bg-orange-50 py-2.5 px-2 sm:px-4 border-b border-orange-200">
+                    <div className=" py-2.5 px-2 sm:px-4 border-b border-orange-200">
                         <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                             {allValidSlotsWithClientStatus.map(slot => (
                                 <button
@@ -632,7 +632,7 @@ const FlashSaleSection: React.FC = () => {
                 )}
 
                 {/* Products Swiper */}
-                <div className="p-2 sm:p-4 bg-orange-50/70">
+                <div className="p-2 sm:p-4">
                     <div className="container mx-auto">
                         {productsToDisplay.length > 0 && displaySlot ? (
                             <Swiper

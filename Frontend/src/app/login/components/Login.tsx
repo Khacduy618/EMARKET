@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/services/login'; // Assuming api utility is in this path
+import { api } from '@/services/api'; // Assuming api utility is in this path
 
 const LoginPage: React.FC = () => {
   const [Email, setEmail] = useState('');
@@ -31,6 +31,7 @@ const LoginPage: React.FC = () => {
         // Assuming the API returns a token upon successful login
         // Store the token (e.g., in localStorage or a state management solution)
         localStorage.setItem('authToken', response.Token);
+        localStorage.setItem('user', JSON.stringify(response.User));
         // Redirect to a protected page (e.g., homepage or dashboard)
         router.push('/'); // Redirect to homepage after login
       } else {
@@ -54,12 +55,12 @@ const LoginPage: React.FC = () => {
   return (
     <div className="flex h-screen font-sans container mx-auto mt-4 mb-4 rounded-lg shadow-md">
       <div className="w-1/2 p-10 flex flex-col justify-center items-start bg-white rounded-s-lg ">
-        <h1 className="text-3xl font-bold">Holla, Welcome Back</h1>
-        <p>Hey, welcome back to your special place</p>
+        <h1 className="text-3xl font-bold text-gray-500 hover:text-gray-700">Holla, Welcome Back</h1>
+        <p className="text-gray-500 hover:text-gray-700">Hey, welcome back to your special place</p>
         {error && <p className="text-red-500">{error}</p>}
         <form onSubmit={handleLogin} className="w-full">
           <div className="mb-5">
-            <label htmlFor="Email" className="block mb-1">Email:</label>
+            <label htmlFor="Email" className="block mb-1 text-gray-500 hover:text-gray-700">Email:</label>
             <input
               id="Email"
               type="Email"
@@ -70,7 +71,7 @@ const LoginPage: React.FC = () => {
             />
           </div>
           <div className="mb-5">
-            <label htmlFor="Password" className="block mb-1">Mật khẩu:</label>
+            <label htmlFor="Password" className="block mb-1 text-gray-500 hover:text-gray-700">Mật khẩu:</label>
             <input
               id="Password"
               type="Password"
@@ -82,20 +83,20 @@ const LoginPage: React.FC = () => {
           </div>
           <div className="flex justify-between items-center mb-5">
             <label className="flex items-center">
-              <input type="checkbox" id="rememberMe" className="mr-2" />
-              Remember me
+              <input type="checkbox" id="rememberMe" className="mr-2 " />
+              <span className="text-gray-500 hover:text-gray-700"> Remember me</span>
             </label>
             <a href="#" className="text-gray-500 hover:text-gray-700">Forgot Password?</a>
           </div>
           <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline w-full">Sign In</button>
         </form>
-        <p className="mt-5">Don't have an account? <a href="#" className="text-blue-500 hover:text-blue-700">Sign Up</a></p>
+        <p className="mt-5 text-gray-500 hover:text-gray-700">Don't have an account? <a href="#" className="text-blue-500 hover:text-blue-700">Sign Up</a></p>
       </div>
       <div className="w-1/2 bg-purple-200 flex justify-center items-center rounded-e-lg">
         {/*  Illustration */}
         <div className="text-center p-10">
           <img src="/images/illustration.png" alt="Illustration" className="max-w-full h-auto" />
-          <p className="mt-5">Please tap your finger to your phone</p>
+          <p className="mt-5 text-gray-500 hover:text-gray-700" >Please tap your finger to your phone</p>
         </div>
       </div>
     </div>

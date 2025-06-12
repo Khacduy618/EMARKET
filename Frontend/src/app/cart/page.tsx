@@ -1,47 +1,98 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { fetchCart, updateCartItemQuantity, removeCartItem, fetchProductVariantsWithAttributes } from '@/services/login';
+import React, { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { fetchCart, updateCartItemQuantity, removeCartItem } from '@/services/cart';
 import { Cart, CartItem, AttributeValue } from '@/types';
-import AttributeSelectionDropdown from '../components/AttributeSelectionDropdown';
+import { getProductAttributes } from '@/services/api';
+import AttributeSelectionDropdown from '@/app/components/AttributeSelectionDropdown';
 
 const CartPage: React.FC = () => {
     const [cart, setCart] = useState<Cart | null>(null);
-    const router = useRouter(); // Get router instance
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openDropdownItemId, setOpenDropdownItemId] = useState<number | null>(null);
     const [attributeOptions, setAttributeOptions] = useState<{ [key: string]: any } | null>(null);
-    const [selectedAttributes, setSelectedAttributes] = useState<{ [key: string]: number[] }>({});
+
+    // State to keep track of selected CartItem IDs
+    const [selectedCartItemIds, setSelectedCartItemIds] = useState<Set<number>>(new Set());
+
+    // Ref for the currently active dropdown button (to prevent closing on button click)
+    const currentDropdownButtonRef = useRef<HTMLButtonElement>(null);
+
+    // Map to store refs for each shop checkbox to handle indeterminate state
+    const shopCheckboxRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
     useEffect(() => {
         const authToken = localStorage.getItem('authToken');
         if (!authToken) {
-            // If no token, redirect to login page
             router.push('/login');
-            return; // Stop execution of the effect
+            return;
         }
 
         const getCart = async () => {
             try {
-                console.log('Fetching cart...');
                 setLoading(true);
                 const cartData = await fetchCart();
-                console.log('Raw cart data fetched:', cartData);
-                console.log('Cart fetched successfully:', cartData);
                 setCart(cartData);
+                // Ensure no items are selected by default when cart loads
+                setSelectedCartItemIds(new Set());
             } catch (err) {
                 console.error('Error fetching cart:', err);
                 setError('Failed to load cart.');
             } finally {
-                console.log('Finished fetching cart. Loading:', false);
                 setLoading(false);
             }
         };
 
         getCart();
-    }, [router]); // Add router to dependency array
+    }, [router]);
+
+    // Handle individual item checkbox changes
+    const handleItemCheckboxChange = (cartItemId: number, isChecked: boolean) => {
+        setSelectedCartItemIds(prev => {
+            const newSet = new Set(prev);
+            if (isChecked) {
+                newSet.add(cartItemId);
+            } else {
+                newSet.delete(cartItemId);
+            }
+            return newSet;
+        });
+    };
+
+    // Handle "Select All" checkbox change (global)
+    const handleSelectAllChange = (isChecked: boolean) => {
+        setSelectedCartItemIds(prev => {
+            const newSet = new Set<number>();
+            if (isChecked && cart && Array.isArray(cart.cartItems)) {
+                cart.cartItems.forEach(item => {
+                    newSet.add(item.CartItemID);
+                });
+            }
+            return newSet;
+        });
+    };
+
+    // NEW: Handle shop-level checkbox change
+    const handleShopCheckboxChange = (shopId: number, isChecked: boolean) => {
+        setSelectedCartItemIds(prev => {
+            const newSet = new Set(prev);
+            const itemsInShop = groupedItems[shopId]; // Use groupedItems to get items for this shop
+
+            if (itemsInShop) {
+                itemsInShop.forEach(item => {
+                    if (isChecked) {
+                        newSet.add(item.CartItemID);
+                    } else {
+                        newSet.delete(item.CartItemID);
+                    }
+                });
+            }
+            return newSet;
+        });
+    };
 
     const handleUpdateQuantity = async (cartItemId: number, quantity: number) => {
         try {
@@ -58,15 +109,106 @@ const CartPage: React.FC = () => {
         try {
             const updatedCart = await removeCartItem(cartItemId);
             setCart(updatedCart);
+            // Also remove from selected items if it was selected
+            setSelectedCartItemIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(cartItemId);
+                return newSet;
+            });
         } catch (err) {
             setError('Failed to remove item.');
             console.error(err);
         }
     };
 
-    
+    const handleAttributeClick = async (item: CartItem) => {
+        if (openDropdownItemId === item.CartItemID) {
+            handleCloseDropdown();
+            return;
+        }
 
-    console.log('Rendering CartPage. Loading:', loading, 'Error:', error, 'Cart:', cart);
+        if (!item.productVariant?.ProductID) {
+            console.warn('Product ID is missing');
+            return;
+        }
+        try {
+            const responseData = await getProductAttributes(item.productVariant.ProductID);
+            const actualAttributes = responseData.attributes;
+
+            const transformedAttributes: {
+                [key: string]: { AttributeValueID: number; Value: string; AttributeID: number }[]
+            } = {};
+
+            if (actualAttributes && typeof actualAttributes === 'object') {
+                for (const attributeName in actualAttributes) {
+                    if (actualAttributes.hasOwnProperty(attributeName) && Array.isArray(actualAttributes[attributeName])) {
+                        transformedAttributes[attributeName] = actualAttributes[attributeName];
+                    }
+                }
+            }
+            setAttributeOptions(transformedAttributes);
+            setOpenDropdownItemId(item.CartItemID);
+        } catch (error) {
+            setError('Failed to fetch attributes.');
+            console.error('Error fetching attributes:', error);
+        }
+    };
+
+    const handleCloseDropdown = () => {
+        setOpenDropdownItemId(null);
+        setAttributeOptions(null);
+    };
+
+    // Group items by shop first, as it's needed for shop-level checkboxes and rendering
+    const groupedItems = cart && Array.isArray(cart.cartItems)
+        ? cart.cartItems.reduce((acc, item) => {
+            const shopId = item.ShopID;
+            if (!acc[shopId]) {
+                acc[shopId] = [];
+            }
+            acc[shopId].push(item);
+            return acc;
+        }, {} as Record<number, CartItem[]>)
+        : {};
+
+    // Calculate total amount of selected items
+    const calculateTotalAmount = () => {
+        if (!cart || !Array.isArray(cart.cartItems) || selectedCartItemIds.size === 0) {
+            return 0;
+        }
+
+        let total = 0;
+        cart.cartItems.forEach(item => {
+            if (selectedCartItemIds.has(item.CartItemID)) {
+                total += (item.productVariant?.Price || 0) * item.Quantity;
+            }
+        });
+        return total;
+    };
+
+    // Determine the state of the "Select All" checkbox (global)
+    const isAllItemsSelected = !!(cart && Array.isArray(cart.cartItems) && cart.cartItems.length > 0 && selectedCartItemIds.size === cart.cartItems.length);
+    // Determine the number of selected items to display
+    const numberOfSelectedItems = selectedCartItemIds.size;
+
+    // NEW: Effect to set indeterminate state for shop checkboxes
+    useEffect(() => {
+        Object.entries(groupedItems).forEach(([shopIdStr, items]) => {
+            const shopId = parseInt(shopIdStr);
+            const checkbox = shopCheckboxRefs.current.get(shopId);
+            if (checkbox) {
+                const selectedCount = items.filter(item => selectedCartItemIds.has(item.CartItemID)).length;
+                const totalCount = items.length;
+
+                const isShopFullySelected = totalCount > 0 && selectedCount === totalCount;
+                const isShopPartiallySelected = selectedCount > 0 && selectedCount < totalCount;
+
+                checkbox.checked = isShopFullySelected; // Set checked state
+                checkbox.indeterminate = isShopPartiallySelected; // Set indeterminate state
+            }
+        });
+    }, [selectedCartItemIds, groupedItems]); // Re-run when selections or grouped items change
+
 
     if (loading) {
         return <div>Đang tải giỏ hàng...</div>;
@@ -77,32 +219,25 @@ const CartPage: React.FC = () => {
     }
 
     if (!cart || !Array.isArray(cart.cartItems) || cart.cartItems.length === 0) {
-        console.log('Cart is empty or invalid:', cart);
         return <div>Giỏ hàng của bạn đang trống.</div>;
     }
-
-    console.log('Rendering cart items:', cart.cartItems);
-
-    const groupedItems = cart.cartItems.reduce((acc, item) => {
-        const shopId = item.ShopID;
-        if (!acc[shopId]) {
-            acc[shopId] = [];
-        }
-        acc[shopId].push(item);
-        return acc;
-    }, {} as Record<number, CartItem[]>);
 
 
     return (
             <div className="container mx-auto px-4">
-                
-
                 {/* Cart Items List */}
                 <div className="mb-6">
                     {/* Table Header */}
                     <div className="bg-white shadow-box mt-4 mb-4 grid grid-cols-12 rounded-sm text-gray-500 text-xs uppercase px-4 py-4">
                         <div className="col-span-4 flex items-center gap-2">
-                            <input type="checkbox" className="form-checkbox text-red-500 rounded" />
+                            {/* "Select All" checkbox in header */}
+                            <input
+                                type="checkbox"
+                                className="form-checkbox text-red-500 rounded"
+                                checked={isAllItemsSelected}
+                                onChange={(e) => handleSelectAllChange(e.target.checked)}
+                                disabled={cart.cartItems.length === 0}
+                            />
                             Sản Phẩm
                         </div>
                         <div className="col-span-2 text-center"></div>
@@ -113,14 +248,30 @@ const CartPage: React.FC = () => {
                     </div>
 
                     {/* Grouped Cart Items */}
-                    {Object.entries(groupedItems).map(([shopId, items]) => {
+                    {Object.entries(groupedItems).map(([shopIdStr, items]) => {
+                        const shopId = parseInt(shopIdStr); // Convert string key back to number
                         const shopName = items[0]?.shop?.ShopName;
 
                         return (
                             <div key={shopId} className="shop-group bg-white rounded-sm shadow-sm last:border-b-0">
                                 {/* Shop Header */}
                                 <div className="flex items-center gap-2 px-4 py-2 border-b border-opacity-50">
-                                    <input type="checkbox" className="form-checkbox text-red-500 rounded" />
+                                    {/* Shop-level checkbox */}
+                                    <input
+                                        type="checkbox"
+                                        className="form-checkbox text-red-500 rounded"
+                                        // Use ref to manage indeterminate state directly on DOM
+                                        ref={el => {
+                                            if (el) {
+                                                shopCheckboxRefs.current.set(shopId, el);
+                                            } else {
+                                                shopCheckboxRefs.current.delete(shopId);
+                                            }
+                                        }}
+                                        onChange={(e) => handleShopCheckboxChange(shopId, e.target.checked)}
+                                        // Checked state is controlled by useEffect, so no 'checked' prop here
+                                        // unless you want to explicitly set it based on initial load
+                                    />
                                     <span className="text-lg text-red-500">🏪</span>
                                     <span className="font-bold text-sm text-gray-800">{shopName || `Shop ID: ${shopId}`}</span>
                                 </div>
@@ -129,7 +280,13 @@ const CartPage: React.FC = () => {
                                     <div key={item.CartItemID} className="grid grid-cols-12 items-center px-4 py-3 last:border-b-0">
                                         {/* Product */}
                                         <div className="col-span-4 flex items-center gap-3">
-                                            <input type="checkbox" className="form-checkbox text-red-500 rounded" />
+                                            {/* Individual product checkbox */}
+                                            <input
+                                                type="checkbox"
+                                                className="form-checkbox text-red-500 rounded"
+                                                checked={!!selectedCartItemIds.has(item.CartItemID)}
+                                                onChange={(e) => handleItemCheckboxChange(item.CartItemID, e.target.checked)}
+                                            />
                                             <div className="w-16 h-16 bg-gray-100 rounded-sm flex items-center justify-center text-gray-500 overflow-hidden border">
                                                 <img src={item.productVariant?.ImageURL || '/images/placeholder.png'} alt={item.productVariant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" />
                                             </div>
@@ -143,21 +300,10 @@ const CartPage: React.FC = () => {
                                             {item.productVariant?.attributeValues && item.productVariant.attributeValues.length > 0 ? (
                                                 <div className="flex flex-col">
                                                     <div className="flex items-center gap-1">
-                                                        
                                                         <button
+                                                            ref={openDropdownItemId === item.CartItemID ? currentDropdownButtonRef : null}
                                                             className="flex items-center gap-1 px-2 py-1 rounded-sm text-xs text-gray-700 hover:border-red-500"
-                                                            onClick={async () => {
-                                                                if (openDropdownItemId !== item.CartItemID) {
-                                                                    try {
-                                                                        const data = await fetchProductVariantsWithAttributes(item.productVariant.ProductID);
-                                                                        setAttributeOptions(data.groupedAttributes);
-                                                                    } catch (error) {
-                                                                        console.error("Error fetching attribute options:", error);
-                                                                        setError("Failed to load attribute options.");
-                                                                    }
-                                                                }
-                                                                 setOpenDropdownItemId(item.CartItemID);
-                                                            }}
+                                                            onClick={() => handleAttributeClick(item)}
                                                         >
                                                             <div className="flex flex-col items-center">
                                                                 <div className="w-full"><span className="text-xs text-gray-500">Phân Loại Hàng:</span>
@@ -166,27 +312,21 @@ const CartPage: React.FC = () => {
                                                             </div>
                                                         </button>
                                                     </div>
+                                                    {openDropdownItemId === item.CartItemID && (
+                                                        <AttributeSelectionDropdown
+                                                            productId={item.productVariant?.ProductID || 0}
+                                                            attributeOptions={attributeOptions}
+                                                            onAttributeSelected={() => {}}
+                                                            onClose={handleCloseDropdown}
+                                                            excludedButtonRef={currentDropdownButtonRef}
+                                                        />
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <span className="text-xs text-gray-500">Chọn phân loại</span>
                                             )}
-
-                                            {/* Attribute Selection Dropdown for this item */}
-                                            {openDropdownItemId === item.CartItemID && (
-                                                <AttributeSelectionDropdown
-                                                    productId={item.productVariant?.ProductID || 0}
-                                                    attributeOptions={attributeOptions}
-                                                    onAttributeSelected={(selectedAttributes) => {
-                                                        console.log("Selected attributes:", selectedAttributes);
-                                                        // Implement logic to update the cart based on selectedAttributes
-                                                        // You'll need an API endpoint to update the cart item with the selected attributes
-                                                        // For example:
-                                                        // updateCartItemAttributes(item.CartItemID, selectedAttributes);
-                                                    }}
-                                                    onClose={() => setOpenDropdownItemId(null)}
-                                                />
-                                            )}
                                         </div>
+                                        {/* End Attributes/Classification */}
 
 
                                         {/* Price */}
@@ -262,35 +402,39 @@ const CartPage: React.FC = () => {
                     })}
                 </div>
 
-                {/* Placeholder for Shop Voucher section */}
-                {/* <div className="rounded-md p-4 mb-6 bg-white shadow-sm">
-                    <div className="flex items-center gap-2 text-red-500 mb-2">
-                        <span className="text-lg">🎁</span>
-                        <span>Shopee Voucher</span>
-                        <button className="text-blue-500 text-sm hover:underline">Chọn hoặc nhập mã</button>
-                    </div>
-                </div> */}
-
-                {/* Sticky Footer */}
+                {/* Sticky Footer for Total */}
                 <div className="sticky bottom-0 left-0 right-0 bg-white shadow-md z-10 flex flex-col">
-                    <div className="w-full flex flex-row border-b"><a href="" className="w-50 text-red ms-auto  py-2">Thêm mã giảm giá</a></div>
+                    <div className="w-full flex flex-row border-b"><a href="" className="w-50 text-red ms-auto py-2">Thêm mã giảm giá</a></div>
                     <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                                <input type="checkbox" className="form-checkbox text-red-500 rounded" />
+                                {/* "Select All" checkbox in sticky footer */}
+                                <input
+                                    type="checkbox"
+                                    className="form-checkbox text-red-500 rounded"
+                                    checked={isAllItemsSelected}
+                                    onChange={(e) => handleSelectAllChange(e.target.checked)}
+                                    disabled={cart.cartItems.length === 0}
+                                />
                                 <span className="text-sm text-gray-800">Chọn Tất Cả ({cart.cartItems.length})</span>
-                                
                             </div>
                             <button className="text-gray-600 hover:text-gray-800 text-sm">Xóa</button>
                             <button className="text-blue-500 hover:underline text-sm">Lưu vào mục Đã thích</button>
                         </div>
                         <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600">Tổng thanh toán ({cart.cartItems.length}) Sản phẩm:</span>
+                            <span className="text-sm text-gray-600">Tổng thanh toán ({numberOfSelectedItems}) Sản phẩm:</span>
                             <span className="text-xl text-red-500 font-bold">
-                                ₫{cart.cartItems.reduce((sum: number, item: CartItem) => sum + (item.productVariant?.Price || 0) * item.Quantity, 0).toLocaleString('vi-VN')}
+                                ₫{calculateTotalAmount().toLocaleString('vi-VN')}
                             </span>
                         </div>
-                        <button className="bg-red-500 text-white px-8 py-2 rounded-sm hover:bg-red-600 font-semibold text-sm">
+                        <button
+                            className={`px-8 py-2 rounded-sm font-semibold text-sm
+                                ${numberOfSelectedItems > 0
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                                }`}
+                            disabled={numberOfSelectedItems === 0}
+                        >
                             Mua Hàng
                         </button>
                     </div>

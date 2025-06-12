@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-white text-black dark:bg-gray-100"> {/* Thêm màu nền cho body để dễ nhìn */}
+      <body style={{ backgroundColor: '#f8f4f4' }}>
         <Header />
         <main className="relative z-10">
           {children}
