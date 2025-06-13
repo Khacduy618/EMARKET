@@ -1,6 +1,6 @@
 import { Cart } from '../types';
 
-const API_BASE_URL = 'http://localhost/api'; // Assuming your backend is accessible via Nginx on localhost:80
+const API_BASE_URL = 'http://localhost:8001/api'; // Assuming your backend is accessible via Nginx on localhost:80
 
 // Helper function to get the auth token (replace with your actual auth logic)
 const getAuthToken = (): string | null => {

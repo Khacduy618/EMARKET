@@ -56,11 +56,8 @@ Route::middleware('auth:sanctum')->group(function (){
 });
 
 
-Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-//     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-//     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
-// });
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+});
