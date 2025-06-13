@@ -10,7 +10,7 @@ class ProductVariant extends Model
 {
     use HasFactory;
 
-    protected $table = 'productvariants';
+protected $table = 'ProductVariants';
     protected $primaryKey = 'VariantID';
     public $timestamps = true;
 

@@ -21,7 +21,6 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        
         // Original logic below (commented out for testing)
         try {
             // Fetch the cart and its items using Facades\DB

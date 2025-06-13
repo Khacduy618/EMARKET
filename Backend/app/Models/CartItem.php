@@ -9,7 +9,7 @@ use App\Models\ProductVariant;
 class CartItem extends Model
 {
     use HasFactory;
-
+protected $table = 'CartItems';
     protected $primaryKey = 'CartItemID';
 
     protected $fillable = [

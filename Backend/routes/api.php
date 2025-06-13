@@ -40,6 +40,7 @@ Route::get('/products/{productId}', [ProductDetailController::class, 'show']);
 // router tìm kiếm lọc sản phẩm 
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
+    Route::get('/cart', [CartController::class, 'index']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -53,7 +54,6 @@ Route::middleware('auth:sanctum')->group(function (){
 
     // Cart routes - require authentication
     
-    Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
