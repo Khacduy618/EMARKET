@@ -21,8 +21,8 @@ export const fetchCart = async (): Promise<Cart> => {
     return handleResponse(response);
 };
 
-export const updateCartItemQuantity = async (cartItemId: number, quantity: number): Promise<Cart> => {
-    const token = getAuthToken();
+export async function updateCartItemQuantity(cartItemId: number, quantity: number): Promise<Cart> {
+    const token = localStorage.getItem('authToken');
     const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}`, {
         method: 'PUT',
         headers: {
@@ -32,7 +32,7 @@ export const updateCartItemQuantity = async (cartItemId: number, quantity: numbe
         body: JSON.stringify({ quantity }),
     });
     return handleResponse(response);
-};
+}
 
 export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
     const token = getAuthToken();

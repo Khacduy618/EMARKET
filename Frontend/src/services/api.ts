@@ -8,7 +8,8 @@ export const handleResponse = async (response: Response) => {
         if (contentType && contentType.includes('application/json')) {
             try {
                 const error = await response.json();
-                errorDetails = error.message || JSON.stringify(error);
+                errorDetails = error.message || JSON.stringify(error) || error.available_stock;
+                
             } catch (jsonError) {
                 console.error('Failed to parse error response as JSON:', jsonError);
                 errorDetails = `Failed to parse error response as JSON. Status: ${response.status}`;

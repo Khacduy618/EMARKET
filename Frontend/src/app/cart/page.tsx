@@ -97,10 +97,22 @@ const CartPage: React.FC = () => {
     const handleUpdateQuantity = async (cartItemId: number, quantity: number) => {
         try {
             const newQuantity = Math.max(1, quantity);
+            // Bạn có thể thêm kiểm tra số lượng ở client-side trước khi gửi lên server
+            // if (newQuantity > maxAvailableStock) {
+            //     setError('Số lượng vượt quá giới hạn tồn kho.');
+            //     return;
+            // }
+
             const updatedCart = await updateCartItemQuantity(cartItemId, newQuantity);
             setCart(updatedCart);
-        } catch (err) {
-            setError('Failed to update item quantity.');
+            setError(null); // Xóa lỗi nếu cập nhật thành công
+        } catch (err: any) { // Catch lỗi API
+            // Kiểm tra nếu lỗi có chứa thông tin stock
+            if (err.cause && typeof err.cause === 'number') {
+                setError(`Số lượng yêu cầu vượt quá số lượng sản phẩm có sẵn trong kho. Chỉ còn ${err.cause} sản phẩm.`);
+            } else {
+                setError(err.message || 'Failed to update item quantity.');
+            }
             console.error(err);
         }
     };
@@ -225,6 +237,14 @@ const CartPage: React.FC = () => {
 
     return (
             <div className="container mx-auto px-4">
+            {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong className="font-bold">Lỗi!</strong>
+                <span className="block sm:inline"> {error}</span>
+                <span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={() => setError(null)}>
+                    <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.03a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15L6.252 6.1a1.2 1.2 0 1 1 1.697-1.697l2.758 3.15 2.651-3.03a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.15 2.758 3.15a1.2 1.2 0 0 1 0 1.697z"/></svg>
+                </span>
+            </div>}
+
                 {/* Cart Items List */}
                 <div className="mb-6">
                     {/* Table Header */}
