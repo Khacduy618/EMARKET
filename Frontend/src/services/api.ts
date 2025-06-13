@@ -1,28 +1,51 @@
 const API_BASE_URL = 'http://localhost/api';
 
+// export const handleResponse = async (response: Response) => {
+//     if (!response.ok) {
+//         let errorDetails = 'Something went wrong';
+//         const contentType = response.headers.get('content-type');
+
+//         if (contentType && contentType.includes('application/json')) {
+//             try {
+//                 const error = await response.json();
+//                 errorDetails = error.message || JSON.stringify(error) || error.available_stock;
+                
+//             } catch (jsonError) {
+//                 console.error('Failed to parse error response as JSON:', jsonError);
+//                 errorDetails = `Failed to parse error response as JSON. Status: ${response.status}`;
+//             }
+//         } else {
+//             try {
+//                 errorDetails = await response.text();
+//             } catch (textError) {
+//                 console.error('Failed to read error response as text:', textError);
+//                 errorDetails = `Failed to read error response. Status: ${response.status}`;
+//             }
+//         }
+//         throw new Error(`API Error: ${response.status} - ${errorDetails}`);
+//     }
+//     return response.json();
+// };
 export const handleResponse = async (response: Response) => {
     if (!response.ok) {
-        let errorDetails = 'Something went wrong';
-        const contentType = response.headers.get('content-type');
-
-        if (contentType && contentType.includes('application/json')) {
-            try {
-                const error = await response.json();
-                errorDetails = error.message || JSON.stringify(error) || error.available_stock;
-                
-            } catch (jsonError) {
-                console.error('Failed to parse error response as JSON:', jsonError);
-                errorDetails = `Failed to parse error response as JSON. Status: ${response.status}`;
-            }
-        } else {
-            try {
-                errorDetails = await response.text();
-            } catch (textError) {
-                console.error('Failed to read error response as text:', textError);
-                errorDetails = `Failed to read error response. Status: ${response.status}`;
-            }
+        let errorData: any = { message: 'An unknown error occurred.' };
+        try {
+            // Try to parse JSON from error response
+            errorData = await response.json();
+        } catch (e) {
+            // If parsing fails, use a generic message
+            console.error('Failed to parse error response JSON:', e);
+            errorData = { message: 'An unknown error occurred on the server.' };
         }
-        throw new Error(`API Error: ${response.status} - ${errorDetails}`);
+
+        const error = new Error(errorData.message || 'Something went wrong.');
+        // Attach the full response details to the error object
+        // This is what allows your component to access err.response.data
+        (error as any).response = {
+            status: response.status,
+            data: errorData,
+        };
+        throw error;
     }
     return response.json();
 };
