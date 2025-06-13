@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // Keep DB facade for now if needed elsewhere, but refactor index
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class CartController extends Controller
 {
@@ -191,34 +192,78 @@ class CartController extends Controller
     public function addItem(Request $request)
     {
         $request->validate([
-            'variant_id' => 'required|exists:product_variants,VariantID', // Use variant_id
+            'variant_id' => 'required|integer', // 'exists' check with DB facade needs manual query
             'quantity' => 'required|integer|min:1',
-            'shop_id' => 'required|exists:shops,ShopID',
+            'shop_id' => 'required|integer', // 'exists' check with DB facade needs manual query
         ]);
 
         $user = Auth::user();
-        $cart = Cart::firstOrCreate(['UserID' => $user->UserID]); // Use UserID
 
-        $cartItem = CartItem::where('CartID', $cart->CartID)
-                            ->where('VariantID', $request->variant_id) // Use VariantID
-                            ->first();
+        // Check if variant and shop exist
+        $variantExists = DB::table('ProductVariants')->where('VariantID', $request->variant_id)->first();
+        $shopExists = DB::table('Shops')->where('ShopID', $request->shop_id)->first();
 
-        if ($cartItem) {
-            // Update quantity if item already exists
-            $cartItem->Quantity += $request->quantity;
-            $cartItem->save();
-        } else {
-            // Add new item to cart
-            $cartItem = new CartItem();
-            $cartItem->CartID = $cart->CartID;
-            $cartItem->VariantID = $request->variant_id; // Use VariantID
-            $cartItem->ShopID = $request->shop_id;
-            $cartItem->Quantity = $request->quantity;
-            $cartItem->save();
+        if (!$variantExists) {
+            return response()->json(['message' => 'Variant not found'], 404);
+        }
+        if (!$shopExists) {
+            return response()->json(['message' => 'Shop not found'], 404);
         }
 
-        $cart->load(['cartItems.productVariant', 'cartItems.shop']); // Reload cart with updated items and relationships
-        return response()->json($cart, 201);
+        // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
+        DB::beginTransaction();
+        try {
+            // Tìm hoặc tạo giỏ hàng
+            $cart = DB::table('Carts')->where('UserID', $user->UserID)->first();
+
+            if (!$cart) {
+                $cartId = DB::table('Carts')->insertGetId([
+                    'UserID' => $user->UserID,
+                    'CreatedAt' => Carbon::now(),
+                    'UpdatedAt' => Carbon::now()
+                ]);
+                $cart = (object)['CartID' => $cartId, 'UserID' => $user->UserID]; // Tạo object ảo để sử dụng
+            }
+
+            // Tìm CartItem hiện có
+            $cartItem = DB::table('CartItems')
+                            ->where('CartID', $cart->CartID)
+                            ->where('VariantID', $request->variant_id)
+                            ->first();
+
+            if ($cartItem) {
+                // Cập nhật số lượng nếu mục đã tồn tại
+                DB::table('CartItems')
+                    ->where('CartItemID', $cartItem->CartItemID)
+                    ->update([
+                        'Quantity' => $cartItem->Quantity + $request->quantity,
+                        'UpdatedAt' => Carbon::now()
+                    ]);
+            } else {
+                // Thêm mục mới vào giỏ hàng
+                DB::table('CartItems')->insert([
+                    'CartID' => $cart->CartID,
+                    'VariantID' => $request->variant_id,
+                    'ShopID' => $request->shop_id,
+                    'Quantity' => $request->quantity,
+                    'AddedAt' => Carbon::now(),
+                    'UpdatedAt' => Carbon::now()
+                ]);
+            }
+
+            DB::commit();
+
+            // Lấy lại toàn bộ giỏ hàng với định dạng đầy đủ sau khi cập nhật
+            // Đây là cách đơn giản nhất để có dữ liệu phản hồi tương tự như index()
+            $updatedCartResponse = $this->index($request)->getData(); // Gọi lại index để lấy dữ liệu mới nhất
+
+            return response()->json($updatedCartResponse, 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error adding item to cart: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['message' => 'Internal Server Error'], 500);
+        }
     }
 
     /**
@@ -235,25 +280,54 @@ class CartController extends Controller
         ]);
 
         $user = Auth::user();
-        $cart = Cart::where('UserID', $user->UserID)->first(); // Use UserID
+
+        // Tìm giỏ hàng của người dùng
+        $cart = DB::table('Carts')->where('UserID', $user->UserID)->first();
 
         if (!$cart) {
             return response()->json(['message' => 'Cart not found'], 404);
         }
 
-        $cartItem = CartItem::where('CartID', $cart->CartID)
-                            ->where('CartItemID', $cartItemId)
-                            ->first();
+        // Lấy CartItem và thông tin ProductVariant tương ứng bằng JOIN
+        $cartItemWithVariant = DB::table('CartItems AS ci')
+                                ->join('ProductVariants AS pv', 'ci.VariantID', '=', 'pv.VariantID')
+                                ->where('ci.CartID', $cart->CartID)
+                                ->where('ci.CartItemID', $cartItemId)
+                                ->select('ci.CartItemID', 'ci.Quantity', 'pv.StockQuantity', 'pv.IsActive')
+                                ->first();
 
-        if (!$cartItem) {
+        if (!$cartItemWithVariant) {
             return response()->json(['message' => 'Cart item not found'], 404);
         }
 
-        $cartItem->Quantity = $request->quantity;
-        $cartItem->save();
+        $requestedQuantity = $request->quantity;
 
-        $cart->load(['cartItems.productVariant', 'cartItems.shop']); // Reload cart with updated items and relationships
-        return response()->json($cart);
+        // Bắt đầu LOGIC KIỂM TRA SỐ LƯỢNG TỒN KHO
+        if (!$cartItemWithVariant->IsActive) {
+            Log::warning("Cart item {$cartItemWithVariant->CartItemID} references an inactive product variant.");
+            return response()->json(['message' => 'Sản phẩm này hiện không còn kinh doanh.'], 400);
+        }
+
+        if ($requestedQuantity > $cartItemWithVariant->StockQuantity) {
+            return response()->json([
+                'message' => 'Số lượng yêu cầu (' . $requestedQuantity . ') vượt quá số lượng sản phẩm có sẵn trong kho (' . $cartItemWithVariant->StockQuantity . ').',
+                'available_stock' => $cartItemWithVariant->StockQuantity
+            ], 400);
+        }
+        // KẾT THÚC LOGIC KIỂM TRA SỐ LƯỢNG TỒN KHO
+
+        // Cập nhật số lượng CartItem
+        DB::table('CartItems')
+            ->where('CartItemID', $cartItemId)
+            ->update([
+                'Quantity' => $requestedQuantity,
+                'UpdatedAt' => Carbon::now() // Cập nhật timestamp thủ công
+            ]);
+
+        // Lấy lại toàn bộ giỏ hàng với định dạng đầy đủ sau khi cập nhật
+        $updatedCartResponse = $this->index($request)->getData();
+
+        return response()->json($updatedCartResponse);
     }
 
     /**
@@ -265,31 +339,49 @@ class CartController extends Controller
     public function removeItem($cartItemId)
     {
         $user = Auth::user();
-        $cart = Cart::where('UserID', $user->UserID)->first(); // Use UserID
+
+        // Tìm giỏ hàng của người dùng
+        $cart = DB::table('Carts')->where('UserID', $user->UserID)->first();
 
         if (!$cart) {
             return response()->json(['message' => 'Cart not found'], 404);
         }
 
-        $cartItem = CartItem::where('CartID', $cart->CartID)
-                            ->where('CartItemID', $cartItemId)
-                            ->first();
+        // Kiểm tra CartItem thuộc về giỏ hàng của người dùng
+        $cartItem = DB::table('CartItems')
+                        ->where('CartID', $cart->CartID)
+                        ->where('CartItemID', $cartItemId)
+                        ->first();
 
         if (!$cartItem) {
             return response()->json(['message' => 'Cart item not found'], 404);
         }
 
-        $cartItem->delete();
+        DB::beginTransaction();
+        try {
+            // Xóa CartItem
+            DB::table('CartItems')->where('CartItemID', $cartItemId)->delete();
 
-        // After deleting, check if the cart is empty and delete it if necessary
-        if ($cart->cartItems()->count() === 0) {
-            $cart->delete();
-            return response()->json(['message' => 'Cart item removed and cart is now empty']);
+            // Kiểm tra nếu giỏ hàng trống và xóa giỏ hàng
+            $remainingItemsCount = DB::table('CartItems')->where('CartID', $cart->CartID)->count();
+
+            if ($remainingItemsCount === 0) {
+                DB::table('Carts')->where('CartID', $cart->CartID)->delete();
+                DB::commit();
+                return response()->json(['message' => 'Cart item removed and cart is now empty']);
+            }
+
+            DB::commit();
+
+            // Lấy lại toàn bộ giỏ hàng với định dạng đầy đủ sau khi xóa
+            $updatedCartResponse = $this->index(request())->getData(); // Dùng helper `request()` nếu không có Request object
+            return response()->json($updatedCartResponse);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error removing cart item: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['message' => 'Internal Server Error'], 500);
         }
-
-
-        $cart->load(['cartItems.productVariant', 'cartItems.shop']); // Reload cart with updated items and relationships
-        return response()->json($cart);
     }
 
     public function getProductAttributes(Request $request, $productId)
