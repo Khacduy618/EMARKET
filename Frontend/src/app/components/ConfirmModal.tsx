@@ -84,7 +84,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, message, onConfirm,
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Xác nhận</h3>
         <p className="text-gray-600 mb-6">{message}</p>
