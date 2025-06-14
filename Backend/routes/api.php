@@ -61,3 +61,18 @@ Route::middleware('auth:sanctum')->group(function (){
 });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
+    
+// ADMIN ROUTE
+Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+
+Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
+
+Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])
+  ->middleware(HandleImage::class);
+
+Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+
+Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])
+  ->middleware(HandleImage::class);
+
+Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
