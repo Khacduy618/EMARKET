@@ -73,3 +73,4 @@ export interface CartItem {
     // Cân nhắc xóa nó nếu bạn luôn dùng `item.shop.ShopName`
     ShopName?: string; // Có thể để optional hoặc xóa
 }
+

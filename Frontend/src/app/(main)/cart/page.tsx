@@ -1253,7 +1253,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItemQuantity, removeCartItem } from '@/services/cart';
 import { getProductAttributes } from '@/services/api';
-import { Cart, CartItem, AttributeValue } from '@/types';
+import { Cart, CartItem, AttributeValue } from '@/types'; // Đảm bảo Cart đã có message?: string;
 import AttributeSelectionDropdown from '@/app/components/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
 import { toast } from 'react-toastify';
@@ -1267,9 +1267,13 @@ const CartPage: React.FC = () => {
     const [openDropdownItemId, setOpenDropdownItemId] = useState<number | null>(null);
     const [attributeOptions, setAttributeOptions] = useState<{ [key: string]: any } | null>(null);
 
-    // State for confirmation modal
+    // State for deletion confirmation modal
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
     const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
+
+    // NEW: State for large quantity confirmation modal
+    const [showLargeQuantityConfirm, setShowLargeQuantityConfirm] = useState<boolean>(false);
+    const [itemForLargeQuantity, setItemForLargeQuantity] = useState<CartItem | null>(null);
 
     // State to keep track of selected CartItem IDs
     const [selectedCartItemIds, setSelectedCartItemIds] = useState<Set<number>>(new Set());
@@ -1280,7 +1284,7 @@ const CartPage: React.FC = () => {
     // Map to store refs for each shop checkbox to handle indeterminate state
     const shopCheckboxRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
-    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning', duration: number = 3000) => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
         switch (type) {
             case 'success':
                 toast.success(message, { autoClose: duration });
@@ -1290,6 +1294,9 @@ const CartPage: React.FC = () => {
                 break;
             case 'warning':
                 toast.warn(message, { autoClose: duration });
+                break;
+            case 'info':
+                toast.info(message, { autoClose: duration });
                 break;
             default:
                 toast.info(message, { autoClose: duration });
@@ -1302,12 +1309,43 @@ const CartPage: React.FC = () => {
         try {
             setLoading(true);
             const cartData = await fetchCart();
-            setCart(cartData);
+
+            const hardLimit = 10;
+
+            const clampedCartItems = cartData.cartItems.map(item => {
+                let currentQuantity = item.Quantity;
+                const maxStock = item.productVariant?.StockQuantity || 0;
+
+                if (maxStock === 0) {
+                    if (currentQuantity > 0) {
+                        showNotification(`Sản phẩm "${item.productVariant?.product?.Name}" hiện đã hết hàng. Số lượng được điều chỉnh về 0.`, 'error', 7000);
+                    }
+                    currentQuantity = 0;
+                } else {
+                    currentQuantity = Math.max(1, currentQuantity); // Ensure minimum 1 if not out of stock
+
+                    const ultimateMax = Math.min(hardLimit, maxStock);
+                    
+                    if (currentQuantity > ultimateMax) {
+                        if (ultimateMax === hardLimit) {
+                            showNotification(`Số lượng của sản phẩm "${item.productVariant?.product?.Name}" đã được giới hạn về ${hardLimit} (số lượng tối đa cho phép).`, 'warning', 7000);
+                        } else {
+                            showNotification(`Số lượng của sản phẩm "${item.productVariant?.product?.Name}" đã được giới hạn về ${maxStock} (do tồn kho).`, 'warning', 7000);
+                        }
+                        currentQuantity = ultimateMax;
+                    }
+                }
+                return { ...item, Quantity: currentQuantity };
+            });
+
+            const modifiedCartData = { ...cartData, cartItems: clampedCartItems };
+
+            setCart(modifiedCartData);
             setSelectedCartItemIds(prev => {
                 const newSet = new Set<number>();
-                if (cartData && Array.isArray(cartData.cartItems)) {
-                    cartData.cartItems.forEach(item => {
-                        if (prev.has(item.CartItemID)) {
+                if (modifiedCartData && Array.isArray(modifiedCartData.cartItems)) {
+                    modifiedCartData.cartItems.forEach(item => {
+                        if (prev.has(item.CartItemID) && item.Quantity > 0) {
                             newSet.add(item.CartItemID);
                         }
                     });
@@ -1315,7 +1353,7 @@ const CartPage: React.FC = () => {
                 return newSet;
             });
             setLocalError(null);
-            return cartData;
+            return modifiedCartData;
         } catch (err) {
             console.error('Error fetching cart:', err);
             const errorMessage = (err as any).response?.data?.message || 'Failed to load cart.';
@@ -1355,7 +1393,9 @@ const CartPage: React.FC = () => {
             const newSet = new Set<number>();
             if (isChecked && cart && Array.isArray(cart.cartItems)) {
                 cart.cartItems.forEach(item => {
-                    newSet.add(item.CartItemID);
+                    if (item.Quantity > 0) { // Only select items with quantity > 0
+                        newSet.add(item.CartItemID);
+                    }
                 });
             }
             return newSet;
@@ -1370,7 +1410,7 @@ const CartPage: React.FC = () => {
 
             if (itemsInShop) {
                 itemsInShop.forEach(item => {
-                    if (isChecked) {
+                    if (isChecked && item.Quantity > 0) { // Only select items with quantity > 0
                         newSet.add(item.CartItemID);
                     } else {
                         newSet.delete(item.CartItemID);
@@ -1381,7 +1421,7 @@ const CartPage: React.FC = () => {
         });
     };
 
-    // --- Confirmation Modal Handlers ---
+    // --- Confirmation Modal Handlers (for deletion) ---
     const handleConfirmDelete = async () => {
         if (itemToDelete) {
             try {
@@ -1407,13 +1447,12 @@ const CartPage: React.FC = () => {
     };
 
     const handleCancelDelete = () => {
-        // If canceled, revert the quantity to 1 for the specific item
         if (itemToDelete) {
             setCart(prevCart => {
                 if (!prevCart) return null;
                 const updatedItems = prevCart.cartItems.map(cartItem =>
                     cartItem.CartItemID === itemToDelete.CartItemID
-                        ? { ...cartItem, Quantity: 1 } // Revert to 1
+                        ? { ...cartItem, Quantity: 1 }
                         : cartItem
                 );
                 return { ...prevCart, cartItems: updatedItems };
@@ -1423,14 +1462,30 @@ const CartPage: React.FC = () => {
         setItemToDelete(null);
         showNotification('Thao tác xóa đã bị hủy. Số lượng sản phẩm đã được đặt lại về 1.', 'warning');
     };
-    // --- End Confirmation Modal Handlers ---
+    // --- End Confirmation Modal Handlers (for deletion) ---
+
+    // NEW: --- Confirmation Modal Handlers (for large quantity) ---
+    const handleConfirmLargeQuantity = () => {
+        setShowLargeQuantityConfirm(false);
+        setItemForLargeQuantity(null);
+        showNotification("Cảm ơn quý khách đã quan tâm! Vui lòng liên hệ cửa hàng để được hỗ trợ đặt số lượng lớn hơn 10.", 'info');
+        // Quantity is already clamped to 10 in handleUpdateQuantity before showing this modal
+    };
+
+    const handleCancelLargeQuantity = () => {
+        setShowLargeQuantityConfirm(false);
+        setItemForLargeQuantity(null);
+        showNotification("Số lượng đã được giới hạn về mức tối đa cho phép là 10.", 'info');
+        // Quantity is already clamped to 10 in handleUpdateQuantity before showing this modal
+    };
+    // NEW: --- End Confirmation Modal Handlers (for large quantity) ---
 
     // --- Modified handleUpdateQuantity ---
     const handleUpdateQuantity = async (item: CartItem, newQuantityInput: number | string) => {
         let newQuantity = typeof newQuantityInput === 'string' ? parseInt(newQuantityInput) : newQuantityInput;
 
         if (isNaN(newQuantity)) {
-            newQuantity = 0; // Treat invalid input as 0 for deletion prompt
+            newQuantity = 0;
         }
 
         // --- Step 1: Handle Zero/Negative Quantity (Deletion Confirmation) ---
@@ -1441,42 +1496,78 @@ const CartPage: React.FC = () => {
         }
 
         // --- Step 2: Client-side Quantity Clamping (Max 10 or Stock Quantity) ---
-        const maxStock = item.productVariant?.StockQuantity || 1;
+        const maxStock = item.productVariant?.StockQuantity || 0;
         const hardLimit = 10;
 
-        let finalQuantity = newQuantity;
+        let finalQuantity = Math.max(1, newQuantity);
 
-        // Apply max stock limit
-        if (finalQuantity > maxStock) {
-            finalQuantity = maxStock;
-            showNotification(`Số lượng không thể vượt quá tồn kho (${maxStock}).`, 'warning');
-        }
+        // If product is out of stock, quantity must be 0
+        if (maxStock === 0) {
+            finalQuantity = 0;
+            if (newQuantity > 0) { // Only show notification if user tried to input a positive quantity
+                showNotification("Sản phẩm này hiện đã hết hàng.", 'error');
+            }
+        } else {
+            // NEW: Logic for large quantity prompt
+            if (newQuantity > hardLimit && item.Quantity <= hardLimit) { // Trigger only if user *attempts* to go above hardLimit AND current quantity is within limit
+                setItemForLargeQuantity(item);
+                setShowLargeQuantityConfirm(true);
+                finalQuantity = hardLimit; // Immediately clamp UI to hardLimit (10)
+                // We return here. The user interaction with the modal will then continue the flow,
+                // but the UI is already updated, and no API call is made for *this* step.
+                // The API call happens only if finalQuantity != item.Quantity, which it will after clamping.
+                // BUT, if the modal prompts, we want to pause API call.
+                
+                // Set the quantity in local state to hardLimit immediately for UI
+                setCart(prevCart => {
+                    if (!prevCart) return null;
+                    return {
+                        ...prevCart,
+                        cartItems: prevCart.cartItems.map(cartItem =>
+                            cartItem.CartItemID === item.CartItemID
+                                ? { ...cartItem, Quantity: hardLimit }
+                                : cartItem
+                        )
+                    };
+                });
+                return; // Stop further processing and wait for modal interaction
+            }
 
-        // Apply arbitrary hard limit of 10 if stock allows
-        if (finalQuantity > hardLimit && maxStock >= hardLimit) {
-            finalQuantity = hardLimit;
-            if (newQuantity > hardLimit) {
-               showNotification(`Số lượng tối đa cho phép là ${hardLimit} sản phẩm.`, 'warning');
+
+            // Apply hard limit (10) and stock limit, taking the smaller value
+            const ultimateMax = Math.min(hardLimit, maxStock);
+            
+            if (finalQuantity > ultimateMax) {
+                // Only show notification if the new quantity input was initially higher than the clamped value
+                if (newQuantity > ultimateMax) {
+                    if (ultimateMax === hardLimit) {
+                        showNotification(`Số lượng tối đa cho phép mỗi mặt hàng là ${hardLimit} sản phẩm.`, 'warning');
+                    } else { // ultimateMax == maxStock
+                        showNotification(`Số lượng không thể vượt quá tồn kho (${maxStock}).`, 'warning');
+                    }
+                }
+                finalQuantity = ultimateMax; // Clamp the quantity
             }
         }
 
-        // If the quantity hasn't actually changed after clamping, or if it's an invalid string input
-        // that got clamped to the current quantity, simply update the UI and return.
-        if (finalQuantity === item.Quantity) {
-            // This is for cases like typing "abc" which becomes 0, then clamped to current Quantity (e.g., 1)
-            // or typing "15" which is clamped to 10, but Quantity was already 10.
-            // In these cases, we want to update the UI to reflect the clamped value without an API call.
-            if (typeof newQuantityInput === 'string' || newQuantity !== finalQuantity) {
-                setCart(prevCart => {
-                    if (!prevCart) return null;
-                    const updatedItems = prevCart.cartItems.map(cartItem =>
+        // Update UI state immediately after clamping if the value changed.
+        // This ensures the input field reflects the clamped value even before an API call.
+        if (item.Quantity !== finalQuantity) {
+            setCart(prevCart => {
+                if (!prevCart) return null;
+                return {
+                    ...prevCart,
+                    cartItems: prevCart.cartItems.map(cartItem =>
                         cartItem.CartItemID === item.CartItemID
                             ? { ...cartItem, Quantity: finalQuantity }
                             : cartItem
-                    );
-                    return { ...prevCart, cartItems: updatedItems };
-                });
-            }
+                    )
+                };
+            });
+        }
+        
+        // Only make an API call if the final quantity is actually different from the *original* item quantity.
+        if (finalQuantity === item.Quantity) {
             return;
         }
 
@@ -1514,8 +1605,6 @@ const CartPage: React.FC = () => {
 
 
     const handleRemoveItem = async (cartItemId: number) => {
-        // This function is now typically called via handleConfirmDelete after modal confirmation
-        // Keeping it separate in case of direct calls (e.g., "Remove selected items")
         try {
             const updatedCart = await removeCartItem(cartItemId);
             setCart(updatedCart);
@@ -1617,8 +1706,10 @@ const CartPage: React.FC = () => {
             const shopId = parseInt(shopIdStr);
             const checkbox = shopCheckboxRefs.current.get(shopId);
             if (checkbox) {
-                const selectedCount = items.filter(item => selectedCartItemIds.has(item.CartItemID)).length;
-                const totalCount = items.length;
+                // Chỉ xem xét các mục có số lượng > 0 cho trạng thái checkbox
+                const itemsWithQuantity = items.filter(item => item.Quantity > 0);
+                const selectedCount = itemsWithQuantity.filter(item => selectedCartItemIds.has(item.CartItemID)).length;
+                const totalCount = itemsWithQuantity.length;
 
                 const isShopFullySelected = totalCount > 0 && selectedCount === totalCount;
                 const isShopPartiallySelected = selectedCount > 0 && selectedCount < totalCount;
@@ -1640,13 +1731,23 @@ const CartPage: React.FC = () => {
 
     return (
             <div className="container mx-auto px-4">
-            {/* Confirmation Modal */}
+            {/* Confirmation Modal for Deletion */}
             {showDeleteConfirm && itemToDelete && (
                 <ConfirmModal
                     isOpen={showDeleteConfirm}
                     message={`Bạn có chắc chắn muốn xoá sản phẩm "${itemToDelete.productVariant?.product?.Name}" khỏi giỏ hàng?`}
                     onConfirm={handleConfirmDelete}
                     onCancel={handleCancelDelete}
+                />
+            )}
+
+            {/* NEW: Confirmation Modal for Large Quantity */}
+            {showLargeQuantityConfirm && itemForLargeQuantity && (
+                <ConfirmModal
+                    isOpen={showLargeQuantityConfirm}
+                    message={`Quý khách muốn đặt số lượng lớn cho sản phẩm "${itemForLargeQuantity.productVariant?.product?.Name}"? Vui lòng liên hệ cửa hàng: ${itemForLargeQuantity.shop?.ShopPhone || 'Chưa có SĐT'}`}
+                    onConfirm={handleConfirmLargeQuantity}
+                    onCancel={handleCancelLargeQuantity}
                 />
             )}
 
@@ -1685,7 +1786,7 @@ const CartPage: React.FC = () => {
 
                     {/* Grouped Cart Items */}
                     {Object.entries(groupedItems).map(([shopIdStr, items]) => {
-                        const shopId = parseInt(shopIdStr); // Convert string key back to number
+                        const shopId = parseInt(shopIdStr);
                         const shopName = items[0]?.shop?.ShopName;
 
                         return (
@@ -1719,6 +1820,7 @@ const CartPage: React.FC = () => {
                                                 className="form-checkbox text-red-500 rounded"
                                                 checked={!!selectedCartItemIds.has(item.CartItemID)}
                                                 onChange={(e) => handleItemCheckboxChange(item.CartItemID, e.target.checked)}
+                                                disabled={item.Quantity === 0}
                                             />
                                             <div className="w-16 h-16 bg-gray-100 rounded-sm flex items-center justify-center text-gray-500 overflow-hidden border">
                                                 <img src={item.productVariant?.ImageURL || '/images/placeholder.png'} alt={item.productVariant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" />
@@ -1739,9 +1841,9 @@ const CartPage: React.FC = () => {
                                                             onClick={() => handleAttributeClick(item)}
                                                         >
                                                             <div className="flex flex-col items-center">
-                                                                <div className="w-full"><span className="text-xs text-gray-500">Phân Loại Hàng:</span>
-                                                                <span className="text-gray-400 text-xs">▼</span></div>
-                                                                <div className="text-gray-500 text-xs">{item.productVariant?.attributeValues?.map(attrValue => attrValue.Value).join(' - ') || 'Chọn phân loại'}</div>
+                                                                 <div className="w-full"><span className="text-xs text-gray-500">Phân Loại Hàng:</span>
+                                                                 <span className="text-gray-400 text-xs">▼</span></div>
+                                                                 <div className="text-gray-500 text-xs">{item.productVariant?.attributeValues?.map(attrValue => attrValue.Value).join(' - ') || 'Chọn phân loại'}</div>
                                                             </div>
                                                         </button>
                                                     </div>
@@ -1780,6 +1882,7 @@ const CartPage: React.FC = () => {
                                                 <button
                                                     onClick={() => handleUpdateQuantity(item, item.Quantity - 1)}
                                                     className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                                                    disabled={item.Quantity <= 0}
                                                 >
                                                     -
                                                 </button>
@@ -1788,10 +1891,12 @@ const CartPage: React.FC = () => {
                                                     value={item.Quantity}
                                                     onChange={(e) => handleUpdateQuantity(item, e.target.value)}
                                                     className="w-full text-center text-black text-sm border-l border-r outline-none"
+                                                    disabled={item.Quantity === 0}
                                                 />
                                                 <button
                                                     onClick={() => handleUpdateQuantity(item, item.Quantity + 1)}
                                                     className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                                                    disabled={item.Quantity >= (item.productVariant?.StockQuantity || 0) || item.Quantity >= 10 || item.Quantity === 0}
                                                 >
                                                     +
                                                 </button>
