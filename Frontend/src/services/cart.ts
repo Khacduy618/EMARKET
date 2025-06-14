@@ -47,7 +47,7 @@ export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
 };
 
 
-export const addCartItem = async (productId: number, quantity: number, shopId: number): Promise<Cart> => {
+export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<Cart> => {
     const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/cart/items`, {
         method: 'POST',
@@ -55,7 +55,8 @@ export const addCartItem = async (productId: number, quantity: number, shopId: n
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ product_id: productId, quantity, shop_id: shopId }),
+        // Truyền variant_id thay vì product_id
+        body: JSON.stringify({ variant_id: variantId, quantity, shop_id: shopId }),
     });
     return handleResponse(response);
 };

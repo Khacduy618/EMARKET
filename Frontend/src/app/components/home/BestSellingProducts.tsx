@@ -213,7 +213,7 @@ export default function ProductsCart() {
     const [products, setProducts] = useState<ProcessedProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+const IMAGE_BASE_URL = 'http://localhost';
     useEffect(() => {
         // Sử dụng AbortController để xử lý cleanup trong StrictMode
         const controller = new AbortController();
