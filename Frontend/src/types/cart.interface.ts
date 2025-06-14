@@ -17,4 +17,5 @@ export interface Cart {
     CreatedAt: string | null;
     UpdatedAt: string | null;
     cartItems: CartItem[];
+    message?: string;
 }
