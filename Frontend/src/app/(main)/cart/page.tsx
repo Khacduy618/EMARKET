@@ -1256,7 +1256,8 @@ import { getProductAttributes } from '@/services/api';
 import { Cart, CartItem, AttributeValue } from '@/types';
 import AttributeSelectionDropdown from '@/app/components/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
-import NotificationModal from '@/app/components/NotificationModal'; // <-- Import NotificationModal mới
+// import NotificationModal from '@/app/components/NotificationModal'; // <-- Import NotificationModal mới
+import { toast } from 'react-toastify';
 
 // Định nghĩa lại type Notification nếu bạn chưa làm ở file này
 // (hoặc nếu bạn muốn tách hoàn toàn interface này ra một file types chung)
@@ -1290,14 +1291,30 @@ const CartPage: React.FC = () => {
     const shopCheckboxRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
     // Helper function to show notifications
+    // const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning', duration: number = 3000) => {
+    //     setNotification({ message, type });
+    //     const timer = setTimeout(() => {
+    //         setNotification(null);
+    //     }, duration);
+    //     // Clean up previous timer if a new notification is shown quickly
+    //     return () => clearTimeout(timer);
+    // }, []);
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning', duration: number = 3000) => {
-        setNotification({ message, type });
-        const timer = setTimeout(() => {
-            setNotification(null);
-        }, duration);
-        // Clean up previous timer if a new notification is shown quickly
-        return () => clearTimeout(timer);
+        switch (type) {
+            case 'success':
+                toast.success(message, { autoClose: duration });
+                break;
+            case 'error':
+                toast.error(message, { autoClose: duration });
+                break;
+            case 'warning':
+                toast.warn(message, { autoClose: duration });
+                break;
+            default:
+                toast.info(message, { autoClose: duration });
+        }
     }, []);
+
 
     // Refetch cart function (to be called after successful mutations)
     const refreshCart = useCallback(async () => {
@@ -1643,12 +1660,12 @@ const CartPage: React.FC = () => {
     return (
             <div className="container mx-auto px-4">
             {/* Notification display sử dụng NotificationModal */}
-            <NotificationModal
+            {/* <NotificationModal
                 isOpen={!!notification} // Mở nếu notification không null
                 message={notification?.message || ''}
                 type={notification?.type || 'success'}
                 onClose={() => setNotification(null)} // Cho phép đóng thủ công
-            />
+            /> */}
 
             {/* Confirmation Modal */}
             {showDeleteConfirm && itemToDelete && (
@@ -1661,7 +1678,7 @@ const CartPage: React.FC = () => {
             )}
 
             {/* Persistent error banner (optional, can remove if floating notification is enough) */}
-            {localError && (
+           {localError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <strong className="font-bold">Lỗi!</strong>
                     <span className="block sm:inline"> {localError}</span>

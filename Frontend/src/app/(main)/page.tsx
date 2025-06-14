@@ -99,14 +99,14 @@
 'use client';
 
 import { useState } from 'react';
-import CategoryMenu from "./components/home/CategorySlider";
-import ResponsiveCategoryMenu from './components/home/ResponsiveCategoryMenu'; // Menu cho mobile
-import FlashSaleSection from "./components/home/FlashSales";
-import BestSellingProducts from "./components/home/BestSellingProducts";
-import HeroBannerSlider from "./components/home/banner";
-import ProductsCart from "./components/home/ProductCard";
-import NewArrivalsSection from "./components/home/NewArrivalSection";
-import BannerSlider from "./components/BannerSlider";
+import CategoryMenu from "../components/home/CategorySlider";
+import ResponsiveCategoryMenu from '../components/home/ResponsiveCategoryMenu'; // Menu cho mobile
+import FlashSaleSection from "../components/home/FlashSales";
+import BestSellingProducts from "../components/home/BestSellingProducts";
+import HeroBannerSlider from "../components/home/banner";
+import ProductsCart from "../components/home/ProductCard";
+import NewArrivalsSection from "../components/home/NewArrivalSection";
+import BannerSlider from "../components/BannerSlider";
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
