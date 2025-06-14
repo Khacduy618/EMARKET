@@ -54,8 +54,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ backgroundColor: '#f8f4f4' }}>
+    // <html lang="en">
+    //   <body style={{ backgroundColor: '#f8f4f4' }}>
+    <>
         <Header />
         <main className="relative z-10">
           {children}
@@ -63,8 +64,10 @@ export default function RootLayout({
 
         {/* Phần chân trang */}
         <Footer />
+    </>
+        
 
-      </body>
-    </html>
+    //   </body>
+    // </html>
   );
 }

@@ -1256,15 +1256,8 @@ import { getProductAttributes } from '@/services/api';
 import { Cart, CartItem, AttributeValue } from '@/types';
 import AttributeSelectionDropdown from '@/app/components/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
-// import NotificationModal from '@/app/components/NotificationModal'; // <-- Import NotificationModal mới
 import { toast } from 'react-toastify';
 
-// Định nghĩa lại type Notification nếu bạn chưa làm ở file này
-// (hoặc nếu bạn muốn tách hoàn toàn interface này ra một file types chung)
-interface Notification {
-    message: string;
-    type: 'success' | 'error' | 'warning';
-}
 
 const CartPage: React.FC = () => {
     const [cart, setCart] = useState<Cart | null>(null);
@@ -1273,9 +1266,6 @@ const CartPage: React.FC = () => {
     const [localError, setLocalError] = useState<string | null>(null);
     const [openDropdownItemId, setOpenDropdownItemId] = useState<number | null>(null);
     const [attributeOptions, setAttributeOptions] = useState<{ [key: string]: any } | null>(null);
-
-    // State for notifications
-    const [notification, setNotification] = useState<Notification | null>(null);
 
     // State for confirmation modal
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
@@ -1290,15 +1280,6 @@ const CartPage: React.FC = () => {
     // Map to store refs for each shop checkbox to handle indeterminate state
     const shopCheckboxRefs = useRef<Map<number, HTMLInputElement>>(new Map());
 
-    // Helper function to show notifications
-    // const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning', duration: number = 3000) => {
-    //     setNotification({ message, type });
-    //     const timer = setTimeout(() => {
-    //         setNotification(null);
-    //     }, duration);
-    //     // Clean up previous timer if a new notification is shown quickly
-    //     return () => clearTimeout(timer);
-    // }, []);
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning', duration: number = 3000) => {
         switch (type) {
             case 'success':
@@ -1659,14 +1640,6 @@ const CartPage: React.FC = () => {
 
     return (
             <div className="container mx-auto px-4">
-            {/* Notification display sử dụng NotificationModal */}
-            {/* <NotificationModal
-                isOpen={!!notification} // Mở nếu notification không null
-                message={notification?.message || ''}
-                type={notification?.type || 'success'}
-                onClose={() => setNotification(null)} // Cho phép đóng thủ công
-            /> */}
-
             {/* Confirmation Modal */}
             {showDeleteConfirm && itemToDelete && (
                 <ConfirmModal
