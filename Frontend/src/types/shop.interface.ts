@@ -18,4 +18,5 @@ export interface Shop {
 export interface ShopSummary {
     ShopID: number;
     ShopName: string;
+    ShopPhone: string;
 }

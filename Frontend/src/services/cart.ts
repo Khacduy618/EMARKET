@@ -1,4 +1,4 @@
-import { Cart } from '../types';
+import { Cart, AddCartItemResponse } from '../types';
 import {handleResponse} from '../services/api';
 const API_BASE_URL = 'http://localhost/api'; // Assuming your backend is accessible via Nginx on localhost:80
 
@@ -47,7 +47,21 @@ export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
 };
 
 
-export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<Cart> => {
+// export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<Cart> => {
+//     const token = getAuthToken();
+//     const response = await fetch(`${API_BASE_URL}/cart/items`, {
+//         method: 'POST',
+//         headers: {
+//             'Authorization': `Bearer ${token}`,
+//             'Content-Type': 'application/json',
+//         },
+//         // Truyền variant_id thay vì product_id
+//         body: JSON.stringify({ variant_id: variantId, quantity, shop_id: shopId }),
+//     });
+//     return handleResponse(response);
+// };
+
+export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<AddCartItemResponse> => {
     const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/cart/items`, {
         method: 'POST',
@@ -55,11 +69,12 @@ export const addCartItem = async (variantId: number, quantity: number, shopId: n
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        // Truyền variant_id thay vì product_id
         body: JSON.stringify({ variant_id: variantId, quantity, shop_id: shopId }),
     });
-    return handleResponse(response);
+    // handleResponse sẽ tự động parse JSON và ném lỗi nếu status không OK
+    return handleResponse(response); // Trả về AddCartItemResponse
 };
+
 
 export const fetchProductAttributes = async (productId: number) => {
     try {
