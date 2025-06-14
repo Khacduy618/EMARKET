@@ -85,23 +85,25 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({ isOpen, message, onConfirm,
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Xác nhận</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-          >
-            Hủy
-          </button>
-          <button
-            ref={confirmButtonRef} // Gán ref vào nút Đồng ý
-            onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            Đồng ý
-          </button>
+      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+        <div className=" rounded-lg p-6 shadow-inner">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Xác nhận</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Hủy
+            </button>
+            <button
+              ref={confirmButtonRef} // Gán ref vào nút Đồng ý
+              onClick={onConfirm}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              Đồng ý
+            </button>
+          </div>
         </div>
       </div>
     </div>
