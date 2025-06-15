@@ -2,12 +2,25 @@
 
 All notable changes of the PHPUnit 11.5 release series are documented in this file using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [11.5.22] - 2025-06-06
+
+### Changed
+
+* Do not treat warnings differently than other issues in summary section of default output
+
+## [11.5.21] - 2025-05-21
+
+### Changed
+
+* [#6210](https://github.com/sebastianbergmann/phpunit/pull/6210): Set default Clover coverage project name
+* [#6217](https://github.com/sebastianbergmann/phpunit/pull/6217): Improve the error message when `createStubForIntersectionOfInterfaces()` is called with a class
+
 ## [11.5.20] - 2025-05-11
 
 ### Fixed
 
-* [#6199](https://github.com/sebastianbergmann/phpunit/issues/6199): `assertEmpty()` and `assertNotEmpty()` use overly restrictive `phpstan-assert empty` directives
 * [#6192](https://github.com/sebastianbergmann/phpunit/issues/6192): Reverted change made in PHPUnit 11.5.19 due to regression
+* [#6199](https://github.com/sebastianbergmann/phpunit/issues/6199): `assertEmpty()` and `assertNotEmpty()` use overly restrictive `phpstan-assert empty` directives
 
 ## [11.5.19] - 2025-05-02
 
@@ -194,6 +207,8 @@ All notable changes of the PHPUnit 11.5 release series are documented in this fi
 * [#6055](https://github.com/sebastianbergmann/phpunit/issues/6055): `assertNotContainsOnly()` (use `assertContainsNotOnlyArray()`, `assertContainsNotOnlyBool()`, `assertContainsNotOnlyCallable()`, `assertContainsNotOnlyFloat()`, `assertContainsNotOnlyInt()`, `assertContainsNotOnlyIterable()`, `assertContainsNotOnlyNumeric()`, `assertContainsNotOnlyObject()`, `assertContainsNotOnlyResource()`, `assertContainsNotOnlyClosedResource()`, `assertContainsNotOnlyScalar()`, or `assertContainsNotOnlyString()` instead)
 * [#6059](https://github.com/sebastianbergmann/phpunit/issues/6059): `containsOnly()` (use `containsOnlyArray()`, `containsOnlyBool()`, `containsOnlyCallable()`, `containsOnlyFloat()`, `containsOnlyInt()`, `containsOnlyIterable()`, `containsOnlyNumeric()`, `containsOnlyObject()`, `containsOnlyResource()`, `containsOnlyClosedResource()`, `containsOnlyScalar()`, or `containsOnlyString()` instead)
 
+[11.5.22]: https://github.com/sebastianbergmann/phpunit/compare/11.5.21...11.5.22
+[11.5.21]: https://github.com/sebastianbergmann/phpunit/compare/11.5.20...11.5.21
 [11.5.20]: https://github.com/sebastianbergmann/phpunit/compare/11.5.19...11.5.20
 [11.5.19]: https://github.com/sebastianbergmann/phpunit/compare/11.5.18...11.5.19
 [11.5.18]: https://github.com/sebastianbergmann/phpunit/compare/11.5.17...11.5.18
