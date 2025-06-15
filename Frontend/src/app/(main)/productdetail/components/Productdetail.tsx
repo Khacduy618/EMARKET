@@ -7,8 +7,13 @@ import axios from 'axios';
 import Image from 'next/image';
 import { Loader2, Heart, Star } from 'lucide-react';
 import RelatedItems from './RelatedItems';
+import ProductDescription from './ProductDescription';
 
 // --- INTERFACES: Định nghĩa cấu trúc dữ liệu ---
+interface ProductDetailProps {
+    productId: number;
+    descriptionSlot: React.ReactNode; // <-- THÊM PROP NÀY
+}
 interface ProductImage {
     ImageID: number;
     ImageURL: string;
@@ -53,7 +58,7 @@ const formatPrice = (price: number) => {
 };
 
 // --- COMPONENT CHÍNH ---
-const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlot }) => {
 
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
@@ -216,6 +221,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             </div>
             {/* Truyền productId (đã là number) vào RelatedItems. Lỗi đã được sửa! */}
             <RelatedItems currentProductId={productId} />
+            {descriptionSlot}
         </main>
     );
 };
