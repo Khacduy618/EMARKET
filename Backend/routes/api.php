@@ -36,10 +36,14 @@ Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGro
 Route::get('/banners', [BannerController::class, 'index']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
-Route::get('/products/{productId}', [ProductDetailController::class, 'show']);
+Route::get('/productDetail/{productId}', [ProductDetailController::class, 'show']);
+//api cho itemproducst
+Route::get('/related-products', [ProductController::class, 'getRelatedProducts']);
+Route::get('/products/{currentProductId}/related', [ProductController::class, 'getRelatedProducts']);
 // router tìm kiếm lọc sản phẩm 
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
