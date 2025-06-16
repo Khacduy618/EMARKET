@@ -1,14 +1,17 @@
-// src/app/components/FeaturedProductsSidebar.tsx
+// 1. Đánh dấu đây là Client Component
+"use client";
 
 import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Eye, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 // ===================================================================
-// 1. TYPES - Định nghĩa cấu trúc dữ liệu ngay trong file này
+// TYPES VÀ HELPER FUNCTIONS (Giữ nguyên)
 // ===================================================================
-interface FeaturedProduct {
+
+interface Product { // Đổi tên cho chung chung hơn
     product_id: number;
     product_name: string;
     lowest_price: number | null;
@@ -17,26 +20,17 @@ interface FeaturedProduct {
     image_url: string | null;
 }
 
-interface CategoryWithProducts {
-    category_id: number;
-    category_name: string;
-    products: FeaturedProduct[];
-}
-
-// ===================================================================
-// 2. HELPER FUNCTION - Hàm trợ giúp định dạng tiền
-// ===================================================================
 const formatPrice = (price: number | null) => {
     if (price === null) return 'N/A';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
+// ===================================================================
+// SUB-COMPONENT: ProductCard (Giữ nguyên)
+// ===================================================================
 
-// ===================================================================
-// 3. SUB-COMPONENT - Component cho một card sản phẩm (nằm trong file này)
-// ===================================================================
 interface ProductCardProps {
-    product: FeaturedProduct;
+    product: Product;
 }
 
 function ProductCard({ product }: ProductCardProps) {
@@ -46,8 +40,9 @@ function ProductCard({ product }: ProductCardProps) {
         : product.lowest_price;
 
     return (
-        <Link href={`/product/${product.product_id}`} className="block group">
+        <Link href={`/productdetail/${product.product_id}`} className="block group">
             <div className="border border-gray-200 rounded-md p-3 transition-all duration-300 group-hover:shadow-md">
+                {/* ... nội dung card giữ nguyên ... */}
                 <div className="relative aspect-square mb-3">
                     {hasDiscount && (
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md z-10">
@@ -91,7 +86,7 @@ function ProductCard({ product }: ProductCardProps) {
                             <Star size={14} fill="currentColor" />
                             <Star size={14} className="text-gray-300" fill="currentColor" />
                         </div>
-                        <span>(99)</span> {/* Giả sử dữ liệu đánh giá */}
+                        <span>(99)</span>
                     </div>
                 </div>
             </div>
@@ -100,32 +95,72 @@ function ProductCard({ product }: ProductCardProps) {
 }
 
 // ===================================================================
-// 4. MAIN COMPONENT - Component chính (async) được export ra ngoài
+// MAIN COMPONENT - Sửa đổi hoàn toàn để hiển thị sản phẩm liên quan
 // ===================================================================
-export default async function FeaturedProductsSidebar() {
-    let featuredProducts: FeaturedProduct[] = [];
 
-    try {
-        const response = await axios.get<CategoryWithProducts[]>('http://localhost:8001/api/featured-products-by-category');
-        // API trả về mảng các danh mục, chúng ta cần làm phẳng nó thành một mảng sản phẩm duy nhất
-        featuredProducts = response.data.flatMap(category => category.products);
-    } catch (error) {
-        console.error("Failed to fetch featured products:", error);
-        // Trả về mảng rỗng nếu có lỗi để trang không bị crash
-        featuredProducts = [];
+// Định nghĩa props mà component này sẽ nhận
+interface RelatedProductsSidebarProps {
+    currentProductId: number;
+}
+
+export default function RelatedProductsSidebar({ currentProductId }: RelatedProductsSidebarProps) {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Nếu không có ID, không làm gì cả
+        if (!currentProductId) {
+            setIsLoading(false);
+            return;
+        }
+
+        const fetchRelatedProducts = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                // Gọi API sản phẩm liên quan với ID được truyền vào
+                const apiUrl = `http://localhost:8001/api/featuredRelated-products/${currentProductId}`;
+                const response = await axios.get<Product[]>(apiUrl);
+
+                // Dữ liệu trả về đã là mảng sản phẩm, không cần .flatMap
+                setProducts(response.data);
+
+            } catch (err) {
+                console.error("Failed to fetch related products:", err);
+                setError("Không thể tải sản phẩm liên quan.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchRelatedProducts();
+    }, [currentProductId]); // useEffect sẽ chạy lại khi currentProductId thay đổi
+
+    if (isLoading) {
+        return (
+            <aside className="w-full lg:w-80 flex-shrink-0">
+                <div className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-lg font-bold mb-4">Sản Phẩm Liên Quan</h3>
+                    <div className="space-y-4 animate-pulse">
+                        {/* Skeleton loader */}
+                    </div>
+                </div>
+            </aside>
+        );
     }
 
-    // Nếu không có sản phẩm nào, không render gì cả
-    if (featuredProducts.length === 0) {
+    // Nếu có lỗi hoặc không có sản phẩm nào, không hiển thị gì cả
+    if (error || products.length === 0) {
         return null;
     }
 
     return (
         <aside className="w-full lg:w-80 flex-shrink-0">
             <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-lg font-bold mb-4">Top Featured Products</h3>
+                <h3 className="text-lg font-bold mb-4">Sản Phẩm Liên Quan</h3>
                 <div className="space-y-4">
-                    {featuredProducts.map(product => (
+                    {products.map(product => (
                         <ProductCard key={product.product_id} product={product} />
                     ))}
                 </div>

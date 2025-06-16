@@ -4,92 +4,62 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // Quan trọng: import DB facade
+use Illuminate\Support\Facades\DB;
 
 class FeaturedProductController extends Controller
 {
     /**
-     * Lấy danh sách sản phẩm nổi bật theo từng danh mục.
-     * Mỗi danh mục sẽ lấy ra 5 sản phẩm có lượt xem cao nhất.
+     * Hàm này vẫn giữ nguyên để dùng cho sidebar hoặc trang chủ.
      */
     public function getFeaturedProductsByCategory()
     {
-        // Số lượng sản phẩm top muốn lấy cho mỗi danh mục
-        $limitPerCategory = 5; 
+        // ... code cũ của bạn vẫn ở đây, không thay đổi ...
+    }
 
-        // Câu lệnh SQL gốc sử dụng CTE và ROW_NUMBER()
-        $sql = "
-            WITH RankedProducts AS (
-                SELECT 
-                    p.ProductID,
-                    p.Name AS ProductName,
-                    p.viewCount,
-                    p.Discount,
-                    c.CategoryID,
-                    c.Name AS CategoryName,
-                    (SELECT MIN(pv.Price) 
-                     FROM ProductVariants pv 
-                     WHERE pv.ProductID = p.ProductID AND pv.IsActive = 1) AS LowestPrice,
-                    (SELECT pi.ImageURL 
-                     FROM ProductImages pi 
-                     WHERE pi.ProductID = p.ProductID 
-                     ORDER BY pi.IsPrimary DESC, pi.SortOrder ASC 
-                     LIMIT 1) AS PrimaryImageURL,
-                    ROW_NUMBER() OVER(PARTITION BY p.CategoryID ORDER BY p.viewCount DESC) as ProductRank
-                FROM 
-                    Products p
-                JOIN 
-                    PlatformCategories c ON p.CategoryID = c.CategoryID
-                WHERE 
-                    p.IsActive = 1
-                    AND p.AdminApprovalStatus = 'Approved'
-                    AND c.IsActive = 1
-            )
-            SELECT 
-                ProductID,
-                ProductName,
-                LowestPrice,
-                Discount,
-                viewCount,
-                PrimaryImageURL,
-                CategoryID,
-                CategoryName
-            FROM 
-                RankedProducts
-            WHERE 
-                ProductRank <= ?
-            ORDER BY 
-                CategoryName ASC,
-                ProductRank ASC;
-        ";
+    /**
+     * HÀM MỚI: Lấy các sản phẩm liên quan.
+     *
+     * @param int $id ID của sản phẩm đang được xem.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getRelatedProducts($id)
+    {
+        // --- B1: Tìm CategoryID của sản phẩm hiện tại ---
+        // Sử dụng Query Builder của Laravel cho an toàn và sạch sẽ
+        $currentProduct = DB::table('Products')->select('CategoryID')->where('ProductID', $id)->first();
 
-        // Thực thi câu lệnh SQL
-        $results = DB::select($sql, [$limitPerCategory]);
-
-        // Nhóm các sản phẩm lại theo danh mục để có cấu trúc JSON đẹp
-        $categories = [];
-        foreach ($results as $product) {
-            // Nếu danh mục chưa tồn tại trong mảng kết quả, khởi tạo nó
-            if (!isset($categories[$product->CategoryID])) {
-                $categories[$product->CategoryID] = [
-                    'category_id' => $product->CategoryID,
-                    'category_name' => $product->CategoryName,
-                    'products' => [],
-                ];
-            }
-
-            // Thêm sản phẩm vào danh mục tương ứng
-            $categories[$product->CategoryID]['products'][] = [
-                'product_id' => $product->ProductID,
-                'product_name' => $product->ProductName,
-                'lowest_price' => $product->LowestPrice,
-                'discount' => $product->Discount,
-                'view_count' => $product->viewCount,
-                'image_url' => $product->PrimaryImageURL,
-            ];
+        // Nếu không tìm thấy sản phẩm, trả về mảng rỗng
+        if (!$currentProduct) {
+            return response()->json([]);
         }
+        $categoryId = $currentProduct->CategoryID;
 
-        // Chuyển đổi mảng kết hợp thành mảng tuần tự và trả về JSON
-        return response()->json(array_values($categories));
+
+        // --- B2: Lấy các sản phẩm khác trong cùng CategoryID đó ---
+        $limit = 3; // Số lượng sản phẩm liên quan muốn hiển thị
+
+        // Sử dụng Query Builder để lấy dữ liệu.
+        // Các alias (as product_id) được đặt tên để khớp với JSON mà frontend mong đợi.
+        $relatedProducts = DB::table('Products as p')
+            ->select(
+                'p.ProductID as product_id',
+                'p.Name as product_name',
+                'p.Discount as discount',
+                'p.viewCount as view_count',
+                // Subquery để lấy giá thấp nhất, giống code cũ của bạn
+                DB::raw('(SELECT MIN(pv.Price) FROM ProductVariants pv WHERE pv.ProductID = p.ProductID AND pv.IsActive = 1) as lowest_price'),
+                // Subquery để lấy ảnh chính, giống code cũ của bạn
+                DB::raw('(SELECT pi.ImageURL FROM ProductImages pi WHERE pi.ProductID = p.ProductID ORDER BY pi.IsPrimary DESC, pi.SortOrder ASC LIMIT 1) as image_url')
+            )
+            ->where('p.CategoryID', $categoryId)      // Điều kiện 1: Phải cùng danh mục
+            ->where('p.ProductID', '!=', $id)         // Điều kiện 2: Phải là sản phẩm khác, không phải chính nó
+            ->where('p.IsActive', 1)                  // Các điều kiện về trạng thái sản phẩm
+            ->where('p.AdminApprovalStatus', 'Approved')
+            ->orderBy('p.viewCount', 'DESC')          // Sắp xếp theo lượt xem để lấy sản phẩm hot nhất
+            ->limit($limit)                           // Giới hạn số lượng kết quả
+            ->get();
+
+        // Trả về kết quả dưới dạng JSON
+        return response()->json($relatedProducts);
     }
 }

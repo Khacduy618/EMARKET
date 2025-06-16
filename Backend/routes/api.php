@@ -46,7 +46,7 @@ Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 
 //api router cho sản phẩm nổi bật cho category 
-Route::get('/featured-products-by-category', [FeaturedProductController::class, 'getFeaturedProductsByCategory']);
+Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
