@@ -15,9 +15,10 @@ use App\Models\ProductReview;
 use App\Models\ShopFollow;
 use App\Models\Voucher;
 use App\Models\UserVoucher;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens;
 

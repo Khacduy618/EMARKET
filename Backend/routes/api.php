@@ -13,14 +13,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
 
-// Lấy API của Category Trả về dạng json theo CRUD 
+// Lấy API của Category Trả về dạng json theo CRUD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
-// Lấy API của Products Trả về dạng json theo CRUD 
+// Lấy API của Products Trả về dạng json theo CRUD
 Route::get('/Products' ,[ProductController::class , 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
@@ -29,7 +29,7 @@ Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
 Route::get('/ProductFinalPrice', [ProductController::class, 'ProductFinalPrice']);
 // Laravel API – GET /api/products/best-selling
 Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
-//flash sale 
+//flash sale
 // Route::get('/flashSales', [ProductController::class, 'index']);
 /////////////////////////////
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
@@ -38,7 +38,7 @@ Route::get('/banners', [BannerController::class, 'index']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
 Route::get('/products/{productId}', [ProductDetailController::class, 'show']);
-// router tìm kiếm lọc sản phẩm 
+// router tìm kiếm lọc sản phẩm
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 
@@ -53,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Cart routes - require authentication
-    
+
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);

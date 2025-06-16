@@ -1,0 +1,185 @@
+@host=http://127.0.0.1:8000
+@authToken=your-bearer-token-here
+@contentType=application/json
+
+###############################################
+# Authentication Routes
+###############################################
+
+### Register new user
+# Returns: User object with token
+POST {{host}}/register
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "name": "Test User",
+    "email": "ad1@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+### Login
+# Returns: Token and user information
+POST {{host}}/login
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### Logout
+# Requires: Bearer token
+POST {{host}}/logout
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+###############################################
+# Password Management
+###############################################
+
+### Request password reset link
+POST {{host}}/forgot-password
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "email": "test@example.com"
+}
+
+### Reset password with token
+POST {{host}}/reset-password
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "token": "your-token-here",
+    "email": "test@example.com",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
+}
+
+### Update Password
+# Requires: Bearer token
+PUT {{host}}/user/password
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "current_password": "current-password",
+    "password": "new-password",
+    "password_confirmation": "new-password"
+}
+
+### Confirm Password
+# Requires: Bearer token
+POST {{host}}/user/confirm-password
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "password": "your-password"
+}
+
+### Check Password Confirmation Status
+# Requires: Bearer token
+GET {{host}}/user/confirmed-password-status
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+###############################################
+# Two Factor Authentication (2FA)
+###############################################
+
+### Enable Two Factor Authentication
+# Requires: Bearer token
+POST {{host}}/user/two-factor-authentication
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Two Factor Challenge (During Login)
+POST {{host}}/two-factor-challenge
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "code": "123456"
+}
+
+### Get Two Factor QR Code
+# Requires: Bearer token
+GET {{host}}/user/two-factor-qr-code
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Get Two Factor Recovery Codes
+# Requires: Bearer token
+GET {{host}}/user/two-factor-recovery-codes
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Generate New Recovery Codes
+# Requires: Bearer token
+POST {{host}}/user/two-factor-recovery-codes
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Get Two Factor Secret Key
+# Requires: Bearer token
+GET {{host}}/user/two-factor-secret-key
+Accept: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Disable Two Factor Authentication
+# Requires: Bearer token
+DELETE {{host}}/user/two-factor-authentication
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+### Confirm Two Factor Authentication
+# Requires: Bearer token
+POST {{host}}/user/confirmed-two-factor-authentication
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+###############################################
+# User Profile Management
+###############################################
+
+### Update User Profile Information
+# Requires: Bearer token
+PUT {{host}}/user/profile-information
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Updated Name",
+    "email": "updated@example.com"
+}
+
+###############################################
+# Storage
+###############################################
+
+### Access Storage File
+# Note: May require authentication depending on configuration
+GET {{host}}/storage/example.jpg
+Authorization: Bearer {{authToken}}
+
+###############################################
+# Health Checks
+###############################################
+
+### Basic Health Check
+GET {{host}}/
+Accept: {{contentType}}
+
+### Server Status Check
+GET {{host}}/up
+Accept: {{contentType}}
+
