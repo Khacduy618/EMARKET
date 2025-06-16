@@ -296,10 +296,10 @@ export default function VoucherSection() {
   return (
     <div>
       <div className="flex justify-between items-center pb-6">
-        <h1 className="text-2xl font-bold">Kho Voucher</h1>
+        <h1 className="text-2xl font-bold text-black">Kho Voucher</h1>
         <div className="flex gap-4 text-blue-500 text-sm">
-          <a href="#" className="hover:underline">Xem lịch sử voucher</a>
-          <a href="#" className="hover:underline">Tìm hiểu</a>
+          {/* <a href="#" className="hover:underline">Xem lịch sử voucher</a>
+          <a href="#" className="hover:underline">Tìm hiểu</a> */}
         </div>
       </div>
 
@@ -312,7 +312,7 @@ export default function VoucherSection() {
             placeholder="Nhập mã voucher tại đây"
             value={voucherCode}
             onChange={(e) => setVoucherCode(e.target.value)}
-            className="flex-1 py-2 px-3 border border-gray-300 rounded-md text-sm
+            className="flex-1 py-2 text-black px-3 border border-gray-300 rounded-md text-sm
                        focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
           />
           <button className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md text-sm transition-colors duration-200 hover:bg-gray-300">
