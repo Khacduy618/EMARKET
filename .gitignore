@@ -1,6 +1,7 @@
 node_modules
 ecommerce_db_data
 .env
+./Backend/vendor/
 temp
 *.log
 dist
