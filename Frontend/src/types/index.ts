@@ -16,3 +16,4 @@ export * from './cart.interface';
 export * from './address.interface';
 export * from './shop.interface';
 export * from './attributeValue.interface';
+export * from './voucher.interface';

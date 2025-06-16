@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import './globals.css'; // Giữ lại import CSS toàn cục
+import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body style={{ backgroundColor: '#f8f4f4' }}>
+            <body style={{ backgroundColor: '#f8f4f4'}}>
                 {children}
                 <ToastContainer
                     position="top-right" // Vị trí hiển thị
