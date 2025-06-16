@@ -1,14 +1,18 @@
 // src/types/shop.interface.ts
 export interface Shop {
     ShopID: number;
-    UserID_Owner?: number;
+    UserID?: number;
     ShopName: string;
     Description?: string | null;
     LogoURL?: string | null;
     CoverImageURL?: string | null;
-    ShopAddress?: string | null; // Hoặc chia nhỏ hơn (Street, Ward...)
+    AddressStreet?: string | null;
+    AddressWard?: string | null;
+    AddressDistrict?: string | null;
+    AddressCity?: string | null;
     ShopPhone?: string | null;
     AverageRating?: number | null;
+    Level?: 'Thường' | 'Mall' | null;
     Status?: 'PendingApproval' | 'Approved' | 'Suspended' | 'Rejected' | null;
     CreatedAt?: string | null;
     UpdatedAt?: string | null;
