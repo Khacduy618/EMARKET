@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
@@ -44,7 +45,8 @@ Route::get('/products/{currentProductId}/related', [ProductController::class, 'g
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 
-
+//api router cho sản phẩm nổi bật cho category 
+Route::get('/featured-products-by-category', [FeaturedProductController::class, 'getFeaturedProductsByCategory']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

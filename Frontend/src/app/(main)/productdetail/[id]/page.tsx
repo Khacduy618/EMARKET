@@ -44,9 +44,51 @@
 // }
 // Đường dẫn: src/app/(main)/productdetail/[id]/page.tsx
 
+// import { notFound } from 'next/navigation';
+// import ProductDetail from '../components/Productdetail'; // Client Component
+// import ProductDescription from '../components/ProductDescription'; // Server Component
+// import FeaturedProductsSidebar from '../components/FeaturedProductsSidebar';
+
+// interface ProductPageProps {
+//     params: {
+//         id: string;
+//     };
+// }
+
+// export default async function ProductPage({ params }: ProductPageProps) {
+//     const { id } = params;
+//     const productIdAsNumber = parseInt(id, 10);
+//     if (isNaN(productIdAsNumber)) {
+//         notFound();
+//     }
+
+//     // Bây giờ, trang sẽ render ProductDetail và "nhét" ProductDescription vào slot của nó.
+//     return (
+//         <div className="container mx-auto px-4 py-8">
+//             <div className="flex flex-col lg:flex-row gap-8">
+//                 {/* Main Content (Product Details) */}
+//                 <main className="w-full lg:flex-1">
+//                     <ProductDetail
+//                         productId={productIdAsNumber}
+//                         descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
+//                     />
+//                 </main>
+//                 <FeaturedProductsSidebar />
+//             </div>
+//         </div>
+//     );
+// }
+
+// // Hàm generateMetadata của bạn vẫn hoạt động tốt, không cần thay đổi
+// export async function generateMetadata({ params }: ProductPageProps) {
+//     // ...
+// }
+// src/app/product/[id]/page.tsx
+
 import { notFound } from 'next/navigation';
-import ProductDetail from '../components/Productdetail'; // Client Component
-import ProductDescription from '../components/ProductDescription'; // Server Component
+import ProductDetail from '../components/Productdetail';
+import ProductDescription from '../components/ProductDescription';
+import FeaturedProductsSidebar from '../components/FeaturedProductsSidebar';
 
 interface ProductPageProps {
     params: {
@@ -61,12 +103,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
         notFound();
     }
 
-    // Bây giờ, trang sẽ render ProductDetail và "nhét" ProductDescription vào slot của nó.
     return (
-        <ProductDetail
-            productId={productIdAsNumber}
-            descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
-        />
+        <div className="container mx-auto px-4 py-8">
+            <main>
+                <ProductDetail
+                    productId={productIdAsNumber}
+                    descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
+                    sidebarSlot={<FeaturedProductsSidebar />}
+                />
+            </main>
+        </div>
     );
 }
 

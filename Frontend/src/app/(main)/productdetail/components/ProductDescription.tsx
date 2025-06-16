@@ -86,7 +86,7 @@ export default async function ProductDescription({ productId }: ProductDescripti
                     {/* Dữ liệu động từ JSON */}
                     <DetailRow label="Danh mục" value={product.category?.Name} />
                     <DetailRow label="SKU" value={defaultVariant?.SKU} />
-                    <DetailRow label="Tồn kho" value={defaultVariant ? `${defaultVariant.StockQuantity} sản phẩm có sẵn` : 'N/A'} />
+                    <DetailRow label="Số Lượng" value={defaultVariant ? `${defaultVariant.StockQuantity} sản phẩm có sẵn` : 'N/A'} />
 
                     {/* 
                         Các trường như Brand, Warranty Type, Connectivity không có trong JSON nên sẽ không hiển thị,
