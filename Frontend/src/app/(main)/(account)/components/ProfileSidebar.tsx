@@ -14,7 +14,7 @@ export default function ProfileSidebar() {
     { name: 'Địa chỉ', icon: FaMapMarkerAlt, href: '/address' },
     { name: 'Đổi mật khẩu', icon: FaLock, href: '/password' },
     { name: 'Kho voucher', icon: FaTicketAlt, href: '/vouchers' },
-    { name: 'Đơn mua', icon: FaShoppingBag, href: '/orders' },
+    { name: 'Đơn mua', icon: FaShoppingBag, href: '/purchase' },
   ];
   const DEFAULT_PROFILE_IMAGE = '/images/user-default.png';
 

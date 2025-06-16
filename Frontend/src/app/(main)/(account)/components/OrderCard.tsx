@@ -1,137 +1,208 @@
 // app/(main)/(account)/components/OrderCard.tsx
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { FaChevronRight } from 'react-icons/fa';
-import { Order, OrderStatus } from '@/types/order.interface';
+import Link from 'next/link';
+// Đảm bảo import đúng các icon từ 'fa6'
+import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
+
+import { Order } from '@/types/order.interface';
 
 interface OrderCardProps {
   order: Order;
-  // THÊM PROPS MỚI
-  onSeeMoreClick: (order: Order) => void;
 }
 
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+const formatVND = (price: number): string => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
-const formatDateTime = (isoString: string): string => {
+const formatDate = (isoString: string): string => {
   const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  let hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const ampm = hours >= 12 ? 'pm' : 'am';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  return `${year}/${month}/${day} - ${hours}:${minutes} ${ampm}`;
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
 };
 
-const getStatusClasses = (status: OrderStatus): string => {
-  switch (status) {
-    case 'Pending':
-      return 'bg-purple-100 text-purple-700';
-    case 'Processing':
-      return 'bg-blue-100 text-blue-700';
-    case 'Delivered':
-    case 'Completed':
-      return 'bg-green-100 text-green-700';
-    case 'Returned':
-    case 'ReturnInProgress':
-      return 'bg-yellow-100 text-yellow-700';
-    case 'CancelledByBuyer':
-    case 'CancelledBySeller':
-      return 'bg-red-100 text-red-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
-  }
-};
+const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-const OrderCard: React.FC<OrderCardProps> = ({ order, onSeeMoreClick }) => {
+  // Logic hiển thị trạng thái giao hàng
+  const renderDeliveryStatus = (status: Order['OverallStatus']) => {
+    switch (status) {
+      case 'Completed':
+        return (
+          <div className="flex items-center text-green-600 text-md">
+            <FaTruckFast className="mr-1 text-sm" /> Giao hàng thành công{' '}
+            <FaCircleQuestion className="ml-1 text-md text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết giao hàng" />
+            <span className="ml-2 pl-2 border-l border-gray-300 text-orange-500 uppercase">HOÀN THÀNH</span>
+          </div>
+        );
+      case 'Shipped':
+        return (
+          <div className="flex items-center text-blue-600 text-md">
+            <FaTruckFast className="mr-1 text-sm" /> Đang vận chuyển{' '}
+            <FaCircleQuestion className="ml-1 text-md text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết vận chuyển" />
+            <span className="ml-2 pl-2 border-l border-gray-300 text-blue-500 uppercase">VẬN CHUYỂN</span>
+          </div>
+        );
+      case 'PendingPayment':
+        return (
+          <div className="flex items-center text-gray-600 text-md">
+            {/* Đảm bảo không có lỗi cú pháp ở đây */}
+            <span className="ml-2 pl-2 text-gray-500 uppercase">CHỜ THANH TOÁN</span>
+          </div>
+        );
+      case 'Processing':
+        return (
+          <div className="flex items-center text-gray-600 text-md">
+            <span className="ml-2 pl-2 text-gray-500 uppercase">CHỜ GIAO HÀNG</span>
+          </div>
+        );
+      case 'Cancelled':
+        return (
+          <div className="flex items-center text-red-600 text-md">
+            <span className="ml-2 pl-2 border-l border-gray-300 text-red-500 uppercase">ĐÃ HỦY</span>
+          </div>
+        );
+      case 'ReturnedRefunded':
+        return (
+          <div className="flex items-center text-yellow-600 text-md">
+            <span className="ml-2 pl-2 border-l border-gray-300 text-yellow-500 uppercase">TRẢ HÀNG/HOÀN TIỀN</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center text-gray-600 text-md">
+            <span className="ml-2 pl-2 text-gray-500 uppercase">{order.OverallStatus}</span>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-      {/* Top Bar of Card */}
-      <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-2 border-b border-gray-100">
+    <div className="bg-white rounded-lg max-w-6xl  shadow-sm border border-gray-200 mb-4 ">
+      {/* Shop Header */}
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <span>{formatDateTime(order.OrderDate)}</span>
-          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusClasses(order.OverallStatus)}`}>
-            {order.OverallStatus}
-          </span>
+          {order.shopLevel === 'Mall' && (
+            <span className="px-2 py-0.5 bg-red-500 text-white text-md rounded">Mall</span>
+          )}
+          {order.shopLevel === 'Yêu thích+' && (
+            <span className="px-2 py-0.5 bg-red-500 text-white text-md rounded">Yêu thích+</span>
+          )}
+          <h3 className="text-gray-800 text-sm">{order.shopName}</h3>
+          <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-md text-gray-700 hover:bg-gray-100 transition-colors">
+            <FaCommentDots className="mr-1 text-sm" /> Chat
+          </button>
+          <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-md text-gray-700 hover:bg-gray-100 transition-colors">
+            <FaStore className="mr-1 text-sm" /> Xem Shop
+          </button>
         </div>
-        <div className="font-semibold text-gray-800">
-          Total: {formatPrice(order.TotalAmount)}
-        </div>
+        {renderDeliveryStatus(order.OverallStatus)}
       </div>
 
-      {/* Content Area - Images and Items List */}
-      <div className="flex gap-4">
-        {/* Product Images Section */}
-        <div className="flex-shrink-0 flex flex-wrap gap-2 w-[160px] max-h-32 overflow-hidden">
-          {order.items.slice(0, 6).map((item, index) => (
-            <div key={item.OrderItemID} className="relative w-12 h-12 border border-gray-200 rounded-md overflow-hidden">
-              <Image
-                src={item.productImageURL}
-                alt={item.productName}
-                layout="fill"
-                objectFit="cover"
-                className="hover:scale-105 transition-transform duration-200"
-              />
-              {item.Quantity > 1 && (
-                <span className="absolute top-0 right-0 bg-gray-800 text-white text-xs rounded-bl-sm px-1 leading-tight">
-                  x{item.Quantity}
-                </span>
+      {/* Product Details Section */}
+      {order.items.map((item, index) => (
+        <div key={item.OrderItemID} className={`flex items-start px-4 py-3 ${index < order.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
+          <div className="flex-shrink-0 w-14 h-14 relative mr-3 border border-gray-200 rounded-md overflow-hidden">
+            <Image
+              src={item.productImageURL}
+              alt={item.productName}
+              layout="fill"
+              objectFit="cover"
+            />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <p className="text-gray-800 text-sm leading-tight mb-0.5">{item.productName}</p>
+            <p className="text-md text-gray-600 mb-0.5">Phân loại hàng: {item.classification}</p>
+            <p className="text-md text-gray-600">x{item.Quantity}</p>
+          </div>
+          <div className="flex-shrink-0 text-right ml-4">
+            {item.OriginalPrice > item.PriceAtPurchase && (
+              <p className="text-md text-gray-400 line-through">{formatVND(item.OriginalPrice)}</p>
+            )}
+            <p className="text-base text-orange-500">{formatVND(item.PriceAtPurchase)}</p>
+          </div>
+        </div>
+      ))}
+
+      {/* Total Amount for the entire order */}
+      <div className="flex justify-end items-center px-4 pt-3 pb-3 border-t border-gray-100">
+        <span className="text-gray-700 text-sm mr-3">Thành tiền:</span>
+        <span className="text-xl text-orange-500">{formatVND(order.TotalAmount)}</span>
+      </div>
+
+      {/* Action Buttons Section */}
+      <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col items-end">
+        {/* Đánh giá và Xu (Chỉ hiển thị khi order Completed) */}
+        {order.OverallStatus === 'Completed' && order.items.some(item => item.canReview) && (
+          <>
+            <p className="text-md text-gray-500 mb-1">
+              Đánh giá sản phẩm trước{' '}
+              <span className="text-blue-500">{formatDate(order.items[0]?.reviewDeadline || '')}</span>
+            </p>
+            <p className="text-md text-gray-500 mb-3">
+              Đánh giá ngay và nhận{' '}
+              <span className="text-orange-500">{order.items[0]?.reviewReward || 0} Xu</span>
+            </p>
+          </>
+        )}
+
+        <div className="flex gap-2 justify-end w-full">
+          {order.OverallStatus === 'Completed' && (
+            <>
+              {order.items.some(item => item.canReview) && (
+                <button className="bg-orange-500 text-white px-4 py-1.5 rounded-md text-md hover:bg-orange-600 transition-colors flex-shrink-0">
+                  Đánh Giá
+                </button>
               )}
+              <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
+                Yêu Cầu Trả Hàng/Hoàn Tiền
+              </button>
+              <div className="relative">
+                <button
+                  className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  Thêm <FaChevronDown className={`ml-1 text-md transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute min-w-[200px] right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-0.5 z-50">
+                    <button className="block w-full text-left px-3 py-1.5 text-md text-gray-700 hover:bg-gray-100">
+                      Liên Hệ Người Bán
+                    </button>
+                    <button className="block w-full text-left px-3 py-1.5 text-md text-gray-700 hover:bg-gray-100">
+                      Mua Lại
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'PendingPayment') && (
+            <div className="flex gap-2">
+              <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
+                Liên Hệ Người Bán
+              </button>
+              <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
+                Hủy Đơn
+              </button>
             </div>
-          ))}
-          {order.items.length > 6 && (
-            <div className="w-12 h-12 bg-gray-100 flex items-center justify-center text-xs text-gray-500 rounded-md">
-                +{order.items.length - 6}
+          )}
+          {(order.OverallStatus === 'Cancelled' || order.OverallStatus === 'ReturnedRefunded') && (
+            <div className="flex gap-2">
+              <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
+                Mua Lại
+              </button>
+              <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
+                Liên Hệ Người Bán
+              </button>
             </div>
           )}
         </div>
-
-        {/* Items List */}
-        <div className="flex-1 flex flex-wrap gap-x-8 text-sm text-gray-700">
-          <ul className="list-disc list-inside space-y-1">
-            {order.items.slice(0, 3).map((item, index) => (
-              <li key={index} className="text-sm">
-                {item.Quantity} x {item.productName}
-                {item.productAttributes && item.productAttributes.length > 0 && (
-                  <span className="text-gray-500 text-xs ml-1">
-                    ({item.productAttributes.map(attr => `${attr.attributeName}: ${attr.attributeValue}`).join(', ')})
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {order.items.length > 3 && (
-            <ul className="list-disc list-inside space-y-1 ml-8">
-              {order.items.slice(3, 6).map((item, index) => (
-                <li key={index} className="text-sm">
-                  {item.Quantity} x {item.productName}
-                   {item.productAttributes && item.productAttributes.length > 0 && (
-                  <span className="text-gray-500 text-xs ml-1">
-                    ({item.productAttributes.map(attr => `${attr.attributeName}: ${attr.attributeValue}`).join(', ')})
-                  </span>
-                )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* See more link (button) */}
-      <div className="flex justify-end mt-4">
-        {/* THAY ĐỔI TỪ LINK SANG BUTTON VÀ DÙNG ONCLICK */}
-        <button
-          onClick={() => onSeeMoreClick(order)}
-          className="text-sm text-blue-500 hover:underline flex items-center bg-transparent border-none cursor-pointer p-0"
-        >
-          See more <FaChevronRight className="ml-1 text-xs" />
-        </button>
       </div>
     </div>
   );
