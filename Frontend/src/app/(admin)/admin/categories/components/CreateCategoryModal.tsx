@@ -19,7 +19,7 @@ export default function CreateCategoryModal() {
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/admin/categories/getAllCategory')
       .then(res => res.json())
-      .then(data => setCategories(data))
+      .then(data => setCategories(data.data))
       .catch(console.error);
   }, []);
 

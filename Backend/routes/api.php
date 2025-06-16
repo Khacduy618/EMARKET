@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryController; //home
+
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
@@ -11,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+
+use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
+use App\Http\Middleware\HandleImage;
+
 
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
@@ -61,8 +66,10 @@ Route::middleware('auth:sanctum')->group(function (){
 });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
-    
-// ADMIN ROUTE
+
+
+//admin
+
 Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
 
 Route::get('/admin/categories/list', [AdminCategory::class, "index"]);

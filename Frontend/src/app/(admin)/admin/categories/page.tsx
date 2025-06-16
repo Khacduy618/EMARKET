@@ -1,9 +1,9 @@
 "use client";
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 import { JSX, useEffect, useState } from 'react';
 import CreateCategoryModal from './components/CreateCategoryModal';
 import EditCategoryModal from './components/EditCategoryModal';
-
 type Category = {
   CategoryID: number;
   Name: string;
@@ -13,9 +13,9 @@ type Category = {
 };
 
 export default function CategoryPage() {
+  console.log("ok");
   const [categories, setCategories] = useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-
 
 
   const [editCategory, setEditCategory] = useState<Category | null>(null);
@@ -23,9 +23,18 @@ export default function CategoryPage() {
 
 
   useEffect(() => {
+    console.log("useEffect chạy");
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/admin/categories/getAllCategory', {
+        const res = await fetch('http://127.0.0.1:8000/api/admin/categories/list', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+
+        const res2 = await fetch('http://127.0.0.1:8000/api/admin/categories/getAllCategory', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -38,9 +47,11 @@ export default function CategoryPage() {
         }
 
         const data = await res.json();
-        setCategories(flattenCategories(data));
-        setCategoryTree(data);
-        console.log(data);
+        const dataTree = await res2.json();
+   
+        setCategories(data.data);
+    
+        setCategoryTree(dataTree.data);
 
       } catch (err) {
         console.error('Lỗi load danh mục:', err);
@@ -50,17 +61,7 @@ export default function CategoryPage() {
     fetchCategories();
   }, []);
 
-  const flattenCategories = (tree: Category[]): Category[] => {
-    const flat: Category[] = [];
-    const traverse = (nodes: Category[]) => {
-      nodes.forEach(node => {
-        flat.push(node);
-        if (node.children?.length) traverse(node.children);
-      });
-    };
-    traverse(tree);
-    return flat;
-  };
+
 
   const deleteCategory = (id: number) => {
     const hasChildren = categories.some(c => c.ParentCategoryID === id);
@@ -72,7 +73,7 @@ export default function CategoryPage() {
     if (confirm('Bạn có chắc chắn muốn xóa?')) {
       // Xóa tạm khỏi danh sách hiển thị
       setCategories(prev => prev.filter(c => c.CategoryID !== id));
-  
+
       fetch(`http://127.0.0.1:8000/api/admin/categories/delete/${id}`, {
         method: 'POST',
         headers: {
@@ -183,7 +184,7 @@ export default function CategoryPage() {
                       <td>{index + 1}</td>
                       <td>{item.Name}</td>
                       <td>
-                        <img style={{ width: 60 }} src={"localhost8000:" + item.ImageURL} alt={item.Name} />
+                        <img style={{ width: 60 }} src={item.ImageURL} alt={item.Name} />
                       </td>
                       <td>
                         <button
