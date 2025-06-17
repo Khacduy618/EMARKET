@@ -2803,26 +2803,6 @@ const CartPage: React.FC = () => {
     };
     // --- End Modified handleUpdateQuantity ---
 
-
-    const handleRemoveItem = async (cartItemId: number) => {
-        try {
-            const updatedCart = await removeCartItem(cartItemId);
-            setCart(updatedCart);
-            setSelectedCartItemIds(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(cartItemId);
-                return newSet;
-            });
-            setLocalError(null);
-            showNotification((updatedCart as any).message || 'Sản phẩm đã được xóa khỏi giỏ hàng.', 'success');
-        } catch (err: any) {
-            console.error('Error removing item:', err);
-            const errorMessage = (err as any).response?.data?.message || 'Failed to remove item.';
-            setLocalError(errorMessage);
-            showNotification(errorMessage, 'error');
-        }
-    };
-
     const handleAttributeClick = async (item: CartItem) => {
         if (openDropdownItemId === item.CartItemID) {
             handleCloseDropdown();
@@ -2918,6 +2898,32 @@ const CartPage: React.FC = () => {
             }
         });
     }, [selectedCartItemIds, groupedItems]);
+
+        // NEW: Hàm xử lý khi bấm nút "Mua Hàng"
+        const handleProceedToCheckout = () => {
+            if (numberOfSelectedItems === 0) {
+                showNotification("Vui lòng chọn ít nhất một sản phẩm để mua hàng.", 'warning');
+                return;
+            }
+
+            // Lấy danh sách các cart item đã được chọn
+            const selectedItemsForCheckout = cart?.cartItems.filter(item => selectedCartItemIds.has(item.CartItemID)) || [];
+
+            // Tạo một đối tượng chứa dữ liệu cần thiết để truyền sang trang checkout
+            const checkoutData = {
+                selectedItems: selectedItemsForCheckout,
+                appliedVouchers: appliedVouchers,
+                cartTotal: currentSelectedCartTotal,
+                // Bạn có thể thêm các thông tin khác nếu cần, ví dụ: estimatedShippingFee, etc.
+            };
+
+            // Lưu dữ liệu vào localStorage hoặc sessionStorage để trang checkout có thể lấy được
+            // Hoặc truyền qua query parameters nếu dữ liệu nhỏ gọn (nhưng thường không khuyến khích cho dữ liệu lớn)
+            localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
+
+            // Điều hướng đến trang checkout
+            router.push('/checkout');
+        };
 
     // NEW: Hàm callback khi voucher được chọn từ modal
     const handleApplyVoucherFromModal = useCallback((vouchers: AppliedVouchersCombined | null) => {
@@ -3268,7 +3274,8 @@ const CartPage: React.FC = () => {
                             </div>
                             {getVoucherDiscountDisplay()} {/* Hiển thị thông tin giảm giá nếu có */}
                         </div>
-                        <button
+                       <button
+                            onClick={handleProceedToCheckout} // Gắn hàm xử lý checkout
                             className={`px-8 py-2 rounded-sm font-semibold text-sm
                                 ${numberOfSelectedItems > 0
                                     ? 'bg-red-500 text-white hover:bg-red-600'

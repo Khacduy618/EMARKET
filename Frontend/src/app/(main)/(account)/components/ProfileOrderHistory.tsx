@@ -7,7 +7,7 @@ import { Order, OrderItem, OrderStatus, ShopLevel } from '@/types/order.interfac
 import { FaSearch, FaCalendarAlt } from 'react-icons/fa'; // Import icon tìm kiếm và lịch
 
 type OrderTabStatus =
-  'all' | 'PendingPayment' | 'Shipped' | 'Processing' |
+  'all' | 'Pending' | 'Shipped' | 'Processing' |
   'Completed' | 'Cancelled' | 'ReturnedRefunded';
 
 export default function ProfileOrderHistory() {
@@ -47,42 +47,78 @@ export default function ProfileOrderHistory() {
       // Dữ liệu giả định có tổng số 15 đơn hàng để test phân trang
       { OrderID: 1, OrderCode: 'MERZY001', UserID: 1, OrderDate: '2023-12-02T12:38:00Z', TotalAmount: 160650, SubtotalAmount: 189000, ShippingFee: 0, DiscountAmount: 28350, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Pending', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 101, shopName: 'Merzy Official Store', shopLevel: 'Mall', isFavoriteShop: false,
-        items: [{ OrderItemID: 1, VariantID: 1, Quantity: 1, PriceAtPurchase: 189000, OriginalPrice: 319000, Subtotal: 189000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: '[NEW][SON PHAO] Son Kem Lì, Bền Màu Merzy Puffer Velvet Tint 3.7g', productImageURL: '/images/orders/lip-tint.png', classification: '#08 Unknown', canReview: true, reviewDeadline: '2025-07-04T23:59:59Z', reviewReward: 200 }]
+        items: [{
+          OrderItemID: 1, VariantID: 1, Quantity: 1, PriceAtPurchase: 189000, OriginalPrice: 319000, Subtotal: 189000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: '[NEW][SON PHAO] Son Kem Lì, Bền Màu Merzy Puffer Velvet Tint 3.7g', productImageURL: '/images/orders/lip-tint.png', classification: '#08 Unknown', canReview: true, reviewDeadline: '2025-07-04T23:59:59Z', reviewReward: 200,
+          OrderID: 1
+        }]
       },
       {
         OrderID: 2, OrderCode: 'UKMART001', UserID: 1, OrderDate: '2023-12-01T10:00:00Z', TotalAmount: 136850, SubtotalAmount: 161000, ShippingFee: 0, DiscountAmount: 24150, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 102, shopName: 'UKmart - Hàng Anh Thủ Đức', shopLevel: 'Yêu thích+', isFavoriteShop: true,
-        items: [{ OrderItemID: 2, VariantID: 2, Quantity: 1, PriceAtPurchase: 161000, OriginalPrice: 225000, Subtotal: 161000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Toner Eveline 5% Glycolic Acid Glycol Therapy Cho Da Căng Bóng Mịn Màng Mờ Thâm Mụn Trẻ Hóa Da', productImageURL: '/images/orders/toner.png', classification: 'Glycol Therapy 110ml', canReview: true, reviewDeadline: '2025-07-03T23:59:59Z', reviewReward: 200 }]
+        items: [{
+          OrderItemID: 2, VariantID: 2, Quantity: 1, PriceAtPurchase: 161000, OriginalPrice: 225000, Subtotal: 161000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Toner Eveline 5% Glycolic Acid Glycol Therapy Cho Da Căng Bóng Mịn Màng Mờ Thâm Mụn Trẻ Hóa Da', productImageURL: '/images/orders/toner.png', classification: 'Glycol Therapy 110ml', canReview: true, reviewDeadline: '2025-07-03T23:59:59Z', reviewReward: 200,
+          OrderID: 2
+        }]
       },
       {
-        OrderID: 3, OrderCode: 'PENDING001', UserID: 1, OrderDate: '2023-12-05T09:00:00Z', TotalAmount: 500000, SubtotalAmount: 500000, ShippingFee: 30000, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Pending', OverallStatus: 'PendingPayment', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
+        OrderID: 3, OrderCode: 'PENDING001', UserID: 1, OrderDate: '2023-12-05T09:00:00Z', TotalAmount: 500000, SubtotalAmount: 500000, ShippingFee: 30000, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Pending', OverallStatus: 'Pending', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 103, shopName: 'ABC Tech', shopLevel: 'Thường', isFavoriteShop: false,
-        items: [{ OrderItemID: 3, VariantID: 3, Quantity: 1, PriceAtPurchase: 500000, OriginalPrice: 550000, Subtotal: 500000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Tai nghe Bluetooth X50', productImageURL: '/images/orders/earbuds.png', classification: 'Màu Đen', canReview: false }]
+        items: [{
+          OrderItemID: 3, VariantID: 3, Quantity: 1, PriceAtPurchase: 500000, OriginalPrice: 550000, Subtotal: 500000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Tai nghe Bluetooth X50', productImageURL: '/images/orders/earbuds.png', classification: 'Màu Đen', canReview: false,
+          OrderID: 3
+        }]
       },
       {
         OrderID: 4, OrderCode: 'SHIPPED001', UserID: 1, OrderDate: '2023-12-04T15:00:00Z', TotalAmount: 800000, SubtotalAmount: 800000, ShippingFee: 25000, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Paid', OverallStatus: 'Shipped', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 104, shopName: 'Laptop Pro', shopLevel: 'Mall', isFavoriteShop: false,
-        items: [{ OrderItemID: 4, VariantID: 4, Quantity: 1, PriceAtPurchase: 800000, OriginalPrice: 850000, Subtotal: 800000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Chuột Gaming RGB Pro', productImageURL: '/images/orders/mouse.png', classification: 'Pro Series', canReview: false }]
+        items: [{
+          OrderItemID: 4, VariantID: 4, Quantity: 1, PriceAtPurchase: 800000, OriginalPrice: 850000, Subtotal: 800000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Chuột Gaming RGB Pro', productImageURL: '/images/orders/mouse.png', classification: 'Pro Series', canReview: false,
+          OrderID: 4
+        }]
       },
       {
         OrderID: 5, OrderCode: 'CANCELLED001', UserID: 1, OrderDate: '2023-11-20T14:00:00Z', TotalAmount: 150000, SubtotalAmount: 150000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Failed', OverallStatus: 'Cancelled', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 105, shopName: 'Phụ kiện HOT', shopLevel: 'Thường', isFavoriteShop: false,
-        items: [{ OrderItemID: 5, VariantID: 5, Quantity: 1, PriceAtPurchase: 150000, OriginalPrice: 150000, Subtotal: 150000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Ốp lưng iPhone 15 Pro', productImageURL: '/images/orders/phone-case.png', classification: 'Màu Đen', canReview: false }]
+        items: [{
+          OrderItemID: 5, VariantID: 5, Quantity: 1, PriceAtPurchase: 150000, OriginalPrice: 150000, Subtotal: 150000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Ốp lưng iPhone 15 Pro', productImageURL: '/images/orders/phone-case.png', classification: 'Màu Đen', canReview: false,
+          OrderID: 5
+        }]
       },
       {
         OrderID: 6, OrderCode: 'RETURNED001', UserID: 1, OrderDate: '2023-11-15T10:00:00Z', TotalAmount: 200000, SubtotalAmount: 200000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Refunded', OverallStatus: 'ReturnedRefunded', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '',
         ShopID: 106, shopName: 'Gia Dụng Xanh', shopLevel: 'Yêu thích+', isFavoriteShop: false,
-        items: [{ OrderItemID: 6, VariantID: 6, Quantity: 1, PriceAtPurchase: 200000, OriginalPrice: 200000, Subtotal: 200000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'Returned', CreatedAt: '', productName: 'Bình giữ nhiệt 500ml', productImageURL: '/images/orders/mug-blue.png', classification: 'Màu Xanh', canReview: false }]
+        items: [{
+          OrderItemID: 6, VariantID: 6, Quantity: 1, PriceAtPurchase: 200000, OriginalPrice: 200000, Subtotal: 200000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'Returned', CreatedAt: '', productName: 'Bình giữ nhiệt 500ml', productImageURL: '/images/orders/mug-blue.png', classification: 'Màu Xanh', canReview: false,
+          OrderID: 6
+        }]
       },
       {
-        OrderID: 7, OrderCode: 'PROCESSING001', UserID: 1, OrderDate: '2023-12-03T11:00:00Z', TotalAmount: 300000, SubtotalAmount: 300000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Paid', OverallStatus: 'Processing', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 107, shopName: 'Smart Home', shopLevel: 'Thường', isFavoriteShop: false, items: [{ OrderItemID: 7, VariantID: 7, Quantity: 1, PriceAtPurchase: 300000, OriginalPrice: 320000, Subtotal: 300000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Đèn LED thông minh', productImageURL: '/images/orders/smartwatch.png', classification: 'Trắng', canReview: false }] },
+        OrderID: 7, OrderCode: 'PROCESSING001', UserID: 1, OrderDate: '2023-12-03T11:00:00Z', TotalAmount: 300000, SubtotalAmount: 300000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Paid', OverallStatus: 'Processing', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 107, shopName: 'Smart Home', shopLevel: 'Thường', isFavoriteShop: false, items: [{
+          OrderItemID: 7, VariantID: 7, Quantity: 1, PriceAtPurchase: 300000, OriginalPrice: 320000, Subtotal: 300000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Đèn LED thông minh', productImageURL: '/images/orders/smartwatch.png', classification: 'Trắng', canReview: false,
+          OrderID: 7
+        }] },
       {
-        OrderID: 8, OrderCode: 'DELIVERED001', UserID: 1, OrderDate: '2023-11-29T16:00:00Z', TotalAmount: 180000, SubtotalAmount: 180000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Delivered', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 108, shopName: 'Thời trang nam', shopLevel: 'Thường', isFavoriteShop: false, items: [{ OrderItemID: 8, VariantID: 8, Quantity: 2, PriceAtPurchase: 90000, OriginalPrice: 100000, Subtotal: 180000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Áo phông Unisex', productImageURL: '/images/orders/mug-darkblue.png', classification: 'Size L, Trắng', canReview: true, reviewDeadline: '2025-06-30T23:59:59Z', reviewReward: 100 }] },
+        OrderID: 8, OrderCode: 'DELIVERED001', UserID: 1, OrderDate: '2023-11-29T16:00:00Z', TotalAmount: 180000, SubtotalAmount: 180000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Delivered', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 108, shopName: 'Thời trang nam', shopLevel: 'Thường', isFavoriteShop: false, items: [{
+          OrderItemID: 8, VariantID: 8, Quantity: 2, PriceAtPurchase: 90000, OriginalPrice: 100000, Subtotal: 180000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Áo phông Unisex', productImageURL: '/images/orders/mug-darkblue.png', classification: 'Size L, Trắng', canReview: true, reviewDeadline: '2025-06-30T23:59:59Z', reviewReward: 100,
+          OrderID: 8
+        }] },
       {
-        OrderID: 9, OrderCode: 'COMPLETED002', UserID: 1, OrderDate: '2023-11-20T10:00:00Z', TotalAmount: 450000, SubtotalAmount: 450000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 101, shopName: 'Merzy Official Store', shopLevel: 'Mall', isFavoriteShop: false, items: [{ OrderItemID: 9, VariantID: 9, Quantity: 1, PriceAtPurchase: 450000, OriginalPrice: 500000, Subtotal: 450000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Bảng phấn mắt 12 màu', productImageURL: '/images/orders/fabric-pink.png', classification: 'Nude Tones', canReview: true, reviewDeadline: '2025-07-01T23:59:59Z', reviewReward: 150 }] },
-      { OrderID: 10, OrderCode: 'COMPLETED003', UserID: 1, OrderDate: '2023-11-18T08:00:00Z', TotalAmount: 75000, SubtotalAmount: 75000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 102, shopName: 'UKmart - Hàng Anh Thủ Đức', shopLevel: 'Yêu thích+', isFavoriteShop: true, items: [{ OrderItemID: 10, VariantID: 10, Quantity: 1, PriceAtPurchase: 75000, OriginalPrice: 80000, Subtotal: 75000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Sữa rửa mặt Cetaphil', productImageURL: '/images/orders/mug-red.png', classification: '125ml', canReview: true, reviewDeadline: '2025-06-25T23:59:59Z', reviewReward: 50 }] },
-      { OrderID: 11, OrderCode: 'COMPLETED004', UserID: 1, OrderDate: '2023-11-10T14:00:00Z', TotalAmount: 220000, SubtotalAmount: 220000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 101, shopName: 'Merzy Official Store', shopLevel: 'Mall', isFavoriteShop: false, items: [{ OrderItemID: 11, VariantID: 11, Quantity: 1, PriceAtPurchase: 220000, OriginalPrice: 250000, Subtotal: 220000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Kem dưỡng ẩm Cerave', productImageURL: '/images/orders/mug-designed.png', classification: '200ml', canReview: true, reviewDeadline: '2025-06-20T23:59:59Z', reviewReward: 100 }] },
-      { OrderID: 12, OrderCode: 'COMPLETED005', UserID: 1, OrderDate: '2023-11-05T11:00:00Z', TotalAmount: 110000, SubtotalAmount: 110000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 102, shopName: 'UKmart - Hàng Anh Thủ Đức', shopLevel: 'Yêu thích+', isFavoriteShop: true, items: [{ OrderItemID: 12, VariantID: 12, Quantity: 1, PriceAtPurchase: 110000, OriginalPrice: 120000, Subtotal: 110000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Nước hoa hồng Simple', productImageURL: '/images/orders/toner.png', classification: '200ml', canReview: true, reviewDeadline: '2025-06-15T23:59:59Z', reviewReward: 80 }] },
+        OrderID: 9, OrderCode: 'COMPLETED002', UserID: 1, OrderDate: '2023-11-20T10:00:00Z', TotalAmount: 450000, SubtotalAmount: 450000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 101, shopName: 'Merzy Official Store', shopLevel: 'Mall', isFavoriteShop: false, items: [{
+          OrderItemID: 9, VariantID: 9, Quantity: 1, PriceAtPurchase: 450000, OriginalPrice: 500000, Subtotal: 450000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Bảng phấn mắt 12 màu', productImageURL: '/images/orders/fabric-pink.png', classification: 'Nude Tones', canReview: true, reviewDeadline: '2025-07-01T23:59:59Z', reviewReward: 150,
+          OrderID: 9
+        }] },
+      { OrderID: 10, OrderCode: 'COMPLETED003', UserID: 1, OrderDate: '2023-11-18T08:00:00Z', TotalAmount: 75000, SubtotalAmount: 75000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'OnlineGateway', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 102, shopName: 'UKmart - Hàng Anh Thủ Đức', shopLevel: 'Yêu thích+', isFavoriteShop: true, items: [{
+        OrderItemID: 10, VariantID: 10, Quantity: 1, PriceAtPurchase: 75000, OriginalPrice: 80000, Subtotal: 75000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Sữa rửa mặt Cetaphil', productImageURL: '/images/orders/mug-red.png', classification: '125ml', canReview: true, reviewDeadline: '2025-06-25T23:59:59Z', reviewReward: 50,
+        OrderID: 10
+      }] },
+      { OrderID: 11, OrderCode: 'COMPLETED004', UserID: 1, OrderDate: '2023-11-10T14:00:00Z', TotalAmount: 220000, SubtotalAmount: 220000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 101, shopName: 'Merzy Official Store', shopLevel: 'Mall', isFavoriteShop: false, items: [{
+        OrderItemID: 11, VariantID: 11, Quantity: 1, PriceAtPurchase: 220000, OriginalPrice: 250000, Subtotal: 220000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Kem dưỡng ẩm Cerave', productImageURL: '/images/orders/mug-designed.png', classification: '200ml', canReview: true, reviewDeadline: '2025-06-20T23:59:59Z', reviewReward: 100,
+        OrderID: 11
+      }] },
+      { OrderID: 12, OrderCode: 'COMPLETED005', UserID: 1, OrderDate: '2023-11-05T11:00:00Z', TotalAmount: 110000, SubtotalAmount: 110000, ShippingFee: 0, DiscountAmount: 0, ShippingAddressID: 1, ShippingFullName: 'Name', ShippingPhoneNumber: '09xxxxxx', Notes: null, PaymentMethod: 'COD', PaymentStatus: 'Paid', OverallStatus: 'Completed', PlatformVoucherCode: null, PlatformDiscountAmount: 0, CreatedAt: '', UpdatedAt: '', ShopID: 102, shopName: 'UKmart - Hàng Anh Thủ Đức', shopLevel: 'Yêu thích+', isFavoriteShop: true, items: [{
+        OrderItemID: 12, VariantID: 12, Quantity: 1, PriceAtPurchase: 110000, OriginalPrice: 120000, Subtotal: 110000, IsFlashSaleItem: false, FlashSaleDealID: null, ReturnStatus: 'None', CreatedAt: '', productName: 'Nước hoa hồng Simple', productImageURL: '/images/orders/toner.png', classification: '200ml', canReview: true, reviewDeadline: '2025-06-15T23:59:59Z', reviewReward: 80,
+        OrderID: 12
+      }] },
     ];
     setOrders(mockOrders);
   }, []);
@@ -95,7 +131,7 @@ export default function ProfileOrderHistory() {
 
   const statusTabs = [
     { id: 'all', name: 'Tất cả', count: getStatusCount('all') },
-    { id: 'PendingPayment', name: 'Chờ thanh toán', count: getStatusCount('PendingPayment') },
+    { id: 'Pending', name: 'Chờ thanh toán', count: getStatusCount('Pending') },
     { id: 'Shipped', name: 'Vận chuyển', count: getStatusCount('Shipped') },
     { id: 'Processing', name: 'Chờ giao hàng', count: getStatusCount('Processing') },
     { id: 'Completed', name: 'Hoàn thành', count: getStatusCount('Completed') },

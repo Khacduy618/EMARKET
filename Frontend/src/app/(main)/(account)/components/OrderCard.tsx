@@ -47,7 +47,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
             <span className="ml-2 pl-2 border-l border-gray-300 text-blue-500 uppercase">VẬN CHUYỂN</span>
           </div>
         );
-      case 'PendingPayment':
+      case 'Pending':
         return (
           <div className="flex items-center text-gray-600 text-md">
             {/* Đảm bảo không có lỗi cú pháp ở đây */}
@@ -182,7 +182,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
             </>
           )}
 
-          {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'PendingPayment') && (
+          {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'Pending') && (
             <div className="flex gap-2">
               <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md text-md border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0">
                 Liên Hệ Người Bán
