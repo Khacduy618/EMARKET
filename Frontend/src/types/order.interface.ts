@@ -71,11 +71,183 @@
 //   isFavoriteShop: boolean; // Có đang follow shop này không
 // }
 // types/order.interface.ts
+// import { Address } from './address.interface';
+// import { ShopSummary } from './shop.interface';
+// import { ProductVariant } from './product.interface'; // Import ProductVariant đầy đủ
+// import { CartItem } from './cartItem.interface'; // Import CartItem nếu cần dùng lại
+
+// export type OrderStatus =
+//   'Pending' | 
+//   'PendingPayment' |         // (từ SQL)
+//   'Processing' |       // (từ SQL)
+//   'Shipped' |          // (từ SQL)
+//   'Delivered' |        // (từ SQL)
+//   'Completed' |        // (từ SQL)
+//   'CancelledByBuyer' | // (từ SQL)
+//   'CancelledBySeller' |// (từ SQL)
+//   'Returned' |         // (từ SQL)
+//   'ReturnInProgress' | // (từ SQL)
+//   'ReturnedRefunded' | // Custom UI status cho "Trả hàng/Hoàn tiền"
+//   'Cancelled';         // Custom UI status cho "Đã hủy" (tổng hợp)
+
+
+// export type ReturnItemStatus =
+//   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
+//   'Refunded' | 'PartiallyRefunded';
+
+// export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
+
+// export type PaymentMethodType = 'COD' | 'BankTransfer' | 'OnlineGateway';
+// export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
+
+// // --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG ORDER (LỊCH SỬ ĐƠN HÀNG) ---
+// // Bao gồm các trường cần thiết từ ProductVariant và các trường bổ sung cho OrderItem
+// export interface OrderItem { // Đây là OrderItem cho Order (lịch sử đơn hàng)
+//   OrderItemID: number;
+//   OrderID: number;
+//   VariantID: number;
+//   ProductID: number;
+//   Quantity: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
+//   PriceAtPurchase: number;
+//   OriginalPrice: number;
+//   Subtotal: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
+//   IsFlashSaleItem: boolean;
+//   FlashSaleDealID: number | null;
+//   ReturnStatus: ReturnItemStatus;
+//   CreatedAt: string;
+
+//   productName: string;
+//   productImageURL: string;
+//   classification: string;
+//   productAttributes?: { attributeName: string; attributeValue: string }[];
+
+//   canReview: boolean;
+//   reviewDeadline?: string;
+//   reviewReward?: number;
+// }
+
+// // --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG CHECKOUT (GIỎ HÀNG/TRƯỚC KHI TẠO ĐƠN) ---
+// // Các trường cần thiết từ CartItem và ProductVariant
+// export interface CheckoutProductItem { // Đây là Product Item cho Checkout (giỏ hàng/trước khi đặt hàng)
+//   VariantID: number;
+//   ProductID: number;
+//   productName: string;
+//   productImageURL: string;
+//   classification: string;
+
+//   price: number;
+//   originalPrice?: number;
+//   quantity: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
+//   subtotal: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
+
+//   hasInsurance: boolean;
+//   insurancePrice?: number;
+//   insuranceDescription?: string;
+//   insuranceLearnMoreLink?: string;
+
+//   SKU?: string | null;
+//   CompareAtPrice?: number | null;
+//   StockQuantity?: number;
+//   IsActive?: boolean;
+//   CreatedAt?: string;
+//   UpdatedAt?: string;
+// }
+
+
+// // --- INTERFACE CHO Order (LỊCH SỬ ĐƠN HÀNG) ---
+// export interface Order {
+//   OrderID: number;
+//   OrderCode: string;
+//   UserID: number;
+//   OrderDate: string;
+//   TotalAmount: number;
+//   SubtotalAmount: number;
+//   ShippingFee: number;
+//   DiscountAmount: number;
+//   ShippingAddressID: number;
+//   ShippingFullName: string;
+//   ShippingPhoneNumber: string;
+//   Notes: string | null;
+//   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway';
+//   PaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
+//   OverallStatus: OrderStatus;
+
+//   PlatformVoucherCode: string | null;
+//   PlatformDiscountAmount: number;
+//   CreatedAt: string;
+//   UpdatedAt: string;
+
+//   items: OrderItem[]; // Sử dụng OrderItem cho lịch sử đơn hàng
+
+//   ShopID: number;
+//   shopName: string;
+//   shopLevel: ShopLevel;
+//   isFavoriteShop: boolean;
+// }
+
+// // --- INTERFACE CHO CheckoutData (TRANG THANH TOÁN) ---
+// export interface CheckoutShopOrder {
+//   ShopID: number;
+//   shopName: string;
+//   shopLevel: ShopLevel;
+//   isFavoriteShop: boolean;
+
+//   items: CheckoutProductItem[]; // Sử dụng CheckoutProductItem cho trang thanh toán
+
+//   shippingMethod: string;
+//   shippingFee: number;
+//   deliveryEstimate: string;
+//   shippingVoucherDiscount?: number;
+//   shippingVoucherNote?: string;
+
+//   messageToSeller: string;
+// }
+
+// export interface CheckoutVoucher {
+//   VoucherID: number;
+//   type: 'platform' | 'shop';
+//   code: string;
+//   description: string;
+//   discountAmount: number;
+//   isSelected: boolean;
+// }
+
+// export interface CheckoutSummaryDetails {
+//   totalProductsPrice: number;
+//   totalShippingFee: number;
+//   totalVoucherDiscount: number;
+//   totalShopeeCoinsDiscount: number;
+//   totalPayment: number;
+// }
+
+// export interface CheckoutData {
+//   user: {
+//     UserID: number;
+//     Username: string;
+//   };
+//   address: Address;
+//   shopOrders: CheckoutShopOrder[];
+//   availablePlatformVouchers: CheckoutVoucher[];
+//   shopeeCoins: {
+//     currentCoins: number;
+//     isApplied: boolean;
+//     appliedAmount: number;
+//   };
+//   paymentMethod: {
+//     method: string;
+//     type: PaymentMethodType;
+//     canChange: boolean;
+//   };
+//   checkoutSummary: CheckoutSummaryDetails;
+// }
+
+
+// types/order.interface.ts
 import { Address } from './address.interface';
 import { ShopSummary } from './shop.interface';
-import { ProductVariant } from './product.interface'; // Import ProductVariant đầy đủ
-import { CartItem } from './cartItem.interface'; // Import CartItem nếu cần dùng lại
+// import { ProductVariant } from './product.interface'; // Không cần import ProductVariant đầy đủ nếu bạn đã có MockVariant
 
+// Enums từ SQL và UI
 export type OrderStatus =
   'Pending' |          // (từ SQL)
   'Processing' |       // (từ SQL)
@@ -85,9 +257,12 @@ export type OrderStatus =
   'CancelledByBuyer' | // (từ SQL)
   'CancelledBySeller' |// (từ SQL)
   'Returned' |         // (từ SQL)
-  'ReturnInProgress' | // (từ SQL)
-  'ReturnedRefunded' | // Custom UI status cho "Trả hàng/Hoàn tiền"
-  'Cancelled';         // Custom UI status cho "Đã hủy" (tổng hợp)
+  'ReturnInProgress'; // (từ SQL)
+
+// Trạng thái cho UI tab OrderHistory
+export type OrderTabStatus =
+  'all' | 'PendingPayment' | 'Processing' | 'Shipped' |
+  'Completed' | 'Cancelled' | 'ReturnedRefunded';
 
 
 export type ReturnItemStatus =
@@ -95,19 +270,26 @@ export type ReturnItemStatus =
   'Refunded' | 'PartiallyRefunded';
 
 export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
+export type PaymentMethodType = 'COD' | 'BankTransfer' | 'OnlineGateway';
+export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
+export interface StatusTab {
+  id: OrderTabStatus; // Sử dụng OrderTabStatus đã định nghĩa ở đây
+  name: string;
+  count: number;
+}
 
-// --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG ORDER (LỊCH SỬ ĐƠN HÀNG) ---
-// Bao gồm các trường cần thiết từ ProductVariant và các trường bổ sung cho OrderItem
-export interface OrderItem { // Đây là OrderItem cho Order (lịch sử đơn hàng)
+// --- INTERFACE OrderItem (LỊCH SỬ ĐƠN HÀNG) ---
+// Chứa đầy đủ thông tin tĩnh của một item trong đơn hàng đã đặt
+export interface OrderItem {
   OrderItemID: number;
-  OrderID: number;
+  OrderID: number;           // Thuộc tính bắt buộc
   VariantID: number;
-  ProductID: number;
-  Quantity: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
+  ProductID: number;         // Để có thể lấy ảnh chính từ Product nếu variant không có ảnh
+  Quantity: number;
   PriceAtPurchase: number;
   OriginalPrice: number;
-  Subtotal: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
+  Subtotal: number;
   IsFlashSaleItem: boolean;
   FlashSaleDealID: number | null;
   ReturnStatus: ReturnItemStatus;
@@ -123,35 +305,36 @@ export interface OrderItem { // Đây là OrderItem cho Order (lịch sử đơn
   reviewReward?: number;
 }
 
-// --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG CHECKOUT (GIỎ HÀNG/TRƯỚC KHI TẠO ĐƠN) ---
-// Các trường cần thiết từ CartItem và ProductVariant
-export interface CheckoutProductItem { // Đây là Product Item cho Checkout (giỏ hàng/trước khi đặt hàng)
+// --- INTERFACE CheckoutProductItem (CHO GIỎ HÀNG/CHECKOUT) ---
+// Bao gồm các trường từ MockVariant (nếu cần) và các trường cần thiết cho UI Checkout
+export interface CheckoutProductItem {
   VariantID: number;
   ProductID: number;
   productName: string;
   productImageURL: string;
   classification: string;
 
-  price: number;
-  originalPrice?: number;
-  quantity: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
-  subtotal: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
+  price: number; // Đơn giá hiện tại của sản phẩm (sau khuyến mãi nếu có)
+  originalPrice?: number; // Giá gốc để gạch ngang
+  quantity: number;
+  subtotal: number; // Thành tiền (price * quantity)
 
   hasInsurance: boolean;
   insurancePrice?: number;
   insuranceDescription?: string;
   insuranceLearnMoreLink?: string;
 
+  // Các trường từ ProductVariant (nếu cần cho mock data hoặc hiển thị chi tiết hơn)
   SKU?: string | null;
-  CompareAtPrice?: number | null;
+  CompareAtPrice?: number | null; // Optional
   StockQuantity?: number;
   IsActive?: boolean;
-  CreatedAt?: string;
-  UpdatedAt?: string;
+  CreatedAt?: string; // Optional
+  UpdatedAt?: string; // Optional
 }
 
 
-// --- INTERFACE CHO Order (LỊCH SỬ ĐƠN HÀNG) ---
+// --- INTERFACE Order (LỊCH SỬ ĐƠN HÀNG) ---
 export interface Order {
   OrderID: number;
   OrderCode: string;
@@ -165,16 +348,16 @@ export interface Order {
   ShippingFullName: string;
   ShippingPhoneNumber: string;
   Notes: string | null;
-  PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway';
-  PaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
-  OverallStatus: OrderStatus;
+  PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
+  PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
+  OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
 
   PlatformVoucherCode: string | null;
   PlatformDiscountAmount: number;
   CreatedAt: string;
   UpdatedAt: string;
 
-  items: OrderItem[]; // Sử dụng OrderItem cho lịch sử đơn hàng
+  items: OrderItem[];
 
   ShopID: number;
   shopName: string;
@@ -182,14 +365,14 @@ export interface Order {
   isFavoriteShop: boolean;
 }
 
-// --- INTERFACE CHO CheckoutData (TRANG THANH TOÁN) ---
+// --- INTERFACE CheckoutData (CHO TRANG THANH TOÁN) ---
 export interface CheckoutShopOrder {
   ShopID: number;
   shopName: string;
   shopLevel: ShopLevel;
   isFavoriteShop: boolean;
 
-  items: CheckoutProductItem[]; // Sử dụng CheckoutProductItem cho trang thanh toán
+  items: CheckoutProductItem[];
 
   shippingMethod: string;
   shippingFee: number;
@@ -232,6 +415,7 @@ export interface CheckoutData {
   };
   paymentMethod: {
     method: string;
+    type: PaymentMethodType;
     canChange: boolean;
   };
   checkoutSummary: CheckoutSummaryDetails;

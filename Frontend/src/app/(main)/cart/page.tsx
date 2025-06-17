@@ -3056,7 +3056,7 @@ const CartPage: React.FC = () => {
                 {/* Cart Items List */}
                 <div className="mb-6">
                     {/* Table Header */}
-                    <div className="bg-white shadow-box mt-4 mb-4 grid grid-cols-12 rounded-sm text-gray-500 text-xs uppercase px-4 py-4">
+                    <div className="bg-white shadow-sm mt-4 mb-4 grid grid-cols-12 rounded-sm text-gray-500 text-xs uppercase px-4 py-4">
                         <div className="col-span-4 flex items-center gap-2">
                             {/* "Select All" checkbox in header */}
                             <input
