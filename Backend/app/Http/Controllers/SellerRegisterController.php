@@ -51,6 +51,11 @@ class SellerRegisterController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
+        if($user->Role != 'Người bán') {
+            return response()->json([
+                'message' => 'Bạn không có quyền truy cập vào trang này.',
+            ], 403);
+        }
         return response()->json([
             'user' => $user,
             'shop' => $user->shop,

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\SellerRegisterController;
-
+use App\Http\Controllers\ShopCategoryController ; 
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -63,8 +63,15 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-    Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
         Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
         Route::post('/seller/register', [SellerRegisterController::class, 'register']);
         Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
-    });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+    Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+    Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+    Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+});
