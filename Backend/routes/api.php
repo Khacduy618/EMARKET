@@ -13,6 +13,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ; 
+use App\Http\Controllers\ShopProductController ;
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -74,4 +75,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
     Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
     Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+    Route::get('/products', [ShopProductController::class, 'index']);
+    Route::post('/products', [ShopProductController::class, 'store']);
+    Route::put('/products/{productID}', [ShopProductController::class, 'update']);
+    Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
 });
