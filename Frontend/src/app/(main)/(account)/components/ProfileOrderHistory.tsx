@@ -735,16 +735,13 @@ export default function ProfileOrderHistory() {
 
   return (
     <div className="flex flex-col h-full px-6 py-6">
-      
-      
-
       {/* Bộ lọc ngày và Sắp xếp */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-6">
         <div className="flex flex-grow items-center gap-2">
           {/* Start Date Filter */}
           <div className="relative flex items-center flex-grow min-w-0">
             <input
-              type="text"
+              type="date"
               placeholder="dd/mm/yyyy"
               className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm
                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -761,7 +758,7 @@ export default function ProfileOrderHistory() {
           {/* End Date Filter */}
           <div className="relative flex items-center flex-grow min-w-0 group">
             <input
-              type="text"
+              type="date"
               placeholder="dd/mm/yyyy"
               className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm
                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent

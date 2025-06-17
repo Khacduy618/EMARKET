@@ -245,6 +245,7 @@
 // types/order.interface.ts
 import { Address } from './address.interface';
 import { ShopSummary } from './shop.interface';
+import { ProductVariant } from './product.interface';
 // import { ProductVariant } from './product.interface'; // Không cần import ProductVariant đầy đủ nếu bạn đã có MockVariant
 
 // Enums từ SQL và UI
@@ -253,7 +254,8 @@ export type OrderStatus =
   'Processing' |       // (từ SQL)
   'Shipped' |          // (từ SQL)
   'Delivered' |        // (từ SQL)
-  'Completed' |        // (từ SQL)
+  'Completed' |
+  'Cancelled'  |      // (từ SQL)
   'CancelledByBuyer' | // (từ SQL)
   'CancelledBySeller' |// (từ SQL)
   'Returned' |         // (từ SQL)
@@ -363,6 +365,15 @@ export interface Order {
   shopName: string;
   shopLevel: ShopLevel;
   isFavoriteShop: boolean;
+
+  ReasonForRejection?: string;
+  shippingProvider?: string; // Tên nhà vận chuyển (ví dụ?: SPX Express)
+  trackingNumber?: string; // Mã vận đơn (ví dụ?: SPXVN037324157726)
+  orderStatusHistory?: OrderStatusHistory[]; // Lịch sử trạng thái trên timeline
+  shippingTracking?: ShippingTracking[]; // Lịch sử theo dõi chi tiết vận chuyển
+  totalShopVoucherDiscount?: number; // Tổng giảm giá từ voucher shop (để hiển thị ở cuối)
+  totalPlatformVoucherDiscount?: number; // Tổng giảm giá từ voucher toàn sàn (để hiển thị ở cuối)
+  totalShopeeCoinsDiscount?: number;
 }
 
 // --- INTERFACE CheckoutData (CHO TRANG THANH TOÁN) ---
@@ -419,4 +430,20 @@ export interface CheckoutData {
     canChange: boolean;
   };
   checkoutSummary: CheckoutSummaryDetails;
+}
+
+export interface OrderStatusHistory {
+  status: string; // Tên trạng thái (ví dụ: "Đơn Hàng Đã Đặt")
+  date: string; // Ngày (ví dụ: "15-06-2025")
+  time: string; // Giờ (ví dụ: "10:14")
+  isActive: boolean; // Trạng thái hiện tại
+  isCompleted: boolean; // Đã hoàn thành (có dấu tích)
+}
+
+// Thông tin theo dõi vận chuyển
+export interface ShippingTracking {
+  status: string; // Trạng thái (ví dụ: "Đang vận chuyển")
+  location?: string; // Địa điểm (ví dụ: "kho phân loại tại Da Nang SOC")
+  date: string; // Ngày (ví dụ: "17-06-2025")
+  time: string; // Giờ (ví dụ: "02:02")
 }
