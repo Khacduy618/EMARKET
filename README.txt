@@ -1,4 +1,14 @@
 # EMARKET
+
+Website thương mại điện tử EMARKET
+Thêm côt discount type int  vào products trong db
+discount 	int  3 nằm sau price
+Thêm côt icon type varchar  vào category trong db
+Them thu vien chay slide FE 
+clear docker build lai docker
+pnpm add swiper
+Đã xoá dòng pnpm i lucide-react khỏi dockerfile
+
 Website thương mại điện tử EMARKET 
 Thêm côt discount type int  vào products trong db
 discount 	int  3 nằm sau price
@@ -28,3 +38,4 @@ VariantID là khóa ngoại tham chiếu đến ProductVariants.
 AttributeValueID là khóa ngoại tham chiếu đến AttributeValues.
 ProductImages: Có thể lưu các ảnh chung cho sản phẩm (bảng Products) hoặc ảnh chi tiết hơn cho sản phẩm (nếu không phải là ảnh đại diện của biến thể). Ảnh đại diện cho từng biến thể cụ thể nên được lưu trực tiếp trong cột ImageURL của bảng ProductVariants.
 CartItems và OrderItems: Sẽ lưu VariantID thay vì ProductID (hoặc có thể lưu cả hai nếu cần, nhưng VariantID là bắt buộc để xác định chính xác phiên bản sản phẩm khách mua). Cột ShopID trong CartItems vẫn quan trọng để nhóm theo shop.
+

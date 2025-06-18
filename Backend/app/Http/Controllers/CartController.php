@@ -423,6 +423,164 @@ class CartController extends Controller
     //         'attributes' => $finalAttributes
     //     ]);
     // }
+    // /**
+    //  * Get the user's cart.
+    //  *
+    //  * @param  \Illuminate\Http\Request  $request
+    //  * @return \Illuminate\Http\JsonResponse
+    //  */
+    // public function index(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     try {
+    //         $cartData = DB::select("
+    //             WITH RankedVariantAttributes AS (
+    //         SELECT
+    //             pva.VariantID,
+    //             a.AttributeID,
+    //             a.Name AS AttributeName,
+    //             av.AttributeValueID,
+    //             av.Value AS AttributeValue,
+    //             ROW_NUMBER() OVER (PARTITION BY pva.VariantID ORDER BY a.AttributeID) as rn
+    //         FROM ProductVariantAttribute pva
+    //         JOIN AttributeValues av ON pva.AttributeValueID = av.AttributeValueID
+    //         JOIN Attributes a ON av.AttributeID = a.AttributeID
+    //     )
+    //     SELECT
+    //         c.CartID,
+    //         c.UserID,
+    //         c.CreatedAt,
+    //         c.UpdatedAt,
+    //         ci.CartItemID,
+    //         ci.VariantID,
+    //         ci.ShopID,
+    //         ci.Quantity,
+    //         ci.AddedAt,
+    //         ci.UpdatedAt AS CartItemUpdatedAt,
+    //         pv.SKU,
+    //         pv.Price AS VariantPrice,
+    //         pv.CompareAtPrice,
+    //         pv.StockQuantity,
+    //         pv.ImageURL AS VariantImageURL,
+    //         p.ProductID,
+    //         p.Name AS ProductName,
+    //         p.Description AS ProductDescription,
+    //         p.Discount AS ProductDiscount,
+    //         s.ShopName,
+    //         rva.AttributeID,
+    //         rva.AttributeName,
+    //         rva.AttributeValueID,
+    //         rva.AttributeValue
+    //     FROM Carts c
+    //     JOIN CartItems ci ON c.CartID = ci.CartID
+    //     JOIN ProductVariants pv ON ci.VariantID = pv.VariantID
+    //     JOIN Products p ON pv.ProductID = p.ProductID
+    //     JOIN Shops s ON ci.ShopID = s.ShopID
+    //     LEFT JOIN RankedVariantAttributes rva
+    //         ON pv.VariantID = rva.VariantID
+    //         AND rva.rn <= 3
+    //     WHERE c.UserID = ?
+    //         ", [$user->UserID]);
+
+    //         Log::info('Cart data fetched from DB. Number of rows: ' . count($cartData));
+
+    //         $cart = [
+    //             'CartID' => null,
+    //             'UserID' => $user->UserID,
+    //             'CreatedAt' => null,
+    //             'UpdatedAt' => null,
+    //             'cartItems' => []
+    //         ];
+
+    //         $cartItems = [];
+
+    //         foreach ($cartData as $item) {
+    //             if (!isset($cartItems[$item->CartItemID])) {
+    //                 $cart['CartID'] = $item->CartID;
+    //                 $cart['UserID'] = $item->UserID;
+    //                 $cart['CreatedAt'] = $item->CreatedAt;
+    //                 $cart['UpdatedAt'] = $item->UpdatedAt;
+
+    //                 $cartItems[$item->CartItemID] = [
+    //                     'CartItemID' => $item->CartItemID,
+    //                     'CartID' => $item->CartID,
+    //                     'VariantID' => $item->VariantID,
+    //                     'ShopID' => $item->ShopID,
+    //                     'Quantity' => $item->Quantity,
+    //                     'AddedAt' => $item->AddedAt,
+    //                     'CartItemUpdatedAt' => $item->CartItemUpdatedAt,
+    //                     'productVariant' => [
+    //                         'VariantID' => $item->VariantID,
+    //                         'ProductID' => $item->ProductID,
+    //                         'SKU' => $item->SKU,
+    //                         'Price' => $item->VariantPrice,
+    //                         'CompareAtPrice' => $item->CompareAtPrice,
+    //                         'StockQuantity' => $item->StockQuantity,
+    //                         'ImageURL' => $item->VariantImageURL,
+    //                         'IsActive' => 1,
+    //                         'CreatedAt' => null,
+    //                         'UpdatedAt' => null,
+    //                         'product' => [
+    //                             'ProductID' => $item->ProductID,
+    //                             'ShopID' => $item->ShopID,
+    //                             'CategoryID' => null,
+    //                             'Name' => $item->ProductName,
+    //                             'Description' => $item->ProductDescription,
+    //                             'Discount' => $item->ProductDiscount,
+    //                             'IsActive' => 1,
+    //                             'AdminApprovalStatus' => 'Approved',
+    //                             'ReasonForRejection' => null,
+    //                             'CreatedAt' => null,
+    //                             'UpdatedAt' => null
+    //                         ],
+    //                         'attributeValues' => []
+    //                     ],
+    //                     'shop' => [
+    //                         'ShopID' => $item->ShopID,
+    //                         'UserID' => null,
+    //                         'ShopName' => $item->ShopName,
+    //                         'Description' => null,
+    //                         'LogoURL' => null,
+    //                         'CoverImageURL' => null,
+    //                         'AddressStreet' => null,
+    //                         'AddressWard' => null,
+    //                         'AddressDistrict' => null,
+    //                         'AddressCity' => null,
+    //                         'ShopPhone' => null,
+    //                         'Level' => null,
+    //                         'Status' => 'Approved',
+    //                         'CreatedAt' => null,
+    //                         'UpdatedAt' => null
+    //                     ]
+    //                 ];
+    //             }
+
+    //             if ($item->AttributeValueID !== null) {
+    //                 $cartItems[$item->CartItemID]['productVariant']['attributeValues'][] = [
+    //                     'AttributeValueID' => $item->AttributeValueID,
+    //                     'AttributeID' => $item->AttributeID,
+    //                     'Value' => $item->AttributeValue,
+    //                     'attribute' => [
+    //                         'AttributeID' => $item->AttributeID,
+    //                         'Name' => $item->AttributeName
+    //                     ]
+    //                 ];
+    //             }
+    //         }
+
+    //         $cart['cartItems'] = array_values($cartItems);
+
+    //         Log::info('Cart data structured successfully. Number of items: ' . count($cart['cartItems']));
+
+    //         // For successful fetch cart, just return the cart data, no specific message needed for the notification
+    //         return response()->json($cart);
+
+    //     } catch (\Exception $e) {
+    //         Log::error('Error fetching or structuring cart data: ' . $e->getMessage(), ['exception' => $e]);
+    //         return response()->json(['message' => 'Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'], 500);
+    //     }
+    // }
     /**
      * Get the user's cart.
      *
@@ -468,6 +626,7 @@ class CartController extends Controller
             p.Description AS ProductDescription,
             p.Discount AS ProductDiscount,
             s.ShopName,
+            s.ShopPhone, -- THÊM DÒNG NÀY
             rva.AttributeID,
             rva.AttributeName,
             rva.AttributeValueID,
@@ -540,6 +699,7 @@ class CartController extends Controller
                             'ShopID' => $item->ShopID,
                             'UserID' => null,
                             'ShopName' => $item->ShopName,
+                            'ShopPhone' => $item->ShopPhone, // THÊM DÒNG NÀY
                             'Description' => null,
                             'LogoURL' => null,
                             'CoverImageURL' => null,
@@ -547,7 +707,7 @@ class CartController extends Controller
                             'AddressWard' => null,
                             'AddressDistrict' => null,
                             'AddressCity' => null,
-                            'ShopPhone' => null,
+                            // 'ShopPhone' => null, // Bạn có thể bỏ dòng này nếu đã có ở trên
                             'Level' => null,
                             'Status' => 'Approved',
                             'CreatedAt' => null,
@@ -573,7 +733,6 @@ class CartController extends Controller
 
             Log::info('Cart data structured successfully. Number of items: ' . count($cart['cartItems']));
 
-            // For successful fetch cart, just return the cart data, no specific message needed for the notification
             return response()->json($cart);
 
         } catch (\Exception $e) {
@@ -581,6 +740,81 @@ class CartController extends Controller
             return response()->json(['message' => 'Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'], 500);
         }
     }
+
+    // /**
+    //  * Add a product variant to the cart.
+    //  *
+    //  * @param  \Illuminate\Http\Request  $request
+    //  * @return \Illuminate\Http\JsonResponse
+    //  */
+    // public function addItem(Request $request)
+    // {
+    //     $request->validate([
+    //         'variant_id' => 'required|integer',
+    //         'quantity' => 'required|integer|min:1',
+    //         'shop_id' => 'required|integer',
+    //     ]);
+
+    //     $user = Auth::user();
+
+    //     $variantExists = DB::table('ProductVariants')->where('VariantID', $request->variant_id)->first();
+    //     $shopExists = DB::table('Shops')->where('ShopID', $request->shop_id)->first();
+
+    //     if (!$variantExists) {
+    //         return response()->json(['message' => 'Không tìm thấy phiên bản sản phẩm.'], 404);
+    //     }
+    //     if (!$shopExists) {
+    //         return response()->json(['message' => 'Không tìm thấy cửa hàng.'], 404);
+    //     }
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $cart = DB::table('Carts')->where('UserID', $user->UserID)->first();
+
+    //         if (!$cart) {
+    //             $cartId = DB::table('Carts')->insertGetId([
+    //                 'UserID' => $user->UserID,
+    //                 'CreatedAt' => Carbon::now(),
+    //                 'UpdatedAt' => Carbon::now()
+    //             ]);
+    //             $cart = (object)['CartID' => $cartId, 'UserID' => $user->UserID];
+    //         }
+
+    //         $cartItem = DB::table('CartItems')
+    //                         ->where('CartID', $cart->CartID)
+    //                         ->where('VariantID', $request->variant_id)
+    //                         ->first();
+
+    //         if ($cartItem) {
+    //             DB::table('CartItems')
+    //                 ->where('CartItemID', $cartItem->CartItemID)
+    //                 ->update([
+    //                     'Quantity' => $cartItem->Quantity + $request->quantity,
+    //                     'UpdatedAt' => Carbon::now()
+    //                 ]);
+    //         } else {
+    //             DB::table('CartItems')->insert([
+    //                 'CartID' => $cart->CartID,
+    //                 'VariantID' => $request->variant_id,
+    //                 'ShopID' => $request->shop_id,
+    //                 'Quantity' => $request->quantity,
+    //                 'AddedAt' => Carbon::now(),
+    //                 'UpdatedAt' => Carbon::now()
+    //             ]);
+    //         }
+
+    //         DB::commit();
+
+    //         $updatedCartResponse = $this->index($request)->getData();
+    //         // Return a success message along with the cart data
+    //         return response()->json(array_merge((array)$updatedCartResponse, ['message' => 'Sản phẩm đã được thêm vào giỏ hàng.']), 201);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         Log::error('Error adding item to cart: ' . $e->getMessage(), ['exception' => $e]);
+    //         return response()->json(['message' => 'Lỗi máy chủ nội bộ. Không thể thêm sản phẩm vào giỏ hàng.'], 500);
+    //     }
+    // }
 
     /**
      * Add a product variant to the cart.
@@ -597,14 +831,22 @@ class CartController extends Controller
         ]);
 
         $user = Auth::user();
+        $hardLimit = 10; // Định nghĩa hard limit ở đây
 
-        $variantExists = DB::table('ProductVariants')->where('VariantID', $request->variant_id)->first();
-        $shopExists = DB::table('Shops')->where('ShopID', $request->shop_id)->first();
+        // Lấy thông tin variant và sản phẩm
+        $variant = DB::table('ProductVariants')
+                    ->join('Products', 'ProductVariants.ProductID', '=', 'Products.ProductID')
+                    ->where('ProductVariants.VariantID', $request->variant_id)
+                    ->select('ProductVariants.*', 'Products.Name as ProductName', 'Products.ShopID')
+                    ->first();
 
-        if (!$variantExists) {
+        // Lấy thông tin shop
+        $shop = DB::table('Shops')->where('ShopID', $request->shop_id)->first();
+
+        if (!$variant) {
             return response()->json(['message' => 'Không tìm thấy phiên bản sản phẩm.'], 404);
         }
-        if (!$shopExists) {
+        if (!$shop) {
             return response()->json(['message' => 'Không tìm thấy cửa hàng.'], 404);
         }
 
@@ -626,19 +868,52 @@ class CartController extends Controller
                             ->where('VariantID', $request->variant_id)
                             ->first();
 
+            $initialQuantityInCart = $cartItem ? $cartItem->Quantity : 0;
+            $requestedQuantity = $request->quantity;
+            $newTotalQuantity = $initialQuantityInCart + $requestedQuantity;
+
+            $responseMessage = 'Sản phẩm đã được thêm vào giỏ hàng.';
+            $shouldShowLargeQuantityPrompt = false;
+            $finalQuantityForFrontend = $newTotalQuantity; // Quantity to update in DB
+
+            // Kiểm tra tồn kho
+            if ($newTotalQuantity > $variant->StockQuantity) {
+                // Nếu vượt quá tồn kho, đặt số lượng về tồn kho
+                $finalQuantityForFrontend = $variant->StockQuantity;
+                $responseMessage = 'Số lượng yêu cầu vượt quá tồn kho. Đã thêm tối đa số lượng có sẵn.';
+                // Nếu số lượng tồn kho vẫn vượt quá hard limit, vẫn hiển thị prompt
+                if ($variant->StockQuantity > $hardLimit) {
+                    $shouldShowLargeQuantityPrompt = true;
+                }
+            }
+
+            // Kiểm tra hard limit (10 sản phẩm)
+            if ($newTotalQuantity > $hardLimit) {
+                // Nếu tổng số lượng vượt quá hard limit
+                // Và chưa bị tồn kho hạn chế dưới hard limit
+                if ($finalQuantityForFrontend > $hardLimit) { // Check if after stock clamping, it's still > hardLimit
+                    $finalQuantityForFrontend = $hardLimit; // Clamp to hard limit for DB
+                    $shouldShowLargeQuantityPrompt = true;
+                    $responseMessage = 'Số lượng đã đạt giới hạn cho phép mỗi mặt hàng. Vui lòng liên hệ cửa hàng để đặt số lượng lớn hơn.';
+                }
+            }
+
+
             if ($cartItem) {
+                // Cập nhật số lượng nếu mục đã tồn tại
                 DB::table('CartItems')
                     ->where('CartItemID', $cartItem->CartItemID)
                     ->update([
-                        'Quantity' => $cartItem->Quantity + $request->quantity,
+                        'Quantity' => $finalQuantityForFrontend, // Sử dụng số lượng đã được xử lý
                         'UpdatedAt' => Carbon::now()
                     ]);
             } else {
+                // Thêm mục mới vào giỏ hàng
                 DB::table('CartItems')->insert([
                     'CartID' => $cart->CartID,
                     'VariantID' => $request->variant_id,
                     'ShopID' => $request->shop_id,
-                    'Quantity' => $request->quantity,
+                    'Quantity' => $finalQuantityForFrontend, // Sử dụng số lượng đã được xử lý
                     'AddedAt' => Carbon::now(),
                     'UpdatedAt' => Carbon::now()
                 ]);
@@ -646,9 +921,19 @@ class CartController extends Controller
 
             DB::commit();
 
-            $updatedCartResponse = $this->index($request)->getData();
-            // Return a success message along with the cart data
-            return response()->json(array_merge((array)$updatedCartResponse, ['message' => 'Sản phẩm đã được thêm vào giỏ hàng.']), 201);
+            // Lấy lại toàn bộ giỏ hàng với định dạng đầy đủ sau khi cập nhật
+            // Gọi lại hàm index() để lấy dữ liệu mới nhất với định dạng Cart
+            $updatedCartData = $this->index($request)->getData();
+
+            return response()->json([
+                'cart' => $updatedCartData,
+                'message' => $responseMessage,
+                'shouldShowLargeQuantityPrompt' => $shouldShowLargeQuantityPrompt,
+                'productName' => $variant->ProductName,
+                'shopPhone' => $shop->ShopPhone,
+                'finalQuantityInCart' => $finalQuantityForFrontend,
+                'availableStock' => $variant->StockQuantity,
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
