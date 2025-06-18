@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import { ProductForReview } from '../data';
-import Link from 'next/link'; // Import Link từ next/link
+import Link from 'next/link';
 import { Star, Camera, CheckCircle, Video } from 'lucide-react';
 
-// --- CÁC COMPONENT CON ĐỂ TÁI SỬ DỤNG ---
+// --- CÁC COMPONENT CON ---
 
-// Component chọn sao được tái sử dụng
 const StarRatingInput = ({ rating, onRatingChange }: { rating: number; onRatingChange: (r: number) => void }) => {
     const [hoverRating, setHoverRating] = useState(0);
     return (
@@ -31,7 +30,6 @@ const StarRatingInput = ({ rating, onRatingChange }: { rating: number; onRatingC
     );
 };
 
-// Component ô tải ảnh/video
 const MediaUploadSlot = ({ isVideo = false }: { isVideo?: boolean }) => (
     <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 hover:border-orange-400 hover:text-orange-500 transition-colors">
         {isVideo ? <Video className="w-6 h-6" /> : <Camera className="w-6 h-6" />}
@@ -39,15 +37,12 @@ const MediaUploadSlot = ({ isVideo = false }: { isVideo?: boolean }) => (
     </div>
 );
 
-
 // --- COMPONENT FORM CHÍNH ---
 
 export function WriteReviewForm({ product }: { product: ProductForReview }) {
-    // States cho các loại đánh giá
     const [productQuality, setProductQuality] = useState(0);
     const [sellerService, setSellerService] = useState(0);
     const [shippingService, setShippingService] = useState(0);
-    
     const [comment, setComment] = useState("");
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -79,7 +74,6 @@ export function WriteReviewForm({ product }: { product: ProductForReview }) {
 
     return (
         <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-lg shadow-lg space-y-6">
-            {/* 1. Thông tin sản phẩm */}
             <div className="flex items-center gap-4">
                 <img src={product.imageUrl} alt={product.name} className="w-14 h-14 object-cover rounded border" />
                 <div>
@@ -87,7 +81,6 @@ export function WriteReviewForm({ product }: { product: ProductForReview }) {
                 </div>
             </div>
 
-            {/* 2. Đánh giá sao chi tiết */}
             <div className="space-y-2 border-t border-b py-2 divide-y divide-gray-100">
                 <div className="flex items-center justify-between py-2">
                     <span className="text-gray-700 w-1/3">Chất lượng sản phẩm</span>
@@ -103,7 +96,6 @@ export function WriteReviewForm({ product }: { product: ProductForReview }) {
                 </div>
             </div>
             
-            {/* 3. Viết bình luận và Thêm ảnh/video */}
             <div className="space-y-4">
                 <h3 className="font-semibold text-gray-800">Chia sẻ nhận xét của bạn</h3>
                 <div className="relative">
@@ -117,14 +109,12 @@ export function WriteReviewForm({ product }: { product: ProductForReview }) {
                     />
                     <p className="absolute bottom-3 right-3 text-xs text-gray-400">{comment.length} / 500</p>
                 </div>
-
                 <div className="flex items-center gap-3">
                     <MediaUploadSlot />
                     <MediaUploadSlot isVideo={true} />
                 </div>
             </div>
             
-            {/* 4. Tùy chọn ẩn danh và Nút gửi */}
             <div className="flex items-center justify-between border-t pt-6">
                 <label htmlFor="anonymous" className="flex items-center gap-3 cursor-pointer">
                     <input

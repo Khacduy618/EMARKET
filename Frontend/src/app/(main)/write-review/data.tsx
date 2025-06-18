@@ -18,37 +18,44 @@ export async function getMockProductForReview(productId: string): Promise<Produc
             shopName: 'V-Style Fashion'
         };
     }
-     if (productId === 'P002') {
+    if (productId === 'P001') {
         return {
-            id: 'P002',
+            id: 'P001',
             name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
             imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
             shopName: 'V-Style Fashion'
         };
-    } if (productId === 'P003') {
+    }if (productId === 'P001') {
         return {
-            id: 'P003',
+            id: 'P001',
             name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
             imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
             shopName: 'V-Style Fashion'
         };
-    } if (productId === 'P004') {
+    }if (productId === 'P001') {
         return {
-            id: 'P004',
+            id: 'P001',
             name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
             imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
             shopName: 'V-Style Fashion'
         };
-    } if (productId === 'P005') {
+    }if (productId === 'P001') {
         return {
-            id: 'P005',
+            id: 'P001',
             name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
             imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
             shopName: 'V-Style Fashion'
         };
-    } if (productId === 'P006') {
+    }if (productId === 'P001') {
         return {
-            id: 'P006',
+            id: 'P001',
+            name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
+            imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
+            shopName: 'V-Style Fashion'
+        };
+    }if (productId === 'P001') {
+        return {
+            id: 'P001',
             name: 'Áo thun thể thao nam cao cấp, co giãn 4 chiều, thấm hút mồ hôi',
             imageUrl: 'https://vn-test-11.slatic.net/p/bdf399fc2af8bd84900588d187ff50c9.jpg',
             shopName: 'V-Style Fashion'
