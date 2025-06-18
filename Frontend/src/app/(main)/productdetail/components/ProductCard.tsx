@@ -49,10 +49,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 {/* Phần chứa ảnh chính */}
                 <div className="relative aspect-square">
                     <Image
-                        src={product.imageUrl}
+                        src={product.imageUrl || '/placeholder-image.jpg'} // fallback nếu imageUrl rỗng
                         alt={product.name}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
+                        priority={false} // chỉ dùng priority cho ảnh trên fold
+                        onError={(e) => {
+                            // Fallback khi ảnh lỗi
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = '/placeholder-image.jpg';
+                        }}
                     />
 
                     {/* Tag giảm giá: Chỉ hiển thị khi có discountPercent > 0 */}
