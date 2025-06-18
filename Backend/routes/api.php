@@ -9,7 +9,6 @@ use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
 
@@ -42,25 +41,25 @@ Route::get('/products/{productId}', [ProductDetailController::class, 'show']);
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->group(function (){
-    // Auth routes already defined above, removing duplicates
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    // Cart routes - require authentication
-
-    Route::get('/cart', [CartController::class, 'index']);
-    Route::post('/cart/items', [CartController::class, 'addItem']);
-    Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
-    Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
-    //voucher routes
-     Route::get('/vouchers', [VoucherController::class, 'index']);
-
-});
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
+// Route::post('/register', [AuthController::class, 'register']);
+// Route::post('/login',    [AuthController::class, 'login']);
+// Route::middleware('auth:sanctum')->group(function (){
+//     // Auth routes already defined above, removing duplicates
+//     Route::get('/me', [AuthController::class, 'me']);
+//     Route::post('/logout', [AuthController::class, 'logout']);
+//
+//     // Cart routes - require authentication
+//
+//     Route::get('/cart', [CartController::class, 'index']);
+//     Route::post('/cart/items', [CartController::class, 'addItem']);
+//     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
+//     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
+//     //voucher routes
+//      Route::get('/vouchers', [VoucherController::class, 'index']);
+//
+// });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 

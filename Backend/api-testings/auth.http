@@ -1,4 +1,4 @@
-@host=http://127.0.0.1:8000
+@host=http://127.0.0.1:8000/api
 @authToken=your-bearer-token-here
 @contentType=application/json
 
@@ -13,10 +13,14 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "name": "Test User",
-    "email": "ad1@example.com",
-    "password": "password123",
-    "password_confirmation": "password123"
+    "Username": "M16",
+    "FullName": "Project User",
+    "Email": "m16@goat.com",
+    "Password": "password123",
+    "Password_confirmation": "password123",
+    "Phone": "1234567890",
+    "Role": "Người mua",
+    "IsActive": true
 }
 
 ### Login
@@ -26,7 +30,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "test@example.com",
+    "email": "ad1@example.com",
     "password": "password123"
 }
 

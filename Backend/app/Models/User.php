@@ -15,14 +15,23 @@ use App\Models\ProductReview;
 use App\Models\ShopFollow;
 use App\Models\Voucher;
 use App\Models\UserVoucher;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
+
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasApiTokens;
 
+    protected $table = 'Users';
     protected $primaryKey = 'UserID';
+
+    // Override timestamp names:
+    const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
+
+    public const ROLES = ['Người mua', 'Người bán', 'Quản trị viên'];
+    public const LEVELS = ['Đồng', 'Bạc', 'Vàng', 'Bạch kim', 'Kim cương'];
 
     /**
      * The attributes that are mass assignable.
