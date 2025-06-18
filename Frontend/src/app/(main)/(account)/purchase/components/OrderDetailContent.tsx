@@ -222,7 +222,7 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
       {/* Header trang chi tiết */}
       <div className="bg-white py-4 px-6 rounded-sm border-b border-gray-100 shadow-sm">
         <div className="container mx-auto max-w-6xl flex justify-between items-center">
-          <Link href="/account/orders" className="flex items-center text-gray-600 hover:text-orange-500 text-sm">
+          <Link href="/purchase" className="flex items-center text-gray-600 hover:text-orange-500 text-sm">
             <FaChevronLeft className="mr-2" /> TRỞ LẠI
           </Link>
           <div className="flex items-center text-gray-800 text-sm font-semibold">

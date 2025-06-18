@@ -734,7 +734,7 @@ export default function ProfileOrderHistory() {
 
 
   return (
-    <div className="flex flex-col h-full px-6 py-6">
+    <div className="flex flex-col h-full">
       {/* Bộ lọc ngày và Sắp xếp */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-6">
         <div className="flex flex-grow items-center gap-2">
