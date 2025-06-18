@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-
+import './style.css';
 import { LayoutDashboard, ShoppingCart, Package, Settings } from 'lucide-react';
 
 export default function AdminLayout({
@@ -32,6 +32,10 @@ export default function AdminLayout({
             <Link href="/admin/categories" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
               <Package className="w-5 h-5 mr-3" />
               <span>Danh mục</span>
+            </Link>
+            <Link href="/admin/statistics" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <Package className="w-5 h-5 mr-3" />
+              <span>Thống kê</span>
             </Link>
             <Link href="/admin/orders" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
               <ShoppingCart className="w-5 h-5 mr-3" />

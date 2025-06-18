@@ -42,6 +42,7 @@ import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 import NavMenu from "../components/NavMenu";
 import Footer from "../components/Footer";
+import { Session } from "inspector/promises";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -54,17 +55,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ backgroundColor: '#f8f4f4' }}>
-        <Header />
+    <>
+    <Header />
         <main className="relative z-10">
           {children}
         </main>
 
         {/* Phần chân trang */}
         <Footer />
-
-      </body>
-    </html>
+    </>
   );
 }

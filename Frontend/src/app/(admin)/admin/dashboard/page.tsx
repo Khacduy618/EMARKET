@@ -1,3 +1,4 @@
+'use client'
 import { ArrowUpRight, DollarSign, Users, CreditCard, Activity, Package, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 

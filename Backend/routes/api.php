@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 
 use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
+use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Middleware\HandleImage;
 
 
@@ -83,3 +84,8 @@ Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"
   ->middleware(HandleImage::class);
 
 Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+
+Route::middleware('auth:sanctum')->group(function () { 
+  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
+});

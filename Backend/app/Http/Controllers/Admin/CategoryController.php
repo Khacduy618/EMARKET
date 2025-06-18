@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\utils\CategoryUtil;
 
 class CategoryController extends Controller {
-
  
   public function getAllCategory() {
     $allCategories = PlatformCategory::where('Deleted', 0)->get()->toArray();
