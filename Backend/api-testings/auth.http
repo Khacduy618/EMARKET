@@ -13,9 +13,9 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "Username": "M16",
+    "Username": "M17",
     "FullName": "Project User",
-    "Email": "m16@goat.com",
+    "Email": "m17@goat.com",
     "Password": "password123",
     "Password_confirmation": "password123",
     "Phone": "1234567890",
@@ -30,7 +30,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "ad1@example.com",
+    "email": "m17@goat.com",
     "password": "password123"
 }
 

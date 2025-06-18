@@ -33,6 +33,34 @@ class User extends Authenticatable implements MustVerifyEmail
     public const ROLES = ['Người mua', 'Người bán', 'Quản trị viên'];
     public const LEVELS = ['Đồng', 'Bạc', 'Vàng', 'Bạch kim', 'Kim cương'];
 
+    // Đảm bảo dùng đúng cột Password để auth
+    public function getAuthPassword()
+    {
+        return $this->Password;
+    }
+
+    // Laravel Fortify gửi email xác nhận đến cột Email
+    public function getEmailForVerification()
+    {
+        return $this->Email;
+    }
+
+    public function routeNotificationForMail($notification)
+    {
+        return $this->Email;
+    }
+
+    // Normalize email: lowercase để login không bị sai
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['Email'] = strtolower($value);
+    }
+
+    public function getEmailAttribute($value)
+    {
+        return strtolower($value);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
