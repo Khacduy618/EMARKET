@@ -76,7 +76,7 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     formData.append('_method', 'PATCH');
     console.log(category);
     try {
-      const res = await fetch('http://127.0.0.1/api/admin/categories/update', {
+      const res = await fetch('http://127.0.0.1:8001/api/admin/categories/update', {
         method: 'POST',
         body: formData,
       });
