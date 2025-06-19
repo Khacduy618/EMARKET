@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Illuminate\Support\Facades\Auth;
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -35,7 +34,7 @@ class CreateNewUser implements CreatesNewUsers
         // Hash mật khẩu
         $input['Password'] = Hash::make($input['Password']);
 
-        $user = User::create([
+        return User::create([
             'Username' => $input['Username'],
             'Email'    => $input['Email'],
             'Password' => $input['Password'],
@@ -45,34 +44,5 @@ class CreateNewUser implements CreatesNewUsers
             'Role'     => $input['Role'] ?? 'Người mua',
             'IsActive' => $input['IsActive'] ?? true,
         ]);
-
-        // 👉 Login ngay sau khi tạo (bắt buộc để gửi mail xác thực)
-        Auth::login($user);
-
-        // 👉 Gửi mail xác thực
-        $user->sendEmailVerificationNotification();
-
-        return $user;
     }
-
-    // public function create(array $input): User
-    // {
-    //     Validator::make($input, [
-    //         'name' => ['required', 'string', 'max:255'],
-    //         'email' => [
-    //             'required',
-    //             'string',
-    //             'email',
-    //             'max:255',
-    //             Rule::unique(User::class),
-    //         ],
-    //         'password' => $this->passwordRules(),
-    //     ])->validate();
-    //
-    //     return User::create([
-    //         'name' => $input['name'],
-    //         'email' => $input['email'],
-    //         'password' => Hash::make($input['password']),
-    //     ]);
-    // }
 }

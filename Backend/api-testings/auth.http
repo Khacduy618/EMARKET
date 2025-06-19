@@ -13,9 +13,9 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "Username": "M17",
+    "Username": "M10",
     "FullName": "Project User",
-    "Email": "m17@goat.com",
+    "Email": "m10@goat.com",
     "Password": "password123",
     "Password_confirmation": "password123",
     "Phone": "1234567890",
@@ -31,7 +31,7 @@ Accept: {{contentType}}
 
 {
     "email": "m17@goat.com",
-    "password": "password123"
+    "password": "newpassword123"
 }
 
 ### Logout
@@ -51,7 +51,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "test@example.com"
+    "email": "m17@goat.com"
 }
 
 ### Reset password with token
@@ -60,8 +60,8 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "token": "your-token-here",
-    "email": "test@example.com",
+    "token": "54f041e364598c79be04c7b308bf886676ae9590b296cf43a621fa25f25ce0ca",
+    "email": "m17@goat.com",
     "password": "newpassword123",
     "password_confirmation": "newpassword123"
 }

@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
 
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
+
 // Lấy API của Category Trả về dạng json theo CRUD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -63,3 +65,6 @@ Route::get('/search', [SearchController::class, 'search']);
 // });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
+Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+    ->middleware(['guest'])
+    ->name('password.reset');
