@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -14,6 +13,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ; 
 use App\Http\Controllers\ShopProductController ;
+
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -64,19 +64,23 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-        Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-        Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+    Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-    Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-    Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-    Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-    Route::get('/products', [ShopProductController::class, 'index']);
-    Route::post('/products', [ShopProductController::class, 'store']);
-    Route::put('/products/{productID}', [ShopProductController::class, 'update']);
-    Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
+Route::middleware('auth:sanctum' )->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::middleware('seller')->group(function () {
+        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+        Route::get('/products', [ShopProductController::class, 'index']);
+        Route::post('/products', [ShopProductController::class, 'store']);
+        Route::put('/products/{productID}', [ShopProductController::class, 'update']);
+        Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
+        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+    });
 });

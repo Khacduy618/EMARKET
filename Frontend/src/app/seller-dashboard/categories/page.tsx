@@ -85,6 +85,9 @@ export default function CategoriesPage() {
     return (
         <div className="flex-1 flex flex-col">
             {/* <HeroHeader title="Categories" welcomeText="Manage Categories," breadcrumb="Category Management" /> */}
+            
+          
+            
             <div className="p-6 flex-1">
                 {/* Messages */}
                 {error && (

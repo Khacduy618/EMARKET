@@ -30,14 +30,19 @@ api.interceptors.response.use(
         icon: 'error',
         draggable: true,
       }).then(() => {
-          localStorage.removeItem('authToken');
-        //   localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
         window.location.href = '/login';
       });
     }
     return Promise.reject(error);
   }
 );
+
+export interface Attribute {
+  AttributeID: number;
+  Name: string;
+}
 
 export async function getPlatformCategories() {
   const response = await api.get('/platform-categories');
@@ -78,9 +83,18 @@ export async function createProduct(product: {
   CategoryID: number;
   Name: string;
   Description: string | null;
+  SKU: string | null;
   Price: number;
+  Discount: number;
   StockQuantity: number;
-  ImageURL: string | null;
+  Images: Array<{ ImageURL: string; IsPrimary: boolean; SortOrder: number }>;
+  Variants: Array<{
+    AttributeValues: Array<{ AttributeID: number; Value: string }>;
+    Price: number;
+    Discount: number;
+    StockQuantity: number;
+    SKU: string;
+  }>;
 }) {
   const response = await api.post('/products', product);
   return response.data;
@@ -92,9 +106,11 @@ export async function updateProduct(
     CategoryID: number;
     Name: string;
     Description: string | null;
+    SKU: string | null;
     Price: number;
+    Discount: number;
     StockQuantity: number;
-    ImageURL: string | null;
+    Images: Array<{ ImageURL: string; IsPrimary: boolean; }>;
   }
 ) {
   const response = await api.put(`/products/${productID}`, product);
@@ -104,4 +120,15 @@ export async function updateProduct(
 export async function deleteProduct(productID: number) {
   const response = await api.delete(`/products/${productID}`);
   return response.data;
+}
+
+export async function getAttributes(categoryID: number): Promise<Attribute[]> {
+  // try {
+  //   const response = await api.get(`/attributes/${categoryID}`);
+  //   return response.data || [];
+  // } catch (error: any) {
+  //   throw new Error(error.response?.data?.message || 'Failed to fetch attributes');
+  // }
+  const response = await api.get(`/attributes/${categoryID}`);
+  return response.data ; 
 }

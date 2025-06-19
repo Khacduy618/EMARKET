@@ -22,6 +22,15 @@ class ProductVariant extends Model
         'ImageURL', // Ảnh riêng của biến thể
         'IsActive',
     ];
+    /**
+     * Define the many-to-many relationship with Attribute
+     */
+    // public function attributes()
+    // {
+    //     return $this->belongsToMany(Attribute::class, 'ProductVariantAttribute', 'VariantID', 'AttributeID')
+    //                 ->withPivot('Value')
+    //                 ->withTimestamps();
+    // }
 
     public function product()
     {
