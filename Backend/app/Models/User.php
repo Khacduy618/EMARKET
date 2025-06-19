@@ -16,6 +16,7 @@ use App\Models\ShopFollow;
 use App\Models\Voucher;
 use App\Models\UserVoucher;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\VerifyEmail;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -45,6 +46,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->Email;
     }
+
+    // public function sendEmailVerificationNotification()
+    // {
+    //     $this->notify(new VerifyEmail());
+    // }
 
     public function routeNotificationForMail($notification)
     {
@@ -99,7 +105,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime', // Keep if email verification is used
-            'Password' => 'hashed',
+            // 'Password' => 'hashed',
             'IsActive' => 'boolean',
             'Level' => 'string', // Cast enums to string
             'Role' => 'string',

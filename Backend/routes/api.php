@@ -73,3 +73,16 @@ Route::get('/search', [SearchController::class, 'search']);
 Route::get('/reset-password/{token}', function($token) {
     return $token;
 })->middleware(['guest'])->name('password.reset');
+
+
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    if ($request->user()->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email already verified.']);
+    }
+
+    $request->fulfill();
+
+    return response()->json(['message' => 'Email verified.']);
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');

@@ -13,9 +13,9 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "Username": "M10",
+    "Username": "truongdinhhon",
     "FullName": "Project User",
-    "Email": "m10@goat.com",
+    "Email": "tdhon@gmail.com",
     "Password": "password123",
     "Password_confirmation": "password123",
     "Phone": "1234567890",
@@ -31,7 +31,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "m10@goat.com",
+    "email": "tdhon@gmail.com",
     "password": "password123"
 }
 
