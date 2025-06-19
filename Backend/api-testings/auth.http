@@ -23,7 +23,19 @@ Accept: {{contentType}}
     "IsActive": true
 }
 
-### Login
+
+### Login 1
+# Returns: Token and user information
+POST {{host}}/login
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+    "email": "m10@goat.com",
+    "password": "password123"
+}
+
+### Login 2
 # Returns: Token and user information
 POST {{host}}/login
 Content-Type: {{contentType}}
@@ -60,10 +72,10 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "token": "54f041e364598c79be04c7b308bf886676ae9590b296cf43a621fa25f25ce0ca",
+    "token": "b5fedfaa456876a3d9507645f4f2ac803baa76ff3835f967b9e9fec98d21e176",
     "email": "m17@goat.com",
-    "password": "newpassword123",
-    "password_confirmation": "newpassword123"
+    "password": "timetorise",
+    "password_confirmation": "timetorise"
 }
 
 ### Update Password

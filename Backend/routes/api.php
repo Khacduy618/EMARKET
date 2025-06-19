@@ -65,6 +65,11 @@ Route::get('/search', [SearchController::class, 'search']);
 // });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
-Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-    ->middleware(['guest'])
-    ->name('password.reset');
+// Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+//     ->middleware(['guest'])
+//     ->name('password.reset');
+
+
+Route::get('/reset-password/{token}', function($token) {
+    return $token;
+})->middleware(['guest'])->name('password.reset');
