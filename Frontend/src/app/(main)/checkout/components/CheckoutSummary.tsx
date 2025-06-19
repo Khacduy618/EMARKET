@@ -69,7 +69,7 @@ interface CheckoutSummaryProps {
 const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, onPlaceOrder }) => {
   return (
     <>
-      <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg border-t border-gray-200 py-4 px-6 z-20">
+      <div className="sticky bottom-0 left-0 container bg-white shadow-lg border-t border-gray-200 py-4 px-6 z-20">
         <div className="container mx-auto max-w-6xl flex justify-end items-center">
           <div className="flex-1 grid grid-cols-2 gap-y-2 text-sm text-gray-700 pr-10">
             <span className="col-span-1 text-right">Tổng tiền hàng:</span>
@@ -98,12 +98,13 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, onPlaceOrder
             Đặt hàng
           </button>
         </div>
-      </div>
-
-      {/* Thông báo "Nhấn Đặt hàng..." */}
-      <div className="fixed bottom-0 left-0 w-full bg-white shadow-lg border-t border-gray-200 py-2 px-6 z-10 text-xs text-gray-500 text-center">
+        {/* Thông báo "Nhấn Đặt hàng..." */}
+      <div className=" text-xs text-gray-500 text-center">
         <p>Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với <Link href="#" className="text-blue-500 hover:underline">Điều khoản Shopee</Link></p>
       </div>
+      </div>
+
+      
     </>
   );
 };
