@@ -53,7 +53,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen font-sans container mx-auto mt-4 mb-4 rounded-lg shadow-md">
+    <div className="flex h-screen font-sans text-black container mx-auto mt-4 mb-4 rounded-lg shadow-md">
       <div className="w-1/2 p-10 flex flex-col justify-center items-start bg-white rounded-s-lg ">
         <h1 className="text-3xl font-bold text-gray-500 hover:text-gray-700">Holla, Welcome Back</h1>
         <p className="text-gray-500 hover:text-gray-700">Hey, welcome back to your special place</p>

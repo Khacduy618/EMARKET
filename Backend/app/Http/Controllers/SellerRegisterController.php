@@ -22,7 +22,7 @@ class SellerRegisterController extends Controller
     public function register(SellerRegisterRequest $request)
     {
         $user = Auth::user();
-        if ($user->Role === 'Người bán' && $user->shop) {
+        if ($user->Role === 'Người bán') {
             return response()->json([
                 'message' => 'Bạn đã đăng ký làm người bán',
             ], 400);

@@ -24,7 +24,7 @@ export default function OderModel({ show, date, onClose }: OderModelProps) {
     if (show && date) {
       setLoading(true);
       setError(null);
-      fetch(`http://localhost:8000/api/seller/orders?date=${encodeURIComponent(date)}`, {
+      fetch(`http://localhost/api/seller/orders?date=${encodeURIComponent(date)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

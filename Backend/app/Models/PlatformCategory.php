@@ -19,6 +19,7 @@ class PlatformCategory extends Model {
         'Slug',
         'ImageURL',
         'IsActive',
+        'Deleted'
     ];
 
     protected $casts = [
@@ -38,7 +39,16 @@ class PlatformCategory extends Model {
             }
         });
     }
+    public function parent()
+    {
+        return $this->belongsTo(PlatformCategory::class, 'ParentCategoryID', 'CategoryID');
+    }
 
+    public function children()
+    {
+        return $this->hasMany(PlatformCategory::class, 'ParentCategoryID', 'CategoryID');
+    }
+    
     protected static function createUniqueSlug($name, $ignoreId = null)
     {
         $slug = Str::slug($name);

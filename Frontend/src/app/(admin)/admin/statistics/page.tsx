@@ -50,7 +50,7 @@ export default function Statistics() {
   const fetchStatistics = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/seller/statistics?startDate=${startDate?.toISOString()}&endDate=${endDate?.toISOString()}`, {
+      const res = await fetch(`http://localhost/api/seller/statistics?startDate=${startDate?.toISOString()}&endDate=${endDate?.toISOString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
