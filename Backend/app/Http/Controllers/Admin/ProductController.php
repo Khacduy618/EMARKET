@@ -273,7 +273,7 @@ public function ProductFinalPrice()
             // CHỈNH SỬA Ở ĐÂY: Sắp xếp theo Discount giảm dần
             ->orderByDesc('p.Discount')
             ->orderByDesc('p.CreatedAt')
-            ->limit(8)
+            ->limit(6)
             ->select(
                 'p.ProductID',
                 'p.Name as ProductName',
@@ -326,5 +326,69 @@ public function ProductFinalPrice()
         });
     
         return response()->json($processedProducts);
+    }
+    public function getRelatedProducts(int $currentProductId): JsonResponse
+    {
+        // 1. Tìm sản phẩm hiện tại để lấy ra CategoryID của nó.
+        $currentProduct = Product::find($currentProductId);
+
+        if (!$currentProduct || !$currentProduct->CategoryID) {
+            return response()->json([]);
+        }
+
+        $categoryId = $currentProduct->CategoryID;
+
+        // 2. Query các sản phẩm liên quan
+        $relatedProducts = Product::active()
+            ->approved()
+            ->where('CategoryID', $categoryId)
+            ->where('ProductID', '!=', $currentProductId)
+            ->with([ // Vẫn Eager Load để tối ưu
+                'variants' => fn($query) => $query->where('IsActive', 1)->orderBy('Price', 'asc'),
+                'primaryImage'
+            ])
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
+            
+        // 3. Định dạng lại dữ liệu bằng tay (thay thế cho Resource)
+        $formattedProducts = $relatedProducts->map(function ($product) {
+            // Lấy biến thể đầu tiên (giá rẻ nhất)
+            $firstVariant = $product->variants->first();
+
+            // Rất quan trọng: Bỏ qua sản phẩm nếu nó không có biến thể hợp lệ
+            if (!$firstVariant) {
+                return null;
+            }
+
+            // Lấy URL ảnh chính
+            // Sử dụng "??" (null coalescing operator) để tránh lỗi nếu primaryImage là null
+            $imageUrl = $product->primaryImage->ImageURL ?? null;
+
+            // Tính toán giá và % giảm giá
+            $price = $firstVariant->Price;
+            $compareAtPrice = $firstVariant->CompareAtPrice;
+            $discountPercent = 0;
+
+            if ($compareAtPrice && $price < $compareAtPrice) {
+                $discountPercent = round((($compareAtPrice - $price) / $compareAtPrice) * 100);
+            }
+
+            // Trả về cấu trúc JSON mà frontend cần
+            return [
+                'id'              => $product->ProductID,
+                'name'            => $product->Name,
+                'imageUrl'        => $imageUrl,
+                'price'           => (float) $price,
+                'originalPrice'   => $compareAtPrice ? (float) $compareAtPrice : null,
+                'discountPercent' => $discountPercent,
+                'rating'          => $product->rating ?? rand(40, 50) / 10, // Dữ liệu giả hoặc thật
+                'reviewCount'     => $product->review_count ?? rand(50, 150),
+            ];
+        })->filter()->values(); // ->filter() để loại bỏ các sản phẩm bị null
+                                 // ->values() để reset lại index của mảng
+
+        // 4. Trả về JSON response
+        return response()->json($formattedProducts);
     }
 }

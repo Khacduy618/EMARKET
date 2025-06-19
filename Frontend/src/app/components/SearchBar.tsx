@@ -4,7 +4,7 @@ export default function SearchBar() {
     return (
         <div className="flex justify-between items-center p-4 ">
             {/* <img src="/images/z6604382653639_89e49c0234f1e1785d1a7aedf8977295.jpg" alt="" className=" w-20 h-20 font-bold" /> */}
-            <h1 className='text-xl font-bold'>DUY LEARDER </h1>
+            <h1 className='text-xl font-bold'><a href="/">DUY LEARDER</a> </h1>
             <input
                 type="text"
                 placeholder="What are you looking for?"

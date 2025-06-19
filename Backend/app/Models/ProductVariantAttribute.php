@@ -24,4 +24,9 @@ class ProductVariantAttribute extends Pivot // Sử dụng Pivot nếu nó chỉ
     {
         return $this->belongsTo(AttributeValue::class, 'AttributeValueID', 'AttributeValueID');
     }
+    // Quan hệ: Một giá trị thuộc tính thuộc về một thuộc tính (cha)
+    public function attribute()
+    {
+        return $this->belongsTo(Attribute::class, 'AttributeID');
+    }
 }

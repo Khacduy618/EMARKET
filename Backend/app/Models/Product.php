@@ -279,4 +279,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
+    public function scopeActive($query)
+    {
+        // Giả sử cột kiểm tra active trong bảng products của bạn là 'IsActive' = 1
+        return $query->where('IsActive', 1);
+    }
+    public function scopeApproved($query)
+    {
+        // Giả sử cột kiểm tra duyệt trong bảng products của bạn là 'AdminApprovalStatus' = 'Approved'
+        return $query->where('AdminApprovalStatus', 'Approved');
+    }
 }

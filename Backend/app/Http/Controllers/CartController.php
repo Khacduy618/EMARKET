@@ -291,131 +291,44 @@ class CartController extends Controller
         $cart->load(['cartItems.productVariant', 'cartItems.shop']); // Reload cart with updated items and relationships
         return response()->json($cart);
     }
-public function getProductVariantsWithAttributes(Request $request, $productId)
+
+    public function getProductAttributes(Request $request, $productId)
     {
-        // Fetch all variants for the product and their attributes
-        $variantsData = DB::select("
-            SELECT
-                pv.VariantID,
-                pv.ProductID,
-                pv.SKU,
-                pv.Price,
-                pv.CompareAtPrice,
-                pv.StockQuantity,
-                pv.ImageURL,
-                a.AttributeID,
-                a.Name AS AttributeName,
-                av.AttributeValueID,
-                av.Value AS AttributeValue
-            FROM ProductVariants pv
-            LEFT JOIN ProductVariantAttribute pva ON pv.VariantID = pva.VariantID
-            LEFT JOIN AttributeValues av ON pva.AttributeValueID = av.AttributeValueID
-            LEFT JOIN Attributes a ON av.AttributeID = a.AttributeID
-            WHERE pv.ProductID = ?
-        ", [$productId]);
+       // Lấy tất cả các attribute và giá trị của chúng cho tất cả các variant của sản phẩm
+        $attributesData = DB::table('ProductVariants')
+            ->join('ProductVariantAttribute', 'ProductVariants.VariantID', '=', 'ProductVariantAttribute.VariantID')
+            ->join('AttributeValues', 'ProductVariantAttribute.AttributeValueID', '=', 'AttributeValues.AttributeValueID')
+            ->join('Attributes', 'AttributeValues.AttributeID', '=', 'Attributes.AttributeID')
+            ->where('ProductVariants.ProductID', $productId)
+            ->select(
+                'Attributes.Name as attribute_name',
+                'AttributeValues.Value as attribute_value',
+                'AttributeValues.AttributeValueID', // Thêm AttributeValueID
+                'Attributes.AttributeID' // Thêm AttributeID nếu frontend cần (khuyến nghị)
+            )
+            ->distinct() // Đảm bảo lấy các cặp (tên thuộc tính, giá trị thuộc tính, ID giá trị, ID thuộc tính) duy nhất
+            ->get();
 
-        // Structure the data: group by variant, then group attributes by name
-        $productVariants = [];
+        // Nhóm các dữ liệu theo tên thuộc tính và chuẩn bị định dạng output
+        $groupedAttributes = $attributesData->groupBy('attribute_name')
+            ->map(function ($itemsPerAttribute) {
+                // Lọc các giá trị thuộc tính duy nhất cho mỗi loại thuộc tính
+                return $itemsPerAttribute->unique('AttributeValueID')->map(function($item) {
+                    return [
+                        'AttributeValueID' => $item->AttributeValueID,
+                        'Value' => $item->attribute_value,
+                        'AttributeID' => $item->AttributeID // Giữ nguyên AttributeID từ DB
+                    ];
+                })->values(); // Reset keys để đảm bảo là mảng chuẩn
+            });
 
-        foreach ($variantsData as $item) {
-            if (!isset($productVariants[$item->VariantID])) {
-                $productVariants[$item->VariantID] = [
-                    'VariantID' => $item->VariantID,
-                    'ProductID' => $item->ProductID,
-                    'SKU' => $item->SKU,
-                    'Price' => $item->Price,
-                    'CompareAtPrice' => $item->CompareAtPrice,
-                    'StockQuantity' => $item->StockQuantity,
-                    'ImageURL' => $item->ImageURL,
-                    'attributes' => [] // Initialize attributes array
-                ];
-            }
-
-            // Add attribute to the variant if it exists
-            if ($item->AttributeValueID !== null) {
-                // Group attribute values by attribute name
-                if (!isset($productVariants[$item->VariantID]['attributes'][$item->AttributeName])) {
-                    $productVariants[$item->VariantID]['attributes'][$item->AttributeName] = [];
-                }
-                $productVariants[$item->VariantID]['attributes'][$item->AttributeName][] = [
-                    'AttributeID' => $item->AttributeID,
-                    'AttributeName' => $item->AttributeName,
-                    'AttributeValueID' => $item->AttributeValueID,
-                    'AttributeValue' => $item->AttributeValue
-                ];
-            }
-        }
-
-        // Convert associative array back to indexed array
-        $productVariants = array_values($productVariants);
-
-        // Further structure for frontend: group attribute values by attribute name across all variants
-        $groupedAttributes = [];
-        foreach ($productVariants as $variant) {
-            foreach ($variant['attributes'] as $attributeName => $attributeValues) {
-                if (!isset($groupedAttributes[$attributeName])) {
-                    $groupedAttributes[$attributeName] = [];
-                }
-                foreach ($attributeValues as $attrValue) {
-                    // Add unique attribute values
-                    $exists = false;
-                    foreach ($groupedAttributes[$attributeName] as $existingAttrValue) {
-                        if ($existingAttrValue['AttributeValueID'] === $attrValue['AttributeValueID']) {
-                            $exists = true;
-                            break;
-                        }
-                    }
-                    if (!$exists) {
-                        $groupedAttributes[$attributeName][] = $attrValue;
-                    }
-                }
-            }
-        }
+        // Giới hạn chỉ lấy 2 loại thuộc tính đầu tiên
+        // Ví dụ: nếu có "Màu sắc", "Kích thước", "RAM", nó sẽ chỉ lấy "Màu sắc" và "Kích thước"
+        $finalAttributes = $groupedAttributes->take(3);
 
         return response()->json([
-            'variants' => $productVariants,
-            'groupedAttributes' => $groupedAttributes
+            'product_id' => $productId,
+            'attributes' => $finalAttributes
         ]);
-    }
-    public function getAvailableVariants(Request $request)
-    {
-        $product_id = 1;
-        //$request->input('product_id');
-        $attribute_value_id = 1;
-        //$request->input('attribute_value_id');
-
-        if (!$product_id) {
-            return response()->json(['message' => 'Product ID is required'], 400);
-        }
-
-        $sql = "SELECT PV.VariantID, PV.SKU, PV.Price, PV.StockQuantity, AV.AttributeID, A.Name AS AttributeName, AV.AttributeValueID, AV.Value AS AttributeValue FROM ProductVariants PV JOIN ProductVariantAttribute PVA ON PV.VariantID = PVA.VariantID JOIN AttributeValues AV ON PVA.AttributeValueID = AV.AttributeValueID JOIN Attributes A ON AV.AttributeID = A.AttributeID WHERE PV.ProductID = ? AND PV.IsActive = 1 AND PV.StockQuantity > 0";
-
-        $params = [$product_id];
-
-        if ($attribute_value_id) {
-            $sql .= " AND EXISTS ( SELECT 1 FROM ProductVariantAttribute PVA2 WHERE PVA2.VariantID = PV.VariantID AND PVA2.AttributeValueID = ? )";
-            $params[] = $attribute_value_id;
-        }
-
-        $sql .= " ORDER BY PV.VariantID, A.Name";
-
-        $variants = DB::select($sql, $params);
-
-        $formattedVariants = [];
-
-        foreach ($variants as $variant) {
-            $formattedVariants[] = [
-                'VariantID' => $variant->VariantID,
-                'SKU' => $variant->SKU,
-                'Price' => $variant->Price,
-                'StockQuantity' => $variant->StockQuantity,
-                'AttributeID' => $variant->AttributeID,
-                'AttributeName' => $variant->AttributeName,
-                'AttributeValueID' => $variant->AttributeValueID,
-                'AttributeValue' => $variant->AttributeValue,
-            ];
-        }
-
-        return response()->json($formattedVariants);
     }
 }
