@@ -3,7 +3,7 @@ import type { Configuration as WebpackDevMiddlewareOptions } from 'webpack-dev-m
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['store.sony.com.vn', 'localhost', 'theson.vn', 'cdn.hoanghamobile.com', 'cdn2.cellphones.com.vn'],
+    domains: ['store.sony.com.vn', 'localhost', 'theson.vn', 'cdn.hoanghamobile.com','images.samsung.com',  'cdn2.cellphones.com.vn','news.khangz.com', 'cdn.tgdd.vn','down-vn.img.susercontent.com', 'upload.wikimedia.org', 'picsum.photos'],
   },
   webpackDevMiddleware: (config: WebpackDevMiddlewareOptions) => {
     config.watchOptions = {

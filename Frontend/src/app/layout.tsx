@@ -16,7 +16,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body style={{ backgroundColor: '#f8f4f4'}}>
+            {/* Thẻ <head> sẽ được Next.js tự quản lý. Bạn không cần đặt ở đây */}
+
+            {/* Đặt các class chung nhất cho body ở đây */}
+            <body className="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default text-slate-500" style={{ backgroundColor: '#f8f4f4' }}>
+            {/* <body style={{ backgroundColor: '#f8f4f4' }}> */}
                 {children}
                 <ToastContainer
                     position="top-right" // Vị trí hiển thị

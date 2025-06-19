@@ -1,27 +1,62 @@
+
+import { notFound } from 'next/navigation';
+import ProductDetail from '../components/Productdetail';
 import React from 'react';
 import { getMockComments, mockProduct } from '../data';
+import ProductDescription from '../components/ProductDescription';
+import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
 import { ProductComments } from '../components/ProductComents'; 
 
-export default async function ProductDetailPage({ params }: { params: { productId: string } }) {
-    const initialComments = await getMockComments(params.productId);
+// Bỏ interface ProductPageProps hoặc không dùng nó cho component chính
+
+// ===> SỬA LỖI Ở ĐÂY: Định nghĩa type trực tiếp trong signature <===
+export default async function ProductPage({ params }: { params: { id: string } }) {
+    // Bây giờ việc destructure sẽ không còn cảnh báo
+    const { id } = params;
+    const productIdAsNumber = parseInt(id, 10);
+
+    // Kiểm tra nếu ID không hợp lệ
+    if (isNaN(productIdAsNumber)) {
+        notFound(); // Chuyển hướng đến trang 404
+    }
+
+    const initialComments = await getMockComments(params.id);
     const product = mockProduct;
 
     return (
-        <div className="bg-gray-100 min-h-screen">
-            <div className="max-w-4xl mx-auto p-4 md:p-8">
-                {/* Phần thông tin sản phẩm */}
-                <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-                    <div className="flex flex-col md:flex-row gap-8">
-                        <img src={product.imageUrl} alt={product.name} className="w-full md:w-1/3 h-auto object-cover rounded-lg"/>
-                        <div className="flex-1">
-                            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-                        </div>
-                    </div>
-                </div>
-
+        <div className="container mx-auto px-4 py-8 text-black">
+            <main>
+                <ProductDetail
+                    productId={productIdAsNumber}
+                    descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
+                    sidebarSlot={<RelatedProductsSidebar currentProductId={productIdAsNumber} />}
+                />
                 {/* Phần bình luận - Truyền dữ liệu vào Client Component */}
                 <ProductComments initialComments={initialComments} />
-            </div>
+            </main>
         </div>
+        
     );
+}
+
+
+// ===> SỬA CẢ Ở ĐÂY: Hàm generateMetadata cũng cần được cập nhật <===
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const id = params.id;
+
+    // Logic fetch metadata của bạn ở đây...
+    // const product = await fetch(`.../api/products/${id}`).then(res => res.json());
+    // if (!product) {
+    //     return { title: 'Sản phẩm không tồn tại' };
+    // }
+    // return {
+    //     title: product.name,
+    //     description: product.description,
+    // };
+
+    // Ví dụ metadata
+    return {
+        title: `Chi tiết sản phẩm #${id}`,
+    };
+        
 }

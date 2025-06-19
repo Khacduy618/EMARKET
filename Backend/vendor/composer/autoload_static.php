@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
+class ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -521,17 +521,25 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
         'App\\Http\\Controllers\\Admin\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductController.php',
+        'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\BannerController' => __DIR__ . '/../..' . '/app/Http/Controllers/BannerController.php',
         'App\\Http\\Controllers\\CartController' => __DIR__ . '/../..' . '/app/Http/Controllers/CartController.php',
         'App\\Http\\Controllers\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/CategoryController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\FeaturedProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/FeaturedProductController.php',
         'App\\Http\\Controllers\\FlashSaleController' => __DIR__ . '/../..' . '/app/Http/Controllers/FlashSaleController.php',
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
+        'App\\Http\\Controllers\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/SellerRegisterController.php',
+        'App\\Http\\Controllers\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopCategoryController.php',
+        'App\\Http\\Controllers\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopProductController.php',
         'App\\Http\\Controllers\\VoucherController' => __DIR__ . '/../..' . '/app/Http/Controllers/VoucherController.php',
+        'App\\Http\\Middleware\\HandleImage' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleImage.php',
+        'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
         'App\\Models\\Address' => __DIR__ . '/../..' . '/app/Models/Address.php',
         'App\\Models\\Attribute' => __DIR__ . '/../..' . '/app/Models/Attribute.php',
         'App\\Models\\AttributeValue' => __DIR__ . '/../..' . '/app/Models/AttributeValue.php',
@@ -543,6 +551,7 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Models\\NewArrivalModel' => __DIR__ . '/../..' . '/app/Models/NewArrivalModel.php',
         'App\\Models\\OrderBuyer' => __DIR__ . '/../..' . '/app/Models/OrderBuyer.php',
         'App\\Models\\OrderItem' => __DIR__ . '/../..' . '/app/Models/OrderItem.php',
+        'App\\Models\\PlatformCategory' => __DIR__ . '/../..' . '/app/Models/PlatformCategory.php',
         'App\\Models\\Product' => __DIR__ . '/../..' . '/app/Models/Product.php',
         'App\\Models\\ProductImage' => __DIR__ . '/../..' . '/app/Models/ProductImage.php',
         'App\\Models\\ProductReview' => __DIR__ . '/../..' . '/app/Models/ProductReview.php',
@@ -550,12 +559,14 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Models\\ProductVariantAttribute' => __DIR__ . '/../..' . '/app/Models/ProductVariantAttribute.php',
         'App\\Models\\ReturnRequest' => __DIR__ . '/../..' . '/app/Models/ReturnRequest.php',
         'App\\Models\\Shop' => __DIR__ . '/../..' . '/app/Models/Shop.php',
+        'App\\Models\\ShopCategory' => __DIR__ . '/../..' . '/app/Models/ShopCategory.php',
         'App\\Models\\ShopFollow' => __DIR__ . '/../..' . '/app/Models/ShopFollow.php',
         'App\\Models\\ShopOrder' => __DIR__ . '/../..' . '/app/Models/ShopOrder.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Models\\UserVoucher' => __DIR__ . '/../..' . '/app/Models/UserVoucher.php',
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
+        'App\\utils\\CategoryUtil' => __DIR__ . '/../..' . '/app/utils/CategoryUtil.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',
@@ -6710,9 +6721,9 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7::$classMap;
 
         }, null, ClassLoader::class);
     }
