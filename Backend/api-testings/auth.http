@@ -116,6 +116,7 @@ Authorization: Bearer {{authToken}}
 # Requires: Bearer token
 POST {{host}}/user/two-factor-authentication
 Content-Type: {{contentType}}
+Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 ### Two Factor Challenge (During Login)
@@ -143,6 +144,7 @@ Authorization: Bearer {{authToken}}
 # Requires: Bearer token
 POST {{host}}/user/two-factor-recovery-codes
 Content-Type: {{contentType}}
+Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 ### Get Two Factor Secret Key
@@ -155,12 +157,14 @@ Authorization: Bearer {{authToken}}
 # Requires: Bearer token
 DELETE {{host}}/user/two-factor-authentication
 Content-Type: {{contentType}}
+Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 ### Confirm Two Factor Authentication
 # Requires: Bearer token
 POST {{host}}/user/confirmed-two-factor-authentication
 Content-Type: {{contentType}}
+Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 ###############################################
@@ -171,11 +175,17 @@ Authorization: Bearer {{authToken}}
 # Requires: Bearer token
 PUT {{host}}/user/profile-information
 Content-Type: {{contentType}}
+Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-    "name": "Updated Name",
-    "email": "updated@example.com"
+    "Username": "updated_username",
+    "Email": "updated@example.com",
+    "FullName": "Updated Full Name",
+    "Phone": "1234567890",
+    "Level": "normal",
+    "Role": "Người mua",
+    "IsActive": true
 }
 
 ###############################################

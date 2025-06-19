@@ -12,46 +12,63 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
     /**
      * Validate and update the given user's profile information.
-     *
-     * @param  array<string, string>  $input
      */
     public function update(User $user, array $input): void
     {
-        Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+        // Tạo rules tùy theo trường nào được gửi
+        $rules = [];
 
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore($user->id),
-            ],
-        ])->validateWithBag('updateProfileInformation');
+        if (array_key_exists('Username', $input)) {
+            $rules['Username'] = ['string', 'max:255', Rule::unique('Users', 'Username')->ignore($user->UserID, 'UserID')];
+        }
 
-        if ($input['email'] !== $user->email &&
-            $user instanceof MustVerifyEmail) {
+        if (array_key_exists('Email', $input)) {
+            $rules['Email'] = ['string', 'email', 'max:255', Rule::unique('Users', 'Email')->ignore($user->UserID, 'UserID')];
+        }
+
+        if (array_key_exists('FullName', $input)) {
+            $rules['FullName'] = ['nullable', 'string', 'max:255'];
+        }
+
+        if (array_key_exists('Phone', $input)) {
+            $rules['Phone'] = ['nullable', 'string', 'max:20'];
+        }
+
+        if (array_key_exists('Level', $input)) {
+            $rules['Level'] = [Rule::in(User::LEVELS)];
+        }
+
+        if (array_key_exists('Role', $input)) {
+            $rules['Role'] = [Rule::in(User::ROLES)];
+        }
+
+        if (array_key_exists('IsActive', $input)) {
+            $rules['IsActive'] = ['boolean'];
+        }
+
+        // Validate
+        Validator::make($input, $rules)->validateWithBag('updateProfileInformation');
+
+        // Nếu email thay đổi và user cần xác minh lại
+        if (
+            array_key_exists('Email', $input) &&
+            $input['Email'] !== $user->Email &&
+            $user instanceof MustVerifyEmail
+        ) {
             $this->updateVerifiedUser($user, $input);
         } else {
-            $user->forceFill([
-                'name' => $input['name'],
-                'email' => $input['email'],
-            ])->save();
+            $user->forceFill($input)->save();
         }
     }
 
     /**
-     * Update the given verified user's profile information.
-     *
-     * @param  array<string, string>  $input
+     * Xử lý khi email bị thay đổi, cần reset xác minh email
      */
     protected function updateVerifiedUser(User $user, array $input): void
     {
-        $user->forceFill([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'email_verified_at' => null,
-        ])->save();
+        $input['email_verified_at'] = null;
+
+        $user->forceFill($input)->save();
 
         $user->sendEmailVerificationNotification();
     }
