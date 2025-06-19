@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryController; //home
+
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
+
+use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
+use App\Http\Controllers\Admin\StatisticsController; //admin
+use App\Http\Middleware\HandleImage;
+
 use App\Http\Controllers\SellerRegisterController;
 
 // Lấy API của Category Trả về dạng json theo CRUD 
@@ -83,6 +89,27 @@ Route::middleware('auth:sanctum')->group(function (){
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
+
+//admin
+
+Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+
+Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
+
+Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])
+  ->middleware(HandleImage::class);
+
+Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+
+Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])
+  ->middleware(HandleImage::class);
+
+Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+
+Route::middleware('auth:sanctum')->group(function () { 
+  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
