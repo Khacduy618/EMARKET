@@ -1,4 +1,3 @@
-// File: src/app/(admin)/dashboard/page.tsx
 import { ArrowUpRight, DollarSign, Users, CreditCard, Activity, Package, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -59,7 +58,6 @@ export default function DashboardPage() {
                     </button>
                 </div>
             </header>
-
             {/* Lưới các thẻ thống kê */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard title="Tổng doanh thu" value="$45,231.89" icon={DollarSign} change="+20.1%" changeType="increase" />
@@ -102,6 +100,7 @@ export default function DashboardPage() {
                                 <Package className="w-5 h-5 text-green-500 inline-block mr-2" />
                                 <span className="font-medium">Sản phẩm còn hàng</span>
                             </div>
+                            </div>
                             <span className="font-bold text-lg">1,230</span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -126,6 +125,5 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
-        </div>
     );
 }

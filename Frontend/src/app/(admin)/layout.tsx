@@ -1,4 +1,4 @@
-// File: src/app/(admin)/layout.tsx
+
 import Link from 'next/link';
 import { LayoutDashboard, ShoppingCart, Package, Settings } from 'lucide-react';
 

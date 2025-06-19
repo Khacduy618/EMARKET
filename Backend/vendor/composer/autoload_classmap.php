@@ -18,6 +18,7 @@ return array(
     'App\\Http\\Controllers\\ProductDetailController' => $baseDir . '/app/Http/Controllers/ProductDetailController.php',
     'App\\Http\\Controllers\\SearchController' => $baseDir . '/app/Http/Controllers/SearchController.php',
     'App\\Http\\Controllers\\SellerRegisterController' => $baseDir . '/app/Http/Controllers/SellerRegisterController.php',
+    'App\\Http\\Controllers\\VoucherController' => $baseDir . '/app/Http/Controllers/VoucherController.php',
     'App\\Http\\Requests\\SellerRegisterRequest' => $baseDir . '/app/Http/Requests/SellerRegisterRequest.php',
     'App\\Models\\Address' => $baseDir . '/app/Models/Address.php',
     'App\\Models\\Attribute' => $baseDir . '/app/Models/Attribute.php',

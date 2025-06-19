@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Search, ShoppingCart, ChevronDown, User, Menu, Store } from 'lucide-react';
-import { api } from '@/services/cart';
+import { api } from '@/services/api';
 import UserDropdown from './UserDropdown';
 
 interface User {
@@ -148,6 +148,7 @@ export default function Header() {
 
             // Remove the token from localStorage
             localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
 
             // Update state and redirect to login page
             setIsLoggedIn(false);
@@ -156,6 +157,7 @@ export default function Header() {
             console.error("Logout failed:", error);
             // Even if API call fails, attempt to remove token and redirect
             localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
             setIsLoggedIn(false);
             router.push('/login');
         }

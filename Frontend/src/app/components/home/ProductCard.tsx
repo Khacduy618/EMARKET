@@ -263,7 +263,7 @@ export default function BestSellingProducts() {
     if (products.length === 0) return null;
 
     return (
-        <section className="py-4 sm:py-6 bg-orange-50">
+        <section className="py-4 sm:py-6 bg-white">
             <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
                 {/* Header Section */}
                 <div className="mb-3 p-3 bg-white border-b-4 border-orange-500 text-center">

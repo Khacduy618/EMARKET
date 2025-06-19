@@ -54,7 +54,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ handleLogout }) => {
                 <Link href="/profile" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-0">
                     Tài khoản của tôi
                 </Link>
-                <Link href="/orders" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-1">
+                <Link href="/purchase" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-1">
                     Đơn mua
                 </Link>
                 <button

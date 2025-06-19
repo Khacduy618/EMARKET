@@ -1,7 +1,7 @@
-// File: src/app/layout.tsx
-
 import type { Metadata } from "next";
-import './globals.css'; // Giữ lại import CSS toàn cục
+import './globals.css';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -16,8 +16,20 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body style={{ backgroundColor: '#f8f4f4' }}>
+            <body style={{ backgroundColor: '#f8f4f4'}}>
                 {children}
+                <ToastContainer
+                    position="top-right" // Vị trí hiển thị
+                    autoClose={5000} // Tự động đóng sau 5 giây
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light" // "light", "dark", "colored"
+                />
             </body>
         </html>
     );

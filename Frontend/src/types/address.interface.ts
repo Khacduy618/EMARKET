@@ -10,4 +10,5 @@ export interface Address {
     IsDefault: boolean;
     CreatedAt: string;
     UpdatedAt: string;
+    DeletedAt?: string | null;
 }
