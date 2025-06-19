@@ -18,10 +18,11 @@ use App\Models\UserVoucher;
 use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable;
 
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
