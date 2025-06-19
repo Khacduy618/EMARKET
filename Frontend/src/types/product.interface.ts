@@ -12,8 +12,8 @@ export interface ProductVariant {
     StockQuantity: number;
     ImageURL: string | null; // Ảnh của phiên bản cụ thể
     IsActive: boolean;
-    CreatedAt?: string | null;
-    UpdatedAt?: string | null;
+    CreatedAt: string;
+    UpdatedAt: string;
     attributeValues?: AttributeValue[]; // Các thuộc tính của phiên bản này
     // Thêm trường product nếu ProductVariant cần tham chiếu ngược lại Product đầy đủ
     // product?: Product; // Tránh vòng lặp nếu Product cũng có productVariants
@@ -36,7 +36,7 @@ export interface Product {
     AdminApprovalStatus: 'Pending' | 'Approved' | 'Rejected';
     ReasonForRejection?: string | null;
     AverageRating?: number | null;
-    ViewCount?: number | null;
+    ViewCount?: number;
     SoldCount?: number | null;
     ImageURL?: string | null; // Hình ảnh chính của sản phẩm (nếu có)
     CreatedAt: string;

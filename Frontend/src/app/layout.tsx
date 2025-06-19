@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import './globals.css'; // Giữ lại import CSS toàn cục
+import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
