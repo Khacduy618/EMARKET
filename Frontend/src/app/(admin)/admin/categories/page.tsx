@@ -24,7 +24,7 @@ export default function CategoryPage() {
     const fetchCategories = async () => {
       setLoading(true);  // bật loading khi bắt đầu fetch
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/admin/categories/list', {
+        const res = await fetch('http://127.0.0.1/api/admin/categories/list', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export default function CategoryPage() {
           }
         });
 
-        const res2 = await fetch('http://127.0.0.1:8000/api/admin/categories/getAllCategory', {
+        const res2 = await fetch('http://127.0.0.1/api/admin/categories/getAllCategory', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function CategoryPage() {
       // Xóa tạm khỏi danh sách hiển thị
       setCategories(prev => prev.filter(c => c.CategoryID !== id));
 
-      fetch(`http://127.0.0.1:8000/api/admin/categories/delete/${id}`, {
+      fetch(`http://127.0.0.1/api/admin/categories/delete/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

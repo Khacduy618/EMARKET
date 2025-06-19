@@ -521,7 +521,9 @@ class ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
         'App\\Http\\Controllers\\Admin\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductController.php',
+        'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\BannerController' => __DIR__ . '/../..' . '/app/Http/Controllers/BannerController.php',
         'App\\Http\\Controllers\\CartController' => __DIR__ . '/../..' . '/app/Http/Controllers/CartController.php',
@@ -534,6 +536,7 @@ class ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
         'App\\Http\\Controllers\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/SellerRegisterController.php',
         'App\\Http\\Controllers\\VoucherController' => __DIR__ . '/../..' . '/app/Http/Controllers/VoucherController.php',
+        'App\\Http\\Middleware\\HandleImage' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleImage.php',
         'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
         'App\\Models\\Address' => __DIR__ . '/../..' . '/app/Models/Address.php',
         'App\\Models\\Attribute' => __DIR__ . '/../..' . '/app/Models/Attribute.php',
@@ -546,6 +549,7 @@ class ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7
         'App\\Models\\NewArrivalModel' => __DIR__ . '/../..' . '/app/Models/NewArrivalModel.php',
         'App\\Models\\OrderBuyer' => __DIR__ . '/../..' . '/app/Models/OrderBuyer.php',
         'App\\Models\\OrderItem' => __DIR__ . '/../..' . '/app/Models/OrderItem.php',
+        'App\\Models\\PlatformCategory' => __DIR__ . '/../..' . '/app/Models/PlatformCategory.php',
         'App\\Models\\Product' => __DIR__ . '/../..' . '/app/Models/Product.php',
         'App\\Models\\ProductImage' => __DIR__ . '/../..' . '/app/Models/ProductImage.php',
         'App\\Models\\ProductReview' => __DIR__ . '/../..' . '/app/Models/ProductReview.php',
@@ -559,6 +563,7 @@ class ComposerStaticInit954f03496f3ef8d89f66da4c2123fdd7
         'App\\Models\\UserVoucher' => __DIR__ . '/../..' . '/app/Models/UserVoucher.php',
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
+        'App\\utils\\CategoryUtil' => __DIR__ . '/../..' . '/app/utils/CategoryUtil.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',

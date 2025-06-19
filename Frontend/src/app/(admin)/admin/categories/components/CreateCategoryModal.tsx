@@ -17,7 +17,7 @@ export default function CreateCategoryModal() {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/admin/categories/getAllCategory')
+    fetch('http://localhost/api/admin/categories/getAllCategory')
       .then(res => res.json())
       .then(data => setCategories(data.data))
       .catch(console.error);
@@ -58,7 +58,7 @@ export default function CreateCategoryModal() {
     }
    
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/admin/categories/create', {
+      const res = await fetch('http://127.0.0.1/api/admin/categories/create', {
         method: 'POST',
         body: formData,
       });

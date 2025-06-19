@@ -19,6 +19,7 @@ class PlatformCategory extends Model {
         'Slug',
         'ImageURL',
         'IsActive',
+        'Deleted'
     ];
 
     protected $casts = [
