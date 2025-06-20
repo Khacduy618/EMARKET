@@ -99,9 +99,9 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, onPlaceOrder
           </button>
         </div>
         {/* Thông báo "Nhấn Đặt hàng..." */}
-      <div className=" text-xs text-gray-500 text-center">
-        <p>Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với <Link href="#" className="text-blue-500 hover:underline">Điều khoản Shopee</Link></p>
-      </div>
+        <div className="text-xs text-gray-500 text-center">
+          <p>Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với <Link href="#" className="text-blue-500 hover:underline">Điều khoản Shopee</Link></p>
+        </div>
       </div>
 
       

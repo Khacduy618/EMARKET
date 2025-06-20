@@ -167,33 +167,33 @@ public function update(Request $request, $id)
             case 'price_asc':
                 // Sắp xếp theo giá tăng dần
                 // Lưu ý: Cần join và group by để lấy giá từ bảng variants
-                $query->select('products.*')
-                      ->join('variants', 'products.ProductID', '=', 'variants.ProductID')
-                      ->groupBy('products.ProductID')
-                      ->orderBy('variants.Price', 'asc');
+                $query->select('Products.*')
+                      ->join('Variants', 'Products.ProductID', '=', 'Variants.ProductID')
+                      ->groupBy('Products.ProductID')
+                      ->orderBy('Variants.Price', 'asc');
                 break;
 
             case 'price_desc':
                 // Sắp xếp theo giá giảm dần
-                $query->select('products.*')
-                      ->join('variants', 'products.ProductID', '=', 'variants.ProductID')
-                      ->groupBy('products.ProductID')
-                      ->orderBy('variants.Price', 'desc');
+                $query->select('Products.*')
+                      ->join('Variants', 'Products.ProductID', '=', 'Variants.ProductID')
+                      ->groupBy('Products.ProductID')
+                      ->orderBy('Variants.Price', 'desc');
                 break;
 
             case 'bestselling':
                 // Sắp xếp theo "Bán Chạy"
                 // YÊU CẦU: Cần có bảng `order_items` chứa `ProductID` và `Quantity` để tính tổng đã bán.
                 // Nếu cấu trúc DB của bạn khác, hãy sửa lại đoạn này.
-                $query->leftJoin('order_items', 'products.ProductID', '=', 'order_items.ProductID')
-                      ->selectRaw('products.*, SUM(order_items.Quantity) as total_sold')
-                      ->groupBy('products.ProductID') // Quan trọng khi dùng hàm tổng hợp SUM
+                $query->leftJoin('order_items', 'Products.ProductID', '=', 'order_items.ProductID')
+                      ->selectRaw('Products.*, SUM(order_items.Quantity) as total_sold')
+                      ->groupBy('Products.ProductID') // Quan trọng khi dùng hàm tổng hợp SUM
                       ->orderByDesc('total_sold');
                 break;
 
             case 'newest':
                 // Sắp xếp theo "Mới Nhất", dựa vào ProductID giảm dần (giả định ID cao hơn là mới hơn)
-                $query->orderBy('products.ProductID', 'desc');
+                $query->orderBy('Products.ProductID', 'desc');
                 break;
 
             case 'popular':
@@ -201,7 +201,7 @@ public function update(Request $request, $id)
                 // Sắp xếp theo "Phổ Biến" hoặc mặc định.
                 // Bạn có thể định nghĩa 'popular' theo nhiều cách (lượt xem, bán chạy,...).
                 // Ở đây, chúng ta tạm lấy sản phẩm mới nhất làm mặc định cho "Phổ biến".
-                $query->orderBy('products.ProductID', 'desc');
+                $query->orderBy('Products.ProductID', 'desc');
                 break;
         }
 

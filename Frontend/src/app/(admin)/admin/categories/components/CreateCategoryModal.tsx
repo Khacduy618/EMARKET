@@ -17,6 +17,7 @@ export default function CreateCategoryModal() {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
+
     fetch('http://localhost/api/admin/categories/getAllCategory')
       .then(res => res.json())
       .then(data => setCategories(data.data))

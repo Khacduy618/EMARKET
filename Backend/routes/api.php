@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\CategoryController; //home
 
+
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -22,6 +23,10 @@ use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ; 
 use App\Http\Controllers\ShopProductController ;
+use App\Http\Controllers\ChatController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -88,23 +93,28 @@ Route::middleware('auth:sanctum')->group(function (){
 });
 
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
+Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-        Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-        Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+    Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-    Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-    Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-    Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-    Route::get('/products', [ShopProductController::class, 'index']);
-    Route::post('/products', [ShopProductController::class, 'store']);
-    Route::put('/products/{productID}', [ShopProductController::class, 'update']);
-    Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
+Route::middleware('auth:sanctum' )->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::middleware('seller')->group(function () {
+        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+        Route::get('/products', [ShopProductController::class, 'index']);
+        Route::post('/products', [ShopProductController::class, 'store']);
+        Route::put('/products/{productID}', [ShopProductController::class, 'update']);
+        Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
+        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+    });
 });
 
 
@@ -133,4 +143,53 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+});
+//route chatg;
+
+
+
+Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function (Request $request) {
+    Log::info('--- Socket Token Validation Endpoint Hit ---');
+    Log::info('Request Headers: ', $request->headers->all()); // Xem tất cả headers
+    Log::info('Authorization Header Content: ' . $request->header('Authorization'));
+    Log::info('Auth User (before check): ', ['user_id' => Auth::id(), 'user_object' => Auth::user() ? Auth::user() : null]);
+
+
+    $user = Auth::user(); // Thử lấy user sau khi middleware chạy
+
+    if ($user) {
+        Log::info('Token VALIDATED for user:', ['user_id' => $user->UserID, 'username' => $user->Username]);
+        return response()->json(['user' => [
+            'id' => $user->UserID,
+            'username' => $user->Username,
+            'avatar_url' => $user->avatar_url ?? null,
+        ]]);
+    } else {
+        Log::warning('Token VALIDATION FAILED: $request->user() is null or middleware did not authenticate.');
+        // Thử kiểm tra thủ công token nếu $request->user() là null
+        // (Phần này tùy thuộc vào cách bạn quản lý token - ví dụ với Sanctum Personal Access Tokens)
+        // $token = $request->bearerToken();
+        // if ($token) {
+        //     $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        //     if ($personalAccessToken && $personalAccessToken->tokenable) {
+        //          Log::info('Manual token check successful for user:', ['user_id' => $personalAccessToken->tokenable->UserID]);
+        //          // Logic trả về user info nếu muốn
+        //     } else {
+        //          Log::warning('Manual token check failed: Token not found or not valid.');
+        //     }
+        // } else {
+        //      Log::warning('Manual token check failed: No bearer token found.');
+        // }
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+});
+
+    // Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations']);
+    Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations'])->middleware('auth:sanctum');
+
+// API Routes for Socket.IO Server (cần cơ chế bảo vệ riêng, ví dụ IP Whitelisting hoặc Secret Key)
+// Bạn có thể nhóm chúng lại với một middleware bảo vệ riêng.
+Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(function () { // 'auth.socketserver' là middleware bạn tự tạo
+    Route::post('/update-conversation-meta', [ChatController::class, 'updateConversationMeta']);
+    Route::post('/mark-meta-as-read', [ChatController::class, 'markMetaAsRead']);
 });

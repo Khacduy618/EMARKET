@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductImage extends Model
 {
-    protected $table = 'productimages'; // đúng tên bảng
+    protected $table = 'ProductImages'; // đúng tên bảng
     protected $primaryKey = 'ImageID'; // đúng khóa chính
 
     public $timestamps = false; // nếu bảng không có created_at, updated_at

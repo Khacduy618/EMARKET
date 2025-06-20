@@ -296,8 +296,8 @@ class FlashSaleController extends Controller
 
         $baseDbQuery = DB::table('FlashSale as fs')
             ->join('EnrollFlashSale as efs', 'fs.FlashSaleID', '=', 'efs.FlashSaleID')
-            ->join('products as p', 'efs.productID', '=', 'p.productID')
-            ->join('users as u', 'fs.userID', '=', 'u.userID')
+            ->join('Products as p', 'efs.productID', '=', 'p.productID')
+            ->join('Users as u', 'fs.userID', '=', 'u.userID')
             ->leftJoin('ProductImages as pi', function ($join) {
                 $join->on('p.ProductID', '=', 'pi.ProductID')
                      ->where('pi.IsPrimary', '=', 1);

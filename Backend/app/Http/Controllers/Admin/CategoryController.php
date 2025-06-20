@@ -7,6 +7,7 @@ use App\Models\PlatformCategory;
 use Illuminate\Http\Request;
 use App\utils\CategoryUtil;
 
+
 class CategoryController extends Controller {
  
   public function getAllCategory() {
@@ -80,4 +81,6 @@ class CategoryController extends Controller {
       return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
     }
   }
+
+  
 }
