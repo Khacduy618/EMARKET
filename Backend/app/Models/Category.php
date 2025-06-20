@@ -55,6 +55,14 @@ class Category extends Model
     {
         return $this->hasMany(Product::class, 'CategoryID', 'CategoryID');
     }
+    public function childrenCategories()
+    {
+        return $this->hasMany(Category::class, 'ParentCategoryID');
+    }
+    public function allChildren()
+    {
+        return $this->childrenCategories()->with('allChildren');
+    }
 
     // Removed primaryImage relationship as it's incorrect for categories
 }
