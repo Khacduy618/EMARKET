@@ -1,4 +1,4 @@
-@authToken = your-bearer-token-here
+@authToken = 27|2xVUcSrCx7SnTRJu1eoBdpMRI3nXfYJ2tpO2lfP4c102e042
 @contentType = application/json
 @host = http://127.0.0.1:8000/api
 @web = http://127.0.0.1:8000
@@ -16,7 +16,7 @@ Content-Type: application/json
 Accept: {{contentType}}
 
 {
-  "email": "vl@gmail.com",
+  "email": "geng@gmail.com",
   "password": "password123"
 }
 
@@ -28,14 +28,14 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "Email": "vl@gmail.com",
+  "Email": "geng@gmail.com",
   "FullName": "Project User",
   "IsActive": true,
   "Password": "password123",
   "Password_confirmation": "password123",
   "Phone": "1234567890",
-  "Role": "Người mua",
-  "Username": "vl"
+  "Role": "Người bán",
+  "Username": "geng"
 }
 
 
@@ -103,9 +103,9 @@ Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "current_password": "current-password",
-  "password": "new-password",
-  "password_confirmation": "new-password"
+  "current_password": "password123",
+  "password": "admin123",
+  "password_confirmation": "admin123"
 }
 
 

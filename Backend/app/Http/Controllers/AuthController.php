@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 
 class AuthController extends Controller
@@ -62,5 +65,50 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Link xác minh đã được gửi lại.',
         ], 200);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        // Tìm user theo email
+        $user = User::where('Email', $request->email)->first();
+
+        // Kiểm tra thông tin đăng nhập
+        if (! $user || ! Hash::check($request->password, $user->Password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Thông tin đăng nhập không chính xác.'],
+            ]);
+        }
+
+        // Kiểm tra email đã xác minh
+        if (! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => ['Bạn cần xác minh email trước khi đăng nhập.'],
+            ]);
+        }
+
+        // Kiểm tra tài khoản có active không
+        if (! $user->IsActive) {
+            throw ValidationException::withMessages([
+                'email' => ['Tài khoản của bạn đã bị vô hiệu hoá.'],
+            ]);
+        }
+
+        // Đăng nhập người dùng (session-based nếu cần)
+        Auth::login($user);
+
+        // Tạo token cho API
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Trả về token và thông tin user
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
+        ]);
     }
 }
