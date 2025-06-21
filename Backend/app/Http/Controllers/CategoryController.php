@@ -55,7 +55,7 @@ class CategoryController extends Controller
         'Name' => 'required|string|max:255',
         'Description' => 'nullable|string',
         'ParentCategoryID' => 'nullable|integer',
-        'Slug' => 'required|string|max:255|unique:platformcategories,Slug',
+        'Slug' => 'required|string|max:255|unique:PlatformCategories,Slug',
         'ImageURL' => 'nullable|url',
         'IsActive' => 'required|boolean'
     ]);
@@ -86,7 +86,7 @@ public function update(Request $request, $id)
             'Name' => 'required|string|max:255',
             'Description' => 'nullable|string',
             'ParentCategoryID' => 'nullable|integer',
-            'Slug' => 'required|string|max:255|unique:platformcategories,Slug,' . $id . ',CategoryID',
+            'Slug' => 'required|string|max:255|unique:PlatformCategories,Slug,' . $id . ',CategoryID',
             'ImageURL' => 'nullable|url',
             'IsActive' => 'required|boolean'
         ]);

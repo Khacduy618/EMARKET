@@ -4,6 +4,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\ProductController AS BuyerProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
@@ -89,14 +90,12 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
     //voucher routes
      Route::get('/vouchers', [VoucherController::class, 'index']);
-
 });
-
+Route::get('/products/{product_id}/variants/filter',[BuyerProductController::class, 'filterVariants']);
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
-Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-    Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
