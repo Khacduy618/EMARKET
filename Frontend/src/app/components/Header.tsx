@@ -214,13 +214,13 @@ export default function Header() {
                             )}
                         </div>
 
-                        
+
                         <div className="flex items-center space-x-2 md:space-x-4 order-2 md:order-3">
                             <Link href="/cart" className="relative p-1 md:p-2 hover:opacity-80">
                                 <ShoppingCart size={26} />
                                 <span className="absolute top-0 right-0 bg-white text-orange-500 rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">0</span>
                             </Link>
-                            
+
                         </div>
                     </div>
                 </div>

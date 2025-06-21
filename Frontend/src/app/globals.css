@@ -68,3 +68,17 @@ body {
 .user-dropdown-menu button:hover {
   background-color: #f0f0f0; /* Light gray background on hover */
 }
+.swiper-pagination-bullet {
+  background-color: #fff; /* Màu trắng cho chấm không active */
+  opacity: 0.6;
+  width: 8px;
+  height: 8px;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background-color: #ee4d2d; /* Màu cam Shopee cho chấm active */
+  opacity: 1;
+  width: 24px; /* Chấm active sẽ dài ra */
+  border-radius: 4px;
+}
