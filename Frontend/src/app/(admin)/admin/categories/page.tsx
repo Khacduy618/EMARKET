@@ -1,6 +1,7 @@
+// Bản hoàn thiện: Phân trang, tìm kiếm, sửa/xóa danh mục + hiển thị cây danh mục
 'use client';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
-import './style.css'
+import './style.css';
+import Swal from 'sweetalert2';
 
 import { JSX, useEffect, useState } from 'react';
 import CreateCategoryModal from './components/CreateCategoryModal';
@@ -14,53 +15,72 @@ type Category = {
   children?: Category[];
 };
 
+type Pagination = {
+  currentPage: number;
+  totalPage: number;
+};
+
 export default function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [categoryTree, setCategoryTree] = useState<Category[]>([]);
-  const [loading, setLoading] = useState<boolean>(false); 
+  const [loading, setLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [displayQuantity, setDisplayQuantity] = useState<number>(10);
+  const [keyword, setKeyword] = useState<string>('');
+  const [pagination, setPagination] = useState<Pagination>({ currentPage: 1, totalPage: 1 });
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8001/api/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        }
+      );
+
+      const res2 = await fetch('http://127.0.0.1:8001/api/admin/categories/getAllCategory', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      const data = await res.json();
+      const dataTree = await res2.json();
+
+      setCategories(data.data);
+      setPagination({
+        currentPage: data.pagination.currentPage,
+        totalPage: data.pagination.totalPage,
+      });
+      setCategoryTree(dataTree.data);
+    } catch (err) {
+      console.error('Lỗi load danh mục:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      setLoading(true);  
-      try {
-        const res = await fetch('http://127.0.0.1:8001/api/admin/categories/list', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          }
-        });
-
-        const res2 = await fetch('http://127.0.0.1:8001/api/admin/categories/getAllCategory', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          }
-        });
-
-        if (!res.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await res.json();
-        const dataTree = await res2.json();
-
-        setCategories(data.data);
-        setCategoryTree(dataTree.data);
-
-      } catch (err) {
-        console.error('Lỗi load danh mục:', err);
-      } finally {
-        setLoading(false);  
-      }
-    };
-
     fetchCategories();
-  }, []);
+  }, [page, displayQuantity, keyword]);
 
-  const deleteCategory = (id: number) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeyword(e.target.value);
+    setPage(1);
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDisplayQuantity(Number(e.target.value));
+    setPage(1);
+  };
+
+  const deleteCategory = async (id: number) => {
     const hasChildren = categories.some(c => c.ParentCategoryID === id);
     if (hasChildren) {
       alert('Bạn cần xóa danh mục con trước!');
@@ -68,37 +88,43 @@ export default function CategoryPage() {
     }
 
     if (confirm('Bạn có chắc chắn muốn xóa?')) {
-      // Xóa tạm khỏi danh sách hiển thị
-      setCategories(prev => prev.filter(c => c.CategoryID !== id));
+      try {
+        const res = await fetch(`http://127.0.0.1:8001/api/admin/categories/delete/${id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+          body: JSON.stringify({ _method: 'DELETE' }),
+        });
 
-      fetch(`http://127.0.0.1:8001/api/admin/categories/delete/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify({
-          _method: 'DELETE'
-        })
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message);
-        })
-        .catch(error => console.error('Error:', error));
-
-      setCategoryTree(removeFromTree(categoryTree, id));
+        const result = await res.json();
+        alert(result.message);
+        fetchCategories();
+      } catch (error) {
+        console.error('Lỗi khi xóa danh mục:', error);
+        alert('Xảy ra lỗi khi xóa danh mục');
+      }
     }
   };
 
-  const removeFromTree = (tree: Category[], id: number): Category[] => {
-    return tree
-      .filter(node => node.CategoryID !== id)
-      .map(node => ({
-        ...node,
-        children: node.children ? removeFromTree(node.children, id) : [],
-      }));
-  };
+  const renderPagination = () => (
+    <div className="d-flex justify-content-between align-items-center">
+      <div>Trang {pagination.currentPage} / {pagination.totalPage}</div>
+      <div>
+        <button
+          className="btn btn-sm btn-secondary me-2"
+          disabled={pagination.currentPage <= 1}
+          onClick={() => setPage(p => p - 1)}
+        >Trước</button>
+        <button
+          className="btn btn-sm btn-secondary"
+          disabled={pagination.currentPage >= pagination.totalPage}
+          onClick={() => setPage(p => p + 1)}
+        >Sau</button>
+      </div>
+    </div>
+  );
 
   const renderTree = (tree: Category[]): JSX.Element => (
     <ul>
@@ -111,47 +137,51 @@ export default function CategoryPage() {
     </ul>
   );
 
-  function openEditCategoryModal(category: Category) {
-    setEditCategory(category);
-  }
-
-  function closeEditCategoryModal() {
-    setEditCategory(null);
-  }
-
-  function handleUpdatedCategory(updatedCategory: Category) {
-    alert('Đã cập nhật ' + updatedCategory.Name);
-    closeEditCategoryModal();
-  }
-
   return (
     <>
-      <CreateCategoryModal />
+      <CreateCategoryModal
+        onCreated={() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Thêm danh mục thành công cc',
+            showConfirmButton: false,
+            timer: 1500
+          });
+          fetchCategories();
+        }}
+      />
       {editCategory && (
         <EditCategoryModal
           category={editCategory}
           categoryTree={categoryTree}
-          onClose={closeEditCategoryModal}
-          onUpdated={handleUpdatedCategory}
+          onClose={() => setEditCategory(null)}
+          onUpdated={() => {
+            alert('Cập nhật thành công!');
+            fetchCategories();
+          }}
         />
       )}
 
       <div className="card mb-3">
-        <div className="card-header">
+        <div className="card-header d-flex justify-content-between align-items-center">
           <h5 className="mb-0">Quản lý danh mục</h5>
+          <button
+            className="btn btn-outline-success"
+            data-bs-toggle="modal"
+            data-bs-target="#createCategoryModal"
+          >+ Thêm mới</button>
         </div>
 
-        <div className="card-body">
+        <div className="card-body" style={{ height: 'auto' }}>
           <div className="row mb-3">
-            <div className="col-8"></div>
-            <div className="col-4 text-end">
-              <button
-                className="btn btn-outline-success"
-                data-bs-toggle="modal"
-                data-bs-target="#createCategoryModal"
-              >
-                + Thêm mới
-              </button>
+            <div className="col-md-4">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Tìm theo tên danh mục"
+                value={keyword}
+                onChange={handleSearchChange}
+              />
             </div>
           </div>
 
@@ -160,16 +190,15 @@ export default function CategoryPage() {
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
-              <div>Đang tải danh mục...</div>
+              <div>Loading categories...</div>
             </div>
           ) : (
             <div className="row">
-              <div className="col-4">
-                <h5>Cấu trúc danh mục</h5>
+              <div className="col-md-4">
+                <h6>Cây danh mục</h6>
                 <ul id="category-tree">{renderTree(categoryTree)}</ul>
               </div>
-
-              <div className="col-8">
+              <div className="col-md-8">
                 <table className="table table-bordered table-sm">
                   <thead>
                     <tr>
@@ -182,7 +211,7 @@ export default function CategoryPage() {
                   <tbody>
                     {categories.map((item, index) => (
                       <tr key={item.CategoryID}>
-                        <td>{index + 1}</td>
+                        <td>{(page - 1) * displayQuantity + index + 1}</td>
                         <td>{item.Name}</td>
                         <td>
                           <img style={{ width: 60 }} src={item.ImageURL} alt={item.Name} />
@@ -190,23 +219,28 @@ export default function CategoryPage() {
                         <td>
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => openEditCategoryModal(item)}
+                            onClick={() => setEditCategory(item)}
                             data-bs-toggle="modal"
                             data-bs-target="#editCategoryModal"
-                          >
-                            Sửa
-                          </button>
+                          >Sửa</button>
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() => deleteCategory(item.CategoryID)}
-                          >
-                            Xóa
-                          </button>
+                          >Xóa</button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {renderPagination()}
+                <div className="col-2">
+                  <span>Hiển thị: </span>
+                  <select className="form-select" value={displayQuantity} onChange={handleQuantityChange}>
+                    {[5, 10, 20, 50, 100].map(q => (
+                      <option key={q} value={q}>{q}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           )}

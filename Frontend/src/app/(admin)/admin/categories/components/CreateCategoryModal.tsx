@@ -9,7 +9,11 @@ type Category = {
   children?: Category[];
 };
 
-export default function CreateCategoryModal() {
+type Props = {
+  onCreated: () => void;
+};
+
+export default function CreateCategoryModal({ onCreated }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [parentId, setParentId] = useState<string>('');
   const [name, setName] = useState('');
@@ -66,13 +70,12 @@ export default function CreateCategoryModal() {
       const result = await res.json();
       console.log(result);
       if (res.ok && result.success) {
-        alert('Tạo danh mục thành công!');
+        onCreated();
         // Reset form
         setName('');
         setParentId('');
         setImageFile(null);
         setImagePreview('');
-        // Có thể gọi lại API load danh sách nếu muốn
       } else {
         alert(result.message || 'Tạo danh mục thất bại!');
       }
