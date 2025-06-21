@@ -16,7 +16,6 @@ use App\Models\ShopFollow;
 use App\Models\Voucher;
 use App\Models\UserVoucher;
 use Laravel\Sanctum\HasApiTokens;
-use App\Notifications\VerifyEmail;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Fortify\TwoFactorAuthenticatable;

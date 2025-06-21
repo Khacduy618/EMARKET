@@ -547,6 +547,7 @@ class ComposerStaticInit6fc842020b8d6fff2fa36b858a3685b6
 
     public static $classMap = array (
         'App\\Actions\\Fortify\\CreateNewUser' => __DIR__ . '/../..' . '/app/Actions/Fortify/CreateNewUser.php',
+        'App\\Actions\\Fortify\\LoginCheckEmail' => __DIR__ . '/../..' . '/app/Actions/Fortify/LoginCheckEmail.php',
         'App\\Actions\\Fortify\\PasswordValidationRules' => __DIR__ . '/../..' . '/app/Actions/Fortify/PasswordValidationRules.php',
         'App\\Actions\\Fortify\\ResetUserPassword' => __DIR__ . '/../..' . '/app/Actions/Fortify/ResetUserPassword.php',
         'App\\Actions\\Fortify\\UpdateUserPassword' => __DIR__ . '/../..' . '/app/Actions/Fortify/UpdateUserPassword.php',
@@ -584,6 +585,7 @@ class ComposerStaticInit6fc842020b8d6fff2fa36b858a3685b6
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Models\\UserVoucher' => __DIR__ . '/../..' . '/app/Models/UserVoucher.php',
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',
+        'App\\Notifications\\VerifyEmail' => __DIR__ . '/../..' . '/app/Notifications/VerifyEmail.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\FortifyServiceProvider' => __DIR__ . '/../..' . '/app/Providers/FortifyServiceProvider.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',

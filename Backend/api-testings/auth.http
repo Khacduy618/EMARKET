@@ -1,211 +1,297 @@
-@host=http://127.0.0.1:8000/api
-@authToken=your-bearer-token-here
-@contentType=application/json
+@authToken = your-bearer-token-here
+@contentType = application/json
+@host = http://127.0.0.1:8000/api
+@hostweb = http://127.0.0.1:8000
 
-###############################################
+
+###
+
 # Authentication Routes
-###############################################
+
+
+###
+
 
 ### Register new user
+
 # Returns: User object with token
-POST {{host}}/register
+
+POST {{host}}/register HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "Username": "truongdinhhon",
-    "FullName": "Project User",
-    "Email": "tdhon@gmail.com",
-    "Password": "password123",
-    "Password_confirmation": "password123",
-    "Phone": "1234567890",
-    "Role": "Người mua",
-    "IsActive": true
+  "Email": "tdhon@gmail.com",
+  "FullName": "Project User",
+  "IsActive": true,
+  "Password": "password123",
+  "Password_confirmation": "password123",
+  "Phone": "1234567890",
+  "Role": "Người mua",
+  "Username": "truongdinhhon"
 }
 
 
 ### Login 1
+
 # Returns: Token and user information
-POST {{host}}/login
+
+POST {{host}}/login HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "tdhon@gmail.com",
-    "password": "password123"
+  "email": "tdhon@gmail.com",
+  "password": "password123"
 }
+
 
 ### Login 2
+
 # Returns: Token and user information
-POST {{host}}/login
+
+POST {{host}}/login HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "m17@goat.com",
-    "password": "newpassword123"
+  "email": "m17@goat.com",
+  "password": "newpassword123"
 }
+
 
 ### Logout
+
 # Requires: Bearer token
-POST {{host}}/logout
+
+POST {{host}}/logout HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
-###############################################
+
+###
+
 # Password Management
-###############################################
+
+
+###
+
 
 ### Request password reset link
-POST {{host}}/forgot-password
+
+POST {{host}}/forgot-password HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "email": "m17@goat.com"
+  "email": "m17@goat.com"
 }
+
 
 ### Reset password with token
-POST {{host}}/reset-password
+
+POST {{host}}/reset-password HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "token": "b5fedfaa456876a3d9507645f4f2ac803baa76ff3835f967b9e9fec98d21e176",
-    "email": "m17@goat.com",
-    "password": "timetorise",
-    "password_confirmation": "timetorise"
+  "email": "m17@goat.com",
+  "password": "timetorise",
+  "password_confirmation": "timetorise",
+  "token": "b5fedfaa456876a3d9507645f4f2ac803baa76ff3835f967b9e9fec98d21e176"
 }
+
 
 ### Update Password
+
 # Requires: Bearer token
-PUT {{host}}/user/password
+
+PUT {{host}}/user/password HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-    "current_password": "current-password",
-    "password": "new-password",
-    "password_confirmation": "new-password"
+  "current_password": "current-password",
+  "password": "new-password",
+  "password_confirmation": "new-password"
 }
+
 
 ### Confirm Password
+
 # Requires: Bearer token
-POST {{host}}/user/confirm-password
+
+POST {{host}}/user/confirm-password HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-    "password": "your-password"
+  "password": "your-password"
 }
+
 
 ### Check Password Confirmation Status
+
 # Requires: Bearer token
-GET {{host}}/user/confirmed-password-status
+
+GET {{host}}/user/confirmed-password-status HTTP/1.1
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
-###############################################
+
+###
+
 # Two Factor Authentication (2FA)
-###############################################
+
+
+###
+
 
 ### Enable Two Factor Authentication
+
 # Requires: Bearer token
-POST {{host}}/user/two-factor-authentication
+
+POST {{host}}/user/two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Two Factor Challenge (During Login)
-POST {{host}}/two-factor-challenge
+
+POST {{host}}/two-factor-challenge HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-    "code": "123456"
+  "code": "123456"
 }
+
 
 ### Get Two Factor QR Code
+
 # Requires: Bearer token
-GET {{host}}/user/two-factor-qr-code
+
+GET {{host}}/user/two-factor-qr-code HTTP/1.1
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Get Two Factor Recovery Codes
+
 # Requires: Bearer token
-GET {{host}}/user/two-factor-recovery-codes
+
+GET {{host}}/user/two-factor-recovery-codes HTTP/1.1
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Generate New Recovery Codes
+
 # Requires: Bearer token
-POST {{host}}/user/two-factor-recovery-codes
+
+POST {{host}}/user/two-factor-recovery-codes HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Get Two Factor Secret Key
+
 # Requires: Bearer token
-GET {{host}}/user/two-factor-secret-key
+
+GET {{host}}/user/two-factor-secret-key HTTP/1.1
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Disable Two Factor Authentication
+
 # Requires: Bearer token
-DELETE {{host}}/user/two-factor-authentication
+
+DELETE {{host}}/user/two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
+
 
 ### Confirm Two Factor Authentication
+
 # Requires: Bearer token
-POST {{host}}/user/confirmed-two-factor-authentication
+
+POST {{host}}/user/confirmed-two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
-###############################################
+
+###
+
 # User Profile Management
-###############################################
+
+
+###
+
 
 ### Update User Profile Information
+
 # Requires: Bearer token
-PUT {{host}}/user/profile-information
+
+PUT {{host}}/user/profile-information HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-    "Username": "updated_username",
-    "Email": "updated@example.com",
-    "FullName": "Updated Full Name",
-    "Phone": "1234567890",
-    "Level": "normal",
-    "Role": "Người mua",
-    "IsActive": true
+  "Email": "updated@example.com",
+  "FullName": "Updated Full Name",
+  "IsActive": true,
+  "Level": "normal",
+  "Phone": "1234567890",
+  "Role": "Người mua",
+  "Username": "updated_username"
 }
 
-###############################################
+
+###
+
 # Storage
-###############################################
+
+
+###
+
 
 ### Access Storage File
+
 # Note: May require authentication depending on configuration
-GET {{host}}/storage/example.jpg
+
+GET {{host}}/storage/example.jpg HTTP/1.1
 Authorization: Bearer {{authToken}}
 
-###############################################
+
+###
+
 # Health Checks
-###############################################
+
+
+###
+
 
 ### Basic Health Check
-GET {{host}}/
+
+GET {{host}}/ HTTP/1.1
 Accept: {{contentType}}
+
 
 ### Server Status Check
-GET {{host}}/up
+
+GET {{host}}/up HTTP/1.1
 Accept: {{contentType}}
 
+
+### GET Csrf
+
+GET {{hostweb}}/sanctum/csrf-cookie HTTP/1.1
