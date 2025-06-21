@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
@@ -75,14 +76,10 @@ Route::get('/reset-password/{token}', function($token) {
 })->middleware(['guest'])->name('password.reset');
 
 
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    if ($request->user()->hasVerifiedEmail()) {
-        return response()->json(['message' => 'Email already verified.']);
-    }
+Route::get('/login', [AuthController::class, 'loginRedirect'])->name('login');
 
-    $request->fulfill();
-
-    return response()->json(['message' => 'Email verified.']);
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);

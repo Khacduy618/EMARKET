@@ -1,7 +1,8 @@
 @authToken = your-bearer-token-here
 @contentType = application/json
+@csrfToken = eyJpdiI6Ii96RWk1dkloaVo3bVNZd2lFb0hNcEE9PSIsInZhbHVlIjoiMkFTYmtGb0Y3YWJnMmh5eWtlVHk0MTQxdHplSXpHU3BkUyt5NmhyVG9YWFVuRStpMnRYTk1uczJ2Q3hUUk9sa1FNZTY3S1YrRkE4akMwTWY2RDAydnRsb3VuS1FXTVhOMkJ6RDFySlJpR1Nia2xZYVdFamQzcDNhSXNwMGg4d1giLCJtYWMiOiI2MjI0YjIwMWZjYTk5MzQxODhkMmZmOThkZWY3ZmE2MTJhMDExY2YzYTM1ZjRlYjU4YTFjY2U2NzM5OGU3MTkxIiwidGFnIjoiIn0%3D
 @host = http://127.0.0.1:8000/api
-@hostweb = http://127.0.0.1:8000
+@web = http://127.0.0.1:8000
 
 
 ###
@@ -21,14 +22,14 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "Email": "tdhon@gmail.com",
+  "Email": "vl@gmail.com",
   "FullName": "Project User",
   "IsActive": true,
   "Password": "password123",
   "Password_confirmation": "password123",
   "Phone": "1234567890",
   "Role": "Người mua",
-  "Username": "truongdinhhon"
+  "Username": "vl"
 }
 
 
@@ -39,9 +40,10 @@ Accept: {{contentType}}
 POST {{host}}/login HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
+Cookie: XSRF-TOKEN={{csrfToken}};
 
 {
-  "email": "tdhon@gmail.com",
+  "email": "vl@gmail.com",
   "password": "password123"
 }
 
@@ -55,8 +57,8 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "email": "m17@goat.com",
-  "password": "newpassword123"
+  "email": "m16@goat.com",
+  "password": "password123"
 }
 
 
@@ -100,6 +102,17 @@ Accept: {{contentType}}
   "password": "timetorise",
   "password_confirmation": "timetorise",
   "token": "b5fedfaa456876a3d9507645f4f2ac803baa76ff3835f967b9e9fec98d21e176"
+}
+
+
+### Resend email verification
+
+POST {{host}}/email/resend HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "email": "m16@goat.com"
 }
 
 
@@ -294,4 +307,9 @@ Accept: {{contentType}}
 
 ### GET Csrf
 
-GET {{hostweb}}/sanctum/csrf-cookie HTTP/1.1
+GET {{web}}/sanctum/csrf-cookie HTTP/1.1
+
+
+###
+
+GET http://127.0.0.1:8000/api/email/verify/27/276b9ddd427a70f11d76ef8ec0e2a666410d1e78?expires=1750504869&signature=351ee110df276af3508f480b473100e9e77f00e2e89bfa8fdc90f662079c81b9 HTTP/1.1
