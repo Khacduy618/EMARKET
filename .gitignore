@@ -4,3 +4,4 @@ ecommerce_db_data
 temp
 *.log
 dist
+ecommerce_db_data/
