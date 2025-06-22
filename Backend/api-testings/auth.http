@@ -59,7 +59,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "email": "dk@gmail.com",
+  "email": "m16@goat.com",
   "password": "password123"
 }
 
