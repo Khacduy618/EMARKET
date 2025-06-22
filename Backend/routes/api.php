@@ -85,3 +85,5 @@ Route::get('/login', [AuthController::class, 'loginRedirect'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+
+Route::middleware('auth:sanctum')->put('/user/password', [AuthController::class, 'updatePassword']);

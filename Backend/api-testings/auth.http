@@ -1,7 +1,13 @@
-@authToken = 27|2xVUcSrCx7SnTRJu1eoBdpMRI3nXfYJ2tpO2lfP4c102e042
+@authToken = 30|Uk6mEAhbxxKScEU1r3mjXRypDDcovDc7n05ePCPK0d871a13
 @contentType = application/json
 @host = http://127.0.0.1:8000/api
 @web = http://127.0.0.1:8000
+
+
+### me
+
+GET {{host}}/me HTTP/1.1
+Authorization: Bearer {{authToken}}
 
 
 ### Acquire_XSRF_TOKEN
@@ -17,7 +23,7 @@ Accept: {{contentType}}
 
 {
   "email": "geng@gmail.com",
-  "password": "password123"
+  "password": "admin123"
 }
 
 
@@ -103,7 +109,7 @@ Accept: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "current_password": "password123",
+  "current_password": "admin123",
   "password": "admin123",
   "password_confirmation": "admin123"
 }

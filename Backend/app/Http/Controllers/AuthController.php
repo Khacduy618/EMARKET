@@ -111,4 +111,29 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->Password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Mật khẩu hiện tại không chính xác.'],
+            ]);
+        }
+
+        $user->update([
+            'Password' => Hash::make($request->password),
+        ]);
+
+        return response()->json([
+            'message' => 'Cập nhật mật khẩu thành công.',
+        ]);
+    }
+
 }
