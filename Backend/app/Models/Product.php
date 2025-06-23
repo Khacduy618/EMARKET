@@ -14,6 +14,7 @@ use App\Models\Category;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
+use App\Models\PlatformCategory; 
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -270,7 +271,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'CategoryID', 'CategoryID');
+        return $this->belongsTo(PlatformCategory::class, 'CategoryID', 'CategoryID');
     }
     /**
      * Get the reviews for the product.

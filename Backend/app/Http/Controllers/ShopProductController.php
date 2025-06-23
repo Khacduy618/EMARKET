@@ -11,6 +11,8 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreProductRequest;  
+use App\Models\AttributeValue;
 
 class ShopProductController extends Controller
 {
@@ -66,126 +68,97 @@ class ShopProductController extends Controller
         return response()->json(['data' => $products], 200);
     }
 
-    public function store(Request $request)
+
+      /**
+     * Lưu một sản phẩm mới vào kho.
+     *
+     * @param  \App\Http\Requests\StoreProductRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(StoreProductRequest $request)
     {
-        $request->validate([
-            'CategoryID' => 'required|exists:platformcategories,CategoryID',
-            'Name' => 'required|string|max:255',
-            'Description' => 'nullable|string',
-            'Discount' => 'required|integer|min:0|max:100',
-            'Images' => 'array|max:9',
-            'Images.*.ImageURL' => 'required|url|max:512',
-            'Images.*.IsPrimary' => 'boolean',
-            'Images.*.SortOrder' => 'integer|min:0',
-            'Variants' => 'required|array|min:1',
-            'Variants.*.AttributeValues' => 'array',
-            'Variants.*.AttributeValues.*.AttributeID' => 'required|exists:attributes,AttributeID',
-            'Variants.*.AttributeValues.*.Value' => 'required|string|max:255',
-            'Variants.*.SKU' => 'nullable|string|max:100',
-            'Variants.*.Price' => 'required|integer|min:0',
-            'Variants.*.CompareAtPrice' => 'nullable|integer|min:0',
-            'Variants.*.StockQuantity' => 'required|integer|min:0',
-            'Variants.*.ImageURL' => 'nullable|url|max:512',
-        ]);
-
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-        $shop = Shop::where('UserID', $user->UserID)->firstOrFail();
-        $shopCategory = ShopCategory::where('ShopID', $shop->ShopID)
-            ->where('CategoryID', $request->CategoryID)
-            ->first();
-
-        if (!$shopCategory) {
-            return response()->json(['message' => 'Category not approved for your shop'], 403);
-        }
-
-        // Validate unique SKU for shop in productvariants
-        $variantSKUs = collect($request->Variants)->pluck('SKU')->filter();
-        if ($variantSKUs->isNotEmpty() && ProductVariant::whereIn('SKU', $variantSKUs)
-            ->whereHas('product', function ($query) use ($shop) {
-                $query->where('ShopID', $shop->ShopID);
-            })
-            ->exists()) {
-            return response()->json(['message' => 'Variant SKU already exists for this shop'], 422);
-        }
-
-        // // Validate attributes belong to the selected category
-        // $attributeIds = collect($request->Variants)
-        //     ->pluck('AttributeValues')
-        //     ->flatten(1)
-        //     ->pluck('AttributeID')
-        //     ->unique();
-        // if ($attributeIds->isNotEmpty()) {
-        //     $validAttributes = DB::table('categoryattribute')
-        //         ->where('CategoryID', $request->CategoryID)
-        //         ->whereIn('AttributeID', $attributeIds)
-        //         ->pluck('AttributeID');
-        //     if ($attributeIds->diff($validAttributes)->isNotEmpty()) {
-        //         return response()->json(['message' => 'Invalid attributes for the selected category'], 422);
-        //     }
-        // }
-
-        // Validate exactly one primary image
-        if ($request->has('Images')) {
-            $primaryImages = collect($request->Images)->where('IsPrimary', true)->count();
-            if ($primaryImages !== 1) {
-                return response()->json(['message' => 'Exactly one image must be set as primary'], 422);
-            }
-        }
-
+        // Bắt đầu transaction ngay từ đầu để bao bọc cả việc lưu ảnh
         DB::beginTransaction();
         try {
+            // --- 1. Kiểm tra các điều kiện ban đầu ---
+            $shop = Shop::where('UserID', Auth::id())->firstOrFail();
+            $isCategoryRegistered = ShopCategory::where('ShopID', $shop->ShopID)
+                                              ->where('CategoryID', $request->CategoryID)
+                                              ->exists();
+            if (!$isCategoryRegistered) {
+                throw new \Exception('This category is not registered for your shop.', 403);
+            }
+
+            // --- 2. Tạo Product và Variants (Phần đã hoạt động tốt) ---
             $product = Product::create([
                 'ShopID' => $shop->ShopID,
                 'CategoryID' => $request->CategoryID,
                 'Name' => $request->Name,
                 'Description' => $request->Description,
                 'discount' => $request->Discount,
-                'StockQuantity' => collect($request->Variants)->sum('StockQuantity'),
+                'StockQuantity' => $request->filled('Variants') ? collect($request->Variants)->sum('StockQuantity') : $request->StockQuantity,
                 'IsActive' => 1,
                 'AdminApprovalStatus' => 'Pending',
-                'AverageRating' => 0,
-                'ViewCount' => 0,
             ]);
 
-            if ($request->has('Images')) {
-                foreach ($request->Images as $index => $image) {
+            if ($request->filled('Variants')) {
+                foreach ($request->Variants as $variantData) {
+                    $variant = $product->variants()->create([
+                        'SKU' => $variantData['SKU'], 'Price' => $variantData['Price'],
+                        'StockQuantity' => $variantData['StockQuantity'], 'IsActive' => 1,
+                    ]);
+                    if (!empty($variantData['AttributeValues'])) {
+                        foreach ($variantData['AttributeValues'] as $attrValueData) {
+                            $attributeValue = AttributeValue::firstOrCreate(['AttributeID' => $attrValueData['AttributeID'], 'Value' => $attrValueData['Value']]);
+                            $variant->attributeValues()->attach($attributeValue->AttributeValueID);
+                        }
+                    }
+                }
+            } else {
+                 $product->variants()->create(['SKU' => $request->SKU, 'Price' => $request->Price, 'StockQuantity' => $request->StockQuantity, 'IsActive' => 1]);
+            }
+
+            // --- 3. THÊM LẠI KHỐI XỬ LÝ HÌNH ẢNH ---
+            if ($request->hasFile('Images')) {
+                $imageData = $request->ImageData;
+                foreach ($request->file('Images') as $index => $file) {
+                    $filename = $product->ProductID . '_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('images/products', $filename, 'public');
+                    
                     ProductImage::create([
                         'ProductID' => $product->ProductID,
-                        'ImageURL' => $image['ImageURL'],
-                        'IsPrimary' => $image['IsPrimary'] ?? false,
-                        'SortOrder' => $image['SortOrder'] ?? $index,
+                        'ImageURL' => $path, // Lưu đường dẫn tương đối
+                        'IsPrimary' => $imageData[$index]['IsPrimary'],
+                        'SortOrder' => $imageData[$index]['SortOrder'],
                     ]);
                 }
             }
-
-            foreach ($request->Variants as $variantData) {
-                $variant = ProductVariant::create([
-                    'ProductID' => $product->ProductID,
-                    'SKU' => $variantData['SKU'],
-                    'Price' => $variantData['Price'],
-                    'CompareAtPrice' => $variantData['CompareAtPrice'] ?? null,
-                    'StockQuantity' => $variantData['StockQuantity'],
-                    'ImageURL' => $variantData['ImageURL'] ?? null,
-                    'IsActive' => 1,
-                ]);
-
-                // if (!empty($variantData['AttributeValues'])) {
-                //     foreach ($variantData['AttributeValues'] as $attr) {
-                //         $variant->attributes()->attach($attr['AttributeID'], ['Value' => $attr['Value']]);
-                //     }
-                // }
-            }
-
+            
+            // Nếu mọi thứ thành công, commit transaction
             DB::commit();
-            return response()->json(['message' => 'Product created successfully', 'data' => $product], 201);
+
+            return response()->json(['message' => 'Product created successfully!'], 201);
+
         } catch (\Exception $e) {
+            // Rollback lại transaction nếu có bất kỳ lỗi nào
             DB::rollBack();
-            return response()->json(['message' => 'Failed to create product: ' . $e->getMessage()], 500);
+            
+            // Trả về lỗi chi tiết
+            $statusCode = method_exists($e, 'getCode') && $e->getCode() ? $e->getCode() : 500;
+            if ($statusCode < 100 || $statusCode >= 600) $statusCode = 500;
+            
+            return response()->json([
+                'message' => $e->getMessage() ?: 'An error occurred while creating the product.',
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ],
+            ], $statusCode);
         }
     }
+
+
+
 
     public function update(Request $request, $productID)
     {
@@ -218,7 +191,6 @@ class ShopProductController extends Controller
         
         $shopCategory = ShopCategory::where('ShopID', $shop->ShopID)
             ->where('CategoryID', $request->CategoryID)
-            ->where('Status', 'Approved')
             ->first();
 
         if (!$shopCategory) {

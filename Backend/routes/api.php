@@ -62,8 +62,6 @@ Route::middleware('auth:sanctum')->group(function (){
 
 });
     Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
-
-
     Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
@@ -78,7 +76,7 @@ Route::middleware('auth:sanctum' )->group(function () {
         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
         Route::get('/products', [ShopProductController::class, 'index']);
-        Route::post('/products', [ShopProductController::class, 'store']);
+        Route::post('/shop/products', [ShopProductController::class, 'store']);
         Route::put('/products/{productID}', [ShopProductController::class, 'update']);
         Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
