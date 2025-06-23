@@ -108,8 +108,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-//admin
 
+/*____________________________________________________________________
+  |                            Admin route                           |
+  |__________________________________________________________________| */
+
+
+
+  
 Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
 
 Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
@@ -124,13 +130,22 @@ Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"
 
 Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
-Route::middleware('auth:sanctum')->group(function () { 
-  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
-  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
-});
+
+
+
+
+
+/* ___________________________________________________________________
+  |                            Seller route                           |
+  |___________________________________________________________________| */
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+});
+
+Route::middleware('auth:sanctum')->group(function () { 
+  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
 });

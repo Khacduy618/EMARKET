@@ -1,7 +1,5 @@
-'use client';
-
-import { useEffect, useState, ChangeEvent } from 'react';
-import { JSX } from 'react/jsx-runtime';
+import { useEffect, useState, ChangeEvent, JSX } from 'react';
+import { Modal, Button, Form, Image } from 'react-bootstrap';
 
 type Category = {
   CategoryID: number;
@@ -10,10 +8,12 @@ type Category = {
 };
 
 type Props = {
+  show: boolean;
+  onHide: () => void;
   onCreated: () => void;
 };
 
-export default function CreateCategoryModal({ onCreated }: Props) {
+export default function CreateCategoryModal({ show, onHide, onCreated }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [parentId, setParentId] = useState<string>('');
   const [name, setName] = useState('');
@@ -60,7 +60,7 @@ export default function CreateCategoryModal({ onCreated }: Props) {
     if (imageFile) {
       formData.append('image', imageFile);
     }
-   
+
     try {
       const res = await fetch('http://127.0.0.1:8001/api/admin/categories/create', {
         method: 'POST',
@@ -68,14 +68,14 @@ export default function CreateCategoryModal({ onCreated }: Props) {
       });
 
       const result = await res.json();
-      console.log(result);
       if (res.ok && result.success) {
         onCreated();
-        // Reset form
+
         setName('');
         setParentId('');
         setImageFile(null);
         setImagePreview('');
+        onHide();
       } else {
         alert(result.message || 'Tạo danh mục thất bại!');
       }
@@ -86,83 +86,61 @@ export default function CreateCategoryModal({ onCreated }: Props) {
   };
 
   return (
-    <div
-      className="modal fade"
-      id="createCategoryModal"
-      tabIndex={-1}
-      aria-labelledby="createCategoryModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog modal-lg">
-        <form className="modal-content" onSubmit={handleSubmit} encType="multipart/form-data">
-          <div className="modal-header">
-            <h5 className="modal-title" id="createCategoryModalLabel">
-              Thêm mới danh mục
-            </h5>
-            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
+    <Modal show={show} onHide={onHide} size="lg" centered>
+      <Form onSubmit={handleSubmit} encType="multipart/form-data">
+        <Modal.Header closeButton>
+          <Modal.Title>Thêm mới danh mục</Modal.Title>
+        </Modal.Header>
 
-          <div className="modal-body">
-            <div className="mb-3">
-              <label htmlFor="parentCategory" className="form-label">
-                Danh mục cha
-              </label>
-              <select
-                id="parentCategory"
-                className="form-select"
-                value={parentId}
-                onChange={e => setParentId(e.target.value)}
-              >
-                <option value="">--- Danh mục cấp cao nhất ---</option>
-                {renderOptions(categories)}
-              </select>
-            </div>
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="parentCategory">
+            <Form.Label>Danh mục cha</Form.Label>
+            <Form.Select
+              value={parentId}
+              onChange={e => setParentId(e.target.value)}
+            >
+              <option value="">--- Danh mục cấp cao nhất ---</option>
+              {renderOptions(categories)}
+            </Form.Select>
+          </Form.Group>
 
-            <div className="mb-3">
-              <label htmlFor="categoryName" className="form-label">
-                Tiêu đề
-              </label>
-              <input
-                id="categoryName"
-                type="text"
-                className="form-control"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
+          <Form.Group className="mb-3" controlId="categoryName">
+            <Form.Label>Tiêu đề</Form.Label>
+            <Form.Control
+              type="text"
+              required
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="categoryImage">
+            <Form.Label>Hình ảnh</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            {imagePreview && (
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                style={{ maxWidth: 150, marginTop: 10 }}
+                thumbnail
               />
-            </div>
+            )}
+          </Form.Group>
+        </Modal.Body>
 
-            <div className="mb-3">
-              <label htmlFor="categoryImage" className="form-label">
-                Hình ảnh
-              </label>
-              <input
-                id="categoryImage"
-                type="file"
-                className="form-control"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{ maxWidth: 150, marginTop: 10, display: 'block' }}
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
-              Hủy
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Tạo mới
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Hủy
+          </Button>
+          <Button variant="primary" type="submit">
+            Tạo mới
+          </Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 }

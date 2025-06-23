@@ -11,11 +11,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* --- SIDEBAR --- */}
-      
-
-      {/* --- NỘI DUNG CHÍNH --- */}
-      <main className="flex-1 p-6 md:p-8 lg:p-10">
+      <main className="flex-1 p-0 md:p-8 lg:p-10">
         {children}
       </main>
       

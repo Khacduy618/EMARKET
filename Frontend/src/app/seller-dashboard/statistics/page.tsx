@@ -118,7 +118,6 @@ export default function Statistics() {
   // gọi fetch khi thay đổi các tham số này
   useEffect(() => {
     fetchStatistics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   const handleOrderClick = (orderDate?: string) => {
@@ -209,14 +208,12 @@ export default function Statistics() {
               title="Tổng doanh thu"
               value={formatVND(Number(revenueData?.TotalRevenue ?? 0))}
               icon={VNDIcon}
-              change="+20.1%"
               changeType="increase"
             />
             <StatCard
               title="Số đơn giao thành công"
               value={(revenueData?.OrderNumber ?? 0).toString()}
               icon={CreditCard}
-              change="+18.2%"
               changeType="increase"
             />
             <StatCard
@@ -224,7 +221,6 @@ export default function Statistics() {
               value={(revenueData?.NumProductsSold ?? 0).toString()}
               icon={Activity}
               changeType="decrease"
-              change="-1.9%"
             />
             <div>
               <ChartOrderSuccessRate apiUrl={`http://localhost:8001/api/seller/statistics?${params}`} />

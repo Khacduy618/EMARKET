@@ -87,7 +87,7 @@ const ChartOrderSuccessRate: FC<Props> = ({ apiUrl }) => {
   };
 
   return (
-    <div style={{ width: '240px', margin: 'auto' }}>
+    <div style={{ width: '220px', margin: 'auto' }}>
       <Pie data={chartData} options={options} />
     </div>
   );

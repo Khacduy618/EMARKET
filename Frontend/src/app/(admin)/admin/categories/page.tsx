@@ -1,4 +1,3 @@
-// Bản hoàn thiện: Phân trang, tìm kiếm, sửa/xóa danh mục + hiển thị cây danh mục
 'use client';
 import './style.css';
 import Swal from 'sweetalert2';
@@ -29,6 +28,9 @@ export default function CategoryPage() {
   const [displayQuantity, setDisplayQuantity] = useState<number>(10);
   const [keyword, setKeyword] = useState<string>('');
   const [pagination, setPagination] = useState<Pagination>({ currentPage: 1, totalPage: 1 });
+  
+  // Thêm state để điều khiển modal Create
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -140,16 +142,20 @@ export default function CategoryPage() {
   return (
     <>
       <CreateCategoryModal
+        show={showCreateModal}
+        onHide={() => setShowCreateModal(false)}
         onCreated={() => {
           Swal.fire({
             icon: 'success',
-            title: 'Thêm danh mục thành công cc',
+            title: 'Thêm danh mục thành công!',
             showConfirmButton: false,
-            timer: 1500
+            timer: 1500,
           });
           fetchCategories();
+          setShowCreateModal(false);
         }}
       />
+
       {editCategory && (
         <EditCategoryModal
           category={editCategory}
@@ -167,8 +173,7 @@ export default function CategoryPage() {
           <h5 className="mb-0">Quản lý danh mục</h5>
           <button
             className="btn btn-outline-success"
-            data-bs-toggle="modal"
-            data-bs-target="#createCategoryModal"
+            onClick={() => setShowCreateModal(true)}
           >+ Thêm mới</button>
         </div>
 
@@ -220,8 +225,7 @@ export default function CategoryPage() {
                           <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => setEditCategory(item)}
-                            data-bs-toggle="modal"
-                            data-bs-target="#editCategoryModal"
+                            // Bỏ data-bs-toggle vì modal được điều khiển qua state
                           >Sửa</button>
                           <button
                             className="btn btn-sm btn-danger"
@@ -233,7 +237,7 @@ export default function CategoryPage() {
                   </tbody>
                 </table>
                 {renderPagination()}
-                <div className="col-2">
+                <div className="col-2 mt-3">
                   <span>Hiển thị: </span>
                   <select className="form-select" value={displayQuantity} onChange={handleQuantityChange}>
                     {[5, 10, 20, 50, 100].map(q => (

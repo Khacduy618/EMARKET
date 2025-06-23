@@ -11,7 +11,7 @@ type Category = {
 
 type EditCategoryModalProps = {
   category: Category | null;
-  categoryTree: Category[]; // dữ liệu danh mục cây truyền vào để build options
+  categoryTree: Category[];
   onClose: () => void;
   onUpdated: (updatedCategory: Category) => void;
 };
