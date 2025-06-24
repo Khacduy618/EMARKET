@@ -18,6 +18,7 @@ class CustomLoginResponse implements LoginResponseContract
             'user' => $request->user(),
             'two_factor' => $twoFactorEnabled,
             // 'request' => $request, // WARN:Hiển thị toàn bộ dữ liệu yêu cầu gửi lên để test thôi
+            'sesstion' => Session::all(), // WARN: Hiển thị toàn bộ session để test thôi
         ]);
     }
 }

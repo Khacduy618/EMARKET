@@ -41,14 +41,14 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "Email": "dk@gmail.com",
+  "Email": "di@gmail.com",
   "FullName": "Project User",
   "IsActive": true,
   "Password": "password123",
   "Password_confirmation": "password123",
   "Phone": "1234567890",
   "Role": "Người bán",
-  "Username": "dk"
+  "Username": "di"
 }
 
 
@@ -69,7 +69,6 @@ Accept: {{contentType}}
 POST {{host}}/logout HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Request password reset link
@@ -79,7 +78,7 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "email": "m17@goat.com"
+  "email": "dk@gmail.com"
 }
 
 
@@ -90,10 +89,10 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "email": "m17@goat.com",
-  "password": "timetorise",
-  "password_confirmation": "timetorise",
-  "token": "b5fedfaa456876a3d9507645f4f2ac803baa76ff3835f967b9e9fec98d21e176"
+  "email": "dk@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "token": "c6c892f2fb75dbb3ad3505ff0a62320755dfe133130801727ad290b1f0cc08a4"
 }
 
 
@@ -132,7 +131,6 @@ Referer: http://localhost:8000/login
 POST {{host}}/user/confirm-password HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 {
   "password": "your-password"
@@ -143,7 +141,6 @@ Authorization: Bearer {{authToken}}
 
 GET {{host}}/user/confirmed-password-status HTTP/1.1
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Enable Two Factor Authentication
@@ -151,7 +148,6 @@ Authorization: Bearer {{authToken}}
 POST {{host}}/user/two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Two Factor Challenge (During Login)
@@ -169,14 +165,12 @@ Accept: {{contentType}}
 
 GET {{host}}/user/two-factor-qr-code HTTP/1.1
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Get Two Factor Recovery Codes
 
 GET {{host}}/user/two-factor-recovery-codes HTTP/1.1
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Generate New Recovery Codes
@@ -184,14 +178,12 @@ Authorization: Bearer {{authToken}}
 POST {{host}}/user/two-factor-recovery-codes HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Get Two Factor Secret Key
 
 GET {{host}}/user/two-factor-secret-key HTTP/1.1
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Disable Two Factor Authentication
@@ -199,7 +191,6 @@ Authorization: Bearer {{authToken}}
 DELETE {{host}}/user/two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Confirm Two Factor Authentication
@@ -207,7 +198,6 @@ Authorization: Bearer {{authToken}}
 POST {{host}}/user/confirmed-two-factor-authentication HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 
 ### Update User Profile Information
@@ -215,7 +205,6 @@ Authorization: Bearer {{authToken}}
 PUT {{host}}/user/profile-information HTTP/1.1
 Content-Type: {{contentType}}
 Accept: {{contentType}}
-Authorization: Bearer {{authToken}}
 
 {
   "Email": "updated@example.com",
@@ -231,7 +220,6 @@ Authorization: Bearer {{authToken}}
 ### Access Storage File
 
 GET {{host}}/storage/example.jpg HTTP/1.1
-Authorization: Bearer {{authToken}}
 
 
 ### Basic Health Check
