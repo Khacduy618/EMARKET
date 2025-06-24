@@ -14,24 +14,41 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 
-use Laravel\Fortify\Contracts\LoginResponse;
-use App\Http\Responses\CustomLoginResponse;
-use Laravel\Fortify\Contracts\EmailVerificationNotificationSentResponse as EmailVerificationNotificationResponseContract;
-use App\Http\Responses\CustomEmailVerificationNotificationResponse;
-use Laravel\Fortify\Contracts\RegisterResponse;
-use App\Http\Responses\CustomRegisterResponse;
-use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
-use App\Http\Responses\CustomPasswordResetLinkResponse;
-use Laravel\Fortify\Contracts\PasswordResetResponse;
-use App\Http\Responses\CustomPasswordResetResponse;
-use Laravel\Fortify\Contracts\PasswordUpdateResponse;
-use App\Http\Responses\CustomPasswordUpdateResponse;
-use Laravel\Fortify\Contracts\PasswordConfirmedResponse;
-use App\Http\Responses\CustomPasswordConfirmedResponse;
-use Laravel\Fortify\Contracts\TwoFactorEnabledResponse;
-use App\Http\Responses\CustomTwoFactorEnabledResponse;
-use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
-use App\Http\Responses\CustomTwoFactorLoginResponse;
+use Laravel\Fortify\Contracts\{
+    LoginResponse,
+    EmailVerificationNotificationSentResponse as EmailVerificationNotificationResponseContract,
+    RegisterResponse,
+    SuccessfulPasswordResetLinkRequestResponse,
+    PasswordResetResponse,
+    PasswordUpdateResponse,
+    PasswordConfirmedResponse,
+    TwoFactorEnabledResponse,
+    TwoFactorLoginResponse,
+    LogoutResponse,
+    VerifyEmailResponse,
+    RecoveryCodesGeneratedResponse,
+    TwoFactorDisabledResponse,
+    TwoFactorConfirmedResponse,
+    ProfileInformationUpdatedResponse
+};
+
+use App\Http\Responses\{
+    CustomLoginResponse,
+    CustomEmailVerificationNotificationResponse,
+    CustomRegisterResponse,
+    CustomPasswordResetLinkResponse,
+    CustomPasswordResetResponse,
+    CustomPasswordUpdateResponse,
+    CustomPasswordConfirmedResponse,
+    CustomTwoFactorEnabledResponse,
+    CustomTwoFactorLoginResponse,
+    CustomLogoutResponse,
+    CustomVerifyEmailResponse,
+    CustomRecoveryCodesGeneratedResponse,
+    CustomTwoFactorDisabledResponse,
+    CustomTwoFactorConfirmedResponse,
+    CustomProfileInformationUpdatedResponse
+};
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -69,6 +86,30 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(
             TwoFactorLoginResponse::class,
             CustomTwoFactorLoginResponse::class
+        );
+        $this->app->singleton(
+            LogoutResponse::class,
+            CustomLogoutResponse::class
+        );
+        $this->app->singleton(
+            VerifyEmailResponse::class,
+            CustomVerifyEmailResponse::class
+        );
+        $this->app->singleton(
+            RecoveryCodesGeneratedResponse::class,
+            CustomRecoveryCodesGeneratedResponse::class
+        );
+        $this->app->singleton(
+            TwoFactorDisabledResponse::class,
+            CustomTwoFactorDisabledResponse::class
+        );
+        $this->app->singleton(
+            TwoFactorConfirmedResponse::class,
+            CustomTwoFactorConfirmedResponse::class
+        );
+        $this->app->singleton(
+            ProfileInformationUpdatedResponse::class,
+            CustomProfileInformationUpdatedResponse::class
         );
     }
 
