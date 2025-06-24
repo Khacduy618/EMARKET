@@ -12,11 +12,12 @@ use App\Models\ShopFollow;
 use App\Models\ReturnRequest;
 use App\Models\Voucher;
 
-class Shop extends Model {
+class Shop extends Model
+{
     use HasFactory;
 
     protected $primaryKey = 'ShopID';
-
+    public $timestamps = false;
     protected $fillable = [
         'UserID', // Changed from UserID_Owner
         'ShopName',
@@ -30,6 +31,7 @@ class Shop extends Model {
         'ShopPhone',
         'Level', // Added Level from schema
         'Status',
+        'CreatedAt'
     ];
 
     protected $casts = [

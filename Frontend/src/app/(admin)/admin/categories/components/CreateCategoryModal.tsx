@@ -21,7 +21,12 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
-    fetch('http://localhost:8001/api/admin/categories/getAllCategory')
+    fetch('http://localhost:8001/api/admin/categories/getAllCategory', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+      }
+    })
       .then(res => res.json())
       .then(data => setCategories(data.data))
       .catch(console.error);
@@ -64,6 +69,10 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     try {
       const res = await fetch('http://127.0.0.1:8001/api/admin/categories/create', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
         body: formData,
       });
 

@@ -32,11 +32,11 @@ export default function AdminLayout({
                             <span>Danh mục sản phẩm</span>
                         </Link>
                         <Link href="/admin/shops" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                            <Package className="w-5 h-5 mr-3" />
+                            <ShoppingCart className="w-5 h-5 mr-3" />
                             <span>Danh sách cửa hàng</span>
                         </Link>
                         <Link href="/admin/orders" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                            <ShoppingCart className="w-5 h-5 mr-3" />
+                            <Package className="w-5 h-5 mr-3" />
                             <span>Đơn hàng</span>
                         </Link>
                         {/* Thêm các link khác ở đây */}

@@ -15,8 +15,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
 
-use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
-use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Middleware\HandleImage;
 
 use App\Http\Controllers\SellerRegisterController;
@@ -108,12 +106,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
+use App\Http\Controllers\Admin\ShopController AS ShopController;
+
+use App\Http\Controllers\Admin\StatisticsController; //admin
 
 /*____________________________________________________________________
   |                            Admin route                           |
   |__________________________________________________________________| */
-
-
 
   
 Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
@@ -130,7 +130,11 @@ Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"
 
 Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
+Route::get('/admin/shops', [ShopController::class, "index"]);
 
+Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+
+Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
 
 
 
