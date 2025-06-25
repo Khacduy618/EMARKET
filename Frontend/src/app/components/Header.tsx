@@ -176,7 +176,7 @@ export default function Header() {
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">
                     <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
-                        <a href="#" className="hover:text-gray-200">Kênh Người Bán</a>
+                        <a href="/seller-dashboard" className="hover:text-gray-200">Kênh Người Bán</a>
                         <div className="relative">
                             <button className="flex items-center gap-1 hover:text-gray-200" onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}>
                                 {selectedLanguage} <ChevronDown size={14} />
