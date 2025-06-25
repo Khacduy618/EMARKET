@@ -49,6 +49,7 @@ Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
+Route::get('/category_banner', [BannerController::class, 'getBannersByPosition']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
 Route::get('/productDetail/{productId}', [ProductDetailController::class, 'show']);
@@ -70,6 +71,7 @@ Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
 //api router cho sản phẩm nổi bật cho category 
 Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
 Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
+Route::get('/categories/{category}/filters', [CategoryController::class, 'getCategoryFilters']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

@@ -14,6 +14,11 @@ class OrderItem extends Model
 {
     use HasFactory;
 
+    protected $table = 'OrderItems';
+
+    /**
+     * Khai báo khóa chính để Eloquent không nhầm lẫn.
+     */
     protected $primaryKey = 'OrderItemID';
 
     protected $fillable = [
@@ -48,7 +53,13 @@ class OrderItem extends Model
         return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }
 
-    
+    /**
+     * Get the flash sale deal associated with the order item.
+     */
+    public function flashSaleDeal(): BelongsTo
+    {
+        return $this->belongsTo(FlashSale::class, 'FlashSaleDealID', 'DealID');
+    }
 
     /**
      * Get the return request for the order item.
