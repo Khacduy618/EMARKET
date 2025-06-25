@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\OrderBuyer;
 use App\Models\ProductVariant;
-use App\Models\FlashSaleDeal;
 use App\Models\ReturnRequest;
 
 class OrderItem extends Model
@@ -54,7 +53,7 @@ class OrderItem extends Model
      */
     public function flashSaleDeal(): BelongsTo
     {
-        return $this->belongsTo(FlashSaleDeal::class, 'FlashSaleDealID', 'DealID');
+        return $this->belongsTo(FlashSale::class, 'FlashSaleDealID', 'DealID');
     }
 
     /**
