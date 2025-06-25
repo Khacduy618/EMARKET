@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         // 1. Xác định "mùa" hiện tại (không đổi)
         $currentMonth = Date::now()->month;
         $currentSeason = 0;
@@ -28,6 +27,7 @@ class CategoryController extends Controller
             // Luôn lọc các children để chỉ lấy những con hợp mùa
             'children' => function ($query) use ($currentSeason) {
                 $query->where('IsActive', $currentSeason)
+                      ->orWhere('Deleted', 0)
                       ->orWhere('IsActive', 0);
             }
         ])
@@ -42,7 +42,8 @@ class CategoryController extends Controller
                   // ít nhất một danh mục con phù hợp với mùa
                   ->orWhereHas('children', function ($subQuery) use ($currentSeason) {
                       $subQuery->where('IsActive', $currentSeason)
-                               ->orWhere('IsActive', 0);
+                               ->orWhere('IsActive', 0)
+                               ->orWhere('Deleted', 0);
                   });
         })
         ->orderBy('CategoryID', 'asc')
