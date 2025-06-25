@@ -6,12 +6,16 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Http\\Controllers\\Admin\\CategoryController' => $baseDir . '/app/Http/Controllers/Admin/CategoryController.php',
     'App\\Http\\Controllers\\Admin\\ProductController' => $baseDir . '/app/Http/Controllers/Admin/ProductController.php',
+    'App\\Http\\Controllers\\Admin\\StatisticsController' => $baseDir . '/app/Http/Controllers/Admin/StatisticsController.php',
     'App\\Http\\Controllers\\AuthController' => $baseDir . '/app/Http/Controllers/AuthController.php',
     'App\\Http\\Controllers\\BannerController' => $baseDir . '/app/Http/Controllers/BannerController.php',
     'App\\Http\\Controllers\\CartController' => $baseDir . '/app/Http/Controllers/CartController.php',
     'App\\Http\\Controllers\\CategoryController' => $baseDir . '/app/Http/Controllers/CategoryController.php',
+    'App\\Http\\Controllers\\ChatController' => $baseDir . '/app/Http/Controllers/ChatController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\FeaturedProductController' => $baseDir . '/app/Http/Controllers/FeaturedProductController.php',
     'App\\Http\\Controllers\\FlashSaleController' => $baseDir . '/app/Http/Controllers/FlashSaleController.php',
     'App\\Http\\Controllers\\NewArrivalController' => $baseDir . '/app/Http/Controllers/NewArrivalController.php',
     'App\\Http\\Controllers\\ProductDetailController' => $baseDir . '/app/Http/Controllers/ProductDetailController.php',
@@ -19,9 +23,17 @@ return array(
     'App\\Http\\Controllers\\SellerRegisterController' => $baseDir . '/app/Http/Controllers/SellerRegisterController.php',
     'App\\Http\\Controllers\\ShopCategoryController' => $baseDir . '/app/Http/Controllers/ShopCategoryController.php',
     'App\\Http\\Controllers\\ShopProductController' => $baseDir . '/app/Http/Controllers/ShopProductController.php',
+<<<<<<< HEAD
     'App\\Http\\Middleware\\EnsureIsSeller' => $baseDir . '/app/Http/Middleware/EnsureIsSeller.php',
     'App\\Http\\Requests\\SellerRegisterRequest' => $baseDir . '/app/Http/Requests/SellerRegisterRequest.php',
     'App\\Http\\Requests\\StoreProductRequest' => $baseDir . '/app/Http/Requests/StoreProductRequest.php',
+=======
+    'App\\Http\\Controllers\\VoucherController' => $baseDir . '/app/Http/Controllers/VoucherController.php',
+    'App\\Http\\Middleware\\EnsureIsSeller' => $baseDir . '/app/Http/Middleware/EnsureIsSeller.php',
+    'App\\Http\\Middleware\\HandleImage' => $baseDir . '/app/Http/Middleware/HandleImage.php',
+    'App\\Http\\Middleware\\VerifyInternalSecret' => $baseDir . '/app/Http/Middleware/VerifyInternalSecret.php',
+    'App\\Http\\Requests\\SellerRegisterRequest' => $baseDir . '/app/Http/Requests/SellerRegisterRequest.php',
+>>>>>>> mergwithCuong
     'App\\Models\\Address' => $baseDir . '/app/Models/Address.php',
     'App\\Models\\Attribute' => $baseDir . '/app/Models/Attribute.php',
     'App\\Models\\AttributeValue' => $baseDir . '/app/Models/AttributeValue.php',
@@ -29,6 +41,7 @@ return array(
     'App\\Models\\Cart' => $baseDir . '/app/Models/Cart.php',
     'App\\Models\\CartItem' => $baseDir . '/app/Models/CartItem.php',
     'App\\Models\\Category' => $baseDir . '/app/Models/Category.php',
+    'App\\Models\\ConversationMeta' => $baseDir . '/app/Models/ConversationMeta.php',
     'App\\Models\\FlashSale' => $baseDir . '/app/Models/FlashSale.php',
     'App\\Models\\NewArrivalModel' => $baseDir . '/app/Models/NewArrivalModel.php',
     'App\\Models\\OrderBuyer' => $baseDir . '/app/Models/OrderBuyer.php',
@@ -48,6 +61,7 @@ return array(
     'App\\Models\\UserVoucher' => $baseDir . '/app/Models/UserVoucher.php',
     'App\\Models\\Voucher' => $baseDir . '/app/Models/Voucher.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
+<<<<<<< HEAD
     'Appstract\\Opcache\\Commands\\Clear' => $vendorDir . '/appstract/laravel-opcache/src/Commands/Clear.php',
     'Appstract\\Opcache\\Commands\\Compile' => $vendorDir . '/appstract/laravel-opcache/src/Commands/Compile.php',
     'Appstract\\Opcache\\Commands\\Config' => $vendorDir . '/appstract/laravel-opcache/src/Commands/Config.php',
@@ -58,6 +72,9 @@ return array(
     'Appstract\\Opcache\\OpcacheClass' => $vendorDir . '/appstract/laravel-opcache/src/OpcacheClass.php',
     'Appstract\\Opcache\\OpcacheFacade' => $vendorDir . '/appstract/laravel-opcache/src/OpcacheFacade.php',
     'Appstract\\Opcache\\OpcacheServiceProvider' => $vendorDir . '/appstract/laravel-opcache/src/OpcacheServiceProvider.php',
+=======
+    'App\\utils\\CategoryUtil' => $baseDir . '/app/utils/CategoryUtil.php',
+>>>>>>> mergwithCuong
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',

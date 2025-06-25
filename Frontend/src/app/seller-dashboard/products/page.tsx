@@ -24,6 +24,7 @@ interface ProductVariant {
     // ... các trường khác của variant
 }
 
+// --- Giữ nguyên các Interface ---
 interface Product {
     ProductID: number;
     Name: string;

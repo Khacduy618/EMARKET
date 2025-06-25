@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
         $middleware->alias([
             'seller' => \App\Http\Middleware\EnsureIsSeller::class,
+            'auth.socketserver' => \App\Http\Middleware\VerifyInternalSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

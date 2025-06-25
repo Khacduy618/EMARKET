@@ -6,4 +6,6 @@ export interface AttributeValue {
         AttributeID: number;
         Name: string;
     };
+    CreatedAt: string;
+    UpdatedAt: string;
 }

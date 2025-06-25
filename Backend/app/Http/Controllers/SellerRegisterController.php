@@ -22,7 +22,7 @@ class SellerRegisterController extends Controller
     public function register(SellerRegisterRequest $request)
     {
         $user = Auth::user();
-        if ($user->Role == 'Người bán') {
+        if ($user->Role === 'Người bán') {
             return response()->json([
                 'message' => 'Bạn đã đăng ký làm người bán',
             ], 400);
@@ -41,6 +41,7 @@ class SellerRegisterController extends Controller
             'Status' => 'PendingApproval',
         ]);
       
+
         return response()->json([
             'message' => 'Đăng ký bán hàng thành công! Vui lòng chờ phê duyệt.',
             'shop' => $shop,
@@ -51,11 +52,6 @@ class SellerRegisterController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        if($user->Role != 'Người bán') {
-            return response()->json([
-                'message' => 'Bạn không có quyền truy cập vào trang này.',
-            ], 403);
-        }
         return response()->json([
             'user' => $user,
             'shop' => $user->shop,

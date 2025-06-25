@@ -1,0 +1,35 @@
+/* Category */
+#category-tree ul {
+  list-style-type: none;
+  padding-left: 1rem;
+  border-left: 2px solid #888;
+  margin-left: 0.5rem;
+}
+
+#category-tree li {
+  position: relative;
+  padding: 6px 0 6px 1rem;
+  font-size: 16px;
+  color: #333;
+}
+
+#category-tree li::before {
+  content: "___";
+  position: absolute;
+  left: -15px;
+  color: #888;
+  font-size: 20px;
+  top: -6px;
+}
+
+#category-tree li:hover {
+  background-color: #f9f9f9;
+  color: #007bff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#category-tree {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+/* End Category */

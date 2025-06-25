@@ -6,6 +6,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\Category;
 
 class ProductController extends Controller
 {
@@ -14,10 +15,10 @@ class ProductController extends Controller
      */
     public function index(): JsonResponse
 {
-    $products = DB::table('products')
-        ->leftJoin('productimages', 'products.ProductID', '=', 'productimages.ProductID')
-        ->select('products.*', 'productimages.ImageURL')
-        ->where('productimages.IsPrimary', 1)
+    $products = DB::table('Products')
+        ->leftJoin('ProductImages', 'Products.ProductID', '=', 'ProductImages.ProductID')
+        ->select('Products.*', 'ProductImages.ImageURL')
+        ->where('ProductImages.IsPrimary', 1)
         ->get();
 
     return response()->json($products);
@@ -27,11 +28,11 @@ class ProductController extends Controller
         try {
         // Validate dữ liệu đầu vào
         $request->validate([
-            'ShopID' => 'required|integer|exists:shops,ShopID',
+            'ShopID' => 'required|integer|exists:Shops,ShopID',
             'CategoryID' => 'required|integer|exists:platformcategories,CategoryID',
             'Name' => 'required|string|max:255',
             'Description' => 'nullable|string',
-            'SKU' => 'nullable|string|max:100|unique:products,SKU',
+            'SKU' => 'nullable|string|max:100|unique:Products,SKU',
             'Price' => 'required|numeric|min:0',
             'StockQuantity' => 'required|integer|min:0',
             'IsActive' => 'required|boolean',
@@ -81,11 +82,11 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $request->validate([
-            'ShopID' => 'sometimes|integer|exists:shops,ShopID',
+            'ShopID' => 'sometimes|integer|exists:Shops,ShopID',
             'CategoryID' => 'sometimes|integer|exists:platformcategories,CategoryID',
             'Name' => 'sometimes|string|max:255',
             'Description' => 'nullable|string',
-            'SKU' => 'sometimes|string|max:100|unique:products,SKU,' . $id . ',ProductID',
+            'SKU' => 'sometimes|string|max:100|unique:Products,SKU,' . $id . ',ProductID',
             'Price' => 'sometimes|numeric|min:0',
             'StockQuantity' => 'sometimes|integer|min:0',
             'IsActive' => 'sometimes|boolean',
@@ -158,9 +159,9 @@ public function destroy($id)
 // }
 public function ProductFinalPrice()
     {
-        $products = Product::where('products.IsActive', 1) // Chỉ định rõ bảng cho cột IsActive
-            ->where('products.AdminApprovalStatus', 'Approved') // Chỉ định rõ bảng
-            ->where('products.Discount', '>', 0) // Lấy sản phẩm có giảm giá (từ bảng products)
+        $products = Product::where('Products.IsActive', 1) // Chỉ định rõ bảng cho cột IsActive
+            ->where('Products.AdminApprovalStatus', 'Approved') // Chỉ định rõ bảng
+            ->where('Products.Discount', '>', 0) // Lấy sản phẩm có giảm giá (từ bảng Products)
             ->with([
                 // Lấy ảnh chính từ bảng ProductImages
                 'primaryImage:ProductID,ImageURL', // Chỉ chọn cột cần thiết
@@ -172,15 +173,15 @@ public function ProductFinalPrice()
                           ->with([
                               // Lấy các thuộc tính của biến thể đó
                               // thông qua ProductVariantAttribute -> AttributeValues -> Attributes
-                              'attributeValues' => function ($q_attr_val) {
-                                  $q_attr_val->select('attributevalues.AttributeValueID', 'attributevalues.Value', 'attributevalues.AttributeID')
-                                             ->with('attribute:AttributeID,Name'); // Lấy tên thuộc tính (Màu sắc, Kích thước)
+                              'AttributeValues' => function ($q_attr_val) {
+                                  $q_attr_val->select('AttributeValues.AttributeValueID', 'AttributeValues.Value', 'AttributeValues.AttributeID')
+                                             ->with('Attribute:AttributeID,Name'); // Lấy tên thuộc tính (Màu sắc, Kích thước)
                               }
                           ]);
                 },
             ])
             ->limit(11)
-            ->select('products.ProductID', 'products.Name', 'products.Discount') // Chọn cột từ bảng products
+            ->select('Products.ProductID', 'Products.Name', 'Products.Discount') // Chọn cột từ bảng products
             ->get();
 
         $formattedProducts = $products->map(function ($product) {
@@ -232,8 +233,8 @@ public function ProductFinalPrice()
     }
     public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
     {
-        $productsData = DB::table('products as p')
-            ->leftJoin('productimages as pi', function ($join) {
+        $productsData = DB::table('Products as p')
+            ->leftJoin('ProductImages as pi', function ($join) {
                 $join->on('p.ProductID', '=', 'pi.ProductID')
                      ->where('pi.IsPrimary', '=', 1);
             })
@@ -327,5 +328,181 @@ public function ProductFinalPrice()
     
         return response()->json($processedProducts);
     }
-    
+    public function getRelatedProducts(int $currentProductId): JsonResponse
+    {
+        // 1. Tìm sản phẩm hiện tại để lấy ra CategoryID của nó.
+        $currentProduct = Product::find($currentProductId);
+
+        if (!$currentProduct || !$currentProduct->CategoryID) {
+            return response()->json([]);
+        }
+
+        $categoryId = $currentProduct->CategoryID;
+
+        // 2. Query các sản phẩm liên quan
+        $relatedProducts = Product::active()
+            ->approved()
+            ->where('CategoryID', $categoryId)
+            ->where('ProductID', '!=', $currentProductId)
+            ->with([ // Vẫn Eager Load để tối ưu
+                'Variants' => fn($query) => $query->where('IsActive', 1)->orderBy('Price', 'asc'),
+                'primaryImage'
+            ])
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
+            
+        // 3. Định dạng lại dữ liệu bằng tay (thay thế cho Resource)
+        $formattedProducts = $relatedProducts->map(function ($product) {
+            // Lấy biến thể đầu tiên (giá rẻ nhất)
+            $firstVariant = $product->variants->first();
+
+            // Rất quan trọng: Bỏ qua sản phẩm nếu nó không có biến thể hợp lệ
+            if (!$firstVariant) {
+                return null;
+            }
+
+            // Lấy URL ảnh chính
+            // Sử dụng "??" (null coalescing operator) để tránh lỗi nếu primaryImage là null
+            $imageUrl = $product->primaryImage->ImageURL ?? null;
+
+            // Tính toán giá và % giảm giá
+            $price = $firstVariant->Price;
+            $compareAtPrice = $firstVariant->CompareAtPrice;
+            $discountPercent = 0;
+
+            if ($compareAtPrice && $price < $compareAtPrice) {
+                $discountPercent = round((($compareAtPrice - $price) / $compareAtPrice) * 100);
+            }
+
+            // Trả về cấu trúc JSON mà frontend cần
+            return [
+                'id'              => $product->ProductID,
+                'name'            => $product->Name,
+                'imageUrl'        => $imageUrl,
+                'price'           => (float) $price,
+                'originalPrice'   => $compareAtPrice ? (float) $compareAtPrice : null,
+                'discountPercent' => $discountPercent,
+                'rating'          => $product->rating ?? rand(40, 50) / 10, // Dữ liệu giả hoặc thật
+                'reviewCount'     => $product->review_count ?? rand(50, 150),
+            ];
+        })->filter()->values(); // ->filter() để loại bỏ các sản phẩm bị null
+                                 // ->values() để reset lại index của mảng
+
+        // 4. Trả về JSON response
+        return response()->json($formattedProducts);
+    }
+
+    public function showProductsCategory(Request $request, Category $category)
+    {
+        // === BƯỚC 1: LẤY ID CỦA DANH MỤC HIỆN TẠI VÀ TẤT CẢ CÁC DANH MỤC CON ===
+        $categoryIds = $this->getAllChildCategoryIds($category);
+        $categoryIds[] = $category->CategoryID;
+
+        // === BƯỚC 2: XÂY DỰNG QUERY CƠ BẢN ===
+        $query = Product::query()
+            ->whereIn('CategoryID', $categoryIds)
+            // Eager Loading các quan hệ để tối ưu hiệu năng, tránh N+1 query
+            ->with(['images', 'Variants', 'Category']);
+
+        // === BƯỚC 3: XỬ LÝ SẮP XẾP (SORTING) DỰA TRÊN HÌNH ẢNH MỚI ===
+        // Lấy giá trị sort từ request, mặc định là 'popular' (Phổ biến)
+        $sort = $request->input('sort', 'popular');
+
+        switch ($sort) {
+            case 'price_asc':
+                // Sắp xếp theo giá tăng dần
+                // Lưu ý: Cần join và group by để lấy giá từ bảng variants
+                $query->select('Products.*')
+                      ->join('Variants', 'Products.ProductID', '=', 'Variants.ProductID')
+                      ->groupBy('Products.ProductID')
+                      ->orderBy('Variants.Price', 'asc');
+                break;
+
+            case 'price_desc':
+                // Sắp xếp theo giá giảm dần
+                $query->select('Products.*')
+                      ->join('Variants', 'Products.ProductID', '=', 'Variants.ProductID')
+                      ->groupBy('Products.ProductID')
+                      ->orderBy('Variants.Price', 'desc');
+                break;
+
+            case 'bestselling':
+                // Sắp xếp theo "Bán Chạy"
+                // YÊU CẦU: Cần có bảng `order_items` chứa `ProductID` và `Quantity` để tính tổng đã bán.
+                // Nếu cấu trúc DB của bạn khác, hãy sửa lại đoạn này.
+                $query->leftJoin('order_items', 'Products.ProductID', '=', 'order_items.ProductID')
+                      ->selectRaw('Products.*, SUM(order_items.Quantity) as total_sold')
+                      ->groupBy('Products.ProductID') // Quan trọng khi dùng hàm tổng hợp SUM
+                      ->orderByDesc('total_sold');
+                break;
+
+            case 'newest':
+                // Sắp xếp theo "Mới Nhất", dựa vào ProductID giảm dần (giả định ID cao hơn là mới hơn)
+                $query->orderBy('Products.ProductID', 'desc');
+                break;
+
+            case 'popular':
+            default:
+                // Sắp xếp theo "Phổ Biến" hoặc mặc định.
+                // Bạn có thể định nghĩa 'popular' theo nhiều cách (lượt xem, bán chạy,...).
+                // Ở đây, chúng ta tạm lấy sản phẩm mới nhất làm mặc định cho "Phổ biến".
+                $query->orderBy('Products.ProductID', 'desc');
+                break;
+        }
+
+        // === BƯỚC 4: PHÂN TRANG (PAGINATION) ===
+        $perPage = $request->input('per_page', 20);
+        $paginatedProducts = $query->paginate($perPage);
+
+        // === BƯỚC 5: BIẾN ĐỔI DỮ LIỆU ĐỂ KHỚP VỚI FRONTEND ===
+        $transformedProducts = $paginatedProducts->getCollection()->map(function ($product) {
+            return [
+                'ProductID' => $product->ProductID,
+                'Name'      => $product->Name,
+                'images'    => $product->images->map(function ($image) {
+                    return [
+                        'ImageID'   => $image->ImageID,
+                        'ImageURL'  => $image->ImageURL,
+                        'IsPrimary' => $image->IsPrimary,
+                    ];
+                }),
+                'Variants'  => $product->variants->map(function ($variant) {
+                    return [
+                        'VariantID'      => $variant->VariantID,
+                        'Price'          => $variant->Price,
+                        'CompareAtPrice' => $variant->CompareAtPrice,
+                    ];
+                }),
+                'category'  => [
+                    'CategoryID'       => $product->category->CategoryID,
+                    'Name'             => $product->category->Name,
+                    'ParentCategoryID' => $product->category->ParentCategoryID,
+                ]
+            ];
+        });
+
+        // === BƯỚC 6: TRẢ VỀ RESPONSE JSON VỚI CẤU TRÚC ĐÚNG ===
+        // Cấu trúc này khớp với interface `PaginatedResponse<T>` bên phía Next.js
+        return response()->json([
+            'data'         => $transformedProducts,
+            'total'        => $paginatedProducts->total(),
+            'current_page' => $paginatedProducts->currentPage(),
+            'last_page'    => $paginatedProducts->lastPage(),
+        ]);
+    }
+     private function getAllChildCategoryIds(Category $category): array
+    {
+        $childIds = [];
+        // Sử dụng eager loading cho quan hệ đệ quy để tối ưu
+        $children = $category->load('allChildren')->allChildren;
+
+        foreach ($children as $child) {
+            $childIds[] = $child->CategoryID;
+            if ($child->allChildren->isNotEmpty()) {
+                $childIds = array_merge($childIds, $this->getAllChildCategoryIds($child));
+            }
+        }
+        return $childIds;
+    }
 }

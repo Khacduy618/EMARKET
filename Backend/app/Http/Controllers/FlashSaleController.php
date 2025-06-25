@@ -287,7 +287,7 @@ class FlashSaleController extends Controller
             ['start' => 7,  'end' => 9],
             ['start' => 9,  'end' => 12],
             ['start' => 12, 'end' => 13],
-            ['start' => 17, 'end' => 18],
+            ['start' => 14, 'end' => 15],
             ['start' => 23, 'end' => 0],
         ];
 
@@ -296,8 +296,8 @@ class FlashSaleController extends Controller
 
         $baseDbQuery = DB::table('FlashSale as fs')
             ->join('EnrollFlashSale as efs', 'fs.FlashSaleID', '=', 'efs.FlashSaleID')
-            ->join('products as p', 'efs.productID', '=', 'p.productID')
-            ->join('users as u', 'fs.userID', '=', 'u.userID')
+            ->join('Products as p', 'efs.productID', '=', 'p.productID')
+            ->join('Users as u', 'fs.userID', '=', 'u.userID')
             ->leftJoin('ProductImages as pi', function ($join) {
                 $join->on('p.ProductID', '=', 'pi.ProductID')
                      ->where('pi.IsPrimary', '=', 1);

@@ -15,7 +15,7 @@ class OrderBuyer extends Model
 {
     use HasFactory;
 
-    protected $table = 'orders_buyer';
+    protected $table = 'OrdersBuyer';
 
     protected $primaryKey = 'OrderID';
 

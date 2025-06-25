@@ -20,7 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
-
+    protected $table = 'Users';
     protected $primaryKey = 'UserID';
 
     /**
@@ -32,6 +32,7 @@ class User extends Authenticatable
         'Username',
         'Email',
         'Password',
+        'Avatar',
         'FullName',
         'Phone',
         'Level',
@@ -137,5 +138,11 @@ class User extends Authenticatable
     public function usedVouchers(): HasMany
     {
         return $this->hasMany(UserVoucher::class, 'UserID', 'UserID');
+    }
+
+
+    public function conversationMetas()
+    {
+        return $this->hasMany(ConversationMeta::class, 'user_id', 'UserID');
     }
 }

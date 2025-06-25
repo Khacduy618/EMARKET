@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import './globals.css'; // Giữ lại import CSS toàn cục
+import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -19,7 +19,7 @@ export default function RootLayout({
             {/* Thẻ <head> sẽ được Next.js tự quản lý. Bạn không cần đặt ở đây */}
 
             {/* Đặt các class chung nhất cho body ở đây */}
-            <body className="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default bg-gray-50 text-slate-500">
+            <body className="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default text-slate-500" style={{ backgroundColor: '#f8f4f4' }}>
             {/* <body style={{ backgroundColor: '#f8f4f4' }}> */}
                 {children}
                 <ToastContainer

@@ -46,12 +46,7 @@ class ProductVariant extends Model
     // Mối quan hệ nhiều-nhiều đến AttributeValues thông qua ProductVariantAttribute
     public function attributeValues()
     {
-        return $this->belongsToMany(
-            AttributeValue::class, 
-            'productvariantattribute', // Tên bảng trung gian
-            'VariantID',               // Khóa ngoại của model hiện tại trong bảng trung gian
-            'AttributeValueID'         // Khóa ngoại của model được join trong bảng trung gian
-        );
+        return $this->belongsToMany(AttributeValue::class, 'ProductVariantAttribute', 'VariantID', 'AttributeValueID');
     }
     public function getFormattedPriceAttribute(): ?string
     {
