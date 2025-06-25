@@ -86,4 +86,32 @@ Route::get('/login', [AuthController::class, 'loginRedirect'])->name('login');
 
 Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
 
+Route::get('/csrf-init', function () {
+    return response()->json(['message' => 'CSRF cookie set.']);
+});
+
+// Route me của bạn BẮT BUỘC phải CÓ middleware auth:sanctum
+Route::get('/me', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
 // Route::middleware('auth:sanctum')->put('/user/password', [AuthController::class, 'updatePassword']);
+
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+Route::get('/debug-origin', function (Request $request) {
+    // Trả về header 'Origin' mà Laravel nhận được từ request
+    $origin = $request->header('Origin');
+
+    // So sánh nó với giá trị chúng ta mong đợi
+    $expectedDomain = 'http://' . config('sanctum.stateful')[0];
+
+    return response()->json([
+        'message' => 'Origin Header Debug',
+        'origin_header_received' => $origin,
+        'expected_origin_from_config' => $expectedDomain,
+        'do_they_match' => $origin === $expectedDomain,
+    ]);
+});

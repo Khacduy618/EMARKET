@@ -12,6 +12,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Sử dụng HandleCors của chính Laravel 11, không phải Fruitcake. Đây là mặc định và đúng.
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+
+        // Áp dụng middleware của Sanctum cho các route API.
+        $middleware->appendToGroup('api', [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        // Định nghĩa các alias.
+        $middleware->alias([
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ]);
+    })
+    ->withMiddleware(function (Middleware $middleware) { // << XÓA HOẶC COMMENT KHỐI NÀY
         $middleware->validateCsrfTokens(
             except: ['api/*']
         );

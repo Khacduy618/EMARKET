@@ -1,106 +1,116 @@
-'use client';
+// app/(main)/(auth)/login/page.tsx
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/services/api'; // Assuming api utility is in this path
+import { useState, FormEvent, useEffect } from 'react';
+import { getCsrfCookie } from '@/services/auth'; // << Phải import hàm này
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
-const LoginPage: React.FC = () => {
-    const [Email, setEmail] = useState('');
-    const [Password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const router = useRouter();
-
+export default function LoginPage() {
+    // useEffect để đảm bảo cookie được lấy khi trang tải
     useEffect(() => {
-        // Check if authToken exists in localStorage
-        const authToken = localStorage.getItem('authToken');
-        if (authToken) {
-            // If token exists, redirect to homepage
-            router.push('/');
-        }
-    }, [router]); // Dependency array includes router to ensure effect runs if router changes
+        getCsrfCookie();
+    }, []);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { login, error } = useAuth();
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        setError(''); // Clear previous errors
-
-        try {
-            // Assuming the login API endpoint is '/api/login' and accepts email and password
-            const response = await api.post('/login', { Email, Password });
-            console.log('data: ', response);
-            if (response.Token && response.User) {
-                // Assuming the API returns a token upon successful login
-                // Store the token (e.g., in localStorage or a state management solution)
-                localStorage.setItem('authToken', response.Token);
-                localStorage.setItem('user', JSON.stringify(response.User));
-                // Redirect to a protected page (e.g., homepage or dashboard)
-                router.push('/'); // Redirect to homepage after login
-            } else {
-                // Handle cases where login is unsuccessful but no error is thrown
-                setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
-            }
-        } catch (err: any) {
-            console.error("Login error:", err); // Log the full error object
-            // Handle API errors
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
-            } else if (err instanceof Error) {
-                // Handle generic Error objects (e.g., network errors)
-                setError(`Đã xảy ra lỗi trong quá trình đăng nhập: ${err.message}`);
-            } else {
-                setError('Đã xảy ra lỗi không xác định trong quá trình đăng nhập.');
-            }
-        }
+        setIsSubmitting(true);
+        await login({ email, password });
+        setIsSubmitting(false);
     };
 
+
     return (
-        <div className="flex h-screen font-sans container mx-auto mt-4 mb-4 rounded-lg shadow-md">
-            <div className="w-1/2 p-10 flex flex-col justify-center items-start bg-white rounded-s-lg ">
-                <h1 className="text-3xl font-bold text-gray-500 hover:text-gray-700">Holla, Welcome Back</h1>
-                <p className="text-gray-500 hover:text-gray-700">Hey, welcome back to your special place</p>
-                {error && <p className="text-red-500">{error}</p>}
-                <form onSubmit={handleLogin} className="w-full">
-                    <div className="mb-5">
-                        <label htmlFor="Email" className="block mb-1 text-gray-500 hover:text-gray-700">Email:</label>
-                        <input
-                            id="Email"
-                            type="Email"
-                            value={Email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-5">
-                        <label htmlFor="Password" className="block mb-1 text-gray-500 hover:text-gray-700">Mật khẩu:</label>
-                        <input
-                            id="Password"
-                            type="Password"
-                            value={Password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="flex justify-between items-center mb-5">
-                        <label className="flex items-center">
-                            <input type="checkbox" id="rememberMe" className="mr-2 " />
-                            <span className="text-gray-500 hover:text-gray-700"> Remember me</span>
-                        </label>
-                        <a href="#" className="text-gray-500 hover:text-gray-700">Forgot Password?</a>
-                    </div>
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline w-full">Sign In</button>
-                </form>
-                <p className="mt-5 text-gray-500 hover:text-gray-700">Don't have an account? <a href="#" className="text-blue-500 hover:text-blue-700">Sign Up</a></p>
-            </div>
-            <div className="w-1/2 bg-purple-200 flex justify-center items-center rounded-e-lg">
-                {/*  Illustration */}
-                <div className="text-center p-10">
-                    <img src="/images/illustration.png" alt="Illustration" className="max-w-full h-auto" />
-                    <p className="mt-5 text-gray-500 hover:text-gray-700" >Please tap your finger to your phone</p>
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+                <div className="text-center">
+                    <h2 className="text-3xl font-extrabold text-gray-900">
+                        Chào mừng trở lại!
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Đăng nhập để tiếp tục mua sắm
+                    </p>
                 </div>
+
+                {/* Vùng hiển thị lỗi */}
+                {error && (
+                    <div className="p-3 text-sm text-red-800 bg-red-100 border border-red-200 rounded-lg">
+                        {error}
+                    </div>
+                )}
+
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div className="space-y-4 rounded-md shadow-sm">
+                        <div>
+                            <label htmlFor="email-address" className="sr-only">
+                                Địa chỉ Email
+                            </label>
+                            <input
+                                id="email-address"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                placeholder="Địa chỉ Email"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="sr-only">
+                                Mật khẩu
+                            </label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                placeholder="Mật khẩu"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                        <div className="text-sm">
+                            <Link href="/forgot-password">
+                                <span className="font-medium text-indigo-600 cursor-pointer hover:text-indigo-500">
+                                    Quên mật khẩu?
+                                </span>
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                        >
+                            {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
+                        </button>
+                    </div>
+                </form>
+
+                <p className="mt-4 text-sm text-center text-gray-600">
+                    Chưa có tài khoản?{' '}
+                    <Link href="/register">
+                        <span className="font-medium text-indigo-600 cursor-pointer hover:text-indigo-500">
+                            Đăng ký ngay
+                        </span>
+                    </Link>
+                </p>
             </div>
         </div>
     );
-};
+}
 
-export default LoginPage;

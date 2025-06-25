@@ -169,7 +169,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // 'secure' => env('SESSION_SECURE_COOKIE'),
+    // 'secure' => 'false', // <<<< ĐẢM BẢO DÒNG NÀY ĐÚNG
 
     /*
     |--------------------------------------------------------------------------
@@ -199,7 +200,8 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // 'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // 'same_site' => 'none',
 
     /*
     |--------------------------------------------------------------------------
@@ -213,5 +215,8 @@ return [
     */
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
+
+    'secure' => 'false',
+    'same_site' => env('SESSION_SAME_SITE', 'none'),
 
 ];

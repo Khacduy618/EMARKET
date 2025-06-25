@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from "@/context/AuthContext";
+import ToastProvider from "./components/providers/ToastProvider";
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -16,20 +18,23 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body style={{ backgroundColor: '#f8f4f4'}}>
-                {children}
-                <ToastContainer
-                    position="top-right" // Vị trí hiển thị
-                    autoClose={5000} // Tự động đóng sau 5 giây
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light" // "light", "dark", "colored"
-                />
+            <body style={{ backgroundColor: '#f8f4f4' }}>
+                <AuthProvider>
+                    {children}
+                    {/* <ToastContainer */}
+                    {/*     position="top-right" // Vị trí hiển thị */}
+                    {/*     autoClose={5000} // Tự động đóng sau 5 giây */}
+                    {/*     hideProgressBar={false} */}
+                    {/*     newestOnTop={false} */}
+                    {/*     closeOnClick */}
+                    {/*     rtl={false} */}
+                    {/*     pauseOnFocusLoss */}
+                    {/*     draggable */}
+                    {/*     pauseOnHover */}
+                    {/*     theme="light" // "light", "dark", "colored" */}
+                    {/* /> */}
+                    <ToastProvider />
+                </AuthProvider>
             </body>
         </html>
     );

@@ -10,4 +10,5 @@ export interface User {
     IsActive: boolean;
     CreatedAt: string;
     UpdatedAt: string;
+    email_verified_at?: string;
 }
