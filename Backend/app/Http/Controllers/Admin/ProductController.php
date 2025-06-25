@@ -232,8 +232,8 @@ public function ProductFinalPrice()
     }
     public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
     {
-        $productsData = DB::table('products as p')
-            ->leftJoin('productimages as pi', function ($join) {
+        $productsData = DB::table('Products as p')
+            ->leftJoin('ProductImages as pi', function ($join) {
                 $join->on('p.ProductID', '=', 'pi.ProductID')
                      ->where('pi.IsPrimary', '=', 1);
             })

@@ -238,13 +238,13 @@ public function update(Request $request, $id)
                     // Sắp xếp theo tổng số lượng bán được
                     $query->addSelect([
                         'total_sold' => \App\Models\OrderItem::selectRaw('SUM(Quantity)')
-                            ->join($variantTable, 'order_items.VariantID', '=', "$variantTable.VariantID")
-                            ->whereColumn("$variantTable.ProductID", 'products.ProductID')
+                            ->join($variantTable, 'OrderItems.VariantID', '=', "$variantTable.VariantID")
+                            ->whereColumn("$variantTable.ProductID", 'Products.ProductID')
                     ])->orderByDesc('total_sold');
                     break;
 
                 case 'newest':
-                    $query->orderBy('products.CreatedAt', 'desc');
+                    $query->orderBy('Products.CreatedAt', 'desc');
                     break;
 
                 case 'popular':
@@ -303,7 +303,7 @@ public function update(Request $request, $id)
             return response()->json(['message' => 'An internal server error occurred.', 'error' => $e->getMessage()], 500);
         }
     } 
-    public function getCategoryFilters(Category $category = null)
+    public function getCategoryFilters(Category $category)
     {
         try {
             // Xác định các danh mục mục tiêu
