@@ -44,13 +44,8 @@ class ProductDetailController extends Controller
      */
     public function show($productId)
     {
-        // SỬA ĐỔI CHÍNH Ở DÒNG DƯỚI ĐÂY
-        $product = Product::with([
-            'category',
-            'images', 
-            // Tải các biến thể -> mỗi biến thể tải các giá trị thuộc tính -> mỗi giá trị thuộc tính tải tên thuộc tính cha của nó
-            'variants.attributeValues.attribute' 
-        ])->find($productId);
+        // Eager load relationships: images, variants, and each variant's attributes
+        $product = Product::with(['images', 'Variants.AttributeValues'])->find($productId);
 
         if (!$product) {
             return response()->json([

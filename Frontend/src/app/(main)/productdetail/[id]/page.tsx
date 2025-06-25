@@ -1,43 +1,11 @@
-// import { notFound } from 'next/navigation';
-// import ProductDetail from '../components/Productdetail';
-// import ProductDescription from '../components/ProductDescription';
-// import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
-
-// interface ProductPageProps {
-//     params: {
-//         id: string;
-//     };
-// }
-
-// export default async function ProductPage({ params }: ProductPageProps) {
-//     const { id } = params;
-//     const productIdAsNumber = parseInt(id, 20);
-//     if (isNaN(productIdAsNumber)) {
-//         notFound();
-//     }
-
-//     return (
-//         <div className="container mx-auto px-4 py-8">
-//             <main>
-//                 <ProductDetail
-//                     productId={productIdAsNumber}
-//                     descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
-//                     sidebarSlot={<RelatedProductsSidebar currentProductId={productIdAsNumber} />}
-//                 />
-//             </main>
-//         </div>
-//     );
-// }
-
-// export async function generateMetadata({ params }: ProductPageProps) {
-//     // ...
-// }
-// src/app/(main)/productdetail/[id]/page.tsx
 
 import { notFound } from 'next/navigation';
 import ProductDetail from '../components/Productdetail';
+import React from 'react';
+import { getMockComments, mockProduct } from '../data';
 import ProductDescription from '../components/ProductDescription';
 import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
+import { ProductComments } from '../components/ProductComents'; 
 
 // Bỏ interface ProductPageProps hoặc không dùng nó cho component chính
 
@@ -52,16 +20,22 @@ export default async function ProductPage({ params }: { params: { id: string } }
         notFound(); // Chuyển hướng đến trang 404
     }
 
+    const initialComments = await getMockComments(params.id);
+    const product = mockProduct;
+
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 text-black">
             <main>
                 <ProductDetail
                     productId={productIdAsNumber}
                     descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
                     sidebarSlot={<RelatedProductsSidebar currentProductId={productIdAsNumber} />}
                 />
+                {/* Phần bình luận - Truyền dữ liệu vào Client Component */}
+                <ProductComments initialComments={initialComments} />
             </main>
         </div>
+        
     );
 }
 
@@ -84,4 +58,5 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     return {
         title: `Chi tiết sản phẩm #${id}`,
     };
+        
 }

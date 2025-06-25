@@ -158,7 +158,7 @@ export default function Home() {
               <BestSellingProducts />
               <HeroBannerSlider />
               <ProductsCart />
-              <NewArrivalsSection />
+              {/* <NewArrivalsSection /> */}
             </div>
           </main>
         </div>

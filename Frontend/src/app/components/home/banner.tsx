@@ -14,26 +14,13 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
-
-interface Banner {
-    BannerID: number;
-    Title?: string | null;
-    ImageURL: string;
-    LinkURL?: string | null;
-    Position?: string | null;
-    SortOrder?: number | null;
-    IsActive: boolean; // JSON trả về true/false, khớp với boolean
-    StartDate?: string | null; // Định dạng ISO 8601 từ Laravel (ví dụ: "2025-04-02T17:00:00.000000Z")
-    EndDate?: string | null;   // Định dạng ISO 8601 từ Laravel
-    CreatedAt?: string;
-    UpdatedAt?: string;
-}
+import type { IHome } from '@/types/Ihome';
 
 // API Endpoint đã được định nghĩa rõ ràng
 const API_URL = 'http://localhost:8001/api/banners?position=homepage_carousel';
 
 const HeroBannerSlider: React.FC = () => {
-    const [banners, setBanners] = useState<Banner[]>([]);
+    const [banners, setBanners] = useState<IHome.Banner[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +29,7 @@ const HeroBannerSlider: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<{ data: Banner[] }>(API_URL);
+                const response = await axios.get<{ data: IHome.Banner[] }>(API_URL);
                 const now = new Date();
 
                 // Dữ liệu từ API đã là { data: [...] }

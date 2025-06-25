@@ -63,6 +63,5 @@ class Category extends Model
     {
         return $this->childrenCategories()->with('allChildren');
     }
-
     // Removed primaryImage relationship as it's incorrect for categories
 }

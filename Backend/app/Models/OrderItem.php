@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\OrderBuyer;
 use App\Models\ProductVariant;
-use App\Models\FlashSaleDeal;
 use App\Models\ReturnRequest;
 
 class OrderItem extends Model
@@ -53,7 +52,6 @@ class OrderItem extends Model
     {
         return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }
-
     /**
      * Get the flash sale deal associated with the order item.
      */

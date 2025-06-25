@@ -419,7 +419,7 @@ const NewArrivalsSection: React.FC = () => {
                 setLoading(true);
                 setError(null);
                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/new-arrivals');
-
+                console.log("test new:", response)
                 const processedData = response.data.map((p): ProcessedProduct | null => {
                     // SỬA LỖI: Bỏ qua sản phẩm nếu không có variant hoặc không có giá
                     if (!p.variant || p.variant.price == null) {
@@ -427,6 +427,21 @@ const NewArrivalsSection: React.FC = () => {
                         return null;
                     }
 
+                    const finalImageUrl = p.variant.image_url || p.image_url;
+                    console.log(
+                        `Product ID ${p.ProductID}:`,
+                        `variant.image_url = '${p.variant.image_url}'`,
+                        `p.image_url = '${p.image_url}'`,
+                        `---> Final ImageURL = '${finalImageUrl}'`
+                    );
+                    let imageUrl = p.variant.image_url || p.image_url;
+
+                    // ---- SỬA LỖI TẠI ĐÂY ----
+                    // Nếu imageUrl tồn tại và là đường dẫn tương đối (bắt đầu bằng '/')
+                    if (imageUrl && imageUrl.startsWith('/')) {
+                        // Nối nó với địa chỉ của backend để tạo URL đầy đủ
+                        imageUrl = `${`http://localhost:8001/api/new-arrivals`}${imageUrl}`;
+                    }
                     const finalPrice = p.variant.price;
                     const originalPrice = p.variant.compare_at_price;
                     let discountPercent = 0;
@@ -477,7 +492,7 @@ const NewArrivalsSection: React.FC = () => {
     if (allProducts.length === 0) return null;
 
     return (
-        <section className="py-4 sm:py-6 bg-orange-50">
+        <section className="py-4 sm:py-6 bg-white">
             <div className="max-w-[1500px] mx-auto px-2 sm:px-4">
                 <div className="mb-3 p-3 bg-white border-b-4 border-orange-500 text-center">
                     <h2 className="text-base sm:text-lg font-bold text-orange-500 uppercase">
@@ -545,3 +560,159 @@ const NewArrivalsSection: React.FC = () => {
 };
 
 export default NewArrivalsSection;
+// 'use client';
+
+// import React, { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import axios from 'axios';
+
+// // SỬA 1: Cập nhật Interface để khớp với JSON mới.
+// // Không còn 'variant' nữa, cấu trúc đã được làm phẳng.
+// interface ApiProduct {
+//     ProductID: number;
+//     ProductName: string;        // <-- Tên trường đã đổi
+//     ProductDescription: string; // <-- Tên trường đã đổi
+//     ImageURL: string;           // <-- Tên trường đã đổi
+//     // Thêm các trường khác nếu bạn cần dùng, ví dụ:
+//     FinalPrice: number;
+//     CompareAtPrice: number | null;
+// }
+
+// // Interface cho dữ liệu đã xử lý (giữ nguyên cho đơn giản)
+// interface ProcessedProduct {
+//     ProductID: number;
+//     name: string;
+//     description: string;
+//     ImageURL: string;
+// }
+
+// const NewArrivalsSection: React.FC = () => {
+//     const [products, setProducts] = useState<ProcessedProduct[]>([]);
+//     const [loading, setLoading] = useState<boolean>(true);
+//     const [error, setError] = useState<string | null>(null);
+
+//     useEffect(() => {
+//         const fetchNewArrivals = async () => {
+//             const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
+
+//             try {
+//                 setLoading(true);
+//                 setError(null);
+
+//                 const response = await axios.get<ApiProduct[]>(`${API_BASE_URL}/api/new-arrivals`);
+
+//                 // SỬA 2: Xử lý dữ liệu với tên trường MỚI và cấu trúc MỚI.
+//                 const processedData = response.data.map((p): ProcessedProduct | null => {
+//                     // Kiểm tra xem dữ liệu cơ bản có tồn tại không
+//                     if (!p || !p.ProductID) {
+//                         return null;
+//                     }
+
+//                     // Lấy dữ liệu từ các trường mới
+//                     const imageUrl = p.ImageURL;
+//                     const productName = p.ProductName;
+//                     const productDescription = p.ProductDescription;
+
+//                     // Trả về đối tượng đã được chuẩn hóa để component sử dụng
+//                     return {
+//                         ProductID: p.ProductID,
+//                         name: productName,
+//                         description: productDescription,
+//                         // URL ảnh đã là URL đầy đủ, không cần xử lý thêm
+//                         ImageURL: imageUrl || 'https://placehold.co/800x400/cccccc/ffffff?text=Image+Not+Found',
+//                     };
+//                 }).filter(Boolean) as ProcessedProduct[]; // Lọc bỏ các sản phẩm null
+
+//                 setProducts(processedData);
+
+//             } catch (err) {
+//                 console.error("Lỗi khi fetch sản phẩm mới:", err);
+//                 setError("Không thể tải sản phẩm.");
+//                 setProducts([]);
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+
+//         fetchNewArrivals();
+//     }, []);
+
+//     // Phần JSX để render không cần thay đổi, vì nó dùng dữ liệu từ `ProcessedProduct` đã được chuẩn hóa.
+//     if (loading) {
+//         return <section className="py-12 text-center">Đang tải sản phẩm mới...</section>;
+//     }
+
+//     if (error) {
+//         return <section className="py-12 text-center text-red-500">{error}</section>;
+//     }
+
+//     const mainProduct = products[0];
+//     const secondaryProducts = products.slice(1, 3);
+
+//     if (!mainProduct) {
+//         return (
+//             <section className="py-12 bg-gray-50">
+//                 <div className="container mx-auto px-4 text-center">
+//                     <h2 className="text-3xl font-bold text-gray-900">New Arrival</h2>
+//                     <p className="text-gray-700 mt-4">Hiện chưa có sản phẩm mới nào.</p>
+//                 </div>
+//             </section>
+//         );
+//     }
+
+//     return (
+//         <section className="py-12 bg-white">
+//             <div className="container mx-auto px-4">
+//                 <h2 className="text-3xl font-bold text-gray-900 mb-8">New Arrival</h2>
+
+//                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+//                     {/* Main Product / Left Banner */}
+//                     {mainProduct && (
+//                         <div className="relative col-span-1 h-96 lg:h-[400px] rounded-lg overflow-hidden group">
+//                             <img
+//                                 src={mainProduct.ImageURL}
+//                                 alt={mainProduct.name}
+//                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+//                             />
+//                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-6 rounded-lg">
+//                                 <h3 className="text-3xl font-bold text-white mb-2">{mainProduct.name}</h3>
+//                                 <p className="text-gray-200 text-sm mb-4 line-clamp-2">{mainProduct.description}</p>
+//                                 <Link
+//                                     href={`/productdetail/${mainProduct.ProductID}`}
+//                                     className="inline-block bg-blue-500 w-auto max-w-[150px] text-center text-white font-medium px-6 py-2 rounded-full hover:bg-gray-200 hover:text-black transition-colors duration-300"
+//                                 >
+//                                     Shop Now
+//                                 </Link>
+//                             </div>
+//                         </div>
+//                     )}
+
+//                     {/* Right Side Grid */}
+//                     <div className="grid grid-cols-1 gap-6">
+//                         {secondaryProducts.map((product) => (
+//                             <div key={product.ProductID} className="relative h-44 rounded-lg overflow-hidden group">
+//                                 <img
+//                                     src={product.ImageURL}
+//                                     alt={product.name}
+//                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+//                                 />
+//                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 rounded-lg">
+//                                     <h3 className="text-xl font-bold text-white mb-1">{product.name}</h3>
+//                                     <p className="text-gray-300 text-xs mb-3 line-clamp-1">{product.description}</p>
+//                                     <Link
+//                                         href={`/productdetail/${product.ProductID}`}
+//                                         className="inline-block bg-blue-500 w-auto max-w-[120px] text-center text-white text-sm font-medium px-4 py-1.5 rounded-full hover:bg-gray-200 hover:text-black transition-colors duration-300"
+//                                     >
+//                                         Shop Now
+//                                     </Link>
+//                                 </div>
+//                             </div>
+//                         ))}
+//                     </div>
+//                 </div>
+//             </div>
+//         </section>
+//     );
+// };
+
+// export default NewArrivalsSection;

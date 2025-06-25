@@ -10,7 +10,7 @@ class ProductVariant extends Model
 {
     use HasFactory;
 
-    protected $table = 'productvariants';
+    protected $table = 'ProductVariants';
     protected $primaryKey = 'VariantID';
     public $timestamps = true;
 
@@ -22,6 +22,15 @@ class ProductVariant extends Model
         'ImageURL', // Ảnh riêng của biến thể
         'IsActive',
     ];
+    /**
+     * Define the many-to-many relationship with Attribute
+     */
+    // public function attributes()
+    // {
+    //     return $this->belongsToMany(Attribute::class, 'ProductVariantAttribute', 'VariantID', 'AttributeID')
+    //                 ->withPivot('Value')
+    //                 ->withTimestamps();
+    // }
 
     public function product()
     {
@@ -37,7 +46,7 @@ class ProductVariant extends Model
     // Mối quan hệ nhiều-nhiều đến AttributeValues thông qua ProductVariantAttribute
     public function attributeValues()
     {
-        return $this->belongsToMany(AttributeValue::class, 'productvariantattribute', 'VariantID', 'AttributeValueID');
+        return $this->belongsToMany(AttributeValue::class, 'ProductVariantAttribute', 'VariantID', 'AttributeValueID');
     }
     public function getFormattedPriceAttribute(): ?string
     {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FlashSale extends Model
 {
-    protected $table = 'flash_sales';
+    protected $table = 'FlashSale';
     
     protected $fillable = [
         'product_id', 'start_time', 'end_time', 'flash_price', 'limit_qty',

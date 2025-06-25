@@ -15,20 +15,20 @@ class SearchController extends Controller
         $keyword = $request->input('q');
 
         if (empty($keyword)) {
-            return response()->json(['products' => [], 'shops' => []]);
+            return response()->json(['Products' => [], 'Shops' => []]);
         }
 
         // 1. Tìm sản phẩm gợi ý (lấy 5 sản phẩm)
         // Join với ảnh chính để hiển thị
-        $products = Product::select('products.ProductID', 'products.Name')
+        $products = Product::select('Products.ProductID', 'Products.Name')
             ->leftJoin('ProductImages', function ($join) {
-                $join->on('products.ProductID', '=', 'ProductImages.ProductID')
+                $join->on('Products.ProductID', '=', 'ProductImages.ProductID')
                      ->where('ProductImages.IsPrimary', '=', 1);
             })
             ->addSelect('ProductImages.ImageURL')
-            ->where('products.Name', 'LIKE', "%{$keyword}%")
-            ->where('products.IsActive', 1)
-            ->where('products.AdminApprovalStatus', 'Approved')
+            ->where('Products.Name', 'LIKE', "%{$keyword}%")
+            ->where('Products.IsActive', 1)
+            ->where('Products.AdminApprovalStatus', 'Approved')
             ->limit(5)
             ->get();
 
@@ -40,7 +40,7 @@ class SearchController extends Controller
             ->get();
             
         return response()->json([
-            'products' => $products,
+            'Products' => $products,
             'shops' => $shops,
         ]);
     }
