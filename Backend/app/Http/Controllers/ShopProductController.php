@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreProductRequest;  
 use App\Models\AttributeValue;
+use Illuminate\Support\Facades\Storage;
 
 class ShopProductController extends Controller
 {
