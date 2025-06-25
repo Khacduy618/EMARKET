@@ -175,7 +175,7 @@ export default function AddProductPage() {
         const newVariants = combinations.map((combo, index) => ({
             AttributeValues: Object.keys(combo).map((attrID) => ({
                 AttributeID: Number(attrID),
-                Value: combo[attrID],
+                Value: combo[Number(attrID)],
             })),
             Price: formData.Price,
             Discount: formData.Discount,

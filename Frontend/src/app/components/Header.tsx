@@ -147,8 +147,9 @@ export default function Header() {
             await api.post('/logout', {}); // Assuming logout is a POST request to /api/logout
 
             // Remove the token from localStorage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+            if(localStorage.getItem('authToken')){localStorage.removeItem('authToken');}
+            if(localStorage.getItem('user')){localStorage.removeItem('user');}
+            if(localStorage.getItem('checkoutData')){localStorage.removeItem('checkoutData');}
 
             // Update state and redirect to login page
             setIsLoggedIn(false);
@@ -158,6 +159,7 @@ export default function Header() {
             // Even if API call fails, attempt to remove token and redirect
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
+            localStorage.removeItem('checkoutData');
             setIsLoggedIn(false);
             router.push('/login');
         }

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\AddressController;
 
 use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
 use App\Http\Controllers\Admin\StatisticsController; //admin
@@ -77,6 +78,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+
+
 Route::middleware('auth:sanctum')->group(function (){
     // Auth routes already defined above, removing duplicates
     Route::get('/me', [AuthController::class, 'me']);
@@ -86,11 +89,25 @@ Route::middleware('auth:sanctum')->group(function (){
     
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::put('/cart/items/{cartItemId}/variant', [CartController::class, 'updateVariant']);
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
+    Route::delete('/cart/items', [CartController::class, 'removeMultipleItems']);
+
     //voucher routes
-     Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
+
+     //checkout
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::put('/addresses/{addressId}/set-default', [AddressController::class, 'setDefault']);
+    Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
+    Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
+    Route::post('/addresses', [AddressController::class, 'store']);
+    
 });
+
+
 Route::get('/products/{product_id}/variants/filter',[BuyerProductController::class, 'filterVariants']);
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import {API_BASE_URL} from '@/services/api';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8001/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
