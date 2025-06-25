@@ -171,7 +171,7 @@ export default function Header() {
     return (
         // *** SỬA ĐỔI CHÍNH Ở ĐÂY ***
         // Thẻ div bao ngoài cùng này sẽ chịu trách nhiệm dính lại
-        <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="sticky top-0 z-30 bg-white shadow-sm">
             {/* PHẦN 1: HEADER CHÍNH (logo, tìm kiếm, icons) */}
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">

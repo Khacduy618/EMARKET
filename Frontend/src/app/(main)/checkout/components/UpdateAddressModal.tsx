@@ -6,6 +6,8 @@ import { Address } from '@/types';
 import { createAddress, fetchAddressDetails, updateAddress } from '@/services/user';
 import { toast } from 'react-toastify';
 import AddressPicker from './AddressPicker'; // Import component mới
+import MapPicker from './MapPicker'; // Import component bản đồ
+import axios from 'axios';
 
 
 interface UpdateAddressModalProps {
@@ -91,6 +93,47 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
         setSubmitting(false);
         }
     };
+    const handleLocationSelect = async (location: { lat: number; lng: number }) => {
+    try {
+        // Gọi Geocoding API của Google
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=${apiKey}&language=vi`;
+        
+        const response = await axios.get(url);
+        
+        if (response.data.status === 'OK' && response.data.results.length > 0) {
+            const result = response.data.results[0];
+            const addressComponents = result.address_components;
+            
+            // Hàm helper để tìm giá trị từ components
+            const findComponent = (type: string) => addressComponents.find((c: any) => c.types.includes(type))?.long_name || '';
+
+            const streetNumber = findComponent('street_number');
+            const route = findComponent('route');
+            const ward = findComponent('sublocality_level_1') || findComponent('ward');
+            const district = findComponent('administrative_area_level_2');
+            const city = findComponent('administrative_area_level_1');
+
+            const street = `${streetNumber} ${route}`.trim();
+
+            setAddress(prev => ({
+                ...prev,
+                Street: street || prev.Street || '', // Giữ lại street cũ nếu không tìm thấy
+                Ward: ward,
+                District: district,
+                City: city,
+            }));
+            
+            toast.info("Đã cập nhật địa chỉ từ bản đồ.");
+        } else if (response.data.status === 'ZERO_RESULTS') {
+            toast.warn("Không tìm thấy địa chỉ chi tiết tại vị trí này. Vui lòng nhập tay.");
+        } else {
+            console.error("Geocoding API error:", response.data.status);
+        }
+    } catch (error) {
+        console.error("Failed to call Geocoding API", error);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -134,7 +177,10 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
               </div>
 
               {/* Google Map Placeholder */}
-              <div className="h-40 bg-gray-200 rounded-md flex items-center justify-center text-gray-500">Bản đồ (placeholder)</div>
+              <div className="h-60 bg-gray-200 rounded-md">
+                <MapPicker onLocationSelect={handleLocationSelect} />
+              </div>
+
 
               <div className="flex items-center">
                 <input type="checkbox" id="IsDefault" name="IsDefault" checked={!!address.IsDefault} onChange={handleCheckboxChange} className="h-4 w-4 accent-orange-500" />
