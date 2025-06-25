@@ -1,6 +1,7 @@
 // src/app/(main)/seller-dashboard/layout.tsx
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Import component từ thư mục components cùng cấp
 import Sidebar from './components/Sidebar';

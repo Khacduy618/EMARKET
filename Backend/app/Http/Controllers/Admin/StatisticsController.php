@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\utils\CategoryUtil;
 
 class StatisticsController extends Controller
 {
@@ -47,6 +48,37 @@ class StatisticsController extends Controller
       ->orderByDesc('TotalRevenue')
       ->first();
 
+
+    $summaryDataChart = DB::table('ordersbuyer as ob')
+      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->select(
+        'ob.OverallStatus',
+        DB::raw('COUNT(DISTINCT ob.OrderID) AS OrderCount')
+      )
+      ->where('p.ShopID', $shopID)
+      ->whereIn('ob.OverallStatus', ['Returned', 'Completed', 'CancelledByBuyer', 'CancelledBySeller'])
+      ->whereBetween('ob.OrderDate', [$startDate, $endDate])
+      ->groupBy('ob.OverallStatus')
+      ->pluck('OrderCount', 'OverallStatus')
+      ->toArray();
+
+   
+    $cancelledTotal = ($summaryDataChart['CancelledByBuyer'] ?? 0) + ($summaryDataChart['CancelledBySeller'] ?? 0);
+
+    unset($summaryDataChart['CancelledByBuyer'], $summaryDataChart['CancelledBySeller']);
+
+    $summaryDataChart['Cancelled'] = $cancelledTotal;
+
+    $sortField = "TotalRevenue";
+    $sortDirection = "asc";
+
+    if ($req->sort) {
+      [$sortField, $sortDirection] = explode('-', $req->sort);
+    }
+
+
     $summaryByDate = DB::table('ordersbuyer as ob')
       ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
       ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
@@ -62,12 +94,34 @@ class StatisticsController extends Controller
       ->where('s.ShopID', $shopID)
       ->where('ob.OverallStatus', 'Completed')
       ->groupBy(DB::raw('DATE(ob.OrderDate)'))
-      ->orderBy('OrderDate')
+      ->orderBy($sortField, $sortDirection)
       ->get();
+
+
+    $quantityDisplay = 10;
+
+    if ($req->display_quantity) {
+      $quantityDisplay = $req->display_quantity;
+    }
+
+    $pagination = [
+      'currentPage' => 1,
+      'limitItem' => $quantityDisplay,
+      'skipRecords' => 0,
+      'totalPage' => 0
+    ];
+
+    $totalRecords = $summaryByDate->count();
+    CategoryUtil::pagination($req, $pagination, $totalRecords);
+
+    $summaryByDate = $summaryByDate->slice($pagination['skipRecords'], $pagination['limitItem'])->values();
+
 
     return response()->json([
       'summaryByShop' => $summaryByShop,
+      'summaryDataChart' => $summaryDataChart,
       'summaryByDate' => $summaryByDate,
+      'pagination' => $pagination,
     ]);
   }
 

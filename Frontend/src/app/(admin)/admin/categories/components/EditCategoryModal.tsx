@@ -11,7 +11,7 @@ type Category = {
 
 type EditCategoryModalProps = {
   category: Category | null;
-  categoryTree: Category[]; // dữ liệu danh mục cây truyền vào để build options
+  categoryTree: Category[];
   onClose: () => void;
   onUpdated: (updatedCategory: Category) => void;
 };
@@ -76,8 +76,12 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     formData.append('_method', 'PATCH');
     console.log(category);
     try {
-      const res = await fetch('http://127.0.0.1/api/admin/categories/update', {
+      const res = await fetch('http://127.0.0.1:8001/api/admin/categories/update', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
         body: formData,
       });
       if (!res.ok) throw new Error('Update failed');
@@ -91,7 +95,7 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     }
   };
 
-  if (!category) return null; 
+  if (!category) return null;
 
   return (
     <div className="modal show d-block" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="editCategoryModalLabel">

@@ -14,11 +14,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
-
-use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
-use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Middleware\HandleImage;
-
+use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
+use App\Http\Controllers\Admin\ShopController AS ShopController;
+use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ; 
 use App\Http\Controllers\ShopProductController ;
@@ -134,8 +133,12 @@ Route::middleware('auth:sanctum' )->group(function () {
     });
 });
 
-//admin
 
+/*____________________________________________________________________
+  |                            Admin route                           |
+  |__________________________________________________________________| */
+
+  
 Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
 
 Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
@@ -150,17 +153,25 @@ Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"
 
 Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
-Route::middleware('auth:sanctum')->group(function () { 
-  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
-  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
-});
+Route::get('/admin/shops', [ShopController::class, "index"]);
+
+Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+
+Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
+
+
+
+
+/* ___________________________________________________________________
+  |                            Seller route                           |
+  |___________________________________________________________________| */
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
 });
-//route chatg;
+//route chat;
 
 
 
@@ -208,4 +219,9 @@ Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function 
 Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(function () { // 'auth.socketserver' là middleware bạn tự tạo
     Route::post('/update-conversation-meta', [ChatController::class, 'updateConversationMeta']);
     Route::post('/mark-meta-as-read', [ChatController::class, 'markMetaAsRead']);
+});
+
+Route::middleware('auth:sanctum')->group(function () { 
+  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
 });

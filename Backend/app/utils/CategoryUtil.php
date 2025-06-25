@@ -21,4 +21,14 @@ class CategoryUtil {
 
     return $tree;
   }
+
+  public static function pagination($req, &$pagination, $totalRecords){
+    if ($req->has('page')) {
+      $pagination['currentPage'] = (int)$req->query('page');
+      $pagination['skipRecords'] = ($pagination['currentPage'] - 1) * $pagination['limitItem'];
+    }
+    
+    $pagination['totalPage'] = ceil($totalRecords / $pagination['limitItem']);
+    
+    }
 }
