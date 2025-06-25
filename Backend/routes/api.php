@@ -1,7 +1,4 @@
 <?php
-
-
-
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\ProductController AS BuyerProductController;
@@ -126,13 +123,13 @@ Route::middleware('auth:sanctum' )->group(function () {
         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
         Route::get('/products', [ShopProductController::class, 'index']);
-        Route::post('/products', [ShopProductController::class, 'store']);
-        Route::put('/products/{productID}', [ShopProductController::class, 'update']);
-        Route::delete('/products/{productID}', [ShopProductController::class, 'destroy']);
+        Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
+        Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
+        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
     });
 });
-
 
 //admin
 
