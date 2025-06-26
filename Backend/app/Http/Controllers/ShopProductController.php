@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Shop;
-use App\Models\Attribute;
-use App\Models\ShopCategory;
+
+use App\Models\AttributeValue;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreProductRequest;  
-use App\Models\AttributeValue;
 use Illuminate\Support\Facades\Storage;
 class ShopProductController extends Controller
 {
@@ -54,89 +53,115 @@ class ShopProductController extends Controller
      * @param  \App\Http\Requests\StoreProductRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function addProduct(Request $request)
-    {
-        try {
-            $shop = Shop::where('UserID', Auth::id())->firstOrFail();
-            $shopID = $shop->ShopID;
-            $validatedData = $request->validate([
-                'Name' => 'required|string|max:255',
-                'Description' => 'nullable|string',
-                'CategoryID' => 'required|integer|exists:shopcategories,CategoryID',
-                'Discount' => 'nullable|numeric|min:0|max:100',
-                'Variants' => 'required|string', // Changed to string to accept JSON
-                'Images' => 'nullable|array',
-                'Images.*' => 'image|max:2048',
-                'ImageData' => 'required|json',
-            ]);
+     // Thay thế hàm addProduct cũ bằng hàm này
 
-            $product = Product::create([    
-                'ShopID' => $shopID,
-                'Name' => $validatedData['Name'],
-                'Description' => $validatedData['Description'],
-                'CategoryID' => $validatedData['CategoryID'],
-                'Discount' => $validatedData['Discount'] ?? 0,
-                'Status' => 'pending',
-                'StockQuantity' => 0  ,
-            ]);
+public function addProduct(Request $request)
+{
+    // Bước 1: Validation
+    // Validate các trường cơ bản trước
+    $validatedData = $request->validate([
+        'Name' => 'required|string|max:255',
+        'Description' => 'nullable|string',
+        'CategoryID' => 'required|integer|exists:platformcategories,CategoryID',
+        'Discount' => 'nullable|numeric|min:0|max:100',
+        'ImageData' => 'required|json', // Metadata cho ảnh chính
+        'Images' => 'nullable|array',
+        'Images.*' => 'image|max:2048',
+        'Variants' => 'required|json', // Dữ liệu các variants dưới dạng chuỗi JSON
+        'AttributeValues' => 'required|json', // Dữ liệu các thuộc tính dưới dạng chuỗi JSON
+    ]);
 
-            $imageData = json_decode($validatedData['ImageData'], true);
-            $images = $request->file('Images', []);
-            foreach ($imageData as $index => $data) {
-                if (isset($images[$index])) {
-                    $path = $images[$index]->store('product_images', 'public');
-                    ProductImage::create([
-                        'ProductID' => $product->ProductID,
-                        'ImageURL' => Storage::url($path),
-                        'IsPrimary' => $data['IsPrimary'] ?? false,
-                        'SortOrder' => $data['SortOrder'] ?? $index,
-                    ]);
-                }
-            }
+    // Validate các file ảnh của variant (nếu có)
+    $request->validate([
+        'VariantImages.*' => 'nullable|array',
+        'VariantImages.*.*' => 'image|max:2048', // Mỗi phần tử trong mảng con phải là ảnh
+    ]);
 
-            // Decode Variants from JSON string
-            $variantsData = json_decode($validatedData['Variants'], true);
-            if (!is_array($variantsData)) {
-                throw new \Exception('Invalid variants data format.');
-            }
+    // Sử dụng transaction để đảm bảo an toàn dữ liệu
+    DB::beginTransaction();
+    try {
+        $shop = Shop::where('UserID', Auth::id())->firstOrFail();
+        $variantsData = json_decode($validatedData['Variants'], true);
+        $attributeValuesData = json_decode($validatedData['AttributeValues'], true);
+        
+        // --- 2. Tạo sản phẩm chính ---
+        $product = Product::create([    
+            'ShopID' => $shop->ShopID,
+            'Name' => $validatedData['Name'],
+            'Description' => $validatedData['Description'],
+            'CategoryID' => $validatedData['CategoryID'],
+            'discount' => $validatedData['Discount'] ?? 0,
+            'AdminApprovalStatus' => 'Pending',
+            // Tổng tồn kho sẽ được tính sau khi tạo variants
+            'StockQuantity' => collect($variantsData)->sum('StockQuantity'),
+        ]);
 
-            $variantImages = $request->file('VariantImages', []);
-            foreach ($variantsData as $index => $variantData) {
-                $imageUrl = null;
-                if (isset($variantImages[$index]) && !empty($variantImages[$index])) {
-                    $firstImage = $variantImages[$index][0]; // Take the first image for ImageURL
-                    $path = $firstImage->store('variant_images', 'public');
-                    $imageUrl = Storage::url($path);
-                }
-
-                $variant = ProductVariant::create([
+        // --- 3. Lưu ảnh chính của sản phẩm ---
+        $imageData = json_decode($validatedData['ImageData'], true);
+        if ($request->hasFile('Images')) {
+            foreach ($request->file('Images') as $index => $file) {
+                $path = $file->store('product_images', 'public');
+                ProductImage::create([
                     'ProductID' => $product->ProductID,
-                    'Price' => $variantData['Price'],
-                    'StockQuantity' => $variantData['StockQuantity'],
-                    'SKU' => $variantData['SKU'],
-                    'CompareAtPrice' => $variantData['CompareAtPrice'] ?? null,
-                    'ImageURL' => $imageUrl, // Add the first image URL
+                    'ImageURL' => $path, // Lưu đường dẫn tương đối
+                    'IsPrimary' => $imageData[$index]['IsPrimary'] ?? ($index === 0),
+                    'SortOrder' => $imageData[$index]['SortOrder'] ?? $index,
                 ]);
+            }
+        }
+        
+        // --- 4. Xử lý và tạo các Variants ---
+        $variantFiles = $request->file('VariantImages', []);
 
-                // Handle additional images for this variant
-                if (isset($variantImages[$index]) && count($variantImages[$index]) > 1) {
-                    foreach (array_slice($variantImages[$index], 1) as $imageFile) {
-                        $path = $imageFile->store('variant_images', 'public');
-                        ProductImage::create([
-                            'VariantID' => $variant->VariantID,
-                            'ImageURL' => Storage::url($path),
-                            'IsPrimary' => false, // Adjust logic if needed
-                            'SortOrder' => 0,    // Adjust logic if needed
-                        ]);
+        foreach ($variantsData as $index => $variantInfo) {
+            // Tạo bản ghi variant trước
+            $variant = ProductVariant::create([
+                'ProductID' => $product->ProductID,
+                'Price' => $variantInfo['Price'],
+                'StockQuantity' => $variantInfo['StockQuantity'],
+                'SKU' => $variantInfo['SKU'],
+                'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
+                'ImageURL' => null, // Sẽ cập nhật sau nếu có ảnh chính
+                'IsActive' => 1,
+            ]);
+
+            // Xử lý ảnh cho variant này (nếu có)
+            if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
+                foreach ($variantFiles[$index] as $imageIndex => $imageFile) {
+                    $path = $imageFile->store('variant_images', 'public');
+                    // Ảnh đầu tiên của variant được set làm ảnh đại diện cho variant đó
+                    if ($imageIndex === 0) {
+                        $variant->update(['ImageURL' => $path]);
                     }
+                    // TODO: Nếu bạn có bảng riêng cho ảnh của variant, hãy tạo bản ghi ở đây
+                    // Ví dụ: VariantImage::create(['VariantID' => $variant->VariantID, 'ImageURL' => $path]);
                 }
             }
 
-            return response()->json(['message' => 'Sản phẩm đã được thêm và đang chờ phê duyệt.', 'data' => $product], 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi khi thêm sản phẩm: ' . $e->getMessage()], 500);
+            // Gắn các giá trị thuộc tính vào variant
+            foreach($attributeValuesData as $attrID => $attrValue) {
+                if (!empty($attrValue)) {
+                    $attributeValueRecord = AttributeValue::firstOrCreate(
+                        ['AttributeID' => $attrID, 'Value' => $attrValue]
+                    );
+                    $variant->attributeValues()->attach($attributeValueRecord->AttributeValueID);
+                }
+            }
         }
+
+        DB::commit();
+        return response()->json(['message' => 'Sản phẩm đã được thêm và đang chờ phê duyệt.', 'data' => $product->load('images', 'variants')], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        // Trả về lỗi chi tiết hơn để debug
+        return response()->json([
+            'message' => 'Lỗi khi thêm sản phẩm: ' . $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ], 500);
     }
+}
     // trong app/Http/Controllers/ShopProductController.php
 
 // ... (sau hàm store)
