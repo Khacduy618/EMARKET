@@ -14,6 +14,7 @@ use App\Models\Category;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
+use Illuminate\Database\Eloquent\Builder;
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -23,7 +24,7 @@ class Product extends Model
 
     protected $table = 'Products';
     protected $primaryKey = 'ProductID';
-
+    public $timestamps = false; 
     protected $fillable = [
         'ShopID', 'CategoryID', 'Name', 'Description',
         'discount', // Đảm bảo cột 'discount' tồn tại trong bảng 'products' nếu bạn dùng nó
@@ -40,8 +41,6 @@ class Product extends Model
         'IsActive' => 'boolean',
         'AverageRating' => 'float',
     ];
-
-    public $timestamps = true;
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
 
@@ -289,4 +288,21 @@ class Product extends Model
         // Giả sử cột kiểm tra duyệt trong bảng products của bạn là 'AdminApprovalStatus' = 'Approved'
         return $query->where('AdminApprovalStatus', 'Approved');
     }
+    public function scopePublishedAndAvailable(Builder $query): Builder
+    {
+        return $query->where('IsActive', 1)
+                     ->where('AdminApprovalStatus', 'Approved')
+                     // Chỉ lấy sản phẩm nào CÓ TỒN TẠI biến thể hợp lệ
+                     ->whereHas('variants', function ($variantQuery) {
+                         $variantQuery->where('IsActive', 1)
+                                      ->where('StockQuantity', '>', 0);
+                     });
+    }
+    public function orderItems(): HasMany
+    {
+        // Giả sử model của bạn là 'OrderItem' và khóa ngoại là 'ProductID'
+        // 'ProductID' trong bảng OrderItems liên kết với 'ProductID' trong bảng Products
+        return $this->hasMany(OrderItem::class, 'ProductID', 'ProductID');
+    }
+    
 }

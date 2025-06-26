@@ -59,6 +59,9 @@ Route::get('/category_banner', [BannerController::class, 'getBannersByPosition']
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
 Route::get('/productDetail/{productId}', [ProductDetailController::class, 'show']);
+//router sản phẩm hôm nay xem thêm nữa
+Route::get('/suggestions', [ProductController::class, 'getSuggestions']);
+Route::get('/products/popular', [ProductController::class, 'getAllPopular']);
 //api cho itemproducst
 Route::get('/related-products', [ProductController::class, 'getRelatedProducts']);
 Route::get('/products/{currentProductId}/related', [ProductController::class, 'getRelatedProducts']);
