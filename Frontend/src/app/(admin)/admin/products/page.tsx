@@ -63,6 +63,7 @@ export default function ProductListPage() {
 
       const json = await res.json();
       setProducts(json.data.data);
+      console.log(json);
       setTotalPage(json.data.last_page || 1);
     } catch (err) {
       console.error('Lỗi fetch:', err);
