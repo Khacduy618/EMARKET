@@ -79,7 +79,14 @@ export async function getProducts() {
   return response.data.data;
 }
 
-
+export async function addProduct(productFormData: FormData): Promise<any> {
+  const response = await api.post('/shop/products', productFormData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+}
 
 export async function createProduct(productFormData: FormData): Promise<any> {
   console.log("Attempting to send request to /products...");

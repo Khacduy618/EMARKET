@@ -83,7 +83,7 @@ export default function ProductsPage() {
         const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL;
 
         if (imagePath) {
-        return `${BACKEND_URL}/storage/${imagePath}`;
+        return `${BACKEND_URL}${imagePath}`;
     }
 
 
