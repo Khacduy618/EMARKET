@@ -1,40 +1,99 @@
 // services/auth.service.ts
-import api from './axios';
-import { LoginPayload, User } from '@/types';
 
-/**
- * Hàm này chỉ có một nhiệm vụ: Kích hoạt một request BẤT KỲ đến backend
- * để backend có cơ hội set cookie `XSRF-TOKEN` đầu tiên.
- * Chúng ta sẽ dùng một endpoint giả lập không có thật trong baseURL của api.
- * Lời gọi này có thể thất bại (404), và ĐIỀU ĐÓ HOÀN TOÀN BÌNH THƯỜNG.
- * Mục đích của nó là chỉ để "đánh thức" session.
- */
-export const getCsrfCookie = async (): Promise<void> => {
-    try {
-        // Chúng ta không gọi đến /sanctum/csrf-cookie nữa.
-        // Chúng ta sẽ gọi một route không cần xác thực trong file api.php của bạn.
-        // Nếu bạn chưa có, hãy tạo một route đơn giản. Nếu đã có rồi (ví dụ /products), dùng nó.
-        // Lời gọi này chỉ nhằm mục đích lấy cookie.
-        await api.get('/csrf-init'); // Hoặc bất kỳ route GET công khai nào trong api.php
-    } catch (error: any) {
-        // Chúng ta phớt lờ lỗi ở đây. Request này được phép thất bại (ví dụ 404).
-        // Miễn là nó đã được gửi đi, cookie sẽ được thiết lập nếu cần.
-        console.log("CSRF init call completed (error is acceptable).");
+import { LoginPayload, User, ApiError } from '@/types';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
+
+// Tiện ích để đọc cookie từ trình duyệt bằng JS
+function getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return parts.pop()?.split(';').shift() || null;
     }
+    return null;
+}
+
+// Hàm này dùng để xử lý response từ fetch, ném lỗi nếu không ok
+async function handleResponse<T>(response: Response): Promise<T> {
+    if (response.status === 204) {
+        // Trường hợp 204 No Content, không có body để parse, trả về một đối tượng rỗng
+        return {} as T;
+    }
+
+    const data = await response.json();
+    if (!response.ok) {
+        // Nếu response không thành công, ném lỗi với dữ liệu từ body
+        const error: ApiError = {
+            message: data.message || `Request failed with status ${response.status}`,
+            errors: data.errors,
+        };
+        // Tạo một đối tượng lỗi có cấu trúc giống lỗi của Axios để context xử lý
+        const fetchError = new Error(error.message);
+        (fetchError as any).response = { data: error };
+        throw fetchError;
+    }
+    return data;
+}
+
+
+export const getCsrfCookie = async (): Promise<void> => {
+    await fetch(`${WEB_URL}/sanctum/csrf-cookie`, {
+        credentials: 'include', // Tương đương với withCredentials: true
+    });
 };
 
-
 export const login = async (credentials: LoginPayload): Promise<void> => {
-    // Axios sẽ tự động xử lý X-XSRF-TOKEN vì chúng ta đã cấu hình nó trong api.ts
-    await api.post('/login', credentials);
+    // Với fetch, chúng ta phải đọc cookie XSRF-TOKEN và đặt header thủ công
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (!xsrfToken) {
+        throw new Error("CSRF token not found. Please refresh the page.");
+    }
+
+    // URL decode token trước khi gửi, giống như `cURL`
+    const decodedXsrfToken = decodeURIComponent(xsrfToken);
+
+    const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Đặt header X-XSRF-TOKEN thủ công
+            'X-XSRF-TOKEN': decodedXsrfToken,
+        },
+        body: JSON.stringify(credentials),
+    });
+
+    await handleResponse(response);
+};
+
+export const getMe = async (): Promise<User> => {
+    const response = await fetch(`${API_URL}/me`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+        },
+    });
+
+    return handleResponse<User>(response);
 };
 
 export const logout = async (): Promise<void> => {
-    // Không cần getCsrfCookie trước khi logout vì session đã tồn tại
-    await api.post('/logout');
-}
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
 
-export const getMe = async (): Promise<User> => {
-    const { data } = await api.get<User>('/me');
-    return data;
+    const response = await fetch(`${API_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+    });
+
+    await handleResponse(response);
 };

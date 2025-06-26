@@ -2,15 +2,20 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // Sử dụng biến môi trường. Chắc chắn rằng chúng đang trỏ đến https nếu bạn đã làm ở bước trước
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://localhost:8000/api',
+    // baseURL phải trỏ đến thư mục /api của backend
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
 
-    // Ba dòng này là tất cả những gì bạn cần cho việc xác thực
+    // RẤT QUAN TRỌNG: Cho phép gửi cookie đi
     withCredentials: true,
+
+    // CÁC DÒNG QUAN TRỌNG NHẤT:
+    // Yêu cầu axios TỰ ĐỘNG đọc cookie tên là 'XSRF-TOKEN'...
     xsrfCookieName: 'XSRF-TOKEN',
+
+    // ...và TỰ ĐỘNG đặt giá trị của nó vào header 'X-XSRF-TOKEN'
     xsrfHeaderName: 'X-XSRF-TOKEN',
 
-    // Headers mặc định
+    // Các header mặc định khác
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -18,6 +23,6 @@ const api = axios.create({
 });
 
 // KHÔNG CẦN BẤT KỲ INTERCEPTOR NÀO Ở ĐÂY
-// Axios sẽ tự động xử lý XSRF token.
+// Axios đã tự xử lý XSRF một cách thông minh.
 
 export default api;

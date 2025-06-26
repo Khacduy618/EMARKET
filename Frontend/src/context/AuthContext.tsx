@@ -2,99 +2,104 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { toast, Id as ToastId } from 'react-toastify'; // Import thêm Type "Id"
 import { useRouter } from 'next/navigation';
-import { login as apiLogin, logout as apiLogout, getMe as apiGetMe } from '@/services/auth';
+
+// 1. Import tất cả các hàm cần thiết từ service
+import {
+    login as apiLogin,
+    logout as apiLogout,
+    getMe as apiGetMe,
+    getCsrfCookie // Import hàm lấy cookie vào đây
+} from '@/services/auth';
+
+// 2. Import các interface/type cần thiết
 import { LoginPayload, User, ApiError } from '@/types';
 
+// 3. Import thư viện toast bạn đang dùng (ở đây là react-toastify)
+import { toast } from 'react-toastify';
+
+// Định nghĩa cấu trúc của Context, bao gồm các state và hàm sẽ cung cấp
 interface AuthContextType {
-    user: User | null;
-    isLoading: boolean;
-    login: (credentials: LoginPayload) => Promise<void>;
-    logout: () => void;
-    error: string | null;
+    user: User | null;          // Thông tin người dùng hoặc null
+    isLoading: boolean;         // Trạng thái loading ban đầu để kiểm tra session
+    login: (credentials: LoginPayload) => Promise<void>; // Hàm đăng nhập
+    logout: () => Promise<void>;        // Hàm đăng xuất
+    error: string | null;       // Lưu trữ lỗi để hiển thị trên form (nếu cần)
 }
 
+// Tạo Context với giá trị ban đầu là undefined
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Tạo component Provider
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true); // Luôn bắt đầu ở trạng thái loading
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
+    // useEffect này sẽ chỉ chạy một lần duy nhất khi ứng dụng được mount lần đầu
     useEffect(() => {
-        // Chỉ chạy một lần khi component mount
-        const fetchCurrentUser = async () => {
+        // Hàm này sẽ khởi tạo session và kiểm tra xem người dùng đã đăng nhập từ trước chưa
+        const initializeAuth = async () => {
             try {
-                const userData = await apiGetMe();
-                setUser(userData);
+                // BƯỚC 1: LẤY COOKIE - "Mồi" session một lần duy nhất
+                // Việc này đảm bảo trình duyệt có một bộ cookie ổn định trước khi làm bất cứ điều gì khác.
+                await getCsrfCookie();
+
+                // BƯỚC 2: KIỂM TRA ĐĂNG NHẬP - Thử lấy thông tin người dùng
+                const userData: any = await apiGetMe();
+                setUser(userData); // Nếu thành công, set thông tin user
             } catch (err) {
+                // Nếu getMe thất bại (lỗi 401), đó là điều bình thường, nghĩa là user chưa đăng nhập.
                 setUser(null);
             } finally {
+                // Dù thành công hay thất bại, quá trình khởi tạo đã xong.
                 setIsLoading(false);
             }
         };
-        fetchCurrentUser();
-    }, []);
 
+        initializeAuth();
+    }, []); // Mảng rỗng đảm bảo useEffect chỉ chạy 1 lần
+
+    // Hàm đăng nhập, được gọi bởi các component con (trang Login)
     const login = async (credentials: LoginPayload) => {
-        setError(null);
-        let toastId: ToastId | null = null; // Biến để giữ ID của toast
+        setError(null); // Xóa lỗi cũ
 
-        try {
-            // 1. Hiển thị toast "pending" và lấy ID của nó
-            toastId = toast.loading('Đang đăng nhập...');
+        // Dùng toast.promise để hiển thị các trạng thái loading, success, error
+        await toast.promise(
+            // Promise mà chúng ta muốn theo dõi:
+            // Gọi apiLogin và nếu nó thành công, tiếp tục gọi getMe để cập nhật state.
+            apiLogin(credentials).then(async () => {
+                const userData: any = await apiGetMe();
+                setUser(userData);
+                router.push('/'); // Chuyển hướng về trang chủ sau khi thành công
+            }),
+            // Cấu hình các thông báo cho toast
+            {
+                pending: 'Đang đăng nhập...',
+                success: 'Đăng nhập thành công! Chào mừng trở lại.',
+                error: {
+                    // Hàm này được gọi khi promise bị từ chối (reject)
+                    render({ data }) {
+                        const err = data as any; // Ép kiểu lỗi
+                        const apiError: ApiError = err.response?.data;
+                        const errorMessage = apiError?.message || "Thông tin đăng nhập không chính xác.";
 
-            // 2. Gọi API
-            await apiLogin(credentials);
-
-            // 3. Lấy thông tin user sau khi login thành công
-            const userData = await apiGetMe();
-            setUser(userData);
-
-            // 4. Cập nhật toast thành công
-            toast.update(toastId, {
-                render: 'Đăng nhập thành công! Chào mừng trở lại.',
-                type: 'success',
-                isLoading: false,
-                autoClose: 3000,
-            });
-
-            router.push('/');
-
-        } catch (err: any) {
-            // 5. Nếu có lỗi xảy ra
-            const apiError: ApiError = err.response?.data;
-            let errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng.";
-            if (apiError && apiError.errors) {
-                const firstErrorField = Object.keys(apiError.errors)[0];
-                errorMessage = apiError.errors[firstErrorField][0];
-            } else if (apiError && apiError.message) {
-                errorMessage = apiError.message;
+                        setError(errorMessage); // Cập nhật state lỗi để hiển thị trên form
+                        return errorMessage;    // Nội dung hiển thị trên toast
+                    },
+                },
             }
-
-            // Cập nhật toast thành lỗi (nếu toastId đã được tạo)
-            if (toastId) {
-                toast.update(toastId, {
-                    render: errorMessage,
-                    type: 'error',
-                    isLoading: false,
-                    autoClose: 5000,
-                });
-            }
-
-            // CẬP NHẬT STATE Ở ĐÂY - an toàn vì nó nằm trong block catch của một event handler
-            setError(errorMessage);
-        }
+        );
     };
 
-    const logout = () => {
-        // Dùng cách cũ với toast.promise cho logout vẫn ổn vì nó đơn giản
-        toast.promise(
+    // Hàm đăng xuất
+    const logout = async () => {
+        await toast.promise(
+            // Chỉ cần gọi apiLogout, không cần getCsrfCookie
             apiLogout().then(() => {
-                setUser(null);
-                router.push('/login');
+                setUser(null); // Xóa thông tin user khỏi state
+                router.push('/login'); // Chuyển hướng về trang đăng nhập
             }),
             {
                 pending: 'Đang đăng xuất...',
@@ -106,15 +111,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{ user, isLoading, login, logout, error }}>
+            {/* 
+        Chỉ render các component con khi quá trình khởi tạo auth đã hoàn tất.
+        Điều này ngăn chặn việc "nháy" màn hình (ví dụ: hiển thị trang private rồi lại redirect về login)
+      */}
             {!isLoading && children}
         </AuthContext.Provider>
     );
 };
 
+// Hook tùy chỉnh để dễ dàng truy cập vào context từ bất kỳ component nào
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error('useAuth phải được sử dụng bên trong một AuthProvider');
     }
     return context;
 };

@@ -170,7 +170,7 @@ return [
     */
 
     // 'secure' => env('SESSION_SECURE_COOKIE'),
-    // 'secure' => 'false', // <<<< ĐẢM BẢO DÒNG NÀY ĐÚNG
+    'secure' => false, // <<<< ĐẢM BẢO DÒNG NÀY ĐÚNG
 
     /*
     |--------------------------------------------------------------------------
@@ -201,7 +201,7 @@ return [
     */
 
     // 'same_site' => env('SESSION_SAME_SITE', 'lax'),
-    // 'same_site' => 'none',
+    'same_site' => 'lax',
 
     /*
     |--------------------------------------------------------------------------

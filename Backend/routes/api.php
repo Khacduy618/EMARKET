@@ -101,17 +101,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/debug-origin', function (Request $request) {
-    // Trả về header 'Origin' mà Laravel nhận được từ request
-    $origin = $request->header('Origin');
-
-    // So sánh nó với giá trị chúng ta mong đợi
-    $expectedDomain = 'http://' . config('sanctum.stateful')[0];
-
+Route::get('/debug-config', function () {
     return response()->json([
-        'message' => 'Origin Header Debug',
-        'origin_header_received' => $origin,
-        'expected_origin_from_config' => $expectedDomain,
-        'do_they_match' => $origin === $expectedDomain,
+        'session_secure_from_config' => config('session.secure')
     ]);
 });

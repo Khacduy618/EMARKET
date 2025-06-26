@@ -1,4 +1,3 @@
-@authToken = 30|Uk6mEAhbxxKScEU1r3mjXRypDDcovDc7n05ePCPK0d871a13
 @contentType = application/json
 @host = http://localhost:8000/api
 @web = http://localhost:8000
