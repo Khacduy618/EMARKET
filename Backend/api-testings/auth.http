@@ -22,8 +22,8 @@ Content-Type: application/json
 Accept: {{contentType}}
 
 {
-  "email": "geng@gmail.com",
-  "password": "admin123"
+  "email": "dix@gmail.com",
+  "password": "password123"
 }
 
 > {%
@@ -41,14 +41,14 @@ Content-Type: {{contentType}}
 Accept: {{contentType}}
 
 {
-  "Email": "di@gmail.com",
+  "Email": "dix@gmail.com",
   "FullName": "Project User",
   "IsActive": true,
   "Password": "password123",
   "Password_confirmation": "password123",
-  "Phone": "1234567890",
-  "Role": "Người bán",
-  "Username": "di"
+  "Phone": "01234567890",
+  "Role": "Buyer",
+  "Username": "dix"
 }
 
 

@@ -41,7 +41,7 @@ class CreateNewUser implements CreatesNewUsers
             'FullName' => $input['FullName'] ?? null,
             'Phone'    => $input['Phone'] ?? null,
             'Level'    => $input['Level'] ?? 'Đồng',
-            'Role'     => $input['Role'] ?? 'Người mua',
+            'Role'     => $input['Role'] ?? 'Buyer',
             'IsActive' => $input['IsActive'] ?? true,
         ]);
     }

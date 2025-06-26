@@ -31,7 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
 
-    public const ROLES = ['Người mua', 'Người bán', 'Quản trị viên'];
+    public const ROLES = ['Buyer', 'Seller', 'Admin'];
     public const LEVELS = ['Đồng', 'Bạc', 'Vàng', 'Bạch kim', 'Kim cương'];
 
     // Đảm bảo dùng đúng cột Password để auth
