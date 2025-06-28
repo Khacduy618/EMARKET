@@ -1,6 +1,6 @@
 // services/auth.service.ts
 
-import { LoginPayload, User, ApiError } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
@@ -95,5 +95,28 @@ export const logout = async (): Promise<void> => {
         },
     });
 
+    await handleResponse(response);
+};
+
+export const register = async (payload: RegisterPayload): Promise<void> => {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (!xsrfToken) {
+        throw new Error("Không tìm thấy CSRF token. Vui lòng tải lại trang.");
+    }
+
+    const decodedXsrfToken = decodeURIComponent(xsrfToken);
+
+    const response = await fetch(`${API_URL}/register`, { // Endpoint là /register
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken,
+        },
+        body: JSON.stringify(payload), // Gửi đi payload đăng ký
+    });
+
+    // Dùng lại handleResponse để xử lý kết quả
     await handleResponse(response);
 };

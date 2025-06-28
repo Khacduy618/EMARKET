@@ -9,11 +9,12 @@ import {
     login as apiLogin,
     logout as apiLogout,
     getMe as apiGetMe,
+    register as apiRegister,
     getCsrfCookie // Import hàm lấy cookie vào đây
 } from '@/services/auth';
 
 // 2. Import các interface/type cần thiết
-import { LoginPayload, User, ApiError } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload } from '@/types';
 
 // 3. Import thư viện toast bạn đang dùng (ở đây là react-toastify)
 import { toast } from 'react-toastify';
@@ -23,6 +24,7 @@ interface AuthContextType {
     user: User | null;          // Thông tin người dùng hoặc null
     isLoading: boolean;         // Trạng thái loading ban đầu để kiểm tra session
     login: (credentials: LoginPayload) => Promise<void>; // Hàm đăng nhập
+    register: (payload: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;        // Hàm đăng xuất
     error: string | null;       // Lưu trữ lỗi để hiển thị trên form (nếu cần)
 }
@@ -109,8 +111,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const register = async (payload: RegisterPayload) => {
+        setError(null);
+
+        // toast.promise vẫn được dùng, nhưng hành động sau khi thành công sẽ khác
+        await toast.promise(
+            // Chỉ gọi apiRegister
+            apiRegister(payload).then(async () => {
+                // SAU KHI THÀNH CÔNG: KHÔNG đăng nhập, mà chuyển hướng đến trang thông báo
+                try {
+                    await apiLogout();
+                } catch (e) {
+                    // Không cần làm gì nếu logout thất bại, 
+                    // vì có thể chưa có session để logout.
+                } finally {
+                    // Chuyển hướng người dùng đến trang thành công.
+                    // Khi họ vào trang login lần tới, `useEffect` sẽ lấy cookie mới.
+                    router.push('/register/success');
+                }
+            }),
+            {
+                pending: 'Đang tạo tài khoản...',
+                // Thông báo thành công bây giờ chỉ đơn giản là thông báo
+                success: 'Đăng ký thành công! Vui lòng kiểm tra email.',
+                error: {
+                    // Logic xử lý lỗi vẫn như cũ
+                    render({ data }) {
+                        const err = data as any;
+                        const apiError: ApiError = err.response?.data;
+                        let errorMessage = apiError?.message || "Đã xảy ra lỗi, vui lòng thử lại.";
+                        if (apiError && apiError.errors) {
+                            const firstErrorField = Object.keys(apiError.errors)[0];
+                            errorMessage = apiError.errors[firstErrorField][0];
+                        }
+                        setError(errorMessage);
+                        return errorMessage;
+                    },
+                },
+            }
+        );
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, error }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register }}>
             {/* 
         Chỉ render các component con khi quá trình khởi tạo auth đã hoàn tất.
         Điều này ngăn chặn việc "nháy" màn hình (ví dụ: hiển thị trang private rồi lại redirect về login)

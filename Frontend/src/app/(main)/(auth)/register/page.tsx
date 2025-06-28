@@ -1,123 +1,145 @@
-'use client';
+// app/(main)/(auth)/register/page.tsx - PHIÊN BẢN SỬA ĐỔI
 
-import React, { useState, useEffect } from 'react';
+"use client";
+
+import { useState, FormEvent, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { RegisterPayload } from '@/types';
 
-const RegisterPage: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [error, setError] = useState('');
+export default function RegisterPage() {
+    const [formData, setFormData] = useState({
+        FullName: '',
+        Username: '',
+        Email: '',
+        Phone: '',
+        Password: '',
+        Password_confirmation: '',
+    });
+
+    const [formError, setFormError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { register, user, isLoading, error: apiError } = useAuth();
     const router = useRouter();
 
+    // Chuyển hướng nếu đã đăng nhập
     useEffect(() => {
-        const authToken = localStorage.getItem('authToken');
-        if (authToken) {
+        if (user) {
             router.push('/');
         }
-    }, [router]);
+    }, [user, router]);
 
-    const handleRegister = async (e: React.FormEvent) => {
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        setError('');
+        setFormError(null);
 
-        if (password !== confirmPassword) {
-            setError('Mật khẩu không khớp. Vui lòng kiểm tra lại.');
+        if (formData.Password !== formData.Password_confirmation) {
+            setFormError('Mật khẩu xác nhận không khớp.');
             return;
         }
 
-        try {
-            const response = await api.post('/register', {
-                Email: email,
-                Password: password,
-                FullName: fullName
-            });
+        setIsSubmitting(true);
 
-            if (response.Token && response.User) {
-                localStorage.setItem('authToken', response.Token);
-                localStorage.setItem('user', JSON.stringify(response.User));
-                router.push('/');
-            } else {
-                setError('Đăng ký thất bại. Vui lòng thử lại.');
-            }
-        } catch (err: any) {
-            console.error("Registration error:", err);
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
-            } else if (err instanceof Error) {
-                setError(`Đã xảy ra lỗi trong quá trình đăng ký: ${err.message}`);
-            } else {
-                setError('Đã xảy ra lỗi không xác định trong quá trình đăng ký.');
-            }
+        // ---- ĐÂY LÀ THAY ĐỔI QUAN TRỌNG ----
+        // Tạo payload cuối cùng để gửi đi, bao gồm các giá trị mặc định
+        const payload: RegisterPayload = {
+            ...formData,
+            IsActive: true,   // Đặt giá trị mặc định
+            Role: 'Buyer',  // Đặt giá trị mặc định là 'Buyer'
+        };
+
+        try {
+            await register(payload);
+        } catch (err) {
+            console.error("Register attempt failed:", err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    return (
-        <div className="flex h-screen font-sans container mx-auto mt-4 mb-4 rounded-lg shadow-md">
-            <div className="w-1/2 p-10 flex flex-col justify-center items-start bg-white rounded-s-lg ">
-                <h1 className="text-3xl font-bold text-gray-500 hover:text-gray-700">Create Account</h1>
-                <p className="text-gray-500 hover:text-gray-700">Join us and start your journey</p>
-                {error && <p className="text-red-500">{error}</p>}
-                <form onSubmit={handleRegister} className="w-full">
-                    <div className="mb-5">
-                        <label htmlFor="fullName" className="block mb-1 text-gray-500 hover:text-gray-700">Họ và tên:</label>
-                        <input
-                            id="fullName"
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-5">
-                        <label htmlFor="email" className="block mb-1 text-gray-500 hover:text-gray-700">Email:</label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-5">
-                        <label htmlFor="password" className="block mb-1 text-gray-500 hover:text-gray-700">Mật khẩu:</label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-5">
-                        <label htmlFor="confirmPassword" className="block mb-1 text-gray-500 hover:text-gray-700">Xác nhận mật khẩu:</label>
-                        <input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            required
-                            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline w-full">Sign Up</button>
-                </form>
-                <p className="mt-5 text-gray-500 hover:text-gray-700">Already have an account? <a href="/login" className="text-blue-500 hover:text-blue-700">Sign In</a></p>
+    // Hiển thị loading nếu context đang kiểm tra session
+    if (isLoading || user) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
+                <p className="text-xl text-gray-700">Đang tải...</p>
             </div>
-            <div className="w-1/2 bg-purple-200 flex justify-center items-center rounded-e-lg">
-                <div className="text-center p-10">
-                    <img src="/images/illustration.png" alt="Illustration" className="max-w-full h-auto" />
-                    <p className="mt-5 text-gray-500 hover:text-gray-700">Start your journey with us</p>
+        );
+    }
+
+    return (
+        <div className="flex items-center justify-center min-h-screen py-12 bg-gray-100">
+            <div className="w-full max-w-lg p-8 space-y-6 bg-white rounded-lg shadow-xl">
+                <div className="text-center">
+                    <h2 className="text-3xl font-extrabold text-gray-900">
+                        Tạo tài khoản mới
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Tham gia cộng đồng và bắt đầu mua sắm ngay!
+                    </p>
                 </div>
+
+                {/* Hiển thị lỗi từ client hoặc từ API */}
+                {(formError || apiError) && (
+                    <div className="p-3 text-sm text-red-700 bg-red-100 border-l-4 border-red-500" role="alert">
+                        <p className="font-bold">Lỗi:</p>
+                        <p>{formError || apiError}</p>
+                    </div>
+                )}
+
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                    {/* Form JSX không đổi */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-sm font-bold text-gray-600">Họ và Tên</label>
+                            <input name="FullName" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold text-gray-600">Tên đăng nhập</label>
+                            <input name="Username" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-gray-600">Email</label>
+                        <input name="Email" type="email" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-gray-600">Số điện thoại</label>
+                        <input name="Phone" type="tel" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-gray-600">Mật khẩu</label>
+                        <input name="Password" type="password" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-gray-600">Xác nhận mật khẩu</label>
+                        <input name="Password_confirmation" type="password" required onChange={handleChange} className="block w-full px-4 py-2 mt-1 text-gray-700 bg-gray-50 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                    </div>
+
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex items-center justify-center w-full px-4 py-3 mt-4 tracking-wide text-white transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:bg-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                        >
+                            {isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
+                        </button>
+                    </div>
+                </form>
+
+                <p className="mt-6 text-sm text-center text-gray-600">
+                    Đã có tài khoản?{' '}
+                    <Link href="/login" className="font-medium text-indigo-600 hover:underline">
+                        Đăng nhập tại đây
+                    </Link>
+                </p>
             </div>
         </div>
     );
-};
-
-export default RegisterPage;
-
+}

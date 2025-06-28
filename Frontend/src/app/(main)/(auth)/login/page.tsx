@@ -2,41 +2,67 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext'; // Đảm bảo đường dẫn chính xác
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+// 1. Import hook để sử dụng context
+import { useAuth } from '@/context/AuthContext';
+
+// 2. Import icon (nếu bạn dùng)
+import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // Dùng state riêng cho form để vô hiệu hóa nút ngay lập tức
+    // State để kiểm soát trạng thái của nút submit
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Lấy hàm login và lỗi từ context
-    const { login, error, user } = useAuth();
+    // Lấy các state và hàm cần thiết từ AuthContext
+    const { login, error, user, isLoading } = useAuth();
     const router = useRouter();
 
-    // Chuyển hướng nếu người dùng đã đăng nhập rồi (ví dụ: họ back lại trang login)
+    // useEffect để chuyển hướng người dùng nếu họ đã đăng nhập rồi
     useEffect(() => {
         if (user) {
             router.push('/');
         }
     }, [user, router]);
 
+    // Hàm xử lý việc submit form
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (isSubmitting) return; // Không cho submit lại khi đang xử lý
+        if (isSubmitting) return; // Ngăn chặn việc click nhiều lần
 
-        setIsSubmitting(true);
+        setIsSubmitting(true); // Bắt đầu quá trình submit, vô hiệu hóa nút
 
-        // Hàm login trong context sẽ xử lý logic gọi API và hiển thị toast
-        // Ở đây chỉ cần gọi nó
-        await login({ email, password });
+        try {
+            // Gọi hàm login từ context.
+            // Logic xử lý lỗi và hiển thị toast đã nằm trong AuthContext.
+            await login({ email, password });
 
-        // Sau khi login xong (dù thành công hay thất bại), bật lại nút
-        setIsSubmitting(false);
+            // Nếu thành công, AuthContext sẽ tự động chuyển hướng.
+            // Chúng ta không cần thêm router.push('/') ở đây nữa.
+
+        } catch (err) {
+            // Bắt lỗi ở đây để ngăn chặn "Uncaught (in promise)" trong console.
+            // Chúng ta không cần làm gì cả vì AuthContext đã xử lý việc hiển thị lỗi.
+            console.error("Login attempt failed:", err);
+        } finally {
+            // QUAN TRỌNG: Khối này luôn được thực thi sau khi try/catch kết thúc.
+            // Kích hoạt lại nút submit dù cho đăng nhập thành công hay thất bại.
+            setIsSubmitting(false);
+        }
     };
+
+    // Nếu AuthContext vẫn đang kiểm tra session ban đầu, hiển thị màn hình loading
+    if (isLoading || user) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-100">
+                <p className="text-xl text-gray-700">Đang tải...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -79,10 +105,7 @@ export default function LoginPage() {
                     </div>
 
                     <div>
-                        <label
-                            htmlFor="password"
-                            className="text-sm font-bold text-gray-600"
-                        >
+                        <label htmlFor="password" className="text-sm font-bold text-gray-600">
                             Mật khẩu
                         </label>
                         <input
@@ -107,9 +130,19 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:bg-indigo-600 disabled:bg-indigo-400"
+                            className="flex items-center justify-center w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:bg-indigo-600 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                         >
-                            {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
+                            {isSubmitting ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                'Đăng nhập'
+                            )}
                         </button>
                     </div>
                 </form>

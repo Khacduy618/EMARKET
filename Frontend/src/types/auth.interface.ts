@@ -13,3 +13,15 @@ export interface ApiError {
         [key: string]: string[];
     };
 }
+
+export interface RegisterPayload {
+    Email: string;
+    FullName: string;
+    Password: string;
+    Password_confirmation: string;
+    Phone: string;
+    Username: string;
+    // Các trường tùy chọn mà backend có thể chấp nhận
+    IsActive?: boolean;
+    Role?: string;
+}
