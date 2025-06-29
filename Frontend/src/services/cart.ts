@@ -1,12 +1,8 @@
 import { Cart, AddCartItemResponse } from '../types';
-import {handleResponse} from '../services/api';
-const API_BASE_URL = 'http://localhost:8001/api'; // Assuming your backend is accessible via Nginx on localhost:80
+import {handleResponse,getAuthToken, API_BASE_URL } from '../services/api';
 
 // Helper function to get the auth token (replace with your actual auth logic)
-const getAuthToken = (): string | null => {
-    // Get token from localStorage
-    return localStorage.getItem('authToken');
-};
+
 
 
 
@@ -22,7 +18,7 @@ export const fetchCart = async (): Promise<Cart> => {
 };
 
 export async function updateCartItemQuantity(cartItemId: number, quantity: number): Promise<Cart> {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}`, {
         method: 'PUT',
         headers: {
@@ -46,20 +42,27 @@ export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
     return handleResponse(response);
 };
 
+export const updateCartItemVariant = async (cartItemId: number, newVariantId: number): Promise<Cart> => {
+    const token = getAuthToken();
+    if (!token) {
+        // Xử lý trường hợp không có token nếu cần
+        return Promise.reject(new Error('Authentication token not found.'));
+    }
 
-// export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<Cart> => {
-//     const token = getAuthToken();
-//     const response = await fetch(`${API_BASE_URL}/cart/items`, {
-//         method: 'POST',
-//         headers: {
-//             'Authorization': `Bearer ${token}`,
-//             'Content-Type': 'application/json',
-//         },
-//         // Truyền variant_id thay vì product_id
-//         body: JSON.stringify({ variant_id: variantId, quantity, shop_id: shopId }),
-//     });
-//     return handleResponse(response);
-// };
+    const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}/variant`, {
+        
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ new_variant_id: newVariantId }),
+    });
+
+    // handleResponse sẽ ném lỗi nếu response.ok là false
+    return handleResponse(response);
+};
 
 export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<AddCartItemResponse> => {
     const token = getAuthToken();
@@ -87,6 +90,26 @@ export const fetchProductAttributes = async (productId: number) => {
         console.error("Error fetching product attributes:", error);
         throw error;
     }
+};
+
+/**
+ * Removes multiple items from the user's cart.
+ * @param cartItemIds An array of CartItemIDs to remove.
+ * @returns A promise that resolves with the updated cart data.
+ */
+export const removeMultipleCartItems = async (cartItemIds: number[]): Promise<Cart> => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/cart/items`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        // Gửi mảng các ID trong body của request
+        body: JSON.stringify({ cart_item_ids: cartItemIds }),
+    });
+    return handleResponse(response);
 };
 
 

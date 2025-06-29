@@ -15,8 +15,8 @@ export interface Voucher {
     MinOrderValue: number;
     StartDate: string;
     EndDate: string;
-    UsageLimitPerUser?: number | null;
-    UsageLimitTotal?: number | null;
+    UsageLimitPerUser: number | null;
+    UsageLimitTotal: number | null;
     TimesUsed: number;
     Scope: VoucherScope;
     ShopID?: number | null;
@@ -51,6 +51,11 @@ export interface SingleAppliedVoucher {
 }
 
 export interface AppliedVouchersCombined {
-    freeShipVoucher: SingleAppliedVoucher | null;
-    saleOffVoucher: SingleAppliedVoucher | null;
+    freeShipVoucher: Voucher | null;
+    saleOffVoucher: Voucher | null;
+}
+
+
+export interface AppliedShopVouchers {
+    [shopId: number]: Voucher | null;
 }

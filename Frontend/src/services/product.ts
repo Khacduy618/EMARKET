@@ -1,7 +1,6 @@
 // src/services/product.ts
 import { Product } from '@/types'; // Đảm bảo import type Product nếu chưa có
-
-const API_BASE_URL = 'http://localhost:8001/api';
+import {API_BASE_URL} from '@/services/api';
 
 export async function fetchProductById(id: number): Promise<Product | null> {
     try {

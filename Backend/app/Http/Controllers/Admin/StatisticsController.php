@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\utils\CategoryUtil;
 
 class StatisticsController extends Controller
 {
@@ -20,7 +21,7 @@ class StatisticsController extends Controller
       ? $req->endDate . ' 23:59:59'
       : Carbon::now()->endOfMonth()->format('Y-m-d H:i:s');
 
-    $shopID = DB::table('shops')
+    $shopID = DB::table('Shops')
       ->where('UserID', $user->UserID)
       ->value('ShopID');
 
@@ -28,11 +29,11 @@ class StatisticsController extends Controller
       return response()->json(['message' => 'Shop not found'], 404);
     }
 
-    $summaryByShop = DB::table('ordersbuyer as ob')
-      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-      ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
+    $summaryByShop = DB::table('OrdersBuyer as ob')
+      ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->join('Shops as s', 'p.ShopID', '=', 's.ShopID')
       ->select(
         's.ShopID',
         's.ShopName',
@@ -47,11 +48,42 @@ class StatisticsController extends Controller
       ->orderByDesc('TotalRevenue')
       ->first();
 
-    $summaryByDate = DB::table('ordersbuyer as ob')
-      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-      ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
+
+    $summaryDataChart = DB::table('OrdersBuyer as ob')
+      ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->select(
+        'ob.OverallStatus',
+        DB::raw('COUNT(DISTINCT ob.OrderID) AS OrderCount')
+      )
+      ->where('p.ShopID', $shopID)
+      ->whereIn('ob.OverallStatus', ['Returned', 'Completed', 'CancelledByBuyer', 'CancelledBySeller'])
+      ->whereBetween('ob.OrderDate', [$startDate, $endDate])
+      ->groupBy('ob.OverallStatus')
+      ->pluck('OrderCount', 'OverallStatus')
+      ->toArray();
+
+   
+    $cancelledTotal = ($summaryDataChart['CancelledByBuyer'] ?? 0) + ($summaryDataChart['CancelledBySeller'] ?? 0);
+
+    unset($summaryDataChart['CancelledByBuyer'], $summaryDataChart['CancelledBySeller']);
+
+    $summaryDataChart['Cancelled'] = $cancelledTotal;
+
+    $sortField = "TotalRevenue";
+    $sortDirection = "asc";
+
+    if ($req->sort) {
+      [$sortField, $sortDirection] = explode('-', $req->sort);
+    }
+
+
+    $summaryByDate = DB::table('OrdersBuyer as ob')
+      ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->join('Shops as s', 'p.ShopID', '=', 's.ShopID')
       ->select(
         DB::raw('DATE(ob.OrderDate) AS OrderDate'),
         DB::raw('COUNT(DISTINCT ob.OrderID) AS OrderNumber'),
@@ -62,12 +94,34 @@ class StatisticsController extends Controller
       ->where('s.ShopID', $shopID)
       ->where('ob.OverallStatus', 'Completed')
       ->groupBy(DB::raw('DATE(ob.OrderDate)'))
-      ->orderBy('OrderDate')
+      ->orderBy($sortField, $sortDirection)
       ->get();
+
+
+    $quantityDisplay = 10;
+
+    if ($req->display_quantity) {
+      $quantityDisplay = $req->display_quantity;
+    }
+
+    $pagination = [
+      'currentPage' => 1,
+      'limitItem' => $quantityDisplay,
+      'skipRecords' => 0,
+      'totalPage' => 0
+    ];
+
+    $totalRecords = $summaryByDate->count();
+    CategoryUtil::pagination($req, $pagination, $totalRecords);
+
+    $summaryByDate = $summaryByDate->slice($pagination['skipRecords'], $pagination['limitItem'])->values();
+
 
     return response()->json([
       'summaryByShop' => $summaryByShop,
+      'summaryDataChart' => $summaryDataChart,
       'summaryByDate' => $summaryByDate,
+      'pagination' => $pagination,
     ]);
   }
 
@@ -76,7 +130,7 @@ class StatisticsController extends Controller
     $date = $req->input('date');
     $user = Auth::user();
 
-    $shopID = DB::table('shops')
+    $shopID = DB::table('Shops')
       ->where('UserID', $user->UserID)
       ->value('ShopID');
 
@@ -90,7 +144,7 @@ class StatisticsController extends Controller
       ], 400);
     }
 
-    $orders = DB::table('ordersbuyer as ob')
+    $orders = DB::table('OrdersBuyer as ob')
       ->distinct()
       ->select(
         'ob.OrderID',
@@ -101,10 +155,10 @@ class StatisticsController extends Controller
         'ob.OverallStatus',
         'p.ShopID'
       )
-      ->join('users as u', 'ob.UserID', '=', 'u.UserID')
-      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->join('Users as u', 'ob.UserID', '=', 'u.UserID')
+      ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
       ->where('p.ShopID', $shopID)
       ->whereDate('ob.OrderDate', $date)
       ->where('ob.OverallStatus', 'Completed')

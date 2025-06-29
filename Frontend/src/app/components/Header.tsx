@@ -147,8 +147,9 @@ export default function Header() {
             await api.post('/logout', {}); // Assuming logout is a POST request to /api/logout
 
             // Remove the token from localStorage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+            if(localStorage.getItem('authToken')){localStorage.removeItem('authToken');}
+            if(localStorage.getItem('user')){localStorage.removeItem('user');}
+            if(localStorage.getItem('checkoutData')){localStorage.removeItem('checkoutData');}
 
             // Update state and redirect to login page
             setIsLoggedIn(false);
@@ -158,6 +159,7 @@ export default function Header() {
             // Even if API call fails, attempt to remove token and redirect
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
+            localStorage.removeItem('checkoutData');
             setIsLoggedIn(false);
             router.push('/login');
         }
@@ -169,12 +171,12 @@ export default function Header() {
     return (
         // *** SỬA ĐỔI CHÍNH Ở ĐÂY ***
         // Thẻ div bao ngoài cùng này sẽ chịu trách nhiệm dính lại
-        <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="sticky top-0 z-30 bg-white shadow-sm">
             {/* PHẦN 1: HEADER CHÍNH (logo, tìm kiếm, icons) */}
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">
                     <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
-                        <a href="#" className="hover:text-gray-200">Kênh Người Bán</a>
+                        <a href="/seller-dashboard" className="hover:text-gray-200">Kênh Người Bán</a>
                         <div className="relative">
                             <button className="flex items-center gap-1 hover:text-gray-200" onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}>
                                 {selectedLanguage} <ChevronDown size={14} />

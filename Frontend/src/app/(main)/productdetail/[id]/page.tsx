@@ -12,7 +12,7 @@ import { ProductComments } from '../components/ProductComents';
 // ===> SỬA LỖI Ở ĐÂY: Định nghĩa type trực tiếp trong signature <===
 export default async function ProductPage({ params }: { params: { id: string } }) {
     // Bây giờ việc destructure sẽ không còn cảnh báo
-    const { id } = params;
+    const { id } = await params;
     const productIdAsNumber = parseInt(id, 10);
 
     // Kiểm tra nếu ID không hợp lệ
@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
 // ===> SỬA CẢ Ở ĐÂY: Hàm generateMetadata cũng cần được cập nhật <===
 export async function generateMetadata({ params }: { params: { id: string } }) {
-    const id = params.id;
+    const id = await params.id;
 
     // Logic fetch metadata của bạn ở đây...
     // const product = await fetch(`.../api/products/${id}`).then(res => res.json());

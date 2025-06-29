@@ -3,13 +3,30 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
+<<<<<<< HEAD
+<<<<<<< HEAD
+        'reference' => 'ffc2631eb94d9efd58b6b55eda3300783d108acb',
+=======
         'reference' => 'a315e3472a65f6c8177dd0be87aa17aa0fa315dd',
+>>>>>>> mergwithCuong
+=======
+        'reference' => '695c3abb3072ba7104e783162c1c5059d701872f',
+>>>>>>> Minh
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
+        'appstract/laravel-opcache' => array(
+            'pretty_version' => '4.0.2',
+            'version' => '4.0.2.0',
+            'reference' => 'd2ce88cddda6af54c14d1f9ceaaf94b54f38f9d3',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../appstract/laravel-opcache',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'brick/math' => array(
             'pretty_version' => '0.13.1',
             'version' => '0.13.1.0',
@@ -388,7 +405,15 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
+<<<<<<< HEAD
+<<<<<<< HEAD
+            'reference' => 'ffc2631eb94d9efd58b6b55eda3300783d108acb',
+=======
             'reference' => 'a315e3472a65f6c8177dd0be87aa17aa0fa315dd',
+>>>>>>> mergwithCuong
+=======
+            'reference' => '695c3abb3072ba7104e783162c1c5059d701872f',
+>>>>>>> Minh
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -790,8 +815,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0|3.0',
-                1 => '3.0.0',
+                0 => '3.0.0',
+                1 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(

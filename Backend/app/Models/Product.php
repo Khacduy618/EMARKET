@@ -15,6 +15,7 @@ use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\PlatformCategory; 
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -269,7 +270,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'CategoryID', 'CategoryID');
+        return $this->belongsTo(PlatformCategory::class, 'CategoryID', 'CategoryID');
     }
     /**
      * Get the reviews for the product.
@@ -278,7 +279,8 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
-    public function scopeActive($query)
+
+     public function scopeActive($query)
     {
         // Giả sử cột kiểm tra active trong bảng products của bạn là 'IsActive' = 1
         return $query->where('IsActive', 1);
@@ -306,3 +308,4 @@ class Product extends Model
     }
     
 }
+

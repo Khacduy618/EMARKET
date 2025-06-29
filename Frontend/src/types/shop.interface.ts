@@ -17,10 +17,12 @@ export interface Shop {
     CreatedAt?: string | null;
     UpdatedAt?: string | null;
 }
+export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
 
 // Thêm ShopSummary để sử dụng trong các đối tượng lồng nhau nếu cần thiết
 export interface ShopSummary {
     ShopID: number;
     ShopName: string;
-    ShopPhone: string;
+    ShopPhone: string | null;
+    Level: ShopLevel;
 }
