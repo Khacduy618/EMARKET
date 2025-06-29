@@ -1,6 +1,6 @@
 <?php
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductController AS BuyerProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -17,7 +17,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
 use App\Http\Controllers\Admin\ShopController AS ShopController;
-use App\Http\Controllers\Admin\ProductController AS AdminProductController;
+use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
 use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ; 
