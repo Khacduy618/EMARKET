@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log; // Để ghi log nếu cần
 
 class BannerController extends Controller
@@ -47,6 +48,41 @@ class BannerController extends Controller
             Log::error('Error fetching banners: ' . $e->getMessage());
             // Trả về lỗi cho client
             return response()->json(['message' => 'Không thể tải danh sách banner.', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function getBannersByPosition(Request $request)
+    {
+        try {
+            // Lấy vị trí từ request. Ví dụ: /api/banners?position=homepage_slider
+            // Nếu không có, mặc định là 'hero' hoặc một giá trị nào đó bạn muốn.
+            $position = $request->query('position', 'homepage_slider');
+            $now = Carbon::now();
+
+            $banners = Banner::query()
+                ->where('IsActive', 1)
+                ->where('Position', $position)
+                // Điều kiện 1: Banner không có ngày bắt đầu HOẶC ngày bắt đầu đã qua
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('StartDate')
+                          ->orWhere('StartDate', '<=', $now);
+                })
+                // Điều kiện 2: Banner không có ngày kết thúc HOẶC ngày kết thúc chưa tới
+                ->where(function ($query) use ($now) {
+                    $query->whereNull('EndDate')
+                          ->orWhere('EndDate', '>=', $now);
+                })
+                ->orderBy('SortOrder', 'asc')
+                ->get(['BannerID', 'Title', 'ImageURL', 'LinkURL']); // Chỉ lấy các cột cần thiết
+
+            // Nếu muốn trả về theo cấu trúc { data: [...] }
+            // return response()->json(['data' => $banners]);
+
+            // Hoặc trả về mảng trực tiếp
+            return response()->json($banners);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching banners: ' . $e->getMessage());
+            return response()->json(['message' => 'Không thể tải danh sách banner.'], 500);
         }
     }
 }

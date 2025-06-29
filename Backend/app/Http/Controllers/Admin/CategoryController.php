@@ -16,10 +16,50 @@ class CategoryController extends Controller {
     return response()->json(['status' => 'success', 'data' => $tree]);
   }
 
-  public function index() {
-    $allCategories = PlatformCategory::where('Deleted', 0)->get();
-    return response()->json(['status' => 'success', 'data' => $allCategories]);
+  public function index(Request $req) {
+
+    $find = [
+      ['Deleted', '=', '0'],
+    ];
+
+    // Search
+    if($req->keyword){
+      $find[] = ['Name', 'like', '%' . $req->keyword . '%'];
+    }
+    //End search
+
+    //pagination 
+    $quantityDisplay = 5;
+
+    if($req->display_quantity){
+      $quantityDisplay = $req->display_quantity;
+    }
+
+    $pagination = [
+      'currentPage' => 1,
+      'limitItem' => $quantityDisplay,
+      'skipRecords' => 0,
+      'totalPage' => 0
+    ];
+
+    $totalRecords = PlatformCategory::where($find)->count();
+    CategoryUtil::pagination($req, $pagination, $totalRecords);
+    //End pagination
+
+
+    $allCategories = PlatformCategory::where($find)
+      ->skip($pagination['skipRecords'])
+      ->take($pagination['limitItem'])
+      ->get();
+
+    return response()->json([
+      'status' => 'success',   
+      'data' => $allCategories,
+      'pagination' => $pagination,
+      'keyword' => $req->keyword,
+    ]);
   }
+
   public function createPost(Request $req) {
     try {
       $category = new PlatformCategory();

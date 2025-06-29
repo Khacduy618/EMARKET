@@ -5,9 +5,9 @@ import {API_BASE_URL} from '@/services/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -80,43 +80,34 @@ export async function getProducts() {
   return response.data.data;
 }
 
-export async function createProduct(product: {
-  CategoryID: number;
-  Name: string;
-  Description: string | null;
-  SKU: string | null;
-  Price: number;
-  Discount: number;
-  StockQuantity: number;
-  Images: Array<{ ImageURL: string; IsPrimary: boolean; SortOrder: number }>;
-  Variants: Array<{
-    AttributeValues: Array<{ AttributeID: number; Value: string }>;
-    Price: number;
-    Discount: number;
-    StockQuantity: number;
-    SKU: string;
-  }>;
-}) {
-  const response = await api.post('/products', product);
-  return response.data;
+
+
+export async function createProduct(productFormData: FormData): Promise<any> {
+  console.log("Attempting to send request to /products...");
+  console.log("Base URL is:", api.defaults.baseURL); // Kiểm tra baseURL
+  // Sau khi tạo productFormData và append xong
+  console.log("--- Nội dung FormData ---");
+  for (let [key, value] of productFormData.entries()) {
+    console.log(key, value);
+  }
+  console.log("------------------------");
+  try {
+    const response = await api.post('/shop/products', productFormData, {
+      // --- PHẦN SỬA QUAN TRỌNG NHẤT ---
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      // ---------------------------------
+    });
+    console.log("Request sent successfully!");
+    return response.data;
+  } catch (error) {
+    console.error("Error inside createProduct service:", error); // Log lỗi chi tiết ở đây
+    throw error; // Ném lỗi ra để component có thể bắt được
+  }
 }
 
-export async function updateProduct(
-  productID: number,
-  product: {
-    CategoryID: number;
-    Name: string;
-    Description: string | null;
-    SKU: string | null;
-    Price: number;
-    Discount: number;
-    StockQuantity: number;
-    Images: Array<{ ImageURL: string; IsPrimary: boolean; }>;
-  }
-) {
-  const response = await api.put(`/products/${productID}`, product);
-  return response.data;
-}
+
 
 export async function deleteProduct(productID: number) {
   const response = await api.delete(`/products/${productID}`);
@@ -132,4 +123,43 @@ export async function getAttributes(categoryID: number): Promise<Attribute[]> {
   // }
   const response = await api.get(`/attributes/${categoryID}`);
   return response.data ; 
+}
+
+// Trong file services/seller-category.ts
+
+// ... (các hàm đã có như createProduct, getProducts...)
+
+/**
+
+/**
+ * Lấy thông tin chi tiết của một sản phẩm để chỉnh sửa.
+ * @param {number} productID - ID của sản phẩm cần lấy.
+ * @returns {Promise<any>} Dữ liệu chi tiết của sản phẩm.
+ */
+export async function getProductDetails(productID: number): Promise<any> {
+  const response = await api.get(`/shop/products/${productID}`);
+  return response.data.data;
+}
+
+/**
+ * Cập nhật thông tin một sản phẩm.
+ * @param {number} productID - ID của sản phẩm cần cập nhật.
+ * @param {FormData} productFormData - FormData chứa dữ liệu cập nhật.
+ * @returns {Promise<any>}
+ */
+export async function updateProduct(productID: number, productFormData: FormData): Promise<any> {
+  // Dùng POST để gửi FormData, nhưng thêm _method để Laravel hiểu là PUT
+  productFormData.append('_method', 'POST');
+
+  const response = await api.post(`/shop/products/${productID}`, productFormData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },  
+  });
+  return response.data;
+}
+
+export async function getProductAttributeValues(productID: number): Promise<any> {
+  const response = await api.get(`/shop/products/${productID}/attribute-values`);
+  return response.data.data;
 }
