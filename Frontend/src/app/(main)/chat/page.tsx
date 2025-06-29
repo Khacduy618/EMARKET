@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback, createContext, useCon
 
 import { getSocket, disconnectSocket } from '../../../../lib/socket';
 import type { Socket } from 'socket.io-client';
-import ConversationList, {ConversationMeta} from '@/app/components/chat/ConversationList';
+import ConversationList, { ConversationMeta } from '@/app/components/chat/ConversationList';
 
 import ChatWindow from '@/app/components/chat/ChatWindow';
 import { redirect } from 'next/dist/server/api-utils';
@@ -32,32 +32,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userInfo: null,
     isLoading: true,
   });
-const router = useRouter();
+  const router = useRouter();
   useEffect(() => {
     // Giả lập việc lấy session sau khi component mount
     const timer = setTimeout(() => {
       // Trong thực tế, bạn sẽ gọi API hoặc đọc từ localStorage/cookie
-      const storedToken =localStorage.getItem('authToken');
+      const storedToken = localStorage.getItem('authToken');
       const storedUser = localStorage.getItem('user');
 
       if (storedToken && storedUser) {
         try {
-            const parsedUser = JSON.parse(storedUser);
-            setSession({
-                userId: parsedUser.UserID, // Giả sử user object có id, username, avatarUrl
-                token: storedToken,
-                userInfo: { username: parsedUser.Username, avatarUrl: parsedUser.Avatar },
-                isLoading: false,
-            });
+          const parsedUser = JSON.parse(storedUser);
+          setSession({
+            userId: parsedUser.UserID, // Giả sử user object có id, username, avatarUrl
+            token: storedToken,
+            userInfo: { username: parsedUser.Username, avatarUrl: parsedUser.Avatar },
+            isLoading: false,
+          });
         } catch (e) {
-            console.error("Failed to parse stored user session", e);
-            // Xử lý lỗi, có thể clear localStorage
-             localStorage.removeItem('authToken');
-             localStorage.removeItem('user');
-             setSession({ userId: null, token: null, userInfo: null, isLoading: false });
+          console.error("Failed to parse stored user session", e);
+          // Xử lý lỗi, có thể clear localStorage
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          setSession({ userId: null, token: null, userInfo: null, isLoading: false });
         }
       } else {
-            router.push('/login');
+        router.push('/login');
       }
     }, 500); // Giả lập thời gian chờ
     return () => clearTimeout(timer);
@@ -102,7 +102,7 @@ const ChatPageContent = () => {
         socketInstance.disconnect(); // Chỉ disconnect, instance vẫn còn nếu getSocket trả về cái cũ
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, currentUserId]); // Chỉ chạy lại khi auth thay đổi
 
   const handleSelectConversation = useCallback((
@@ -196,9 +196,9 @@ const ChatPageContent = () => {
 
 // Wrapper component để cung cấp AuthContext cho ChatPageContent
 const ChatPageWithAuthProvider = () => (
-    <AuthProvider>
-        <ChatPageContent />
-    </AuthProvider>
+  <AuthProvider>
+    <ChatPageContent />
+  </AuthProvider>
 );
 
 export default ChatPageWithAuthProvider;

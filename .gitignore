@@ -9,6 +9,10 @@
 
 # Environment files
 .env
+temp
+*.log
+dist
+ecommerce_db_data/
 .env.*.backup
 
 # IDE and system files

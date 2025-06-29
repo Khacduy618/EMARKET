@@ -287,8 +287,8 @@ class FlashSaleController extends Controller
             ['start' => 7,  'end' => 9],
             ['start' => 9,  'end' => 12],
             ['start' => 12, 'end' => 13],
-            ['start' => 14, 'end' => 15],
-            ['start' => 23, 'end' => 0],
+            ['start' => 18, 'end' => 19],
+            ['start' => 20, 'end' => 21],
         ];
 
         $datesToProcess = [$initialQueryDate->copy()];

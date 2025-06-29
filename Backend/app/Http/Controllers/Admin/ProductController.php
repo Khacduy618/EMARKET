@@ -7,7 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Category;
-
+use App\Models\ProductVariant;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 class ProductController extends Controller
 {
     /**
@@ -157,6 +161,187 @@ public function destroy($id)
 
 //     return response()->json($products);
 // }
+// --- CẤU HÌNH CHO ĐIỂM GỢI Ý ---
+    /**
+     * Số điểm thưởng cho một sản phẩm mới, tương đương với số lượt xem.
+     * @var int
+     */
+    private const NEW_PRODUCT_SCORE_BOOST = 1000;
+
+    /**
+     * Một sản phẩm được coi là "mới" nếu được tạo trong vòng X ngày.
+     * @var int
+     */
+    private const NEW_PRODUCT_DAYS_THRESHOLD = 7;
+
+    /**
+     * Lấy danh sách sản phẩm gợi ý cho trang chủ (giới hạn cố định).
+     *
+     * @return JsonResponse
+     */
+    public function getSuggestions(): JsonResponse
+    {
+        $query = $this->buildBaseSuggestionsQuery();
+        
+        // Lấy 30 sản phẩm gợi ý hàng đầu
+        $products = $query->limit(30)->get();
+
+        return response()->json($this->transformProductCollection($products));
+    }
+
+    /**
+     * Lấy tất cả sản phẩm phổ biến, có hỗ trợ phân trang.
+     * Dùng cho trang "Xem tất cả".
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAllPopular(Request $request): JsonResponse
+    {
+        $limit = $request->query('limit', 12);
+        $sortBy = $request->query('sortBy', 'popular');
+
+        $query = Product::query()->publishedAndAvailable();
+
+        $query->with([
+            'primaryImage',
+            'variants' => function ($variantQuery) {
+                $variantQuery->where('IsActive', 1)->where('StockQuantity', '>', 0);
+            }
+        ]);
+
+        // --- XỬ LÝ SẮP XẾP ---
+        switch ($sortBy) {
+            case 'price-low':
+            case 'price-high':
+                $direction = ($sortBy === 'price-low') ? 'ASC' : 'DESC';
+                $query->orderBy(function ($subQuery) use ($direction) {
+                    $subQuery->select('Price')
+                        ->from('ProductVariants') // SỬA: Viết hoa chữ V
+                        ->whereColumn('ProductVariants.ProductID', 'Products.ProductID') // SỬA: Viết hoa P và V
+                        ->where('IsActive', 1)
+                        ->orderBy('Price', $direction)
+                        ->limit(1);
+                }, $direction);
+                break;
+
+                case 'best-selling':
+                    $query->select('Products.*') // <-- DÒNG QUAN TRỌNG NHẤT
+                    ->selectSub(function ($subQuery) {
+                        $subQuery->select(DB::raw('SUM(order_items.Quantity)'))
+                            ->from('OrderItems as order_items')
+                            ->join('ProductVariants as variants', 'order_items.VariantID', '=', 'variants.VariantID')
+                            ->whereColumn('variants.ProductID', 'Products.ProductID')
+                            ->where('order_items.CreatedAt', '>=', now()->subMonth());
+                    }, 'sold_count');
+    
+                $query->orderBy('sold_count', 'DESC');
+                break;
+    
+            
+            case 'newest':
+                $query->latest('CreatedAt');
+                break;
+    
+            case 'popular':
+            default:
+                // Sắp xếp theo "điểm gợi ý" như đã làm
+                $query->orderByRaw(
+                    '(viewCount + CASE WHEN CreatedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1000 ELSE 0 END) DESC'
+                );
+                break;
+        }
+        
+        // Thêm sắp xếp phụ để đảm bảo thứ tự nhất quán
+        $query->latest('ProductID');
+
+        // --- GỌI PAGINATE SAU KHI ĐÃ SẮP XẾP ---
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $paginatedProducts */
+        $paginatedProducts = $query->paginate($limit);
+
+        // Biến đổi dữ liệu của các sản phẩm trong trang hiện tại
+        $this->transformPaginatorCollection($paginatedProducts);
+
+        return response()->json($paginatedProducts);
+    }
+
+    /**
+     * Xây dựng câu truy vấn cơ sở cho việc lấy sản phẩm.
+     * Bao gồm: Lọc sản phẩm hợp lệ, Eager Loading và Sắp xếp theo "điểm gợi ý".
+     *
+     * @return EloquentBuilder|QueryBuilder
+     */
+    private function buildBaseSuggestionsQuery(): EloquentBuilder|QueryBuilder
+    {
+        $query = Product::query()->publishedAndAvailable();
+
+        // Tải trước các quan hệ cần thiết để tránh N+1 query
+        $query->with([
+            'primaryImage',
+            'variants' => function ($variantQuery) {
+                // Chỉ tải các biến thể hợp lệ để tính giá thấp nhất
+                $variantQuery->where('IsActive', 1)->where('StockQuantity', '>', 0);
+            }
+        ]);
+
+        // Sắp xếp theo "điểm gợi ý" = viewCount + điểm thưởng cho sản phẩm mới.
+        // Dùng `orderByRaw` cho các biểu thức SQL phức tạp.
+        $query->orderByRaw(
+            '(viewCount + CASE WHEN CreatedAt >= DATE_SUB(NOW(), INTERVAL ? DAY) THEN ? ELSE 0 END) DESC',
+            [self::NEW_PRODUCT_DAYS_THRESHOLD, self::NEW_PRODUCT_SCORE_BOOST]
+        );
+
+        // Thêm một sắp xếp phụ theo ID để đảm bảo thứ tự nhất quán khi có cùng điểm.
+        $query->latest('ProductID');
+
+        return $query;
+    }
+
+    /**
+     * Biến đổi một collection các sản phẩm.
+     *
+     * @param Collection $products
+     * @return Collection
+     */
+    private function transformProductCollection(Collection $products): Collection
+    {
+        return $products->map(fn($product) => $this->transformProduct($product));
+    }
+
+    /**
+     * Biến đổi collection bên trong một đối tượng Paginator.
+     *
+     * @param LengthAwarePaginator $paginator
+     * @return void
+     */
+    private function transformPaginatorCollection(LengthAwarePaginator &$paginator): void
+    {
+        // Lấy collection hiện tại, biến đổi nó, và đặt lại vào Paginator
+        $transformedItems = $this->transformProductCollection($paginator->getCollection());
+        $paginator->setCollection($transformedItems);
+    }
+
+    /**
+     * Biến đổi một đối tượng Product duy nhất sang định dạng JSON mong muốn.
+     *
+     * @param Product $product
+     * @return array
+     */
+    private function transformProduct(Product $product): array
+    {
+        return [
+            'ProductID' => $product->ProductID,
+            'Name' => $product->Name,
+            'Description' => $product->Description,
+            'Discount' => $product->Discount,
+            'viewCount' => $product->viewCount,
+            // Lấy giá thấp nhất từ các biến thể đã được tải trước
+            'Price' => $product->variants->min('Price'),
+            // Dùng optional chaining và null coalescing operator để an toàn hơn
+            'PrimaryImageURL' => $product->primaryImage?->ImageURL ?? null,
+            'CreatedAt'=>$product->CreatedAt,
+        ];
+    }
 public function ProductFinalPrice()
     {
         $products = Product::where('Products.IsActive', 1) // Chỉ định rõ bảng cho cột IsActive
@@ -231,6 +416,7 @@ public function ProductFinalPrice()
 
         return response()->json($formattedProducts);
     }
+
     public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
     {
         $productsData = DB::table('Products as p')
@@ -504,5 +690,56 @@ public function ProductFinalPrice()
             }
         }
         return $childIds;
+    }
+    public function getFeaturedProducts(Request $request): JsonResponse
+    {
+        try {
+            $perPage = $request->query('per_page', 12);
+
+            $products = DB::table('Products as p')
+                ->select(
+                    'p.ProductID',
+                    'p.Name as ProductName',
+                    'pi.ImageURL as PrimaryImage',
+                    DB::raw('MIN(pv.Price) as CurrentPrice'),
+                    DB::raw('MAX(pv.CompareAtPrice) as OriginalPrice'),
+                    DB::raw('COALESCE(SUM(oi.Quantity), 0) as TotalQuantitySold')
+                )
+                ->join('ProductVariants as pv', 'p.ProductID', '=', 'pv.ProductID')
+                ->leftJoin('OrderItems as oi', 'pv.VariantID', '=', 'oi.VariantID')
+
+                // ========== DÒNG CẦN SỬA Ở ĐÂY ==========
+                // Sửa 'productimage' thành tên bảng đúng, ví dụ 'ProductImages'
+                ->leftJoin('ProductImages as pi', function ($join) {
+                    $join->on('p.ProductID', '=', 'pi.ProductID')
+                         ->where('pi.IsPrimary', '=', 1);
+                })
+                // ==========================================
+
+                ->where('p.IsActive', 1)
+                ->where('pv.IsActive', 1)
+                ->where('p.AdminApprovalStatus', 'Approved')
+                ->where(function ($query) {
+                    $query->where('p.Discount', '>', 0)
+                          ->orWhereRaw('pv.CompareAtPrice > pv.Price');
+                })
+                ->groupBy('p.ProductID', 'p.Name', 'pi.ImageURL')
+                ->orderBy('TotalQuantitySold', 'desc')
+                ->orderBy('p.Name', 'asc')
+                ->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy danh sách sản phẩm nổi bật thành công.',
+                'data' => $products
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã có lỗi xảy ra.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

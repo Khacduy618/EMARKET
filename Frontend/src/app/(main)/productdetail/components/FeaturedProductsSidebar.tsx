@@ -156,8 +156,8 @@ export default function RelatedProductsSidebar({ currentProductId }: RelatedProd
     }
 
     return (
-        <aside className="w-full lg:w-80 flex-shrink-0">
-            <div className="border border-gray-200 rounded-lg p-4">
+        <aside className="w-full">
+            <div className=" rounded-lg p-4">
                 <h3 className="text-lg font-bold mb-4">Sản Phẩm Liên Quan</h3>
                 <div className="space-y-4">
                     {products.map(product => (

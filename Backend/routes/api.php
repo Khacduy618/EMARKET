@@ -31,7 +31,12 @@ use Illuminate\Support\Facades\Log;
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
-
+Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
+//api router cho sản phẩm nổi bật cho category 
+Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
+Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
+Route::get('/categories/{category}/filters', [CategoryController::class, 'getCategoryFilters']);
+///
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
@@ -43,16 +48,20 @@ Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
 //API trả về giảm giá và % của product
 Route::get('/ProductFinalPrice', [ProductController::class, 'ProductFinalPrice']);
 // Laravel API – GET /api/products/best-selling
-Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
+Route::get('/products/best-selling', [ProductController::class, 'getFeaturedProducts']);
 //flash sale 
 // Route::get('/flashSales', [ProductController::class, 'index']);
 /////////////////////////////
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
 // router lấy api banner cho trang chủ
 Route::get('/banners', [BannerController::class, 'index']);
+Route::get('/category_banner', [BannerController::class, 'getBannersByPosition']);
 //router cho sản phẩm mới nhất
 Route::get('/new-arrivals', [NewArrivalController::class, 'index']);
 Route::get('/productDetail/{productId}', [ProductDetailController::class, 'show']);
+//router sản phẩm hôm nay xem thêm nữa
+Route::get('/suggestions', [ProductController::class, 'getSuggestions']);
+Route::get('/products/popular', [ProductController::class, 'getAllPopular']);
 //api cho itemproducst
 Route::get('/related-products', [ProductController::class, 'getRelatedProducts']);
 Route::get('/products/{currentProductId}/related', [ProductController::class, 'getRelatedProducts']);
@@ -67,10 +76,7 @@ Route::get('/filters/available', [CategoryController::class, 'getAvailableFilter
 // API 2: Lấy danh sách sản phẩm đã được lọc theo các tiêu chí
 // Frontend sẽ gọi API này để hiển thị danh sách sản phẩm chính.
 // Ví dụ cách gọi từ Frontend: /api/products/filter?categories=5,8&sort=price_asc&page=1
-Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
-//api router cho sản phẩm nổi bật cho category 
-Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
-Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

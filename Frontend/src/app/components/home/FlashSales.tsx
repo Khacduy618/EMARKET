@@ -9,6 +9,7 @@
 // // import 'swiper/css/pagination'; // Bỏ qua nếu không dùng pagination
 // import 'swiper/css/autoplay';
 // import { Navigation, Autoplay } from 'swiper/modules'; // Chỉ import module cần thiết
+import Home from '../../(main)/page';
 
 // // --- INTERFACES (Khớp với JSON response của bạn) ---
 // interface FlashSaleProduct {
@@ -457,57 +458,29 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/autoplay';
 import { Navigation, Autoplay } from 'swiper/modules';
+import type { IHome } from '@/types/Ihome';
 
 // --- BƯỚC 1: CẬP NHẬT INTERFACE ĐỂ CHẤP NHẬN NULL ---
-interface FlashSaleProduct {
-    FlashSaleID: number;
-    ProductID: number;
-    ProductName: string;
-    Price: string | null;       // Có thể là null
-    Discount: string | null;    // Có thể là null
-    Quantity: number;
-    ProductImage: string | null;
-    SoldQuantity?: number;
-    mockedSoldQuantity?: number;
-}
 
-interface FlashSaleSlot {
-    slot_display_time: string;
-    slot_effective_start: string;
-    slot_effective_end: string;
-    status: string;
-    flash_sales: FlashSaleProduct[];
-}
-
-interface FlashSaleDateEntry {
-    date: string;
-    slots_on_date: FlashSaleSlot[];
-}
-
-interface FlashSaleApiResponse {
-    initial_requested_date_or_today: string;
-    current_server_time_hcm: string;
-    daily_flash_sales_slots: FlashSaleDateEntry[];
-}
 
 
 const FlashSaleSection: React.FC = () => {
     // --- State và Logic (Giữ nguyên) ---
-    const [apiData, setApiData] = useState<FlashSaleApiResponse | null>(null);
+    const [apiData, setApiData] = useState<IHome.FlashSaleApiResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedSlot, setSelectedSlot] = useState<FlashSaleSlot | null>(null);
+    const [selectedSlot, setSelectedSlot] = useState<IHome.FlashSaleSlot | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isUserSelection, setIsUserSelection] = useState(false);
 
     useEffect(() => {
         async function fetchFlashSaleData() {
             setLoading(true);
-            setError(null); 
+            setError(null);
             try {
                 const response = await fetch('http://localhost:8001/api/flash-sales/active');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const result: FlashSaleApiResponse = await response.json();
+                const result: IHome.FlashSaleApiResponse = await response.json();
                 setApiData(result);
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -555,7 +528,7 @@ const FlashSaleSection: React.FC = () => {
         }
     }, [isUserSelection]);
 
-    const handleSelectSlotByUser = useCallback((slot: FlashSaleSlot) => {
+    const handleSelectSlotByUser = useCallback((slot: IHome.FlashSaleSlot) => {
         setSelectedSlot(slot);
         setIsUserSelection(true);
     }, []);
