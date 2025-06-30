@@ -19,6 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -54,6 +55,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function routeNotificationForMail($notification)
     {
         return $this->Email;
+    }
+
+    public function getEmailForPasswordReset(): string
+    {
+        // Trả về giá trị từ cột 'Email' (chữ E viết hoa) của bạn
+        return $this->Email;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     // Normalize email: lowercase để login không bị sai

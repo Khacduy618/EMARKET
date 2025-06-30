@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
+use Illuminate\Support\Facades\Log;
 
 use Laravel\Fortify\Contracts\{
     LoginResponse,
@@ -123,15 +124,42 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+        Fortify::resetPasswordView(function ($request) {
+            // ---- BẮT ĐẦU GHI LOG ----
+            Log::info('--- Fortify::resetPasswordView RUNNING ---');
+
+            $token = $request->route('token');
+            Log::info('Token from route: ' . $token);
+
+            $email = $request->input('email');
+            Log::info('Email from request input: ' . $email);
+
+            // Log toàn bộ request để xem có gì bất thường không
+            Log::info('Full request query: ', $request->query());
+
+            if (empty($token) || empty($email)) {
+                Log::error('Token hoặc Email bị rỗng. Không thể tạo redirect URL.');
+            }
+
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+            Log::info('Frontend URL from config: ' . $frontendUrl);
+
+            $redirectUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);
+            Log::info('Final redirect URL to be sent: ' . $redirectUrl);
+            Log::info('--- END Fortify::resetPasswordView ---');
+            // ---- KẾT THÚC GHI LOG ----
+
+            return redirect()->away($redirectUrl);
+        });
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(1)->by($throttleKey);
         });
 
         RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+            return Limit::perMinute(1)->by($request->session()->get('login.id'));
         });
     }
 }

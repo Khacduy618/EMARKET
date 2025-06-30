@@ -71,9 +71,20 @@ Route::get('/search', [SearchController::class, 'search']);
 //     ->name('password.reset');
 
 
-Route::get('/reset-password/{token}', function($token) {
-    return $token;
-})->middleware(['guest'])->name('password.reset');
+// Route::get('/reset-password/{token}', function (Request $request, $token) {
+//     $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+//     $email = $request->query('email'); // Hoặc $request->input('email')
+//
+//     if (!$email) {
+//         // Nếu không có email, chuyển hướng đến một trang lỗi trên frontend
+//         return redirect()->away($frontendUrl . '/invalid-link');
+//     }
+//
+//     $redirectUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);
+//
+//     return redirect()->away($redirectUrl);
+//
+// })->middleware(['guest'])->name('password.reset');
 
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])

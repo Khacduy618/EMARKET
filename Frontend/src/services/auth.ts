@@ -1,6 +1,6 @@
 // services/auth.service.ts
 
-import { LoginPayload, User, ApiError, RegisterPayload } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
@@ -118,5 +118,51 @@ export const register = async (payload: RegisterPayload): Promise<void> => {
     });
 
     // Dùng lại handleResponse để xử lý kết quả
+    await handleResponse(response);
+};
+
+// Hàm yêu cầu gửi link reset mật khẩu
+export const forgotPassword = async (payload: ForgotPasswordPayload): Promise<void> => {
+    // Vì đây là request POST, chúng ta vẫn cần CSRF token để bảo vệ
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (!xsrfToken) {
+        throw new Error("Không tìm thấy CSRF token. Vui lòng tải lại trang.");
+    }
+
+    const decodedXsrfToken = decodeURIComponent(xsrfToken);
+
+    const response = await fetch(`${API_URL}/forgot-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    await handleResponse(response);
+};
+
+export const resetPassword = async (payload: ResetPasswordPayload): Promise<void> => {
+    // Request POST này không yêu cầu user phải login, nhưng vẫn cần CSRF
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (!xsrfToken) {
+        throw new Error("Không tìm thấy CSRF token. Vui lòng tải lại trang.");
+    }
+    const decodedXsrfToken = decodeURIComponent(xsrfToken);
+
+    const response = await fetch(`${API_URL}/reset-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken,
+        },
+        body: JSON.stringify(payload),
+    });
+
     await handleResponse(response);
 };

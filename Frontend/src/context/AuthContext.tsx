@@ -10,11 +10,13 @@ import {
     logout as apiLogout,
     getMe as apiGetMe,
     register as apiRegister,
+    forgotPassword as apiForgotPassword,
+    resetPassword as apiResetPassword,
     getCsrfCookie // Import hàm lấy cookie vào đây
 } from '@/services/auth';
 
 // 2. Import các interface/type cần thiết
-import { LoginPayload, User, ApiError, RegisterPayload } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/types';
 
 // 3. Import thư viện toast bạn đang dùng (ở đây là react-toastify)
 import { toast } from 'react-toastify';
@@ -26,6 +28,8 @@ interface AuthContextType {
     login: (credentials: LoginPayload) => Promise<void>; // Hàm đăng nhập
     register: (payload: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;        // Hàm đăng xuất
+    forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>; // Thêm vào 
+    resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
     error: string | null;       // Lưu trữ lỗi để hiển thị trên form (nếu cần)
 }
 
@@ -152,8 +156,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const resetPassword = async (payload: ResetPasswordPayload) => {
+        await toast.promise(
+            apiResetPassword(payload).then(() => {
+                // Sau khi thành công, chuyển hướng đến trang login
+                router.push('/login');
+            }),
+            {
+                pending: 'Đang đặt lại mật khẩu...',
+                success: 'Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập.',
+                error: {
+                    render({ data }) {
+                        // ... logic xử lý lỗi tương tự các hàm khác ...
+                        const err = data as any;
+                        //...
+                        return err.response?.data?.message || 'Token không hợp lệ hoặc đã hết hạn.';
+                    }
+                }
+            }
+        );
+    };
+
+    const forgotPassword = async (payload: ForgotPasswordPayload) => {
+        await toast.promise(
+            apiForgotPassword(payload),
+            {
+                pending: 'Đang gửi yêu cầu...',
+                success: 'Nếu email của bạn tồn tại, một link reset sẽ được gửi đến.',
+                // ---- SỬA LẠI KHỐI NÀY ĐỂ HIỂN THỊ LỖI CHI TIẾT ----
+                error: {
+                    render({ data }) { // `data` ở đây chính là object lỗi
+                        const err = data as any;
+                        console.error("FORGOT PASSWORD ERROR:", err.response?.data); // Log chi tiết lỗi ra console
+
+                        // Lấy message từ response của backend nếu có
+                        const errorMessage = err.response?.data?.message || err.message || 'Đã có lỗi xảy ra không xác định.';
+
+                        return `Lỗi: ${errorMessage}`; // Hiển thị lỗi chi tiết trên toast
+                    }
+                }
+            }
+        );
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register, forgotPassword, resetPassword }}>
             {/* 
         Chỉ render các component con khi quá trình khởi tạo auth đã hoàn tất.
         Điều này ngăn chặn việc "nháy" màn hình (ví dụ: hiển thị trang private rồi lại redirect về login)
