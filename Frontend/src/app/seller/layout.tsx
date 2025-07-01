@@ -18,7 +18,7 @@ export default function SellerLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64">
+        <SheetContent side="left" className="p-0 w-64 h-350">
           <Sidebar />
         </SheetContent>
       </Sheet>
@@ -34,7 +34,7 @@ export default function SellerLayout({
         <Header />
 
         {/* Main Content */}
-        <main>{children}</main>
+        <main className="p-4">{children}</main>
       </div>
     </div>
   )

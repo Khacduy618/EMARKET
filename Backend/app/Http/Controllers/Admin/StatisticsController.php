@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\utils\CategoryUtil;
 
-class StatisticsController extends Controller
-{
+class StatisticsController extends Controller {
   public function getRevenueByDate(Request $req)
   {
     $user = Auth::user();

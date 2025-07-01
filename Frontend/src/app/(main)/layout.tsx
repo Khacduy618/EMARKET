@@ -39,10 +39,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import Header from "../components/Header";
-import SearchBar from "../components/SearchBar";
-import NavMenu from "../components/NavMenu";
 import Footer from "../components/Footer";
-import { Session } from "inspector/promises";
 
 export const metadata: Metadata = {
   title: "Create Next App",
