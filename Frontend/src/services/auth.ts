@@ -1,6 +1,6 @@
 // services/auth.service.ts
 
-import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload, UpdatePasswordPayload } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
@@ -155,6 +155,28 @@ export const resetPassword = async (payload: ResetPasswordPayload): Promise<void
 
     const response = await fetch(`${API_URL}/reset-password`, {
         method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    await handleResponse(response);
+};
+
+export const updatePassword = async (payload: UpdatePasswordPayload): Promise<void> => {
+    // Vì đây là request PUT, nó cũng cần CSRF token
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (!xsrfToken) {
+        throw new Error("Không tìm thấy CSRF token.");
+    }
+    const decodedXsrfToken = decodeURIComponent(xsrfToken);
+
+    const response = await fetch(`${API_URL}/user/password`, {
+        method: 'PUT', // Dùng phương thức PUT
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',

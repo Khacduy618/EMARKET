@@ -12,11 +12,12 @@ import {
     register as apiRegister,
     forgotPassword as apiForgotPassword,
     resetPassword as apiResetPassword,
+    updatePassword as apiUpdatePassword,
     getCsrfCookie // Import hàm lấy cookie vào đây
 } from '@/services/auth';
 
 // 2. Import các interface/type cần thiết
-import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload } from '@/types';
+import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload, UpdatePasswordPayload } from '@/types';
 
 // 3. Import thư viện toast bạn đang dùng (ở đây là react-toastify)
 import { toast } from 'react-toastify';
@@ -30,6 +31,7 @@ interface AuthContextType {
     logout: () => Promise<void>;        // Hàm đăng xuất
     forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>; // Thêm vào 
     resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
+    updatePassword: (payload: UpdatePasswordPayload) => Promise<void>;
     error: string | null;       // Lưu trữ lỗi để hiển thị trên form (nếu cần)
 }
 
@@ -199,8 +201,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const updatePassword = async (payload: UpdatePasswordPayload) => {
+        // Không cần logic gì đặc biệt, chỉ gọi API và hiển thị kết quả
+        await toast.promise(
+            apiUpdatePassword(payload),
+            {
+                pending: 'Đang cập nhật mật khẩu...',
+                success: 'Đã thay đổi mật khẩu thành công!',
+                error: {
+                    render({ data }) {
+                        const err = data as any;
+                        const apiError: ApiError = err.response?.data;
+                        let errorMessage = apiError?.message || 'Đã có lỗi xảy ra.';
+                        // Xử lý lỗi validation từ Fortify (ví dụ: mật khẩu hiện tại không đúng)
+                        if (apiError && apiError.errors) {
+                            const firstErrorKey = Object.keys(apiError.errors)[0];
+                            errorMessage = apiError.errors[firstErrorKey][0];
+                        }
+                        return errorMessage;
+                    }
+                }
+            }
+        );
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register, forgotPassword, resetPassword }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register, forgotPassword, resetPassword, updatePassword }}>
             {/* 
         Chỉ render các component con khi quá trình khởi tạo auth đã hoàn tất.
         Điều này ngăn chặn việc "nháy" màn hình (ví dụ: hiển thị trang private rồi lại redirect về login)
