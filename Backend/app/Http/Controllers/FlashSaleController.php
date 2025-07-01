@@ -287,7 +287,7 @@ class FlashSaleController extends Controller
             ['start' => 7,  'end' => 9],
             ['start' => 9,  'end' => 12],
             ['start' => 12, 'end' => 13],
-            ['start' => 18, 'end' => 19],
+            ['start' => 16, 'end' => 17],
             ['start' => 20, 'end' => 21],
         ];
 

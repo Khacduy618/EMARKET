@@ -45,7 +45,7 @@ class ProductDetailController extends Controller
     public function show($productId)
     {
         // Eager load relationships: images, variants, and each variant's attributes
-        $product = Product::with(['images', 'Variants.AttributeValues'])->find($productId);
+        $product = Product::with(['images', 'variants.AttributeValues'])->find($productId);
 
         if (!$product) {
             return response()->json([

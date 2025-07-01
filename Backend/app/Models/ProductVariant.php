@@ -37,7 +37,7 @@ class ProductVariant extends Model
     // Mối quan hệ nhiều-nhiều đến AttributeValues thông qua ProductVariantAttribute
     public function attributeValues()
     {
-        return $this->belongsToMany(AttributeValue::class, 'productvariantattribute', 'VariantID', 'AttributeValueID');
+        return $this->belongsToMany(AttributeValue::class, 'ProductVariantAttribute', 'VariantID', 'AttributeValueID');
     }
     public function getFormattedPriceAttribute(): ?string
     {
