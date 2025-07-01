@@ -280,4 +280,18 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
+    // Mối quan hệ với ProductImage
+   
+    public function attributeValues()
+    {
+        return $this->hasManyThrough(
+            AttributeValue::class,
+            ProductVariant::class,
+            'ProductID', // Khóa ngoại trên ProductVariant
+            'AttributeValueID', // Khóa ngoại trên AttributeValue
+            'ProductID', // Khóa chính cục bộ
+            'VariantID' // Khóa chính trên ProductVariant
+        )->select(['attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value'])->distinct();
+    }
+   
 }

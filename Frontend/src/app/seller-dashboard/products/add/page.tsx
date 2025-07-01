@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import type React from "react"
 
 import { useRouter } from "next/navigation"
@@ -68,11 +68,24 @@ export default function ShopeeAddProductPage() {
     }, [router])
 
     useEffect(() => {
+        // Cleanup function sẽ chạy khi component unmount hoặc dependencies thay đổi
         return () => {
-            images.forEach((image) => URL.revokeObjectURL(image.preview))
-            variants.forEach((variant) => variant.Images.forEach((img) => URL.revokeObjectURL(img.preview)))
+            // Cleanup existing images
+            images.forEach((image) => {
+                if (image.preview && image.preview.startsWith("blob:")) {
+                    URL.revokeObjectURL(image.preview)
+                }
+            })
+            // Cleanup variant images
+            variants.forEach((variant) =>
+                variant.Images.forEach((img) => {
+                    if (img.preview && img.preview.startsWith("blob:")) {
+                        URL.revokeObjectURL(img.preview)
+                    }
+                }),
+            )
         }
-    }, [images, variants])
+    }, []) // Empty dependency array - chỉ cleanup khi unmount
 
     // --- DATA FETCHING ---
     const fetchShopCategories = async () => {
@@ -90,7 +103,13 @@ export default function ShopeeAddProductPage() {
     const fetchAttributesForCategory = async (catID: number) => {
         setLoading(true)
         try {
-            const attributesData = await getAttributes(catID)
+            // Lấy dữ liệu từ API (không có CategoryID)
+            const attributesDataFromApi = await getAttributes(catID);
+            // Bổ sung CategoryID cho đúng interface local
+            const attributesData: Attribute[] = attributesDataFromApi.map((attr: any) => ({
+                ...attr,
+                CategoryID: catID,
+            }));
             setAttributes(attributesData)
             const initialValues = attributesData.reduce(
                 (acc, attr) => ({
@@ -122,63 +141,76 @@ export default function ShopeeAddProductPage() {
         }
     }
 
-    const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files
-        if (!files) return
+    const handleImageSelect = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target.files
+            if (!files) return
 
-        if (images.length + files.length > 9) {
-            Swal.fire("Limit Reached!", "You can upload a maximum of 9 images.", "warning")
-            return
-        }
+            if (images.length + files.length > 9) {
+                Swal.fire("Limit Reached!", "You can upload a maximum of 9 images.", "warning")
+                return
+            }
 
-        const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
-            file,
-            preview: URL.createObjectURL(file),
-            isPrimary: images.length === 0 && index === 0,
-            sortOrder: images.length + index,
-        }))
+            const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => {
+                const preview = URL.createObjectURL(file)
+                return {
+                    file,
+                    preview,
+                    isPrimary: images.length === 0 && index === 0,
+                    sortOrder: images.length + index,
+                }
+            })
 
-        setImages((prev) => [...prev, ...newImageFiles])
-        if (event.target) event.target.value = ""
-    }
+            setImages((prev) => [...prev, ...newImageFiles])
+            if (event.target) event.target.value = ""
+        },
+        [images.length],
+    )
 
-    const handleRemoveImage = (indexToRemove: number) => {
+    const handleRemoveImage = useCallback((indexToRemove: number) => {
         setImages((prev) => {
             const imageToRemove = prev[indexToRemove]
-            URL.revokeObjectURL(imageToRemove.preview)
+            // Revoke URL để tránh memory leak
+            if (imageToRemove.preview && imageToRemove.preview.startsWith("blob:")) {
+                URL.revokeObjectURL(imageToRemove.preview)
+            }
+
             const remainingImages = prev.filter((_, index) => index !== indexToRemove)
             if (imageToRemove.isPrimary && remainingImages.length > 0) {
                 remainingImages[0].isPrimary = true
             }
             return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }))
         })
-    }
+    }, [])
 
-    const setPrimaryImage = (indexToSet: number) => {
+    const setPrimaryImage = useCallback((indexToSet: number) => {
         setImages((prev) => prev.map((img, index) => ({ ...img, isPrimary: index === indexToSet })))
-    }
+    }, [])
 
-    const handleVariantImageSelect = (event: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
-        const files = event.target.files
-        if (!files) return
+    const handleVariantImageSelect = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
+            const files = event.target.files
+            if (!files) return
 
-        if (variants[variantIndex].Images.length + files.length > 3) {
-            Swal.fire("Limit Reached!", "Each variant can have a maximum of 3 images.", "warning")
-            return
-        }
+            if (variants[variantIndex].Images.length + files.length > 3) {
+                Swal.fire("Limit Reached!", "Each variant can have a maximum of 3 images.", "warning")
+                return
+            }
 
-        const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
-            file,
-            preview: URL.createObjectURL(file),
-            isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
-            sortOrder: variants[variantIndex].Images.length + index,
-        }))
+            const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
+                file,
+                preview: URL.createObjectURL(file),
+                isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
+                sortOrder: variants[variantIndex].Images.length + index,
+            }))
 
-        setVariants((prev) =>
-            prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
-        )
-        if (event.target) event.target.value = ""
-    }
+            setVariants((prev) =>
+                prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
+            )
+            if (event.target) event.target.value = ""
+        },
+        [variants],
+    )
 
     const handleRemoveVariantImage = (variantIndex: number, imageIndex: number) => {
         setVariants((prev) =>
@@ -334,7 +366,7 @@ export default function ShopeeAddProductPage() {
         <div className="min-h-screen bg-gray-50">
             {/* Shopee Header */}
             <div className="bg-white border-b shadow-sm">
-                {/* <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <div className="text-2xl font-bold text-orange-500">Shopee</div>
                         <div className="text-gray-400">|</div>
@@ -361,7 +393,7 @@ export default function ShopeeAddProductPage() {
                             <span className="text-sm text-gray-700">duynguykhc8</span>
                         </div>
                     </div>
-                </div> */}
+                </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 py-6">
@@ -443,8 +475,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("basic")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "basic"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin cơ bản
@@ -452,8 +484,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("sales")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "sales"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin bán hàng
@@ -461,8 +493,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("shipping")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "shipping"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Vận chuyển
@@ -470,8 +502,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("other")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "other"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin khác
@@ -516,6 +548,14 @@ export default function ShopeeAddProductPage() {
                                                         src={image.preview || "/placeholder.svg"}
                                                         alt={`preview ${index}`}
                                                         className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            console.error("Image load error:", e)
+                                                            e.currentTarget.src = "/placeholder.svg?height=150&width=150"
+                                                        }}
+                                                        onLoad={() => {
+                                                            // Optional: log successful load
+                                                            console.log("Image loaded successfully")
+                                                        }}
                                                     />
                                                     <div className="absolute top-1 right-1">
                                                         <button
@@ -791,8 +831,8 @@ export default function ShopeeAddProductPage() {
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
                                                             <input
                                                                 type="file"
-                                                                ref={(el) => (variantFileInputs.current[index] = el)}
-                                                                onChange={(e) => handleVariantImageSelect(e, index)}
+                                                                ref={el => { variantFileInputs.current[index] = el }}
+                                                                onChange={e => handleVariantImageSelect(e, index)}
                                                                 multiple
                                                                 accept="image/*"
                                                                 className="w-full p-2 border border-gray-300 rounded-md text-sm"

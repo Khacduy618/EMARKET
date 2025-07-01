@@ -44,13 +44,8 @@ export default function SellerDashboardLayout({
             <Script src="/assets/vendor/overlay-scroll/custom-scrollbar.js" strategy="lazyOnload" />
             <Script src="/assets/js/jquery.min.js"/>
             <Script src="/assets/js/bootstrap.bundle.min.js"/>
-
-
-          
             <Script src="/assets/vendor/overlay-scroll/jquery.overlayScrollbars.min.js"/>
             <Script src="/assets/vendor/overlay-scroll/custom-scrollbar.js"/>
-
-           
             <Script src="/assets/vendor/apex/apexcharts.min.js"/>
             <Script src="/assets/vendor/apex/custom/dash1/sparkline.js"/>
             <Script src="/assets/vendor/apex/custom/dash1/customers.js"/>
