@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState, useMemo } from "react"
 import {
   Activity,
@@ -9,6 +11,7 @@ import {
   Calendar,
   Filter,
   Eye,
+  ExternalLink,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,11 +21,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import StatCard from "./StatCard"
 import OrderModal from "./OderModal"
+import OrderDetailsModal from "./OrderDtailsModal"
 import ChartOrderSuccessRate from "./ChartOrderSuccessRate"
 import RevenueChart from "./RevenueChart"
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from "date-fns"
 import { CalendarItem } from "./CalenderItem"
 import type { TimeRange } from "@/types/analytics"
+import { format } from "date-fns"
+import type { summaryDataChart } from "@/types/analytics"
 
 const formatVND = (amount: number): string => new Intl.NumberFormat("vi-VN").format(amount)
 const formatVND2 = (amount: number): string =>
@@ -31,9 +37,12 @@ const formatVND2 = (amount: number): string =>
 type Revenue = {
   OrderDate?: string
   OrderNumber: number
+  OderReturn: number
   TotalRevenue: number
   NumProductsSold: number
 }
+
+type OrderAction = "orderCompleted" | "orderReturn" | "orderCancel"
 
 export default function ComponentRevenue() {
   const [revenueData, setRevenueData] = useState<Revenue>()
@@ -43,13 +52,16 @@ export default function ComponentRevenue() {
   )
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split("T")[0])
   const [showModal, setShowModal] = useState<boolean>(false)
+  const [showOrderDetailsModal, setShowOrderDetailsModal] = useState<boolean>(false)
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined)
+  const [selectedOrderAction, setSelectedOrderAction] = useState<OrderAction>("orderCompleted")
   const [loading, setLoading] = useState<boolean>(false)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [displayQuantity, setDisplayQuantity] = useState<number>(10)
   const [totalPage, setTotalPage] = useState<number>(1)
   const [sortParam, setSortParam] = useState<string>("OrderDate-desc")
   const [timeRange, setTimeRange] = useState<TimeRange>("day")
+  const [dataChartSucess, setDataChartSucess] = useState<summaryDataChart | null>(null)
 
   const today = new Date()
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -104,10 +116,8 @@ export default function ComponentRevenue() {
   }
 
   const handleApply = () => {
-    // Sync dateRange with startDate/endDate
-    setStartDate(dateRange.from.toISOString().split("T")[0])
-    setEndDate(dateRange.to.toISOString().split("T")[0])
-    // Reset to first page when applying new filters
+    setStartDate(format(dateRange.from, "yyyy-MM-dd"))
+    setEndDate(format(dateRange.to, "yyyy-MM-dd"))
     setCurrentPage(1)
   }
 
@@ -122,13 +132,12 @@ export default function ComponentRevenue() {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       })
-
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
-
       const data = await res.json()
       setRevenueData(data.summaryByShop)
       setArrRevenue(data.summaryByDate)
       setTotalPage(data.pagination?.totalPage ?? 1)
+      setDataChartSucess(data.summaryDataChart)
     } catch (error) {
       console.error("Failed to fetch statistics:", error)
     } finally {
@@ -139,13 +148,18 @@ export default function ComponentRevenue() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       fetchStatistics()
-    }, 300)
+    })
     return () => clearTimeout(timeout)
   }, [params])
 
   const handleOrderClick = (orderDate?: string) => {
     setShowModal(true)
     setSelectedDate(orderDate)
+  }
+
+  const handleStatCardClick = (action: OrderAction) => {
+    setSelectedOrderAction(action)
+    setShowOrderDetailsModal(true)
   }
 
   const handleSort = (field: string) => {
@@ -169,8 +183,16 @@ export default function ComponentRevenue() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <OrderModal show={showModal} date={selectedDate} onClose={() => setShowModal(false)} />
+      <OrderDetailsModal
+        show={showOrderDetailsModal}
+        action={selectedOrderAction}
+        startDate={startDate}
+        endDate={endDate}
+        onClose={() => setShowOrderDetailsModal(false)}
+      />
+
       {/* Filters */}
       <Card>
         <CardHeader className="pb-3">
@@ -199,34 +221,77 @@ export default function ComponentRevenue() {
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Tổng doanh thu"
-              value={formatVND(Number(revenueData?.TotalRevenue ?? 0))}
-              icon={TrendingUp}
-              changeType="increase"
-              color="green"
-            />
-            <StatCard
-              title="Đơn giao thành công"
-              value={(revenueData?.OrderNumber ?? 0).toString()}
-              icon={ShoppingCart}
-              changeType="increase"
-              color="blue"
-            />
-            <StatCard
-              title="Đơn bị trả về"
-              value={(revenueData?.OrderNumber ?? 0).toString()}
-              icon={ShoppingCart}
-              changeType="increase"
-              color="blue"
-            />
-            <StatCard
-              title="Sản phẩm đã bán"
-              value={(revenueData?.NumProductsSold ?? 0).toString()}
-              icon={Package}
-              changeType="increase"
-              color="purple"
-            />
+            <div className="relative group">
+              <StatCard
+                title="Tổng doanh thu"
+                value={formatVND(Number(revenueData?.TotalRevenue ?? 0)) + " ₫"}
+                icon={TrendingUp}
+                changeType="increase"
+                color="green"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                onClick={() => handleStatCardClick("orderCompleted")}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="relative group">
+              <StatCard
+                title="Đơn giao thành công"
+                value={(dataChartSucess?.Completed ?? 0).toString()}
+                icon={ShoppingCart}
+                changeType="increase"
+                color="blue"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                onClick={() => handleStatCardClick("orderCompleted")}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="relative group">
+              <StatCard
+                title="Đơn bị trả về"
+                value={(dataChartSucess?.Returned ?? 0).toString()}
+                icon={ShoppingCart}
+                changeType="increase"
+                color="blue"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                onClick={() => handleStatCardClick("orderReturn")}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="relative group">
+              <StatCard
+                title="Đơn bị hủy"
+                value={(dataChartSucess?.Cancelled ?? 0).toString()}
+                icon={Package}
+                changeType="increase"
+                color="purple"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                onClick={() => handleStatCardClick("orderCancel")}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex">
@@ -235,7 +300,7 @@ export default function ComponentRevenue() {
                 <CardTitle className="text-sm font-medium text-gray-600">Tỷ lệ đơn hàng giao thành công</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <ChartOrderSuccessRate apiUrl={`http://localhost:8001/api/seller/statistics?${params}`} />
+                <ChartOrderSuccessRate data={dataChartSucess} />
               </CardContent>
             </Card>
 
@@ -244,7 +309,7 @@ export default function ComponentRevenue() {
                 <CardTitle className="text-sm font-medium text-gray-600">Mức doanh thu theo ngày</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <RevenueChart apiUrl={`http://localhost:8001/api/seller/statistics?${params}`} />
+                <RevenueChart summaryByDate={arrRevenue} loading={loading} />
               </CardContent>
             </Card>
           </div>

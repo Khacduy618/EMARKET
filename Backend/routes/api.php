@@ -165,4 +165,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
   Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
+  Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
 });

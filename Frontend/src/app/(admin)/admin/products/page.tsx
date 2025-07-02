@@ -241,7 +241,7 @@ export default function ProductListPage() {
                 <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
                 <Select
                   value={limitItem.toString()}
-                  onValueChange={(value) => {
+                  onValueChange={(value : any) => {
                     setLimitItem(Number.parseInt(value, 10))
                     setCurrentPage(1)
                   }}

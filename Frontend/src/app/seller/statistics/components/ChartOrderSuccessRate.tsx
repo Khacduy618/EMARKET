@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 import type { OrderStatus } from "@/types/analytics"
+import type { summaryDataChart } from "@/types/analytics"
 
-interface ChartOrderSuccessRateProps {
-  apiUrl: string
+interface Props {
+  data: summaryDataChart | null
 }
 
-export default function ChartOrderSuccessRate({ apiUrl }: ChartOrderSuccessRateProps) {
+export default function ChartOrderSuccessRate({ data }: Props) {
   const [orderStatus, setOrderStatus] = useState<OrderStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,70 +18,49 @@ export default function ChartOrderSuccessRate({ apiUrl }: ChartOrderSuccessRateP
   const COLORS = ["#f97316", "#fb923c", "#fdba74"]
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    if (!data) {
+      setLoading(true)
+      setError(null)
+      setOrderStatus([])
+      return
+    }
 
-        const res = await fetch(apiUrl, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
+    try {
+      setLoading(true)
+      setError(null)
+
+      const orderStatusData: OrderStatus[] = [
+        {
+          status: "Giao thành công",
+          count: Number(data.Completed) || 0,
+          percentage: 0,
+        },
+        {
+          status: "Trả hàng",
+          count: Number(data.Returned) || 0,
+          percentage: 0,
+        },
+        {
+          status: "Đơn bị hủy",
+          count: Number(data.Cancelled) || 0,
+          percentage: 0,
+        },
+      ]
+
+      const total = orderStatusData.reduce((acc, item) => acc + item.count, 0)
+      if (total > 0) {
+        orderStatusData.forEach((item) => {
+          item.percentage = Math.round((item.count / total) * 100)
         })
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-
-        const data = await res.json()
-
-        // Process order status data
-        const summaryData = data.summaryDataChart
-        if (summaryData) {
-          const orderStatusData: OrderStatus[] = [
-            {
-              status: "Giao thành công",
-              count: Number(summaryData.Completed) || 0,
-              percentage: 0,
-            },
-            {
-              status: "Trả hàng",
-              count: Number(summaryData.Returned) || 0,
-              percentage: 0,
-            },
-            {
-              status: "Đơn bị hủy",
-              count: Number(summaryData.Cancelled) || 0,
-              percentage: 0,
-            },
-          ]
-
-          // Calculate percentages
-          const total = orderStatusData.reduce((acc, item) => acc + item.count, 0)
-          if (total > 0) {
-            orderStatusData.forEach((item) => {
-              item.percentage = Math.round((item.count / total) * 100)
-            })
-          }
-
-          setOrderStatus(orderStatusData)
-        }
-
-
-      } catch (error) {
-        console.error("Lỗi khi fetch dữ liệu biểu đồ:", error)
-        setError("Không thể tải dữ liệu biểu đồ")
-      } finally {
-        setLoading(false)
       }
-    }
 
-    if (apiUrl) {
-      fetchData()
+      setOrderStatus(orderStatusData)
+      setLoading(false)
+    } catch (err) {
+      setError("Lỗi xử lý dữ liệu biểu đồ")
+      setLoading(false)
     }
-  }, [apiUrl])
-
+  }, [data])
 
   if (loading) {
     return (
@@ -88,17 +68,6 @@ export default function ChartOrderSuccessRate({ apiUrl }: ChartOrderSuccessRateP
         <div className="flex items-center justify-center h-[300px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
           <span className="ml-3 text-gray-600">Đang tải dữ liệu...</span>
-        </div>
-      </div>
-    )
-  }
-
-  const totalCount = orderStatus.reduce((sum, item) => sum + item.count, 0)
-  if (!orderStatus || orderStatus.length === 0 || totalCount === 0) {
-    return (
-      <div>
-        <div className="flex items-center justify-center h-[300px] text-gray-500">
-          <p>Không có dữ liệu để hiển thị</p>
         </div>
       </div>
     )
@@ -125,6 +94,17 @@ export default function ChartOrderSuccessRate({ apiUrl }: ChartOrderSuccessRateP
     )
   }
 
+  const totalCount = orderStatus.reduce((sum, item) => sum + item.count, 0)
+  if (!orderStatus || orderStatus.length === 0 || totalCount === 0) {
+    return (
+      <div>
+        <div className="flex items-center justify-center h-[300px] text-gray-500">
+          <p>Không có dữ liệu để hiển thị</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-6">
       <ResponsiveContainer width="100%" height={300}>
@@ -147,5 +127,4 @@ export default function ChartOrderSuccessRate({ apiUrl }: ChartOrderSuccessRateP
       </ResponsiveContainer>
     </div>
   )
-
 }

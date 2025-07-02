@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\utils\CategoryUtil;
 
-class StatisticsController extends Controller {
+class StatisticsController extends Controller
+{
   public function getRevenueByDate(Request $req)
   {
     $user = Auth::user();
@@ -63,7 +64,7 @@ class StatisticsController extends Controller {
       ->pluck('OrderCount', 'OverallStatus')
       ->toArray();
 
-   
+
     $cancelledTotal = ($summaryDataChart['CancelledByBuyer'] ?? 0) + ($summaryDataChart['CancelledBySeller'] ?? 0);
 
     unset($summaryDataChart['CancelledByBuyer'], $summaryDataChart['CancelledBySeller']);
@@ -165,6 +166,71 @@ class StatisticsController extends Controller {
 
     return response()->json($orders);
   }
+
+  public function getOrdersByAction(Request $req) {
+    $user = Auth::user();
+
+    $startDate = $req->startDate
+      ? $req->startDate . ' 00:00:00'
+      : Carbon::now()->startOfMonth()->format('Y-m-d H:i:s');
+
+    $endDate = $req->endDate
+      ? $req->endDate . ' 23:59:59'
+      : Carbon::now()->endOfMonth()->format('Y-m-d H:i:s');
+
+    $shopID = DB::table('shops')
+      ->where('UserID', $user->UserID)
+      ->value('ShopID');
+
+    if (!$shopID) {
+      return response()->json(['message' => 'Shop not found'], 404);
+    }
+
+    $action = $req->input('action');
+
+    $ordersQuery = DB::table('ordersbuyer as ob')
+      ->select(
+        'ob.OrderID',
+        'ob.OrderCode',
+        'u.FullName as CustomerName',
+        'ob.OrderDate',
+        'ob.TotalAmount',
+        'ob.OverallStatus',
+        DB::raw('COUNT(oi.OrderID) as ProductCount')
+      )
+      ->join('users as u', 'ob.UserID', '=', 'u.UserID')
+      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
+      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->where('p.ShopID', $shopID)
+      ->whereBetween('ob.OrderDate', [$startDate, $endDate])
+      ->groupBy('ob.OrderID', 'ob.OrderCode', 'u.FullName', 'ob.OrderDate', 'ob.TotalAmount', 'ob.OverallStatus');
+
+    switch ($action) {
+      case 'orderReturn':
+        $ordersQuery->where('ob.OverallStatus', 'Returned');
+        break;
+
+      case 'orderCancel':
+        $ordersQuery->whereIn('ob.OverallStatus', ['CancelledByBuyer', 'CancelledBySeller']);
+        break;
+
+      case 'orderCompleted':
+      default:
+        $ordersQuery->where('ob.OverallStatus', 'Completed');
+        break;
+    }
+
+    $orders = $ordersQuery->get();
+
+    return response()->json([
+      'action' => $action,
+      'orders' => $orders
+    ]);
+  }
+
+
+
 }
 
 

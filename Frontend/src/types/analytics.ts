@@ -28,4 +28,9 @@ export interface RegionData {
   percentage: number
 }
 
+export interface summaryDataChart {
+  Returned: number
+  Completed: number
+  Cancelled: number
+}
 export type TimeRange = "day" | "week" | "month"
