@@ -1,7 +1,7 @@
 "use client"
+
 import { useState, useEffect, useRef, useCallback } from "react"
 import type React from "react"
-
 import { useRouter } from "next/navigation"
 import { getShopCategories, createProduct, getAttributes } from "@/services/seller-category"
 import Swal from "sweetalert2"
@@ -104,12 +104,12 @@ export default function ShopeeAddProductPage() {
         setLoading(true)
         try {
             // Lấy dữ liệu từ API (không có CategoryID)
-            const attributesDataFromApi = await getAttributes(catID);
+            const attributesDataFromApi = await getAttributes(catID)
             // Bổ sung CategoryID cho đúng interface local
             const attributesData: Attribute[] = attributesDataFromApi.map((attr: any) => ({
                 ...attr,
                 CategoryID: catID,
-            }));
+            }))
             setAttributes(attributesData)
             const initialValues = attributesData.reduce(
                 (acc, attr) => ({
@@ -179,6 +179,7 @@ export default function ShopeeAddProductPage() {
             if (imageToRemove.isPrimary && remainingImages.length > 0) {
                 remainingImages[0].isPrimary = true
             }
+
             return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }))
         })
     }, [])
@@ -207,6 +208,7 @@ export default function ShopeeAddProductPage() {
             setVariants((prev) =>
                 prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
             )
+
             if (event.target) event.target.value = ""
         },
         [variants],
@@ -290,28 +292,67 @@ export default function ShopeeAddProductPage() {
         })
     }
 
+    // Validation cho tab basic
+    const validateBasicTab = () => {
+        if (!categoryID) {
+            Swal.fire("Error!", "Vui lòng chọn ngành hàng.", "error")
+            return false
+        }
+        if (!name.trim()) {
+            Swal.fire("Error!", "Vui lòng nhập tên sản phẩm.", "error")
+            return false
+        }
+        if (images.length === 0) {
+            Swal.fire("Error!", "Vui lòng thêm ít nhất một hình ảnh sản phẩm.", "error")
+            return false
+        }
+        return true
+    }
+
+    // Xử lý chuyển tab tiếp theo
+    const handleNextTab = () => {
+        if (activeTab === "basic") {
+            if (validateBasicTab()) {
+                setActiveTab("sales")
+            }
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Nếu đang ở tab basic, chuyển sang tab sales thay vì submit
+        if (activeTab === "basic") {
+            handleNextTab()
+            return
+        }
+
+        // Validation cho tab sales
         if (!categoryID) {
             Swal.fire("Error!", "Please select a category.", "error")
             return
         }
+
         if (images.length === 0 && variants.every((v) => v.Images.length === 0)) {
             Swal.fire("Error!", "At least one image is required for the product or variants.", "error")
             return
         }
+
         if (hasVariants && variants.length === 0) {
             Swal.fire("Error!", "Please add at least one variant.", "error")
             return
         }
+
         if (hasVariants && variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
             Swal.fire("Error!", "Price and stock quantity must be valid for all variants.", "error")
             return
         }
+
         if (!hasVariants && singleVariant.Price <= 0) {
             Swal.fire("Error!", "Price must be greater than 0 for single variant.", "error")
             return
         }
+
         if (discount < 0 || discount > 100) {
             Swal.fire("Error!", "Discount must be between 0 and 100.", "error")
             return
@@ -359,6 +400,18 @@ export default function ShopeeAddProductPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    // Hàm để lấy text của nút dựa trên tab hiện tại
+    const getSubmitButtonText = () => {
+        if (loading) return "Đang xử lý..."
+        if (activeTab === "basic") return "Tiếp theo"
+        return "Lưu & Hiển thị"
+    }
+
+    // Helper function để lấy primary image
+    const getPrimaryImage = () => {
+        return images.find((img) => img.isPrimary) || images[0] || null
     }
 
     // --- RENDER ---
@@ -475,8 +528,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("basic")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "basic"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin cơ bản
@@ -484,8 +537,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("sales")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "sales"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin bán hàng
@@ -493,8 +546,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("shipping")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "shipping"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Vận chuyển
@@ -502,8 +555,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("other")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "other"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin khác
@@ -537,7 +590,6 @@ export default function ShopeeAddProductPage() {
                                             </div>
                                             <span className="text-blue-500 text-sm cursor-pointer hover:underline">Ví dụ</span>
                                         </div>
-
                                         <div className="grid grid-cols-5 gap-4">
                                             {images.map((image, index) => (
                                                 <div
@@ -831,8 +883,10 @@ export default function ShopeeAddProductPage() {
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
                                                             <input
                                                                 type="file"
-                                                                ref={el => { variantFileInputs.current[index] = el }}
-                                                                onChange={e => handleVariantImageSelect(e, index)}
+                                                                ref={(el) => {
+                                                                    variantFileInputs.current[index] = el
+                                                                }}
+                                                                onChange={(e) => handleVariantImageSelect(e, index)}
                                                                 multiple
                                                                 accept="image/*"
                                                                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
@@ -960,7 +1014,7 @@ export default function ShopeeAddProductPage() {
                                         disabled={loading}
                                         className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:bg-gray-400 transition-colors"
                                     >
-                                        {loading ? "Đang lưu..." : "Lưu & Hiển thị"}
+                                        {getSubmitButtonText()}
                                     </button>
                                 </div>
                             </div>
@@ -982,7 +1036,7 @@ export default function ShopeeAddProductPage() {
                                 <div className="border-2 border-orange-200 rounded-lg p-4 mb-4 min-h-[200px] flex items-center justify-center bg-gray-50">
                                     {images.length > 0 ? (
                                         <img
-                                            src={images[0].preview || "/placeholder.svg"}
+                                            src={getPrimaryImage()?.preview || "/placeholder.svg"}
                                             alt="Preview"
                                             className="max-w-full max-h-full object-contain"
                                         />

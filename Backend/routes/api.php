@@ -78,7 +78,7 @@ Route::middleware('auth:sanctum' )->group(function () {
         Route::get('/products', [ShopProductController::class, 'index']);
         Route::post('/shop/products', [ShopProductController::class, 'addProduct']);
         Route::get('/shop/products/{productID}', [ShopProductController::class, 'showProduct']);
-        Route::post('/shop/products/{product}', [ShopProductController::class, 'updateProduct']);
+        Route::post('/shop/products/{productId}', [ShopProductController::class, 'updateProduct']) ; 
         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);

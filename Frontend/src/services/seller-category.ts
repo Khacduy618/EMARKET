@@ -53,8 +53,8 @@ export interface ProductData {
   Discount: number;
   AdminApprovalStatus: string;
   StockQuantity: number;
-  Images: { ImageID: number; ImageURL: string; IsPrimary: boolean; SortOrder: number }[];
-  Variants: {
+  images: { ImageID: number; ImageURL: string; IsPrimary: boolean; SortOrder: number }[];
+  variants: {
     VariantID: number;
     Price: number;
     CompareAtPrice: number | null;
@@ -62,7 +62,7 @@ export interface ProductData {
     SKU: string;
     ImageURL: string | null;
     IsActive: boolean;
-    AttributeValues: { AttributeValueID: number; AttributeID: number; Value: string }[];
+    attribute_values: { AttributeValueID: number; AttributeID: number; Value: string }[];
   }[];
   AttributeValues: { AttributeValueID: number; AttributeID: number; Value: string }[];
 }
@@ -134,7 +134,7 @@ export async function createProduct(productFormData: FormData): Promise<any> {
 }
 
 export async function deleteProduct(productID: number) {
-  const response = await api.delete(`/products/${productID}`);
+  const response = await api.delete(`/shop/products/${productID}`);
   return response.data;
 }
 
@@ -146,7 +146,7 @@ export async function getAttributes(categoryID: number): Promise<Attribute[]> {
 export async function getProduct(productID: number): Promise<ProductData> {
   try {
     const response = await api.get(`/shop/products/${productID}`);
-    return response.data; // Expecting { data: ProductData } from controller
+    return response.data.data; // Expecting { data: ProductData } from controller
   } catch (error: any) {
     console.error("Error fetching product:", error.response?.data || error.message);
     throw new Error(error.response?.data?.message || "Failed to fetch product");
@@ -157,7 +157,7 @@ export async function updateProduct(productID: number, productFormData: FormData
   console.log("Attempting to update product with ID:", productID);
   
   // THÊM DÒNG NÀY ĐỂ GIẢ LẬP PUT
-  productFormData.append('_method', 'PUT');
+  productFormData.append('_method', 'POST');
 
   console.log("--- Nội dung FormData (đã thêm _method) ---");
   for (let [key, value] of productFormData.entries()) {

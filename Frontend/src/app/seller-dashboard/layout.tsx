@@ -31,7 +31,7 @@ export default function SellerDashboardLayout({
                 <div className="main-container">
                     <Sidebar />
                     <div className="app-container">
-                        <Header />
+                        {/* <Header /> */}
                         <main>{children}</main> {/* `children` ở đây chính là page.tsx */}
                         <Footer />
                     </div>
