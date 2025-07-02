@@ -67,8 +67,11 @@ export default function ShopeeAddProductPage() {
         fetchShopCategories()
     }, [router])
 
+    // Fix the useEffect cleanup and image handling
+    // Replace the existing useEffect with proper cleanup:
+
     useEffect(() => {
-        // Cleanup function sẽ chạy khi component unmount hoặc dependencies thay đổi
+        // Cleanup function sẽ chạy khi component unmount hoặc khi images/variants thay đổi
         return () => {
             // Cleanup existing images
             images.forEach((image) => {
@@ -85,7 +88,7 @@ export default function ShopeeAddProductPage() {
                 }),
             )
         }
-    }, []) // Empty dependency array - chỉ cleanup khi unmount
+    }, [images, variants]) // Add dependencies to properly cleanup when state changes
 
     // --- DATA FETCHING ---
     const fetchShopCategories = async () => {
@@ -129,8 +132,7 @@ export default function ShopeeAddProductPage() {
     }
 
     // --- HANDLERS ---
-    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newCategoryID = Number(e.target.value) || null
+    const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
         setCategoryID(newCategoryID)
         setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
         if (newCategoryID) {
@@ -141,6 +143,7 @@ export default function ShopeeAddProductPage() {
         }
     }
 
+    // Update handleImageSelect to be more robust:
     const handleImageSelect = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = event.target.files
@@ -152,6 +155,7 @@ export default function ShopeeAddProductPage() {
             }
 
             const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => {
+                // Create blob URL
                 const preview = URL.createObjectURL(file)
                 return {
                     file,
@@ -162,24 +166,37 @@ export default function ShopeeAddProductPage() {
             })
 
             setImages((prev) => [...prev, ...newImageFiles])
-            if (event.target) event.target.value = ""
+
+            // Clear the input value
+            if (event.target) {
+                event.target.value = ""
+            }
         },
         [images.length],
     )
 
+    // Update handleRemoveImage to be more robust:
     const handleRemoveImage = useCallback((indexToRemove: number) => {
         setImages((prev) => {
             const imageToRemove = prev[indexToRemove]
-            // Revoke URL để tránh memory leak
-            if (imageToRemove.preview && imageToRemove.preview.startsWith("blob:")) {
-                URL.revokeObjectURL(imageToRemove.preview)
+
+            // Safely revoke URL
+            if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
+                try {
+                    URL.revokeObjectURL(imageToRemove.preview)
+                } catch (error) {
+                    console.warn("Failed to revoke object URL:", error)
+                }
             }
 
             const remainingImages = prev.filter((_, index) => index !== indexToRemove)
-            if (imageToRemove.isPrimary && remainingImages.length > 0) {
+
+            // Set new primary if needed
+            if (imageToRemove?.isPrimary && remainingImages.length > 0) {
                 remainingImages[0].isPrimary = true
             }
 
+            // Update sort order
             return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }))
         })
     }, [])
@@ -188,6 +205,7 @@ export default function ShopeeAddProductPage() {
         setImages((prev) => prev.map((img, index) => ({ ...img, isPrimary: index === indexToSet })))
     }, [])
 
+    // Update handleVariantImageSelect with better error handling:
     const handleVariantImageSelect = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
             const files = event.target.files
@@ -198,38 +216,59 @@ export default function ShopeeAddProductPage() {
                 return
             }
 
-            const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
-                file,
-                preview: URL.createObjectURL(file),
-                isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
-                sortOrder: variants[variantIndex].Images.length + index,
-            }))
+            const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => {
+                const preview = URL.createObjectURL(file)
+                return {
+                    file,
+                    preview,
+                    isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
+                    sortOrder: variants[variantIndex].Images.length + index,
+                }
+            })
 
             setVariants((prev) =>
                 prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
             )
 
-            if (event.target) event.target.value = ""
+            // Clear input
+            if (event.target) {
+                event.target.value = ""
+            }
         },
         [variants],
     )
 
-    const handleRemoveVariantImage = (variantIndex: number, imageIndex: number) => {
+    // Update handleRemoveVariantImage with proper cleanup:
+    const handleRemoveVariantImage = useCallback((variantIndex: number, imageIndex: number) => {
         setVariants((prev) =>
-            prev.map((v, i) =>
-                i === variantIndex
-                    ? {
+            prev.map((v, i) => {
+                if (i === variantIndex) {
+                    const imageToRemove = v.Images[imageIndex]
+
+                    // Safely revoke URL
+                    if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
+                        try {
+                            URL.revokeObjectURL(imageToRemove.preview)
+                        } catch (error) {
+                            console.warn("Failed to revoke variant image URL:", error)
+                        }
+                    }
+
+                    const remainingImages = v.Images.filter((_, idx) => idx !== imageIndex)
+
+                    return {
                         ...v,
-                        Images: v.Images.filter((_, idx) => idx !== imageIndex).map((img, idx) => ({
+                        Images: remainingImages.map((img, idx) => ({
                             ...img,
                             sortOrder: idx,
-                            isPrimary: idx === 0 && v.Images[imageIndex].isPrimary,
+                            isPrimary: idx === 0 && imageToRemove?.isPrimary,
                         })),
                     }
-                    : v,
-            ),
+                }
+                return v
+            }),
         )
-    }
+    }, [])
 
     const handleVariantChange = (index: number, field: keyof Omit<Variant, "Images">, value: string | number | null) => {
         setVariants((prev) =>
@@ -239,7 +278,9 @@ export default function ShopeeAddProductPage() {
                         ...v,
                         [field]:
                             field === "Price" || field === "StockQuantity"
-                                ? Number(value)
+                                ? value === ""
+                                    ? 0
+                                    : Number(value)
                                 : field === "CompareAtPrice"
                                     ? value === "" || value === null
                                         ? null
@@ -298,14 +339,17 @@ export default function ShopeeAddProductPage() {
             Swal.fire("Error!", "Vui lòng chọn ngành hàng.", "error")
             return false
         }
+
         if (!name.trim()) {
             Swal.fire("Error!", "Vui lòng nhập tên sản phẩm.", "error")
             return false
         }
+
         if (images.length === 0) {
             Swal.fire("Error!", "Vui lòng thêm ít nhất một hình ảnh sản phẩm.", "error")
             return false
         }
+
         return true
     }
 
@@ -412,6 +456,12 @@ export default function ShopeeAddProductPage() {
     // Helper function để lấy primary image
     const getPrimaryImage = () => {
         return images.find((img) => img.isPrimary) || images[0] || null
+    }
+
+    // Get selected category name
+    const getSelectedCategoryName = () => {
+        const selectedCategory = shopCategories.find((cat) => cat.CategoryID === categoryID)
+        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
     }
 
     // --- RENDER ---
@@ -590,23 +640,35 @@ export default function ShopeeAddProductPage() {
                                             </div>
                                             <span className="text-blue-500 text-sm cursor-pointer hover:underline">Ví dụ</span>
                                         </div>
+
                                         <div className="grid grid-cols-5 gap-4">
                                             {images.map((image, index) => (
                                                 <div
                                                     key={image.preview}
                                                     className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden group"
                                                 >
+                                                    {/* Update the image rendering with better error handling:
+                          // In the image grid section, replace the img tag with: */}
                                                     <img
                                                         src={image.preview || "/placeholder.svg"}
                                                         alt={`preview ${index}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
-                                                            console.error("Image load error:", e)
-                                                            e.currentTarget.src = "/placeholder.svg?height=150&width=150"
+                                                            console.error("Image load error for:", image.preview)
+                                                            // Don't change src to placeholder immediately, let it retry
+                                                            const target = e.currentTarget
+                                                            if (!target.dataset.retried) {
+                                                                target.dataset.retried = "true"
+                                                                // Small delay before setting placeholder
+                                                                setTimeout(() => {
+                                                                    if (target.src !== "/placeholder.svg?height=150&width=150") {
+                                                                        target.src = "/placeholder.svg?height=150&width=150"
+                                                                    }
+                                                                }, 100)
+                                                            }
                                                         }}
                                                         onLoad={() => {
-                                                            // Optional: log successful load
-                                                            console.log("Image loaded successfully")
+                                                            console.log("Image loaded successfully:", image.preview)
                                                         }}
                                                     />
                                                     <div className="absolute top-1 right-1">
@@ -650,6 +712,7 @@ export default function ShopeeAddProductPage() {
                                                 </div>
                                             )}
                                         </div>
+
                                         <input
                                             type="file"
                                             ref={fileInputRef}
@@ -749,21 +812,12 @@ export default function ShopeeAddProductPage() {
                                         <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                                             <span className="text-red-500">*</span> Ngành hàng
                                         </label>
-                                        <select
-                                            id="category"
-                                            value={categoryID || ""}
-                                            onChange={handleCategoryChange}
-                                            required
-                                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                            disabled={loading}
-                                        >
-                                            <option value="">Chọn ngành hàng</option>
-                                            {shopCategories.map((cat) => (
-                                                <option key={cat.CategoryID} value={cat.CategoryID}>
-                                                    {cat.CategoryName}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <CategoryDropdown
+                                            categories={shopCategories}
+                                            selectedCategoryID={categoryID}
+                                            onCategorySelect={handleCategoryChange}
+                                            loading={loading}
+                                        />
                                     </div>
 
                                     {/* Description */}
@@ -840,6 +894,7 @@ export default function ShopeeAddProductPage() {
                                                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 />
                                             </div>
+
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                                     <span className="text-red-500">*</span> Kho hàng
@@ -852,6 +907,7 @@ export default function ShopeeAddProductPage() {
                                                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 />
                                             </div>
+
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">SKU (Tùy chọn)</label>
                                                 <input
@@ -878,6 +934,7 @@ export default function ShopeeAddProductPage() {
                                                             </button>
                                                         )}
                                                     </div>
+
                                                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
@@ -894,10 +951,24 @@ export default function ShopeeAddProductPage() {
                                                             <div className="mt-2 flex flex-wrap gap-2">
                                                                 {variant.Images.map((img, imgIndex) => (
                                                                     <div key={imgIndex} className="relative w-16 h-16 border rounded-md overflow-hidden">
+                                                                        {/* Update the variant image rendering with better error handling:
+                                    // In the variant images section, replace the img tag with: */}
                                                                         <img
                                                                             src={img.preview || "/placeholder.svg"}
                                                                             alt={`variant ${index} preview ${imgIndex}`}
                                                                             className="w-full h-full object-cover"
+                                                                            onError={(e) => {
+                                                                                console.error("Variant image load error:", img.preview)
+                                                                                const target = e.currentTarget
+                                                                                if (!target.dataset.retried) {
+                                                                                    target.dataset.retried = "true"
+                                                                                    setTimeout(() => {
+                                                                                        if (target.src !== "/placeholder.svg?height=64&width=64") {
+                                                                                            target.src = "/placeholder.svg?height=64&width=64"
+                                                                                        }
+                                                                                    }, 100)
+                                                                                }
+                                                                            }}
                                                                         />
                                                                         <button
                                                                             type="button"
@@ -915,6 +986,7 @@ export default function ShopeeAddProductPage() {
                                                                 ))}
                                                             </div>
                                                         </div>
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                                 <span className="text-red-500">*</span> Giá
@@ -928,6 +1000,7 @@ export default function ShopeeAddProductPage() {
                                                                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                             />
                                                         </div>
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
                                                             <input
@@ -938,6 +1011,7 @@ export default function ShopeeAddProductPage() {
                                                                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                             />
                                                         </div>
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                                 <span className="text-red-500">*</span> SKU
@@ -950,6 +1024,7 @@ export default function ShopeeAddProductPage() {
                                                                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                             />
                                                         </div>
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                                                 <span className="text-red-500">*</span> Số lượng
@@ -1034,11 +1109,20 @@ export default function ShopeeAddProductPage() {
                             </div>
                             <div className="p-4">
                                 <div className="border-2 border-orange-200 rounded-lg p-4 mb-4 min-h-[200px] flex items-center justify-center bg-gray-50">
+                                    {/* Update the preview image with better error handling:
+                  // In the preview section, replace the preview img with: */}
                                     {images.length > 0 ? (
                                         <img
                                             src={getPrimaryImage()?.preview || "/placeholder.svg"}
                                             alt="Preview"
                                             className="max-w-full max-h-full object-contain"
+                                            onError={(e) => {
+                                                console.error("Preview image load error")
+                                                const target = e.currentTarget
+                                                if (target.src !== "/placeholder.svg?height=200&width=200") {
+                                                    target.src = "/placeholder.svg?height=200&width=200"
+                                                }
+                                            }}
                                         />
                                     ) : (
                                         <div className="text-center text-gray-400">
@@ -1050,7 +1134,7 @@ export default function ShopeeAddProductPage() {
                                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                                                 />
                                             </svg>
-                                            <p className="text-sm">0 phân loại có sẵn</p>
+                                            <p className="text-sm">Chưa có hình ảnh</p>
                                         </div>
                                     )}
                                 </div>
@@ -1104,6 +1188,144 @@ export default function ShopeeAddProductPage() {
                     </div>
                 </div>
             </div>
+        </div>
+    )
+}
+
+// Category Dropdown Component
+interface CategoryDropdownProps {
+    categories: ShopCategory[]
+    selectedCategoryID: number | null
+    onCategorySelect: (categoryID: number, categoryName: string) => void
+    loading: boolean
+}
+
+function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, loading }: CategoryDropdownProps) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("")
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [])
+
+    const filteredCategories = categories.filter((category) =>
+        category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+
+    const getSelectedCategoryName = () => {
+        const selectedCategory = categories.find((cat) => cat.CategoryID === selectedCategoryID)
+        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
+    }
+
+    const handleCategoryClick = (category: ShopCategory) => {
+        onCategorySelect(category.CategoryID, category.CategoryName)
+        setIsOpen(false)
+        setSearchTerm("")
+    }
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            {/* Dropdown Trigger */}
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                disabled={loading}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-left flex items-center justify-between bg-white"
+            >
+                <span className={selectedCategoryID ? "text-gray-900" : "text-gray-500"}>{getSelectedCategoryName()}</span>
+                <svg
+                    className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
+                    {/* Search Header */}
+                    <div className="p-3 border-b border-gray-200">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm ngành hàng..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                            />
+                            <svg
+                                className="absolute left-2 top-2.5 w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {/* Categories List */}
+                    <div className="max-h-80 overflow-y-auto">
+                        {filteredCategories.length === 0 ? (
+                            <div className="p-4 text-center text-gray-500 text-sm">Không tìm thấy ngành hàng nào</div>
+                        ) : (
+                            filteredCategories.map((category) => (
+                                <button
+                                    key={category.CategoryID}
+                                    type="button"
+                                    onClick={() => handleCategoryClick(category)}
+                                    className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
+                                            ? "bg-orange-50 text-orange-600 font-medium"
+                                            : "text-gray-700"
+                                        }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm">{category.CategoryName}</span>
+                                        {selectedCategoryID === category.CategoryID && (
+                                            <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clipRule="evenodd"
+                                                />
+                                            </svg>
+                                        )}
+                                    </div>
+                                </button>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Footer with breadcrumb style */}
+                    <div className="p-3 bg-gray-50 border-t border-gray-200">
+                        <div className="flex items-center text-xs text-gray-500">
+                            <span>Đã chọn:</span>
+                            <span className="ml-2 text-orange-600 font-medium">
+                                {selectedCategoryID ? getSelectedCategoryName() : "Chưa chọn ngành hàng"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
