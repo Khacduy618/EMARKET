@@ -1,10 +1,12 @@
 // app/context/AuthContext.tsx
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
-// 1. Import tất cả các hàm cần thiết từ service
+// 1. Import tất cả các hàm service của bạn
 import {
     login as apiLogin,
     logout as apiLogout,
@@ -13,234 +15,214 @@ import {
     forgotPassword as apiForgotPassword,
     resetPassword as apiResetPassword,
     updatePassword as apiUpdatePassword,
-    getCsrfCookie // Import hàm lấy cookie vào đây
-} from '@/services/auth';
+    updateProfile as apiUpdateProfile,
+    twoFactorChallenge as apiTwoFactorChallenge,
+    getCsrfCookie
+} from '@/services/auth'; // Đảm bảo đường dẫn này đúng với file service của bạn
 
-// 2. Import các interface/type cần thiết
-import { LoginPayload, User, ApiError, RegisterPayload, ForgotPasswordPayload, ResetPasswordPayload, UpdatePasswordPayload } from '@/types';
+// 2. Import tất cả các type/interface cần thiết
+import {
+    LoginPayload,
+    User,
+    ApiError,
+    RegisterPayload,
+    ForgotPasswordPayload,
+    ResetPasswordPayload,
+    UpdatePasswordPayload,
+    UpdateProfilePayload
+} from '@/types';
 
-// 3. Import thư viện toast bạn đang dùng (ở đây là react-toastify)
-import { toast } from 'react-toastify';
 
-// Định nghĩa cấu trúc của Context, bao gồm các state và hàm sẽ cung cấp
+// --- Hàm Helper để xử lý và trích xuất thông điệp lỗi ---
+const getErrorMessage = (error: any, defaultMessage: string): string => {
+    const apiError: ApiError = error.response?.data;
+    if (apiError && apiError.errors) {
+        // Ưu tiên lấy lỗi validation đầu tiên nếu có
+        const firstErrorKey = Object.keys(apiError.errors)[0];
+        if (firstErrorKey && apiError.errors[firstErrorKey][0]) {
+            return apiError.errors[firstErrorKey][0];
+        }
+    }
+    // Nếu không, lấy message chính hoặc message mặc định
+    return apiError?.message || error.message || defaultMessage;
+};
+
+
+// 3. Định nghĩa cấu trúc (Interface) cho Context
 interface AuthContextType {
-    user: User | null;          // Thông tin người dùng hoặc null
-    isLoading: boolean;         // Trạng thái loading ban đầu để kiểm tra session
-    login: (credentials: LoginPayload) => Promise<void>; // Hàm đăng nhập
+    user: User | null;
+    isLoading: boolean;
+    error: string | null;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+    fetchUser: () => Promise<void>;
+    login: (credentials: LoginPayload) => Promise<void>;
     register: (payload: RegisterPayload) => Promise<void>;
-    logout: () => Promise<void>;        // Hàm đăng xuất
-    forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>; // Thêm vào 
+    logout: () => Promise<void>;
+    forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>;
     resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
     updatePassword: (payload: UpdatePasswordPayload) => Promise<void>;
-    error: string | null;       // Lưu trữ lỗi để hiển thị trên form (nếu cần)
+    updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
+    twoFactorChallenge: (code: string) => Promise<void>;
 }
 
-// Tạo Context với giá trị ban đầu là undefined
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Tạo component Provider
+// 4. Component Provider chứa tất cả logic
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true); // Luôn bắt đầu ở trạng thái loading
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    // useEffect này sẽ chỉ chạy một lần duy nhất khi ứng dụng được mount lần đầu
-    useEffect(() => {
-        // Hàm này sẽ khởi tạo session và kiểm tra xem người dùng đã đăng nhập từ trước chưa
-        const initializeAuth = async () => {
-            try {
-                // BƯỚC 1: LẤY COOKIE - "Mồi" session một lần duy nhất
-                // Việc này đảm bảo trình duyệt có một bộ cookie ổn định trước khi làm bất cứ điều gì khác.
-                await getCsrfCookie();
-
-                // BƯỚC 2: KIỂM TRA ĐĂNG NHẬP - Thử lấy thông tin người dùng
-                const userData: any = await apiGetMe();
-                setUser(userData); // Nếu thành công, set thông tin user
-            } catch (err) {
-                // Nếu getMe thất bại (lỗi 401), đó là điều bình thường, nghĩa là user chưa đăng nhập.
-                setUser(null);
-            } finally {
-                // Dù thành công hay thất bại, quá trình khởi tạo đã xong.
-                setIsLoading(false);
-            }
-        };
-
-        initializeAuth();
-    }, []); // Mảng rỗng đảm bảo useEffect chỉ chạy 1 lần
-
-    // Hàm đăng nhập, được gọi bởi các component con (trang Login)
-    const login = async (credentials: LoginPayload) => {
-        setError(null); // Xóa lỗi cũ
-
-        // Dùng toast.promise để hiển thị các trạng thái loading, success, error
-        await toast.promise(
-            // Promise mà chúng ta muốn theo dõi:
-            // Gọi apiLogin và nếu nó thành công, tiếp tục gọi getMe để cập nhật state.
-            apiLogin(credentials).then(async () => {
-                const userData: any = await apiGetMe();
-                setUser(userData);
-                router.push('/'); // Chuyển hướng về trang chủ sau khi thành công
-            }),
-            // Cấu hình các thông báo cho toast
-            {
-                pending: 'Đang đăng nhập...',
-                success: 'Đăng nhập thành công! Chào mừng trở lại.',
-                error: {
-                    // Hàm này được gọi khi promise bị từ chối (reject)
-                    render({ data }) {
-                        const err = data as any; // Ép kiểu lỗi
-                        const apiError: ApiError = err.response?.data;
-                        const errorMessage = apiError?.message || "Thông tin đăng nhập không chính xác.";
-
-                        setError(errorMessage); // Cập nhật state lỗi để hiển thị trên form
-                        return errorMessage;    // Nội dung hiển thị trên toast
-                    },
-                },
-            }
-        );
+    const fetchUser = async () => {
+        try {
+            const userData = await apiGetMe();
+            setUser(userData);
+        } catch (err) {
+            setUser(null);
+        }
     };
 
-    // Hàm đăng xuất
-    const logout = async () => {
-        await toast.promise(
-            // Chỉ cần gọi apiLogout, không cần getCsrfCookie
-            apiLogout().then(() => {
-                setUser(null); // Xóa thông tin user khỏi state
-                router.push('/login'); // Chuyển hướng về trang đăng nhập
-            }),
-            {
-                pending: 'Đang đăng xuất...',
-                success: 'Đã đăng xuất!',
-                error: 'Đăng xuất thất bại, vui lòng thử lại.'
+    useEffect(() => {
+        const initializeAuth = async () => {
+            await getCsrfCookie();
+            await fetchUser();
+            setIsLoading(false);
+        };
+        initializeAuth();
+    }, []);
+
+    const login = async (credentials: LoginPayload) => {
+        setError(null);
+        const toastId = toast.loading("Đang đăng nhập...");
+
+        try {
+            // Gọi apiLogin và nhận về response
+            const response = await apiLogin(credentials);
+
+            // KIỂM TRA ĐIỀU KIỆN 2FA
+            if (response && response.two_factor === true) {
+                // Đây là trường hợp cần 2FA
+                toast.dismiss(toastId); // Bỏ toast loading
+                router.push('/two-factor-challenge'); // Chuyển hướng đến trang nhập mã
+                // Dừng hàm ở đây, không làm gì thêm
+                return;
             }
-        );
+
+            // Nếu không có `two_factor: true`, đây là luồng đăng nhập bình thường
+            await fetchUser();
+            toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
+            router.push('/');
+
+        } catch (error: any) {
+            // Khối catch này bây giờ chỉ xử lý các lỗi thực sự (sai pass, tài khoản bị khóa...)
+            const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
+            setError(message);
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+            throw error;
+        }
+    };
+
+    // Hàm mới để xử lý việc gửi mã 2FA
+    const twoFactorChallenge = async (code: string) => {
+        const toastId = toast.loading("Đang xác thực mã...");
+        try {
+            await apiTwoFactorChallenge(code);
+            await fetchUser(); // Sau khi mã đúng, gọi fetchUser để lấy thông tin
+            toast.update(toastId, { render: "Xác thực thành công!", type: "success", isLoading: false, autoClose: 3000 });
+            router.push('/'); // Chuyển về trang chủ
+        } catch (error: any) {
+            const message = getErrorMessage(error, 'Mã không hợp lệ.');
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+            throw error;
+        }
     };
 
     const register = async (payload: RegisterPayload) => {
         setError(null);
-
-        // toast.promise vẫn được dùng, nhưng hành động sau khi thành công sẽ khác
         await toast.promise(
-            // Chỉ gọi apiRegister
-            apiRegister(payload).then(async () => {
-                // SAU KHI THÀNH CÔNG: KHÔNG đăng nhập, mà chuyển hướng đến trang thông báo
-                try {
-                    await apiLogout();
-                } catch (e) {
-                    // Không cần làm gì nếu logout thất bại, 
-                    // vì có thể chưa có session để logout.
-                } finally {
-                    // Chuyển hướng người dùng đến trang thành công.
-                    // Khi họ vào trang login lần tới, `useEffect` sẽ lấy cookie mới.
-                    router.push('/register/success');
-                }
-            }),
+            apiRegister(payload).then(apiLogout).finally(() => router.push('/register/success')),
             {
                 pending: 'Đang tạo tài khoản...',
-                // Thông báo thành công bây giờ chỉ đơn giản là thông báo
                 success: 'Đăng ký thành công! Vui lòng kiểm tra email.',
                 error: {
-                    // Logic xử lý lỗi vẫn như cũ
-                    render({ data }) {
-                        const err = data as any;
-                        const apiError: ApiError = err.response?.data;
-                        let errorMessage = apiError?.message || "Đã xảy ra lỗi, vui lòng thử lại.";
-                        if (apiError && apiError.errors) {
-                            const firstErrorField = Object.keys(apiError.errors)[0];
-                            errorMessage = apiError.errors[firstErrorField][0];
-                        }
-                        setError(errorMessage);
-                        return errorMessage;
-                    },
-                },
+                    render: ({ data }: any) => {
+                        const message = getErrorMessage(data, 'Đăng ký thất bại.');
+                        setError(message);
+                        return message;
+                    }
+                }
             }
         );
     };
 
-    const resetPassword = async (payload: ResetPasswordPayload) => {
+    const logout = async () => {
         await toast.promise(
-            apiResetPassword(payload).then(() => {
-                // Sau khi thành công, chuyển hướng đến trang login
+            apiLogout().then(() => {
+                setUser(null);
                 router.push('/login');
             }),
-            {
-                pending: 'Đang đặt lại mật khẩu...',
-                success: 'Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập.',
-                error: {
-                    render({ data }) {
-                        // ... logic xử lý lỗi tương tự các hàm khác ...
-                        const err = data as any;
-                        //...
-                        return err.response?.data?.message || 'Token không hợp lệ hoặc đã hết hạn.';
-                    }
-                }
-            }
+            { pending: 'Đang đăng xuất...', success: 'Đã đăng xuất!', error: 'Đăng xuất thất bại.' }
         );
     };
 
     const forgotPassword = async (payload: ForgotPasswordPayload) => {
+        await toast.promise(apiForgotPassword(payload), {
+            pending: 'Đang gửi yêu cầu...',
+            success: 'Nếu email tồn tại, một link reset sẽ được gửi đi.',
+            error: { render: ({ data }: any) => getErrorMessage(data, 'Yêu cầu thất bại.') }
+        });
+    };
+
+    const resetPassword = async (payload: ResetPasswordPayload) => {
         await toast.promise(
-            apiForgotPassword(payload),
+            apiResetPassword(payload).then(() => router.push('/login')),
             {
-                pending: 'Đang gửi yêu cầu...',
-                success: 'Nếu email của bạn tồn tại, một link reset sẽ được gửi đến.',
-                // ---- SỬA LẠI KHỐI NÀY ĐỂ HIỂN THỊ LỖI CHI TIẾT ----
-                error: {
-                    render({ data }) { // `data` ở đây chính là object lỗi
-                        const err = data as any;
-                        console.error("FORGOT PASSWORD ERROR:", err.response?.data); // Log chi tiết lỗi ra console
-
-                        // Lấy message từ response của backend nếu có
-                        const errorMessage = err.response?.data?.message || err.message || 'Đã có lỗi xảy ra không xác định.';
-
-                        return `Lỗi: ${errorMessage}`; // Hiển thị lỗi chi tiết trên toast
-                    }
-                }
+                pending: 'Đang đặt lại mật khẩu...',
+                success: 'Mật khẩu đã được đặt lại! Vui lòng đăng nhập.',
+                error: { render: ({ data }: any) => getErrorMessage(data, 'Token không hợp lệ hoặc đã hết hạn.') }
             }
         );
     };
 
     const updatePassword = async (payload: UpdatePasswordPayload) => {
-        // Không cần logic gì đặc biệt, chỉ gọi API và hiển thị kết quả
-        await toast.promise(
-            apiUpdatePassword(payload),
-            {
-                pending: 'Đang cập nhật mật khẩu...',
-                success: 'Đã thay đổi mật khẩu thành công!',
-                error: {
-                    render({ data }) {
-                        const err = data as any;
-                        const apiError: ApiError = err.response?.data;
-                        let errorMessage = apiError?.message || 'Đã có lỗi xảy ra.';
-                        // Xử lý lỗi validation từ Fortify (ví dụ: mật khẩu hiện tại không đúng)
-                        if (apiError && apiError.errors) {
-                            const firstErrorKey = Object.keys(apiError.errors)[0];
-                            errorMessage = apiError.errors[firstErrorKey][0];
-                        }
-                        return errorMessage;
-                    }
-                }
-            }
-        );
+        await toast.promise(apiUpdatePassword(payload), {
+            pending: 'Đang cập nhật mật khẩu...',
+            success: 'Đã thay đổi mật khẩu thành công!',
+            error: { render: ({ data }: any) => getErrorMessage(data, 'Cập nhật thất bại.') }
+        });
+    };
+
+    const updateProfile = async (payload: UpdateProfilePayload) => {
+        const toastId = toast.loading("Đang cập nhật thông tin...");
+        try {
+            const updatedUser = await apiUpdateProfile(payload);
+            setUser(updatedUser);
+            toast.update(toastId, { render: "Cập nhật thành công!", type: "success", isLoading: false, autoClose: 3000 });
+        } catch (error: any) {
+            const errorMessage = getErrorMessage(error, 'Cập nhật thất bại.');
+            toast.update(toastId, { render: errorMessage, type: "error", isLoading: false, autoClose: 5000 });
+            throw error;
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, logout, error, register, forgotPassword, resetPassword, updatePassword }}>
-            {/* 
-        Chỉ render các component con khi quá trình khởi tạo auth đã hoàn tất.
-        Điều này ngăn chặn việc "nháy" màn hình (ví dụ: hiển thị trang private rồi lại redirect về login)
-      */}
+        <AuthContext.Provider
+            value={{
+                user, isLoading, error, setUser, fetchUser, login, register, logout,
+                forgotPassword, resetPassword, updatePassword, updateProfile, twoFactorChallenge
+            }}
+        >
             {!isLoading && children}
         </AuthContext.Provider>
     );
 };
 
-// Hook tùy chỉnh để dễ dàng truy cập vào context từ bất kỳ component nào
+// 5. Hook tùy chỉnh để sử dụng context
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useAuth phải được sử dụng bên trong một AuthProvider');
+        throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
 };

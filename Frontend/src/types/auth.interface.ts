@@ -42,3 +42,18 @@ export interface UpdatePasswordPayload {
     password: string;
     password_confirmation: string;
 }
+
+export interface UpdateProfilePayload {
+    FullName?: string;
+    Username?: string;
+    Email?: string;
+    Phone?: string;
+}
+
+export interface LoginResponse {
+    two_factor?: boolean; // Thuộc tính này sẽ là true
+}
+
+export interface TwoFactorQrCodeResponse {
+    svg: string; // Chuỗi HTML chứa mã QR dạng SVG
+}
