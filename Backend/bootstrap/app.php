@@ -46,11 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) { // << XÓA HOẶC COMMENT KHỐI NÀY
-        $middleware->validateCsrfTokens(
-            except: ['api/*']
-        );
-    })
+    // ->withMiddleware(function (Middleware $middleware) { // << XÓA HOẶC COMMENT KHỐI NÀY
+    //     $middleware->validateCsrfTokens(
+    //         except: ['api/*']
+    //     );
+    // })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
@@ -58,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

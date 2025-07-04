@@ -62,7 +62,7 @@ interface AuthContextType {
     resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
     updatePassword: (payload: UpdatePasswordPayload) => Promise<void>;
     updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
-    twoFactorChallenge: (code: string) => Promise<void>;
+    twoFactorChallenge: (payload: { code?: string; recovery_code?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,14 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Hàm mới để xử lý việc gửi mã 2FA
-    const twoFactorChallenge = async (code: string) => {
-        const toastId = toast.loading("Đang xác thực mã...");
+    const twoFactorChallenge = async (payload: { code?: string; recovery_code?: string }) => {
+        const toastId = toast.loading("Đang xác thực...");
         try {
-            await apiTwoFactorChallenge(code);
-            await fetchUser(); // Sau khi mã đúng, gọi fetchUser để lấy thông tin
+            await apiTwoFactorChallenge(payload);
+            await fetchUser();
             toast.update(toastId, { render: "Xác thực thành công!", type: "success", isLoading: false, autoClose: 3000 });
-            router.push('/'); // Chuyển về trang chủ
+            router.push('/');
         } catch (error: any) {
             const message = getErrorMessage(error, 'Mã không hợp lệ.');
             toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });

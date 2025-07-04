@@ -10,9 +10,10 @@ import {
     disableTwoFactorAuth,
     getTwoFactorQrCode,
     getRecoveryCodes,
-    confirmTwoFactorAuth
-} from '@/services/auth';
-import { ShieldCheck, ShieldOff } from 'lucide-react';
+    confirmTwoFactorAuth,
+    regenerateRecoveryCodes as apiRegenerateRecoveryCodes // Đổi tên để tránh xung đột
+} from '@/services/auth'; // Đảm bảo đường dẫn service của bạn là đúng
+import { ShieldCheck, ShieldOff, RefreshCw } from 'lucide-react'; // Import thêm icon
 
 export default function TwoFactorAuthPage() {
     const { user, fetchUser } = useAuth();
@@ -24,16 +25,15 @@ export default function TwoFactorAuthPage() {
 
     // States để quản lý UI
     const [isLoading, setIsLoading] = useState(false);
+    const [isRegenerating, setIsRegenerating] = useState(false);
     const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
 
-    // Trạng thái 2FA hiện tại của người dùng
+    // Trạng thái 2FA hiện tại của người dùng, lấy từ context
     const isTwoFactorEnabled = user?.two_factor_enabled || false;
 
-    // --- Các hàm xử lý logic không đổi ---
-
+    // Logic để BẬT 2FA
     const handleEnable2FA = async () => {
         setIsLoading(true);
-        const toastId = toast.loading("Đang khởi tạo 2FA...");
         try {
             await enableTwoFactorAuth();
             const [qrCodeResponse, recoveryCodesResponse] = await Promise.all([
@@ -42,17 +42,17 @@ export default function TwoFactorAuthPage() {
             ]);
             setQrCode(qrCodeResponse.svg);
             setRecoveryCodes(recoveryCodesResponse);
-            toast.update(toastId, { render: "Vui lòng quét mã QR để tiếp tục.", type: "info", isLoading: false, autoClose: 5000 });
+            toast.info("Vui lòng quét mã QR và xác nhận để hoàn tất.");
         } catch (error: any) {
-            const errorMessage = error.response?.data?.message || "Không thể bật 2FA. Vui lòng thử lại.";
-            toast.update(toastId, { render: errorMessage, type: "error", isLoading: false, autoClose: 5000 });
+            toast.error(error.response?.data?.message || "Không thể bật 2FA.");
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Logic để TẮT 2FA
     const handleDisable2FA = async () => {
-        if (!window.confirm("Bạn có chắc chắn muốn tắt Xác thực hai yếu tố không? Tài khoản của bạn sẽ kém an toàn hơn.")) return;
+        if (!window.confirm("Bạn có chắc chắn muốn tắt Xác thực hai yếu tố?")) return;
         setIsLoading(true);
         try {
             await disableTwoFactorAuth();
@@ -65,13 +65,14 @@ export default function TwoFactorAuthPage() {
         }
     };
 
+    // Hàm để xác nhận mã 6 số từ app Authenticator và KÍCH HOẠT
     const handleConfirmTwoFactor = async () => {
         setIsLoading(true);
         try {
             await confirmTwoFactorAuth(confirmCode);
             setQrCode(null);
-            setRecoveryCodes([]);
-            await fetchUser();
+            setRecoveryCodes([]); // Xóa mã khôi phục khỏi state sau khi đã kích hoạt
+            await fetchUser(); // Làm mới state user, isTwoFactorEnabled sẽ là true
             toast.success("Đã kích hoạt Xác thực hai yếu tố thành công!");
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Mã xác thực không hợp lệ.");
@@ -80,104 +81,116 @@ export default function TwoFactorAuthPage() {
         }
     };
 
+    // Lấy lại hoặc tạo mới mã khôi phục
     const handleRegenerateRecoveryCodes = async () => {
-        // Có thể thêm bước xác nhận mật khẩu ở đây nếu muốn an toàn hơn
-        setShowRecoveryCodes(false); // Ẩn đi để tạo hiệu ứng loading
+        const confirmRegenerate = window.confirm("Thao tác này sẽ vô hiệu hóa bộ mã cũ. Bạn có chắc chắn muốn tạo mã khôi phục mới không?");
+        if (!confirmRegenerate) return;
+
+        setIsRegenerating(true);
         try {
-            // Fortify sử dụng lại API get để tạo mã mới
-            const codes = await getRecoveryCodes();
+            await apiRegenerateRecoveryCodes(); // Gọi API để backend tạo mã mới
+            const codes = await getRecoveryCodes(); // Gọi API để lấy bộ mã mới đó về
             setRecoveryCodes(codes);
             setShowRecoveryCodes(true);
-            toast.success("Đã tạo mã khôi phục mới.");
+            toast.success("Đã tạo mã khôi phục mới thành công!");
         } catch (error) {
             toast.error("Không thể tạo mã mới.");
+        } finally {
+            setIsRegenerating(false);
         }
     }
 
-    // --- BẮT ĐẦU PHẦN JSX ĐÃ ĐƯỢC SỬA LỖI LOGIC RENDER ---
+    // Lấy và hiển thị mã khôi phục mà không tạo lại
+    const handleShowRecoveryCodes = async () => {
+        setIsLoading(true);
+        try {
+            const codes = await getRecoveryCodes();
+            setRecoveryCodes(codes);
+            setShowRecoveryCodes(true);
+        } catch (e) {
+            toast.error("Không thể lấy mã khôi phục.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-    // Hàm render nội dung chính dựa trên các state
-    const renderContent = () => {
-        // Trường hợp 1: 2FA ĐÃ BẬT
-        if (isTwoFactorEnabled) {
-            return (
-                <div className="space-y-6 mt-6">
+    // --- JSX RENDER ---
+    return (
+        <div className="p-6 md:p-8 bg-white rounded-lg shadow-md min-h-[300px]">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Xác thực hai yếu tố (2FA)</h2>
+
+            {/* ---- Trường hợp 1: 2FA ĐÃ ĐƯỢC KÍCH HOẠT ---- */}
+            {isTwoFactorEnabled && (
+                <div className="space-y-6">
                     <div className="flex items-center p-4 bg-green-50 text-green-800 rounded-lg">
-                        <ShieldCheck className="w-6 h-6 mr-3" />
-                        <p className="font-semibold">Trạng thái: Đã bật Xác thực hai yếu tố.</p>
+                        <ShieldCheck className="w-6 h-6 mr-3 flex-shrink-0" />
+                        <p className="font-semibold">Trạng thái: Đã bật. Tài khoản của bạn đang được bảo vệ bởi một lớp bảo mật bổ sung.</p>
                     </div>
 
                     {showRecoveryCodes && (
-                        <div>
-                            <p className="mb-2 text-gray-600 font-medium">Lưu các mã này ở nơi an toàn.</p>
-                            <div className="p-4 bg-gray-100 rounded-md">
-                                <pre className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-lg font-mono tracking-wider">
-                                    {recoveryCodes.map(code => <span key={code}>{code}</span>)}
-                                </pre>
-                            </div>
+                        <div className="p-4 bg-gray-100 rounded-md">
+                            <p className="mb-2 font-medium text-gray-700">Lưu các mã này ở nơi an toàn.</p>
+                            <pre className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-lg font-mono tracking-wider">
+                                {recoveryCodes.map(code => <span key={code}>{code}</span>)}
+                            </pre>
                         </div>
                     )}
 
-                    <div className="flex items-center space-x-4">
-                        <button onClick={handleRegenerateRecoveryCodes} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
-                            {showRecoveryCodes ? "Tạo lại mã mới" : "Xem mã khôi phục"}
+                    <div className="flex flex-wrap items-center gap-4">
+                        <button onClick={handleShowRecoveryCodes} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
+                            Xem mã khôi phục
+                        </button>
+                        <button onClick={handleRegenerateRecoveryCodes} disabled={isRegenerating} className="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50">
+                            <RefreshCw className={`w-4 h-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
+                            Tạo lại mã
                         </button>
                         <button onClick={handleDisable2FA} disabled={isLoading} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-400">
                             {isLoading ? 'Đang xử lý...' : 'Tắt 2FA'}
                         </button>
                     </div>
                 </div>
-            );
-        }
+            )}
 
-        // Trường hợp 2: ĐANG TRONG QUÁ TRÌNH BẬT (đã có QR code)
-        if (qrCode) {
-            return (
+            {/* ---- Trường hợp 2: ĐANG TRONG QUÁ TRÌNH KÍCH HOẠT ---- */}
+            {!isTwoFactorEnabled && qrCode && (
                 <div className="mt-6 space-y-6">
-                    <p className="text-lg font-semibold">Hoàn tất kích hoạt 2FA</p>
-                    <p className="text-gray-600">1. Quét mã QR sau bằng ứng dụng xác thực của bạn (ví dụ: Google Authenticator, Authy).</p>
+                    <h3 className="text-lg font-semibold text-gray-800">Hoàn tất kích hoạt 2FA</h3>
+                    <p className="text-gray-600">1. Quét mã QR bằng ứng dụng xác thực của bạn.</p>
                     <div className="p-4 border rounded-lg inline-block bg-white" dangerouslySetInnerHTML={{ __html: qrCode }} />
 
-                    <p className="text-gray-600">2. Lưu lại các mã khôi phục này ở một nơi an toàn. Bạn có thể dùng chúng để truy cập tài khoản nếu mất điện thoại.</p>
+                    <p className="text-gray-600">2. Lưu lại các mã khôi phục này. Chúng là cách duy nhất để truy cập tài khoản nếu bạn mất thiết bị.</p>
                     <div className="p-4 bg-gray-100 rounded-md">
                         <pre className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-lg font-mono tracking-wider">
                             {recoveryCodes.map(code => <span key={code}>{code}</span>)}
                         </pre>
                     </div>
 
-                    <p className="text-gray-600">3. Nhập mã 6 số từ ứng dụng xác thực của bạn vào ô dưới đây để xác nhận và hoàn tất quá trình.</p>
+                    <p className="text-gray-600">3. Nhập mã 6 số từ ứng dụng của bạn để xác nhận.</p>
                     <div className="flex items-center space-x-4 max-w-sm">
-                        <input type="text" value={confirmCode} onChange={(e) => setConfirmCode(e.target.value)} maxLength={6} className="flex-1 block w-full px-4 py-2 text-xl tracking-widest text-center border rounded-md" placeholder="123456" onKeyDown={(e) => e.key === 'Enter' && handleConfirmTwoFactor()} />
+                        <input type="text" value={confirmCode} onChange={(e) => setConfirmCode(e.target.value)} maxLength={6} className="flex-1 block w-full px-4 py-2 text-xl tracking-widest text-center border rounded-md" placeholder="123456" />
                         <button onClick={handleConfirmTwoFactor} disabled={isLoading} className="px-6 py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 disabled:bg-green-400">
                             {isLoading ? 'Đang kiểm tra...' : 'Xác nhận'}
                         </button>
                     </div>
                 </div>
-            );
-        }
+            )}
 
-        // Trường hợp 3 (mặc định): CHƯA BẬT 2FA
-        return (
-            <div className="mt-6">
-                <div className="flex items-center p-4 bg-orange-50 text-orange-800 rounded-lg">
-                    <ShieldOff className="w-6 h-6 mr-3" />
-                    <p className="font-semibold">Trạng thái: Chưa bật Xác thực hai yếu tố.</p>
+            {/* ---- Trường hợp 3: CHƯA BẬT 2FA ---- */}
+            {!isTwoFactorEnabled && !qrCode && (
+                <div className="mt-6">
+                    <div className="flex items-center p-4 bg-orange-50 text-orange-800 rounded-lg">
+                        <ShieldOff className="w-6 h-6 mr-3 flex-shrink-0" />
+                        <p className="font-semibold">Trạng thái: Chưa bật. Hãy bật 2FA để tăng cường bảo mật.</p>
+                    </div>
+                    <p className="my-4 text-gray-600">Khi 2FA được kích hoạt, bạn sẽ cần cung cấp một mã bảo mật từ điện thoại của mình mỗi khi đăng nhập.</p>
+                    <button
+                        onClick={handleEnable2FA}
+                        disabled={isLoading}
+                        className="px-6 py-2 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
+                        {isLoading ? 'Đang khởi tạo...' : 'Bật 2FA ngay'}
+                    </button>
                 </div>
-                <p className="my-4 text-gray-600">Khi 2FA được bật, bạn sẽ được yêu cầu nhập một mã ngẫu nhiên, an toàn trong quá trình đăng nhập để tăng cường bảo mật cho tài khoản.</p>
-                <button
-                    onClick={handleEnable2FA}
-                    disabled={isLoading}
-                    className="px-6 py-2 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
-                    {isLoading ? 'Đang khởi tạo...' : 'Bật 2FA'}
-                </button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="p-6 md:p-8 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Xác thực hai yếu tố (2FA)</h2>
-            {renderContent()}
+            )}
         </div>
     );
 }

@@ -112,8 +112,32 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/debug-config', function () {
-    return response()->json([
-        'session_secure_from_config' => config('session.secure')
-    ]);
+Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', function () {
+    $data = [
+        'name' => 'Seller Test',
+        'role' => 'Seller',
+        'status' => 'active'
+    ];
+    return response()->json($data);
+});
+
+
+Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+    Route::get('/admin/users', function() {
+        $users = [
+            [
+                'id' => 1,
+                'name' => 'Admin Test',
+                'email' => 'admin@test.com',
+                'role' => 'Admin'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Seller Test',
+                'email' => 'seller@test.com',
+                'role' => 'Seller'
+            ]
+        ];
+        return response()->json($users);
+    });
 });

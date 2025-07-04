@@ -186,10 +186,55 @@ export const confirmPassword = async (password: string): Promise<void> => {
     await handleResponse(response);
 };
 
-export const twoFactorChallenge = async (code: string): Promise<void> => {
+export const twoFactorChallenge = async (payload: { code?: string; recovery_code?: string }): Promise<void> => {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
     const response = await fetch(`${API_URL}/two-factor-challenge`, {
-        method: 'POST', body: JSON.stringify({ code }), credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-XSRF-TOKEN': getDecodedXsrfToken() },
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+        body: JSON.stringify(payload) // Gửi đi payload chứa code hoặc recovery_code
     });
+
     await handleResponse(response);
+};
+
+export const regenerateRecoveryCodes = async (): Promise<void> => {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    // Fortify dùng chính API này để tạo lại
+    await fetch(`${API_URL}/user/two-factor-recovery-codes`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+            'Accept': 'application/json'
+        },
+    });
+};
+
+// API cho Seller Dashboard
+export const getSellerDashboard = async (): Promise<any> => {
+    const response = await fetch(`${API_URL}/seller/dashboard`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+    });
+    return handleResponse<any>(response);
+};
+
+// API cho Admin xem danh sách Users
+export const getAdminUsers = async (): Promise<any[]> => {
+    const response = await fetch(`${API_URL}/admin/users`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+    });
+    return handleResponse<any[]>(response);
 };
