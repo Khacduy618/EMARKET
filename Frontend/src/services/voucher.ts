@@ -1,13 +1,7 @@
 // src/services/voucher.ts
 
 import { Voucher } from '@/types'; // Import Voucher interface
-import { handleResponse } from './api'; // handleResponse from your existing api service
-
-const API_BASE_URL = 'http://localhost/api';
-
-const getAuthToken = (): string | null => {
-    return localStorage.getItem('authToken');
-};
+import { handleResponse, getAuthToken, API_BASE_URL } from './api'; // handleResponse from your existing api service
 
 interface FetchVouchersResponse {
     platformVouchers: Voucher[];
@@ -21,6 +15,28 @@ export const fetchAvailableVouchers = async (): Promise<FetchVouchersResponse> =
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+        },
+    });
+    return handleResponse(response);
+};
+
+export interface FetchShopVouchersResponse {
+    vouchers: Voucher[]; // Voucher bây giờ đã có sẵn 'TimesUsed' và 'times_used_by_user'
+    message: string;
+}
+
+/**
+ * Fetches all collected vouchers for a specific shop for the current user.
+ * @param shopId The ID of the shop to fetch vouchers for.
+ * @returns A promise that resolves with the user's collected vouchers for that shop.
+ */
+export const fetchUserShopVouchers = async (shopId: number): Promise<FetchShopVouchersResponse> => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/shops/${shopId}/eligible-vouchers`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
         },
     });
     return handleResponse(response);

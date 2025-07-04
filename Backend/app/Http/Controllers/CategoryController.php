@@ -13,42 +13,42 @@ use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
+    
     public function index()
     {
-        // 1. Xác định "mùa" hiện tại (không đổi)
-        $currentMonth = Date::now()->month;
-        $currentSeason = 0;
-        if (in_array($currentMonth, [1, 2, 3])) $currentSeason = 1;
-        elseif (in_array($currentMonth, [4, 5, 6])) $currentSeason = 2;
-        elseif (in_array($currentMonth, [7, 8, 9])) $currentSeason = 3;
-        else $currentSeason = 4;
-
-        // 2. Xây dựng câu query MỚI và LINH HOẠT
-        $categories = Category::with([
-            // Luôn lọc các children để chỉ lấy những con hợp mùa
-            'children' => function ($query) use ($currentSeason) {
-                $query->where('IsActive', $currentSeason)
-                      ->orWhere('IsActive', 0);
-            }
-        ])
-        // Bắt đầu từ các danh mục cha
-        ->whereNull('ParentCategoryID')
-        // Áp dụng điều kiện lọc linh hoạt cho danh mục cha
-        ->where(function ($query) use ($currentSeason) {
-            // Điều kiện 1: Bản thân danh mục cha phù hợp với mùa
-            $query->where('IsActive', $currentSeason)
-                  ->orWhere('IsActive', 0)
-                  // Điều kiện 2: HOẶC danh mục cha này CÓ CHỨA (has)
-                  // ít nhất một danh mục con phù hợp với mùa
-                  ->orWhereHas('children', function ($subQuery) use ($currentSeason) {
-                      $subQuery->where('IsActive', $currentSeason)
-                               ->orWhere('IsActive', 0);
-                  });
-        })
-        ->orderBy('CategoryID', 'asc')
-        ->get();
-
-        return response()->json($categories);
+        // 1. Xác định "mùa" hiện tại (Giữ nguyên)
+        $currentMonth = now()->month;
+        $currentSeason = 'Winter'; // Mặc định
+    
+        if (in_array($currentMonth, [3, 4, 5])) {
+            $currentSeason = 'Spring';
+        } elseif (in_array($currentMonth, [6, 7, 8])) {
+            $currentSeason = 'Summer';
+        } elseif (in_array($currentMonth, [9, 10, 11])) {
+            $currentSeason = 'Autumn';
+        }
+    
+        // 2. Truy vấn TRỰC TIẾP vào danh mục CON
+        $childCategories = Category::query()
+            // --- ĐIỀU KIỆN QUAN TRỌNG NHẤT ---
+            // Chỉ lấy những danh mục có ParentCategoryID (tức là danh mục con)
+            ->whereNotNull('ParentCategoryID') 
+            
+            // Áp dụng các bộ lọc khác
+            ->where('IsActive', 1)
+            ->where('Deleted', 0)
+            
+            // Lọc theo mùa hiện tại (hoặc không có mùa)
+            ->where(function ($query) use ($currentSeason) {
+                $query->where('Season', $currentSeason)
+                      ->orWhereNull('Season');
+            })
+            
+            ->orderBy('CategoryID', 'asc')
+            ->get();
+    
+        // 3. Trả về danh sách phẳng của các danh mục con
+        return response()->json($childCategories);
     }
     public function store(Request $request)
 {
@@ -57,7 +57,7 @@ class CategoryController extends Controller
         'Name' => 'required|string|max:255',
         'Description' => 'nullable|string',
         'ParentCategoryID' => 'nullable|integer',
-        'Slug' => 'required|string|max:255|unique:platformcategories,Slug',
+        'Slug' => 'required|string|max:255|unique:PlatformCategories,Slug',
         'ImageURL' => 'nullable|url',
         'IsActive' => 'required|boolean'
     ]);
@@ -88,7 +88,7 @@ public function update(Request $request, $id)
             'Name' => 'required|string|max:255',
             'Description' => 'nullable|string',
             'ParentCategoryID' => 'nullable|integer',
-            'Slug' => 'required|string|max:255|unique:platformcategories,Slug,' . $id . ',CategoryID',
+            'Slug' => 'required|string|max:255|unique:PlatformCategories,Slug,' . $id . ',CategoryID',
             'ImageURL' => 'nullable|url',
             'IsActive' => 'required|boolean'
         ]);
@@ -209,20 +209,24 @@ public function update(Request $request, $id)
             return response()->json(['message' => 'An internal server error occurred.'], 500);
         }
     }  
-     private function getAllChildCategoryIds(Category $category): array
-    {
-        $childIds = [];
-        // Sử dụng eager loading cho quan hệ đệ quy để tối ưu
-        $children = $category->load('allChildren')->allChildren;
 
-        foreach ($children as $child) {
-            $childIds[] = $child->CategoryID;
-            if ($child->allChildren->isNotEmpty()) {
-                $childIds = array_merge($childIds, $this->getAllChildCategoryIds($child));
-            }
-        }
-        return $childIds;
-    }
+   
+
+    //  private function getAllChildCategoryIds(Category $category): array
+    // {
+    //     $childIds = [];
+    //     // Sử dụng eager loading cho quan hệ đệ quy để tối ưu
+    //     $children = $category->load('allChildren')->allChildren;
+
+    //     foreach ($children as $child) {
+    //         $childIds[] = $child->CategoryID;
+    //         if ($child->allChildren->isNotEmpty()) {
+    //             $childIds = array_merge($childIds, $this->getAllChildCategoryIds($child));
+    //         }
+    //     }
+    //     return $childIds;
+    // }
+
     private function getIdsFromCategoryTree(Category $category): array
     {
         // Bắt đầu với ID của chính nó
@@ -275,8 +279,12 @@ public function update(Request $request, $id)
     //             // Sắp xếp theo "Bán Chạy"
     //             // YÊU CẦU: Cần có bảng `order_items` chứa `ProductID` và `Quantity` để tính tổng đã bán.
     //             // Nếu cấu trúc DB của bạn khác, hãy sửa lại đoạn này.
+
     //             $query->leftJoin('order_items', 'Products.ProductID', '=', 'order_items.ProductID')
     //                   ->selectRaw('Products.*, SUM(order_items.Quantity) as total_sold')
+
+    //             $query->leftJoin('OrderItems', 'Products.ProductID', '=', 'OrderItems.ProductID')
+    //                   ->selectRaw('Products.*, SUM(OrderItems.Quantity) as total_sold')
     //                   ->groupBy('Products.ProductID') // Quan trọng khi dùng hàm tổng hợp SUM
     //                   ->orderByDesc('total_sold');
     //             break;
@@ -479,4 +487,33 @@ public function update(Request $request, $id)
             'last_page'    => $paginatedProducts->lastPage(),
         ]);
     }
+    private function getAllChildCategoryIds(Category $category): array
+    {
+        $childIds = [];
+        // Sử dụng eager loading cho quan hệ đệ quy để tối ưu
+        $children = $category->load('allChildren')->allChildren;
+
+        foreach ($children as $child) {
+            $childIds[] = $child->CategoryID;
+            if ($child->allChildren->isNotEmpty()) {
+                $childIds = array_merge($childIds, $this->getAllChildCategoryIds($child));
+            }
+        }
+        return $childIds;
+    }
+    //  private function getAllChildCategoryIds(Category $category)
+    // {
+    //     $childIds = [];
+    //     // Sử dụng eager loading cho quan hệ đệ quy để tối ưu
+    //     $children = $category->load('allChildren')->allChildren;
+
+    //     foreach ($children as $child) {
+    //         $childIds[] = $child->CategoryID;
+    //         if ($child->allChildren->isNotEmpty()) {
+    //             $childIds = array_merge($childIds, $this->getAllChildCategoryIds($child));
+    //         }
+    //     }
+    //     return $childIds;
+    // }
+    //}
 }
