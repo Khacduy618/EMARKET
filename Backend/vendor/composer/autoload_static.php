@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
+class ComposerStaticInit667172d2f9b171966ace461fea48975f
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -17,15 +17,13 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        '35a6ad97d21e794e7e22a17d806652e4' => __DIR__ . '/..' . '/nunomaduro/termwind/src/Functions.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '35a6ad97d21e794e7e22a17d806652e4' => __DIR__ . '/..' . '/nunomaduro/termwind/src/Functions.php',
+        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '2203a247e6fda86070a5e4e07aed533a' => __DIR__ . '/..' . '/symfony/clock/Resources/now.php',
         '09f6b20656683369174dd6fa83b7e5fb' => __DIR__ . '/..' . '/symfony/polyfill-uuid/bootstrap.php',
         'a1105708a18b76903365ca1c4aa61b02' => __DIR__ . '/..' . '/symfony/translation/Resources/functions.php',
-        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '47e1160838b5e5a10346ac4084b58c23' => __DIR__ . '/..' . '/laravel/prompts/src/helpers.php',
-        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
-        '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'e39a8b23c42d4e1452234d762b03835a' => __DIR__ . '/..' . '/ramsey/uuid/src/functions.php',
         '476ca15b8d69b04665cd879be9cb4c68' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Collections/functions.php',
         '265b4faa2b3a9766332744949e83bf97' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Collections/helpers.php',
@@ -35,6 +33,8 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         '7f7ac2ddea9cc3fb4b2cc201d63dbc10' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Log/functions.php',
         '493c6aea52f6009bab023b26c21a386a' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Support/functions.php',
         '58571171fd5812e6e447dce228f52f4d' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Support/helpers.php',
+        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'c72349b1fe8d0deeedd3a52e8aa814d8' => __DIR__ . '/..' . '/mockery/mockery/library/helpers.php',
         'ce9671a430e4846b44e1c68c7611f9f5' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery.php',
         'a1cfe24d14977df6878b9bf804af2d1c' => __DIR__ . '/..' . '/nunomaduro/collision/src/Adapters/Phpunit/Autoload.php',
@@ -174,6 +174,7 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         ),
         'A' => 
         array (
+            'Appstract\\Opcache\\' => 18,
             'App\\' => 4,
         ),
     );
@@ -337,8 +338,8 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -513,6 +514,10 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         array (
             0 => __DIR__ . '/..' . '/brick/math/src',
         ),
+        'Appstract\\Opcache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/appstract/laravel-opcache/src',
+        ),
         'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
@@ -523,6 +528,8 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
     public static $classMap = array (
         'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
         'App\\Http\\Controllers\\Admin\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductController.php',
+        'App\\Http\\Controllers\\Admin\\ProductControllers' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductControllers.php',
+        'App\\Http\\Controllers\\Admin\\ShopController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ShopController.php',
         'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\BannerController' => __DIR__ . '/../..' . '/app/Http/Controllers/BannerController.php',
@@ -534,12 +541,15 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
-        'App\\Http\\Controllers\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/SellerRegisterController.php',
-        'App\\Http\\Controllers\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopCategoryController.php',
-        'App\\Http\\Controllers\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopProductController.php',
+        'App\\Http\\Controllers\\Seller\\SellerOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerOrderController.php',
+        'App\\Http\\Controllers\\Seller\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerRegisterController.php',
+        'App\\Http\\Controllers\\Seller\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopCategoryController.php',
+        'App\\Http\\Controllers\\Seller\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopProductController.php',
         'App\\Http\\Controllers\\VoucherController' => __DIR__ . '/../..' . '/app/Http/Controllers/VoucherController.php',
+        'App\\Http\\Middleware\\EnsureIsSeller' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureIsSeller.php',
         'App\\Http\\Middleware\\HandleImage' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleImage.php',
         'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
+        'App\\Http\\Requests\\StoreProductRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreProductRequest.php',
         'App\\Models\\Address' => __DIR__ . '/../..' . '/app/Models/Address.php',
         'App\\Models\\Attribute' => __DIR__ . '/../..' . '/app/Models/Attribute.php',
         'App\\Models\\AttributeValue' => __DIR__ . '/../..' . '/app/Models/AttributeValue.php',
@@ -549,6 +559,7 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Models\\Category' => __DIR__ . '/../..' . '/app/Models/Category.php',
         'App\\Models\\FlashSale' => __DIR__ . '/../..' . '/app/Models/FlashSale.php',
         'App\\Models\\NewArrivalModel' => __DIR__ . '/../..' . '/app/Models/NewArrivalModel.php',
+        'App\\Models\\Order' => __DIR__ . '/../..' . '/app/Models/Order.php',
         'App\\Models\\OrderBuyer' => __DIR__ . '/../..' . '/app/Models/OrderBuyer.php',
         'App\\Models\\OrderItem' => __DIR__ . '/../..' . '/app/Models/OrderItem.php',
         'App\\Models\\PlatformCategory' => __DIR__ . '/../..' . '/app/Models/PlatformCategory.php',
@@ -567,6 +578,16 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\utils\\CategoryUtil' => __DIR__ . '/../..' . '/app/utils/CategoryUtil.php',
+        'Appstract\\Opcache\\Commands\\Clear' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Clear.php',
+        'Appstract\\Opcache\\Commands\\Compile' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Compile.php',
+        'Appstract\\Opcache\\Commands\\Config' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Config.php',
+        'Appstract\\Opcache\\Commands\\Status' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Status.php',
+        'Appstract\\Opcache\\CreatesRequest' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/CreatesRequest.php',
+        'Appstract\\Opcache\\Http\\Controllers\\OpcacheController' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Http/Controllers/OpcacheController.php',
+        'Appstract\\Opcache\\Http\\Middleware\\Request' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Http/Middleware/Request.php',
+        'Appstract\\Opcache\\OpcacheClass' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheClass.php',
+        'Appstract\\Opcache\\OpcacheFacade' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheFacade.php',
+        'Appstract\\Opcache\\OpcacheServiceProvider' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheServiceProvider.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',
@@ -6721,9 +6742,9 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit667172d2f9b171966ace461fea48975f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit667172d2f9b171966ace461fea48975f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit667172d2f9b171966ace461fea48975f::$classMap;
 
         }, null, ClassLoader::class);
     }
