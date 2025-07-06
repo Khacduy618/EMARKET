@@ -125,8 +125,7 @@ class StatisticsController extends Controller
     ]);
   }
 
-  public function getOrderByDate(Request $req)
-  {
+  public function getOrderByDate(Request $req) {
     $date = $req->input('date');
     $user = Auth::user();
 

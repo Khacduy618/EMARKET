@@ -22,9 +22,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import ProductDetailModal from "./components/ProductDetailModal"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import ProductDetailModal from "./components/ProductDetailModal"
 
 interface Product {
   ProductID: number
@@ -59,7 +59,9 @@ export default function ProductListPage() {
   const [limitItem, setLimitItem] = useState(10)
   const [totalPage, setTotalPage] = useState(1)
   const [loading, setLoading] = useState(false)
-
+  const [filterStatus, setFilterStatus] = useState("all")
+  const [filterApproval, setFilterApproval] = useState("all")
+  const [filterCategory, setFilterCategory] = useState("")
   const [showModal, setShowModal] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
 
@@ -74,16 +76,35 @@ export default function ProductListPage() {
         per_page: limitItem.toString(),
       })
 
+      if (filterStatus !== "all") params.set("is_active", filterStatus)
+      if (filterApproval !== "all") params.set("approval_status", filterApproval)
+      if (filterCategory) params.set("category_name", filterCategory)
+
+      const authToken = localStorage.getItem("authToken")
+      if (!authToken) {
+        toast.error("Không tìm thấy token xác thực")
+        return
+      }
+
       const res = await fetch(`http://localhost:8001/api/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${authToken}`,
         },
       })
 
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`)
+      }
+
       const json = await res.json()
-      setProducts(json.data.data)
-      setTotalPage(json.data.last_page || 1)
+
+      if (json.status) {
+        setProducts(json.data.data || [])
+        setTotalPage(json.data.last_page || 1)
+      } else {
+        toast.error(json.message || "Không thể tải danh sách sản phẩm")
+      }
     } catch (err) {
       console.error("Lỗi fetch:", err)
       toast.error("Không thể tải danh sách sản phẩm")
@@ -94,7 +115,7 @@ export default function ProductListPage() {
 
   useEffect(() => {
     fetchProducts()
-  }, [keyword, sortColumn, sortType, currentPage, limitItem])
+  }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, filterApproval, filterCategory])
 
   const handleSort = (col: string) => {
     if (col === sortColumn) {
@@ -120,21 +141,31 @@ export default function ProductListPage() {
       )
     ) {
       try {
+        const authToken = localStorage.getItem("authToken")
+        if (!authToken) {
+          toast.error("Không tìm thấy token xác thực")
+          return
+        }
+
         const res = await fetch(`http://localhost:8001/api/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify({ _method: "PUT", status: newStatus }),
         })
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
 
         const json = await res.json()
         if (json.status) {
           setProducts((prev) =>
             prev.map((p) => (p.ProductID === productId ? { ...p, AdminApprovalStatus: newStatus } : p)),
           )
-          toast.success("Cập nhật trạng thái thành công!");
+          toast.success("Cập nhật trạng thái thành công!")
         } else {
           toast.error(json.message || "Có lỗi xảy ra")
         }
@@ -150,19 +181,6 @@ export default function ProductListPage() {
     return sortType === "asc" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
   }
 
-  const getApprovalBadge = (status: string) => {
-    const option = approvalOptions.find((opt) => opt.value === status)
-    if (!option) return null
-
-    const Icon = option.icon
-    return (
-      <Badge className={`${option.color} border-0 font-medium`}>
-        <Icon className="w-3 h-3 mr-1" />
-        {option.label}
-      </Badge>
-    )
-  }
-
   const totalProducts = products.length
   const activeProducts = products.filter((p) => p.IsActive).length
   const approvedProducts = products.filter((p) => p.AdminApprovalStatus === "Approved").length
@@ -176,7 +194,7 @@ export default function ProductListPage() {
             <h4 className="text-3xl font-bold text-gray-900">Quản lý sản phẩm</h4>
             <p className="text-gray-600 mt-1">Quản lý và theo dõi tất cả sản phẩm trong hệ thống</p>
           </div>
-          <Button onClick={fetchProducts} variant="outline" className="gap-2">
+          <Button onClick={fetchProducts} variant="outline" className="gap-2 bg-transparent text-sm">
             <RefreshCw className="w-4 h-4" />
             Làm mới
           </Button>
@@ -225,10 +243,11 @@ export default function ProductListPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4">
+              {/* Tìm kiếm từ khóa */}
               <div className="relative flex-1">
-                <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                
                 <Input
-                  placeholder="Tìm kiếm tên sản phẩm..."
+                  placeholder="    Tìm kiếm tên sản phẩm..."
                   value={keyword}
                   onChange={(e) => {
                     setKeyword(e.target.value)
@@ -236,17 +255,68 @@ export default function ProductListPage() {
                   }}
                   className="pl-10"
                 />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               </div>
+
+              {/* Trạng thái hiển thị (ẩn/hiện) */}
+              <Select
+                value={filterStatus}
+                onValueChange={(value) => {
+                  setFilterStatus(value)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Trạng thái hiển thị" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="1">Hiển thị</SelectItem>
+                  <SelectItem value="0">Ẩn</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Trạng thái duyệt */}
+              <Select
+                value={filterApproval}
+                onValueChange={(value) => {
+                  setFilterApproval(value)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Trạng thái duyệt" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="Pending">Chờ duyệt</SelectItem>
+                  <SelectItem value="Approved">Đã duyệt</SelectItem>
+                  <SelectItem value="Rejected">Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Tên danh mục */}
+              <Input
+                placeholder="Tên danh mục"
+                value={filterCategory}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="w-[180px]"
+              />
+
+              {/* Hiển thị bao nhiêu sản phẩm */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
                 <Select
                   value={limitItem.toString()}
-                  onValueChange={(value : any) => {
+                  onValueChange={(value: string) => {
                     setLimitItem(Number.parseInt(value, 10))
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="w-16">
+                  <SelectTrigger className="w-20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -307,7 +377,7 @@ export default function ProductListPage() {
                         </TableHead>
                         <TableHead className="w-48">Phê duyệt</TableHead>
                         <TableHead
-                          className="cursor-pointer hover:bg-gray-100 transition-colors w-24"
+                          className="cursor-pointer hover:bg-gray-100 transition-colors w-20"
                           onClick={() => handleSort("viewCount")}
                         >
                           <div className="flex items-center gap-2">
@@ -369,14 +439,14 @@ export default function ProductListPage() {
                                 value={prod.AdminApprovalStatus}
                                 onValueChange={(value) => handleApprovalChange(prod.ProductID, value)}
                               >
-                                <SelectTrigger className="w-40 h-8 text-xs">
+                                <SelectTrigger className="w-35 h-8 text-xs">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {approvalOptions.map((option) => (
                                     <SelectItem key={option.value} value={option.value}>
                                       <div className="flex items-center gap-2 text-xs">
-                                        <option.icon className="w-3 h-3" />
+                                        <option.icon className="w-2 h-3" />
                                         {option.label}
                                       </div>
                                     </SelectItem>
@@ -427,10 +497,10 @@ export default function ProductListPage() {
                       size="sm"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      className="text-xs"
                     >
                       Trước
                     </Button>
-
                     {/* Page numbers */}
                     <div className="flex items-center space-x-1">
                       {Array.from({ length: Math.min(5, totalPage) }, (_, i) => {
@@ -450,7 +520,7 @@ export default function ProductListPage() {
                             key={pageNum}
                             variant={pageNum === currentPage ? "default" : "outline"}
                             size="sm"
-                            className={pageNum === currentPage ? "bg-orange-500 hover:bg-orange-600" : ""}
+                            className={`text-xs ${pageNum === currentPage ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                             onClick={() => setCurrentPage(pageNum)}
                           >
                             {pageNum}
@@ -458,12 +528,12 @@ export default function ProductListPage() {
                         )
                       })}
                     </div>
-
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={currentPage === totalPage}
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPage))}
+                      className="text-xs"
                     >
                       Sau
                     </Button>
@@ -479,6 +549,19 @@ export default function ProductListPage() {
           <ProductDetailModal productId={selectedProductId} show={showModal} onHide={() => setShowModal(false)} />
         )}
       </div>
+
+      {/* Toast Container - Đã thêm phần này */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   )
 }
