@@ -436,7 +436,7 @@ export default function ShopeeAddProductPage() {
         try {
             await createProduct(productFormData)
             Swal.fire("Success!", "Product created successfully and is pending approval.", "success").then(() =>
-                router.push("/seller-dashboard/products"),
+                router.push("/seller/products"),
             )
         } catch (err: any) {
             console.error("API Error:", err.response?.data)
@@ -1073,7 +1073,7 @@ export default function ShopeeAddProductPage() {
                                 <div className="flex justify-end space-x-4">
                                     <button
                                         type="button"
-                                        onClick={() => router.push("/seller-dashboard/products")}
+                                        onClick={() => router.push("/seller/products")}
                                         className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                                     >
                                         Hủy

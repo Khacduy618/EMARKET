@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
@@ -61,7 +60,145 @@ interface ProductData {
   AttributeValues: { AttributeValueID: number; AttributeID: number; Value: string }[]
 }
 
-// --- COMPONENT ---
+// Category Dropdown Component
+interface CategoryDropdownProps {
+  categories: ShopCategory[]
+  selectedCategoryID: number | null
+  onCategorySelect: (categoryID: number, categoryName: string) => void
+  loading: boolean
+}
+
+function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, loading }: CategoryDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const filteredCategories = categories.filter((category) =>
+    category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const getSelectedCategoryName = () => {
+    const selectedCategory = categories.find((cat) => cat.CategoryID === selectedCategoryID)
+    return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
+  }
+
+  const handleCategoryClick = (category: ShopCategory) => {
+    onCategorySelect(category.CategoryID, category.CategoryName)
+    setIsOpen(false)
+    setSearchTerm("")
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Dropdown Trigger */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={loading}
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-left flex items-center justify-between bg-white"
+      >
+        <span className={selectedCategoryID ? "text-gray-900" : "text-gray-500"}>{getSelectedCategoryName()}</span>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
+          {/* Search Header */}
+          <div className="p-3 border-b border-gray-200">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm ngành hàng..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+              />
+              <svg
+                className="absolute left-2 top-2.5 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Categories List */}
+          <div className="max-h-80 overflow-y-auto">
+            {filteredCategories.length === 0 ? (
+              <div className="p-4 text-center text-gray-500 text-sm">Không tìm thấy ngành hàng nào</div>
+            ) : (
+              filteredCategories.map((category) => (
+                <button
+                  key={category.CategoryID}
+                  type="button"
+                  onClick={() => handleCategoryClick(category)}
+                  className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
+                      ? "bg-orange-50 text-orange-600 font-medium"
+                      : "text-gray-700"
+                    }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">{category.CategoryName}</span>
+                    {selectedCategoryID === category.CategoryID && (
+                      <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+
+          {/* Footer with breadcrumb style */}
+          <div className="p-3 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center text-xs text-gray-500">
+              <span>Đã chọn:</span>
+              <span className="ml-2 text-orange-600 font-medium">
+                {selectedCategoryID ? getSelectedCategoryName() : "Chưa chọn ngành hàng"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// --- MAIN COMPONENT ---
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
@@ -125,15 +262,12 @@ export default function EditProductPage() {
     setLoading({ ...loading, overall: true })
     try {
       if (!productID) {
-        Swal.fire("Error!", "Invalid product ID.", "error").then(() => router.push("/seller-dashboard/products"))
+        Swal.fire("Error!", "Invalid product ID.", "error").then(() => router.push("/seller/products"))
         return
       }
 
-      // const productResponse =  // response = { data: { ... } }
       const productData = await getProduct(productID)
-      console.log(">>>>>>>>Fetched Product Data:", productData)
-      console.log(">>>>>> Product Variant :", productData.variants)
-
+      
       setInitialProduct(productData)
       setName(productData.Name || "")
       setDescription(productData.Description || "")
@@ -172,7 +306,6 @@ export default function EditProductPage() {
         })
       }
 
-      // let productAttrValues = {};
       console.log(">>>>>> Product Variant :", productData.variants)
 
       let productAttrValues: { [key: number]: string } = {}
@@ -226,11 +359,15 @@ export default function EditProductPage() {
   }
 
   // --- HANDLERS ---
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCategoryID = Number(e.target.value) || null
+  const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
     setCategoryID(newCategoryID)
     setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
-    if (newCategoryID) fetchAttributesForCategory(newCategoryID)
+    if (newCategoryID) {
+      fetchAttributesForCategory(newCategoryID)
+    } else {
+      setAttributes([])
+      setAttributeValues({})
+    }
   }
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -322,13 +459,13 @@ export default function EditProductPage() {
       prev.map((v, i) =>
         i === variantIndex
           ? {
-              ...v,
-              Images: v.Images.filter((_, idx) => idx !== imageIndex).map((img, idx) => ({
-                ...img,
-                sortOrder: idx,
-                isPrimary: idx === 0 && v.Images[imageIndex].isPrimary,
-              })),
-            }
+            ...v,
+            Images: v.Images.filter((_, idx) => idx !== imageIndex).map((img, idx) => ({
+              ...img,
+              sortOrder: idx,
+              isPrimary: idx === 0 && v.Images[imageIndex].isPrimary,
+            })),
+          }
           : v,
       ),
     )
@@ -339,16 +476,16 @@ export default function EditProductPage() {
       prev.map((v, i) =>
         i === index
           ? {
-              ...v,
-              [field]:
-                field === "Price" || field === "StockQuantity"
-                  ? Number(value)
-                  : field === "CompareAtPrice"
-                    ? value === "" || value === null
-                      ? null
-                      : Number(value)
-                    : value,
-            }
+            ...v,
+            [field]:
+              field === "Price" || field === "StockQuantity"
+                ? Number(value)
+                : field === "CompareAtPrice"
+                  ? value === "" || value === null
+                    ? null
+                    : Number(value)
+                  : value,
+          }
           : v,
       ),
     )
@@ -391,7 +528,6 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!categoryID) {
       Swal.fire("Error!", "Please select a category.", "error")
       return
@@ -464,7 +600,7 @@ export default function EditProductPage() {
     try {
       await updateProduct(productID, productFormData)
       Swal.fire("Success!", "Product updated successfully.", "success").then(() =>
-        router.push("/seller-dashboard/products"),
+        router.push("/seller/products"),
       )
     } catch (err: any) {
       console.error("Update Product Error:", err.response?.data)
@@ -549,10 +685,12 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Thêm ít nhất 3 hình ảnh</span>
                 </div>
+
                 <div className="flex items-start space-x-3">
                   <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0 mt-0.5"></div>
                   <span className="text-sm text-gray-600">Thêm video sản phẩm</span>
                 </div>
+
                 <div className="flex items-start space-x-3">
                   <div
                     className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${name.length >= 25 && name.length <= 100 ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
@@ -569,6 +707,7 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Tên sản phẩm có 25-100 ký tự</span>
                 </div>
+
                 <div className="flex items-start space-x-3">
                   <div
                     className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${description.length >= 100 ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
@@ -585,6 +724,7 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Mô tả tối thiểu 100 ký tự</span>
                 </div>
+
                 <div className="flex items-start space-x-3">
                   <div
                     className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${!hasVariants || (hasVariants && variants.every((v) => v.Price > 0)) ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
@@ -614,11 +754,10 @@ export default function EditProductPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === tab
+                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
                         ? "border-orange-500 text-orange-600 bg-orange-50"
                         : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
+                      }`}
                   >
                     {tab === "basic" && "Thông tin cơ bản"}
                     {tab === "sales" && "Thông tin bán hàng"}
@@ -661,11 +800,10 @@ export default function EditProductPage() {
                         onDragLeave={handleDrag}
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
-                        className={`grid grid-cols-5 gap-4 mb-4 ${
-                          dragActive
+                        className={`grid grid-cols-5 gap-4 mb-4 ${dragActive
                             ? "border-2 border-orange-500 bg-orange-50"
                             : "border-2 border-dashed border-gray-300"
-                        } p-4 rounded-lg transition-all duration-300`}
+                          } p-4 rounded-lg transition-all duration-300`}
                       >
                         {images.map((image, index) => (
                           <div key={image.preview} className="relative aspect-square overflow-hidden rounded-lg group">
@@ -698,6 +836,7 @@ export default function EditProductPage() {
                             )}
                           </div>
                         ))}
+
                         {images.length < 9 && (
                           <div
                             onClick={() => fileInputRef.current?.click()}
@@ -799,26 +938,17 @@ export default function EditProductPage() {
                       <div className="text-right text-sm text-gray-500 mt-1">{name.length}/120</div>
                     </div>
 
-                    {/* Category */}
+                    {/* Category - Updated to use custom dropdown */}
                     <div>
                       <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                         <span className="text-red-500">*</span> Ngành hàng
                       </label>
-                      <select
-                        id="category"
-                        value={categoryID || ""}
-                        onChange={handleCategoryChange}
-                        required
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        disabled={loading.overall || loading.attributes}
-                      >
-                        <option value="">Chọn ngành hàng</option>
-                        {shopCategories.map((cat) => (
-                          <option key={cat.CategoryID} value={cat.CategoryID}>
-                            {cat.CategoryName}
-                          </option>
-                        ))}
-                      </select>
+                      <CategoryDropdown
+                        categories={shopCategories}
+                        selectedCategoryID={categoryID}
+                        onCategorySelect={handleCategoryChange}
+                        loading={loading.overall || loading.attributes}
+                      />
                     </div>
 
                     {/* Description */}
@@ -870,14 +1000,12 @@ export default function EditProductPage() {
                       <button
                         type="button"
                         onClick={() => setHasVariants(!hasVariants)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          hasVariants ? "bg-orange-500" : "bg-gray-200"
-                        }`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${hasVariants ? "bg-orange-500" : "bg-gray-200"
+                          }`}
                       >
                         <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                            hasVariants ? "translate-x-6" : "translate-x-1"
-                          }`}
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${hasVariants ? "translate-x-6" : "translate-x-1"
+                            }`}
                         />
                       </button>
                     </div>
@@ -897,6 +1025,7 @@ export default function EditProductPage() {
                             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           />
                         </div>
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             <span className="text-red-500">*</span> Kho hàng
@@ -910,6 +1039,7 @@ export default function EditProductPage() {
                             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           />
                         </div>
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">SKU (Tùy chọn)</label>
                           <input
@@ -936,6 +1066,7 @@ export default function EditProductPage() {
                                 </button>
                               )}
                             </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
@@ -976,6 +1107,7 @@ export default function EditProductPage() {
                                   ))}
                                 </div>
                               </div>
+
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                   <span className="text-red-500">*</span> Giá
@@ -989,6 +1121,7 @@ export default function EditProductPage() {
                                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                 />
                               </div>
+
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
                                 <input
@@ -999,6 +1132,7 @@ export default function EditProductPage() {
                                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                 />
                               </div>
+
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                   <span className="text-red-500">*</span> SKU
@@ -1011,6 +1145,7 @@ export default function EditProductPage() {
                                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                 />
                               </div>
+
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                   <span className="text-red-500">*</span> Số lượng
@@ -1027,6 +1162,7 @@ export default function EditProductPage() {
                             </div>
                           </div>
                         ))}
+
                         <button
                           type="button"
                           onClick={addVariant}
@@ -1056,7 +1192,7 @@ export default function EditProductPage() {
                 <div className="border-t p-6 flex justify-end space-x-4">
                   <button
                     type="button"
-                    onClick={() => router.push("/seller-dashboard/products")}
+                    onClick={() => router.push("/seller/products")}
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                   >
                     Hủy

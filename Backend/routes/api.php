@@ -10,9 +10,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\SellerRegisterController;
-use App\Http\Controllers\ShopCategoryController ; 
-use App\Http\Controllers\ShopProductController ;
+use App\Http\Controllers\Seller\SellerRegisterController;
+use App\Http\Controllers\Seller\ShopCategoryController ; 
+use App\Http\Controllers\Seller\ShopProductController ;
+use App\Http\Controllers\Seller\OrderController;
+
+use App\Http\Controllers\Seller\SellerOrderController;
+
 
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
@@ -71,10 +75,12 @@ Route::middleware('auth:sanctum')->group(function (){
 Route::middleware('auth:sanctum' )->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::middleware('seller')->group(function () {
+        // Category routes
         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+        // Shop Product routes
         Route::get('/products', [ShopProductController::class, 'index']);
         Route::post('/shop/products', [ShopProductController::class, 'addProduct']);
         Route::get('/shop/products/{productID}', [ShopProductController::class, 'showProduct']);
@@ -82,5 +88,10 @@ Route::middleware('auth:sanctum' )->group(function () {
         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+        // Order routes
+        
+        Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
     });
 });

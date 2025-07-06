@@ -4,24 +4,39 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
-use App\Models\Address;
-use App\Models\OrderItem;
-use App\Models\UserVoucher; // Assuming UserVoucher is UserUsedVoucher
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $OrderID
+ * @property string $OrderCode
+ * @property int $UserID
+ * @property string $OrderDate
+ * @property int $TotalAmount
+ * @property int $SubtotalAmount
+ * @property int $ShippingFee
+ * @property int $DiscountAmount
+ * @property int $ShippingAddressID
+ * @property string $ShippingFullName
+ * @property string $ShippingPhoneNumber
+ * @property string|null $Notes
+ * @property string $PaymentMethod
+ * @property string $PaymentStatus
+ * @property string $OverallStatus
+ * @property string|null $PlatformVoucherCode
+ * @property float $PlatformDiscountAmount
+ */
 class OrderBuyer extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'orders_buyer';
-
+    protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';
 
     protected $fillable = [
         'OrderCode',
-        'UserID', // Changed from UserID_Buyer
+        'UserID',
         'OrderDate',
         'TotalAmount',
         'SubtotalAmount',
@@ -40,20 +55,13 @@ class OrderBuyer extends Model
 
     protected $casts = [
         'OrderDate' => 'datetime',
-        'TotalAmount' => 'integer',
-        'SubtotalAmount' => 'integer',
-        'ShippingFee' => 'integer',
-        'DiscountAmount' => 'integer',
-        'PaymentMethod' => 'string', // Cast enums to string
-        'PaymentStatus' => 'string',
-        'OverallStatus' => 'string',
-        'PlatformDiscountAmount' => 'decimal:2',
+        'PlatformDiscountAmount' => 'float',
     ];
 
     /**
-     * Get the user that placed the order.
+     * Get the customer who placed the order.
      */
-    public function user(): BelongsTo // Renamed buyer to user
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
@@ -67,20 +75,10 @@ class OrderBuyer extends Model
     }
 
     /**
-     * Get the order items for the order.
+     * Get the items in the order.
      */
-    public function orderItems(): HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
     }
-
-    /**
-     * Get the user vouchers used for the order.
-     */
-    public function usedVouchers(): HasMany
-    {
-        return $this->hasMany(UserVoucher::class, 'OrderID', 'OrderID');
-    }
-
-    // Removed shopOrders relationship as it's not in the schema
 }
