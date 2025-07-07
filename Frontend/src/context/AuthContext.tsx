@@ -16,6 +16,7 @@ import {
     resetPassword as apiResetPassword,
     updatePassword as apiUpdatePassword,
     updateProfile as apiUpdateProfile,
+    resendVerificationEmail as apiResend,
     getCsrfCookie,
     twoFactorChallenge as apiTwoFactorChallenge
 } from '@/services/auth';
@@ -30,7 +31,7 @@ import {
     ResetPasswordPayload,
     UpdatePasswordPayload,
     UpdateProfilePayload,
-    LoginResponse
+    LoginResponse,
 } from '@/types';
 
 
@@ -67,6 +68,9 @@ interface AuthContextType {
     requiresTwoFactor: boolean;
     twoFactorChallenge: (payload: { code?: string; recovery_code?: string }) => Promise<void>;
     cancelTwoFactor: () => void;
+    resendVerificationEmail: (email: string) => Promise<void>;
+    resetTwoFactorState: () => void;
+    cancelAndGoToLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -116,20 +120,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const resetTwoFactorState = () => {
+        setRequiresTwoFactor(false);
+        setError(null);
+    };
+
     const login = async (credentials: LoginPayload) => {
         setError(null);
+        setRequiresTwoFactor(false); // Luôn reset trạng thái 2FA ở frontend trước
         const toastId = toast.loading("Đang đăng nhập...");
 
         try {
-            // Trang Login đã gọi cleanupSession, nên ở đây môi trường đã sạch sẽ
+            // 1. DỌN DẸP VÀ LẤY COOKIE MỚI
+            // Bất kể session cũ là gì, thao tác này sẽ yêu cầu một session sạch từ backend.
+            // Đây là chìa khóa để giải quyết lỗi "dính" 2FA khi bấm nút back.
+            await getCsrfCookie();
+
+            // 2. GỬI YÊU CẦU LOGIN
             const response: LoginResponse = await apiLogin(credentials);
 
+            // 3. XỬ LÝ RESPONSE
             if (response && response.two_factor === true) {
-                // Nếu backend yêu cầu 2FA, cập nhật state để UI thay đổi
+                // Backend yêu cầu 2FA -> Cập nhật state và chuyển hướng
                 setRequiresTwoFactor(true);
                 toast.dismiss(toastId);
+                router.push('/two-factor-challenge');
             } else {
-                // Nếu đăng nhập thành công không cần 2FA
+                // Đăng nhập thành công, không 2FA
                 await fetchUser();
                 toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
                 router.push('/');
@@ -138,10 +155,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
             setError(message);
             toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-            throw error; // Ném lại lỗi để form biết là đã thất bại
+            throw error;
         }
     };
-
     const register = async (payload: RegisterPayload) => {
         setError(null);
         await toast.promise(
@@ -230,12 +246,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
     };
 
+    const resendVerificationEmail = async (email: string) => {
+        // Chúng ta không dùng toast.promise vì muốn có thông báo tùy chỉnh hơn
+        const toastId = toast.loading("Đang gửi lại email...");
+        try {
+            await apiResend(email);
+            toast.update(toastId, { render: "Email xác thực mới đã được gửi thành công!", type: "success", isLoading: false, autoClose: 5000 });
+        } catch (error) {
+            toast.update(toastId, { render: "Gửi lại email thất bại. Vui lòng thử lại sau.", type: "error", isLoading: false, autoClose: 5000 });
+        }
+    };
+
+    const cancelAndGoToLogin = async () => {
+        // Chúng ta có thể dùng lại logic của hàm logout, 
+        // vì nó đã làm đúng việc là hủy session và chuyển hướng.
+        await logout();
+    };
+
     return (
         <AuthContext.Provider
             value={{
                 user, isLoading, error, setUser, fetchUser, login, register, logout,
                 forgotPassword, resetPassword, updatePassword, updateProfile,
-                requiresTwoFactor, twoFactorChallenge, cancelTwoFactor, cleanupSession
+                requiresTwoFactor, twoFactorChallenge, cancelTwoFactor, cleanupSession, resendVerificationEmail,
+                resetTwoFactorState, cancelAndGoToLogin
             }}
         >
             {!isLoading && children}

@@ -238,3 +238,23 @@ export const getAdminUsers = async (): Promise<any[]> => {
     });
     return handleResponse<any[]>(response);
 };
+
+export const resendVerificationEmail = async (email: string): Promise<void> => {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    // Theo chuẩn Fortify, endpoint thường là 'email/verification-notification'
+    const response = await fetch(`${API_URL}/email/verification-notification`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+        // API này yêu cầu email của người dùng cần gửi lại
+        body: JSON.stringify({ email: email })
+    });
+
+    await handleResponse(response);
+};
