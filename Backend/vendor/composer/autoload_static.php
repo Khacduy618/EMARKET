@@ -597,6 +597,7 @@ class ComposerStaticInit6fc842020b8d6fff2fa36b858a3685b6
         'App\\Models\\ProductVariant' => __DIR__ . '/../..' . '/app/Models/ProductVariant.php',
         'App\\Models\\ProductVariantAttribute' => __DIR__ . '/../..' . '/app/Models/ProductVariantAttribute.php',
         'App\\Models\\ReturnRequest' => __DIR__ . '/../..' . '/app/Models/ReturnRequest.php',
+        'App\\Models\\SecurityQuestion' => __DIR__ . '/../..' . '/app/Models/SecurityQuestion.php',
         'App\\Models\\Shop' => __DIR__ . '/../..' . '/app/Models/Shop.php',
         'App\\Models\\ShopFollow' => __DIR__ . '/../..' . '/app/Models/ShopFollow.php',
         'App\\Models\\ShopOrder' => __DIR__ . '/../..' . '/app/Models/ShopOrder.php',

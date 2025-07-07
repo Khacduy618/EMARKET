@@ -57,6 +57,7 @@ return array(
     'App\\Models\\ProductVariant' => $baseDir . '/app/Models/ProductVariant.php',
     'App\\Models\\ProductVariantAttribute' => $baseDir . '/app/Models/ProductVariantAttribute.php',
     'App\\Models\\ReturnRequest' => $baseDir . '/app/Models/ReturnRequest.php',
+    'App\\Models\\SecurityQuestion' => $baseDir . '/app/Models/SecurityQuestion.php',
     'App\\Models\\Shop' => $baseDir . '/app/Models/Shop.php',
     'App\\Models\\ShopFollow' => $baseDir . '/app/Models/ShopFollow.php',
     'App\\Models\\ShopOrder' => $baseDir . '/app/Models/ShopOrder.php',

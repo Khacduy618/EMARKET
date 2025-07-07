@@ -28,6 +28,10 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
 
+    protected $appends = [
+        'two_factor_enabled',
+    ];
+
     // Override timestamp names:
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
@@ -79,6 +83,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return strtolower($value);
     }
 
+    protected function twoFactorEnabled(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return new \Illuminate\Database\Eloquent\Casts\Attribute(
+            get: fn () => ! empty($this->two_factor_secret) && ! empty($this->two_factor_confirmed_at),
+        );
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -104,7 +115,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'Password',
         'remember_token',
-        'Token', // Hide the API token
+        'Token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -120,6 +133,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'IsActive' => 'boolean',
             'Level' => 'string', // Cast enums to string
             'Role' => 'string',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 

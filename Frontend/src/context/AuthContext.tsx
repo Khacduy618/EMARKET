@@ -6,7 +6,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
-// 1. Import tất cả các hàm service của bạn
+// 1. Import tất cả các hàm service
 import {
     login as apiLogin,
     logout as apiLogout,
@@ -16,9 +16,9 @@ import {
     resetPassword as apiResetPassword,
     updatePassword as apiUpdatePassword,
     updateProfile as apiUpdateProfile,
-    twoFactorChallenge as apiTwoFactorChallenge,
-    getCsrfCookie
-} from '@/services/auth'; // Đảm bảo đường dẫn này đúng với file service của bạn
+    getCsrfCookie,
+    twoFactorChallenge as apiTwoFactorChallenge
+} from '@/services/auth';
 
 // 2. Import tất cả các type/interface cần thiết
 import {
@@ -29,7 +29,8 @@ import {
     ForgotPasswordPayload,
     ResetPasswordPayload,
     UpdatePasswordPayload,
-    UpdateProfilePayload
+    UpdateProfilePayload,
+    LoginResponse
 } from '@/types';
 
 
@@ -55,6 +56,7 @@ interface AuthContextType {
     error: string | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
     fetchUser: () => Promise<void>;
+    cleanupSession: () => Promise<void>;
     login: (credentials: LoginPayload) => Promise<void>;
     register: (payload: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;
@@ -62,7 +64,9 @@ interface AuthContextType {
     resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
     updatePassword: (payload: UpdatePasswordPayload) => Promise<void>;
     updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
+    requiresTwoFactor: boolean;
     twoFactorChallenge: (payload: { code?: string; recovery_code?: string }) => Promise<void>;
+    cancelTwoFactor: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,8 +76,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [requiresTwoFactor, setRequiresTwoFactor] = useState(false); // State quản lý luồng 2FA
     const router = useRouter();
 
+    // Hàm lấy/làm mới thông tin người dùng từ backend
     const fetchUser = async () => {
         try {
             const userData = await apiGetMe();
@@ -83,8 +89,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    // Khởi tạo Auth khi app được tải lần đầu
     useEffect(() => {
         const initializeAuth = async () => {
+            setIsLoading(true);
             await getCsrfCookie();
             await fetchUser();
             setIsLoading(false);
@@ -92,55 +100,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         initializeAuth();
     }, []);
 
+
+    const cleanupSession = async () => {
+        try {
+            // Cố gắng logout để hủy session ở backend
+            await apiLogout();
+        } catch (error) {
+            // Không cần báo lỗi, vì có thể đã không có session để logout
+        } finally {
+            // Reset tất cả state ở frontend và lấy một cookie mới tinh
+            setUser(null);
+            setRequiresTwoFactor(false);
+            setError(null);
+            await getCsrfCookie();
+        }
+    };
+
     const login = async (credentials: LoginPayload) => {
         setError(null);
         const toastId = toast.loading("Đang đăng nhập...");
 
         try {
-            // Gọi apiLogin và nhận về response
-            const response = await apiLogin(credentials);
+            // Trang Login đã gọi cleanupSession, nên ở đây môi trường đã sạch sẽ
+            const response: LoginResponse = await apiLogin(credentials);
 
-            // KIỂM TRA ĐIỀU KIỆN 2FA
             if (response && response.two_factor === true) {
-                // Đây là trường hợp cần 2FA
-                toast.dismiss(toastId); // Bỏ toast loading
-                router.push('/two-factor-challenge'); // Chuyển hướng đến trang nhập mã
-                // Dừng hàm ở đây, không làm gì thêm
-                return;
+                // Nếu backend yêu cầu 2FA, cập nhật state để UI thay đổi
+                setRequiresTwoFactor(true);
+                toast.dismiss(toastId);
+            } else {
+                // Nếu đăng nhập thành công không cần 2FA
+                await fetchUser();
+                toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
+                router.push('/');
             }
-
-            // Nếu không có `two_factor: true`, đây là luồng đăng nhập bình thường
-            await fetchUser();
-            toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
-            router.push('/');
-
         } catch (error: any) {
-            // Khối catch này bây giờ chỉ xử lý các lỗi thực sự (sai pass, tài khoản bị khóa...)
             const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
             setError(message);
             toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-            throw error;
-        }
-    };
-
-    const twoFactorChallenge = async (payload: { code?: string; recovery_code?: string }) => {
-        const toastId = toast.loading("Đang xác thực...");
-        try {
-            await apiTwoFactorChallenge(payload);
-            await fetchUser();
-            toast.update(toastId, { render: "Xác thực thành công!", type: "success", isLoading: false, autoClose: 3000 });
-            router.push('/');
-        } catch (error: any) {
-            const message = getErrorMessage(error, 'Mã không hợp lệ.');
-            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-            throw error;
+            throw error; // Ném lại lỗi để form biết là đã thất bại
         }
     };
 
     const register = async (payload: RegisterPayload) => {
         setError(null);
         await toast.promise(
-            apiRegister(payload).then(apiLogout).finally(() => router.push('/register/success')),
+            apiRegister(payload).then(() => {
+                // Sau khi đăng ký thành công, chúng ta không logout nữa mà chỉ chuyển hướng.
+                // Điều này tránh các vấn đề về session không cần thiết.
+            }).finally(() => router.push('/register/success')),
             {
                 pending: 'Đang tạo tài khoản...',
                 success: 'Đăng ký thành công! Vui lòng kiểm tra email.',
@@ -156,13 +164,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const logout = async () => {
-        await toast.promise(
-            apiLogout().then(() => {
-                setUser(null);
-                router.push('/login');
-            }),
-            { pending: 'Đang đăng xuất...', success: 'Đã đăng xuất!', error: 'Đăng xuất thất bại.' }
-        );
+        const toastId = toast.loading("Đang đăng xuất...");
+        await cleanupSession(); // Dùng lại hàm cleanup để xử lý logout
+        toast.update(toastId, { render: "Đã đăng xuất!", type: "success", isLoading: false, autoClose: 2000 });
+        router.push('/login');
     };
 
     const forgotPassword = async (payload: ForgotPasswordPayload) => {
@@ -205,11 +210,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const twoFactorChallenge = async (payload: { code?: string; recovery_code?: string }) => {
+        const toastId = toast.loading("Đang xác thực...");
+        try {
+            await apiTwoFactorChallenge(payload);
+            await fetchUser(); // Lấy thông tin user sau khi xác thực thành công
+            setRequiresTwoFactor(false); // Reset lại state 2FA
+            toast.update(toastId, { render: "Xác thực thành công!", type: "success", isLoading: false, autoClose: 3000 });
+            router.push('/');
+        } catch (error: any) {
+            const message = getErrorMessage(error, 'Mã không hợp lệ.');
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+            throw error;
+        }
+    };
+
+    const cancelTwoFactor = () => {
+        setRequiresTwoFactor(false);
+        setError(null);
+    };
+
     return (
         <AuthContext.Provider
             value={{
                 user, isLoading, error, setUser, fetchUser, login, register, logout,
-                forgotPassword, resetPassword, updatePassword, updateProfile, twoFactorChallenge
+                forgotPassword, resetPassword, updatePassword, updateProfile,
+                requiresTwoFactor, twoFactorChallenge, cancelTwoFactor, cleanupSession
             }}
         >
             {!isLoading && children}

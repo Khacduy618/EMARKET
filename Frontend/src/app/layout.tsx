@@ -65,11 +65,10 @@ export default function RootLayout({
             <body className="bg-gray-50"> {/* Thêm màu nền cho trang */}
                 <AuthProvider>
                     <ToastContainer position="top-center" autoClose={3000} />
-                    <Header /> {/* 2. Đặt Header ở đây, ngay dưới Provider */}
+                    <Header />
                     <main className="container mx-auto p-4 sm:p-6 lg:p-8"> {/* Thêm padding cho nội dung chính */}
                         {children}
                     </main>
-                    {/* Có thể thêm Footer ở đây */}
                 </AuthProvider>
             </body>
         </html>
