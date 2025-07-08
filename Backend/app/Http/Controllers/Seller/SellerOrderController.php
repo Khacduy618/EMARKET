@@ -9,8 +9,7 @@ use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class SellerOrderController extends Controller
-{
+class SellerOrderController extends Controller {
     public function index(Request $request)
     {
         $user = Auth::user();

@@ -25,6 +25,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
+import { Label } from "@/components/ui/label"
+import CategoryDropDow from "./components/category-selector"
 
 interface Product {
   ProductID: number
@@ -238,77 +240,87 @@ export default function ProductListPage() {
 
         {/* Filters */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="h-full flex flex-col md:flex-row gap-4">
               {/* Tìm kiếm từ khóa */}
-              <div className="relative flex-1">
-                
-                <Input
-                  placeholder="    Tìm kiếm tên sản phẩm..."
-                  value={keyword}
-                  onChange={(e) => {
-                    setKeyword(e.target.value)
-                    setCurrentPage(1)
-                  }}
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <div className="flex flex-col space-y-1">
+                <Label htmlFor="item-limit">Tìm kiếm:</Label>
+                <div className="relative flex-1">
+
+                  <Input
+                    placeholder="Tìm kiếm tên sản phẩm..."
+                    value={keyword}
+                    onChange={(e) => {
+                      setKeyword(e.target.value)
+                      setCurrentPage(1)
+                    }}
+                  />
+
+                </div>
               </div>
 
               {/* Trạng thái hiển thị (ẩn/hiện) */}
-              <Select
-                value={filterStatus}
-                onValueChange={(value) => {
-                  setFilterStatus(value)
-                  setCurrentPage(1)
-                }}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Trạng thái hiển thị" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="1">Hiển thị</SelectItem>
-                  <SelectItem value="0">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col space-y-1">
+                <Label htmlFor="item-limit">Trạng thái ẩn / hiện:</Label>
+                <Select
+                  value={filterStatus}
+                  onValueChange={(value) => {
+                    setFilterStatus(value)
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Trạng thái hiển thị" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="1">Hiển thị</SelectItem>
+                    <SelectItem value="0">Ẩn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Trạng thái duyệt */}
-              <Select
-                value={filterApproval}
-                onValueChange={(value) => {
-                  setFilterApproval(value)
-                  setCurrentPage(1)
-                }}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Trạng thái duyệt" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="Pending">Chờ duyệt</SelectItem>
-                  <SelectItem value="Approved">Đã duyệt</SelectItem>
-                  <SelectItem value="Rejected">Từ chối</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col space-y-1">
+                <Label htmlFor="item-limit">Trạng thái xét duyệt:</Label>
+                <Select
+                  value={filterApproval}
+                  onValueChange={(value) => {
+                    setFilterApproval(value)
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Trạng thái duyệt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="Pending">Chờ duyệt</SelectItem>
+                    <SelectItem value="Approved">Đã duyệt</SelectItem>
+                    <SelectItem value="Rejected">Từ chối</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
 
               {/* Tên danh mục */}
-              <Input
-                placeholder="Tên danh mục"
-                value={filterCategory}
-                onChange={(e) => {
-                  setFilterCategory(e.target.value)
-                  setCurrentPage(1)
-                }}
-                className="w-[180px]"
-              />
+              <div className="flex flex-col space-y-1">
+                <Label htmlFor="item-limit">Danh mục:</Label>
+                <CategoryDropDow
+                  value={filterCategory}
+                  onChange={(value) => setFilterCategory(value)}
+                  onPageReset={() => setCurrentPage(1)}
+                />
+
+
+              </div>
 
               {/* Hiển thị bao nhiêu sản phẩm */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+              <div className="flex flex-col justify-center space-y-1">
+                <Label htmlFor="item-limit">Số mục mỗi trang:</Label>
                 <Select
                   value={limitItem.toString()}
                   onValueChange={(value: string) => {
@@ -316,7 +328,7 @@ export default function ProductListPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="w-20">
+                  <SelectTrigger id="item-limit" className="w-20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
