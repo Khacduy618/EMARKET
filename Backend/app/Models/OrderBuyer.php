@@ -1,42 +1,17 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property int $OrderID
- * @property string $OrderCode
- * @property int $UserID
- * @property string $OrderDate
- * @property int $TotalAmount
- * @property int $SubtotalAmount
- * @property int $ShippingFee
- * @property int $DiscountAmount
- * @property int $ShippingAddressID
- * @property string $ShippingFullName
- * @property string $ShippingPhoneNumber
- * @property string|null $Notes
- * @property string $PaymentMethod
- * @property string $PaymentStatus
- * @property string $OverallStatus
- * @property string|null $PlatformVoucherCode
- * @property float $PlatformDiscountAmount
- */
 class OrderBuyer extends Model
 {
-    use HasFactory, SoftDeletes;
-
     protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';
-
+    public $timestamps = false;
     protected $fillable = [
         'OrderCode',
         'UserID',
+        'ShopID',
         'OrderDate',
         'TotalAmount',
         'SubtotalAmount',
@@ -45,40 +20,26 @@ class OrderBuyer extends Model
         'ShippingAddressID',
         'ShippingFullName',
         'ShippingPhoneNumber',
-        'Notes',
-        'PaymentMethod',
-        'PaymentStatus',
-        'OverallStatus',
-        'PlatformVoucherCode',
-        'PlatformDiscountAmount',
+        // thêm các cột khác nếu cần
     ];
-
     protected $casts = [
         'OrderDate' => 'datetime',
-        'PlatformDiscountAmount' => 'float',
+        'CreatedAt' => 'datetime',
+        'UpdatedAt' => 'datetime',
     ];
 
-    /**
-     * Get the customer who placed the order.
-     */
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
-    /**
-     * Get the shipping address for the order.
-     */
-    public function shippingAddress(): BelongsTo
-    {
-        return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
-    }
-
-    /**
-     * Get the items in the order.
-     */
-    public function items(): HasMany
+    public function orderItems()
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
+    }
+
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
     }
 }

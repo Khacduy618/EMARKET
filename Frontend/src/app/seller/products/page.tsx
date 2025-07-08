@@ -122,7 +122,7 @@ export default function ShopeeProductsPage() {
       return `${BACKEND_URL}/storage/${imagePath}`
     }
 
-    return `https://via.placeholder.com/150/f0f0f0/999999?text=No+Image`
+    // return `https://via.placeholder.com/150/f0f0f0/999999?text=No+Image`
   }
 
   const getDisplayPrice = (product: Product): string => {
@@ -383,12 +383,12 @@ export default function ShopeeProductsPage() {
                           <div className="flex items-center space-x-4">
                             <div className="flex-shrink-0">
                               <img
-                                src={getPrimaryImage(product) || "/placeholder.svg"}
+                                src={getPrimaryImage(product)}
                                 alt={product.Name}
                                 className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.src = "/placeholder.svg?height=64&width=64"
-                                }}
+                                // onError={(e) => {
+                                //   e.currentTarget.src = "/placeholder.svg?height=64&width=64"
+                                // }}
                               />
                             </div>
                             <div className="flex-1 min-w-0">

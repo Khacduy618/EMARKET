@@ -22,7 +22,7 @@ use App\Http\Controllers\Seller\SellerRegisterController;
 use App\Http\Controllers\Seller\ShopCategoryController;
 use App\Http\Controllers\Seller\ShopProductController;
 
-use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\SellerOrderController;
 
 // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category', [CategoryController::class, 'index']);
@@ -124,14 +124,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Orders
         Route::get('/seller/orders', [SellerOrderController::class, 'index']);
-        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
-        Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
+        Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
+        // Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
+        // Route::get('/seller/orders', [SellerOrderController::class, 'index']);
 
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
     });
 });
+
+
+
+
 
 // ================= ADMIN ROUTES =================== //
 
