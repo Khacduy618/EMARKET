@@ -14,6 +14,7 @@ use App\Models\Category;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
+use App\Models\PlatformCategory; 
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -270,7 +271,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'CategoryID', 'CategoryID');
+        return $this->belongsTo(PlatformCategory::class, 'CategoryID', 'CategoryID');
     }
     /**
      * Get the reviews for the product.
@@ -279,14 +280,18 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
-    public function scopeActive($query)
+    // Mối quan hệ với ProductImage
+   
+    public function attributeValues()
     {
-        // Giả sử cột kiểm tra active trong bảng products của bạn là 'IsActive' = 1
-        return $query->where('IsActive', 1);
+        return $this->hasManyThrough(
+            AttributeValue::class,
+            ProductVariant::class,
+            'ProductID', // Khóa ngoại trên ProductVariant
+            'AttributeValueID', // Khóa ngoại trên AttributeValue
+            'ProductID', // Khóa chính cục bộ
+            'VariantID' // Khóa chính trên ProductVariant
+        )->select(['attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value'])->distinct();
     }
-    public function scopeApproved($query)
-    {
-        // Giả sử cột kiểm tra duyệt trong bảng products của bạn là 'AdminApprovalStatus' = 'Approved'
-        return $query->where('AdminApprovalStatus', 'Approved');
-    }
+   
 }

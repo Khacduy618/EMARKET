@@ -25,7 +25,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
-import CategorySelector from "./components/category-selector"
 
 interface Product {
   ProductID: number
@@ -246,7 +245,7 @@ export default function ProductListPage() {
             <div className="flex flex-col md:flex-row gap-4">
               {/* Tìm kiếm từ khóa */}
               <div className="relative flex-1">
-
+                
                 <Input
                   placeholder="    Tìm kiếm tên sản phẩm..."
                   value={keyword}
@@ -297,11 +296,15 @@ export default function ProductListPage() {
               </Select>
 
               {/* Tên danh mục */}
-              <div className="flex items-center gap-4">
-                <label className="text-sm font-medium">Danh mục:</label>
-                <CategorySelector value={filterCategory} onChange={setFilterCategory} onPageReset={() => setCurrentPage(1)} />
-              </div>
-
+              <Input
+                placeholder="Tên danh mục"
+                value={filterCategory}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="w-[180px]"
+              />
 
               {/* Hiển thị bao nhiêu sản phẩm */}
               <div className="flex items-center gap-2">

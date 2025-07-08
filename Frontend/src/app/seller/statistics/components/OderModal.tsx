@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { da } from "date-fns/locale"
 
 type Order = {
   OrderID: number
@@ -45,6 +46,7 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
         .then((data) => {
           setOrders(data)
           setLoading(false)
+          console.log(data);
         })
         .catch((err) => {
           setError(err.message)
