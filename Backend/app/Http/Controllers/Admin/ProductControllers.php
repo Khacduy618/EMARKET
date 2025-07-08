@@ -7,58 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ProductControllers extends Controller
-{
-  // public function index(Request $request)
-  // {
-  //   $query = Product::with('category'); // Eager load
-
-  //   // Tìm kiếm theo từ khóa
-  //   if ($request->filled('keyword')) {
-  //     $query->where('Name', 'like', '%' . $request->keyword . '%');
-  //   }
-
-  //   // Lọc theo trạng thái duyệt
-  //   if ($request->filled('approval_status')) {
-  //     $query->where('AdminApprovalStatus', $request->approval_status);
-  //   }
-
-  //   // Lọc theo trạng thái hoạt động
-  //   if ($request->has('is_active')) {
-  //     $query->where('IsActive', (bool) $request->is_active);
-  //   }
-
-  //   $sortBy = $request->get('sort_by', 'CreatedAt');
-  //   $sortOrder = $request->get('sort_order', 'desc');
-
-  //   $allowedSorts = ['CreatedAt', 'Name', 'SoldCount', 'ViewCount', 'Price', 'category_name'];
-
-  //   if (!in_array($sortBy, $allowedSorts)) {
-  //     $sortBy = 'CreatedAt';
-  //   }
-  //   if (!in_array(strtolower($sortOrder), ['asc', 'desc'])) {
-  //     $sortOrder = 'desc';
-  //   }
-
-  //   // Nếu sort theo tên danh mục thì join bảng categories
-  //   if ($sortBy === 'category_name') {
-  //     $query->leftJoin('categories', 'products.CategoryID', '=', 'categories.id')
-  //       ->orderBy('categories.Name', $sortOrder)
-  //       ->select('products.*'); // Quan trọng: tránh xung đột cột
-  //   } else {
-  //     $query->orderBy($sortBy, $sortOrder);
-  //   }
-
-  //   $perPage = $request->get('per_page', 10);
-  //   $products = $query->paginate($perPage);
-
-  //   return response()->json([
-  //     'status' => true,
-  //     'message' => 'Danh sách sản phẩm',
-  //     'data' => $products
-  //   ]);
-  // }
-
+class ProductControllers extends Controller {
   public function index(Request $request)
   {
     $query = Product::with('category');
@@ -84,7 +33,7 @@ class ProductControllers extends Controller
       $query->select('products.*');
 
       if ($request->filled('category_name')) {
-        $query->where('platformcategories.Name', 'like', '%' . $request->category_name . '%');
+        $query->where('platformcategories.CategoryID', 'like', '%' . $request->category_name . '%');
       }
     }
 
