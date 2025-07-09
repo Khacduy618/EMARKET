@@ -160,7 +160,7 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
             </div>
             {/* Các cột giá trị - Sử dụng flex-shrink-0 và width cố định */}
             <div className="flex-shrink-0 flex items-center justify-end" style={{ width: priceColWidth }}>
-              <span className="text-gray-800 whitespace-nowrap">{formatPrice((item.originalPrice ?? 0) * (1 - (item.product?.Discount ? item.product?.Discount : 0) / 100))}</span>
+              <span className="text-gray-800 whitespace-nowrap">{formatPrice((item.originalPrice ?? item.price) * (1 - (item.product?.Discount ? item.product?.Discount : 0) / 100))}</span>
             </div>
             <div className="flex-shrink-0 flex items-center justify-end" style={{ width: qtyColWidth }}>
               <span className="text-gray-800 whitespace-nowrap">{item.quantity}</span>

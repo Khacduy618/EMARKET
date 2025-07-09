@@ -540,6 +540,7 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         'App\\Http\\Controllers\\FeaturedProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/FeaturedProductController.php',
         'App\\Http\\Controllers\\FlashSaleController' => __DIR__ . '/../..' . '/app/Http/Controllers/FlashSaleController.php',
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
+        'App\\Http\\Controllers\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrderController.php',
         'App\\Http\\Controllers\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',

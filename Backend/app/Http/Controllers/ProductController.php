@@ -419,60 +419,55 @@ public function ProductFinalPrice()
 
     public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
     {
-        $productsData = DB::table('Products as p')
-            ->leftJoin('ProductImages as pi', function ($join) {
-                $join->on('p.ProductID', '=', 'pi.ProductID')
-                     ->where('pi.IsPrimary', '=', 1);
-            })
-            ->leftJoin(DB::raw('(
-                SELECT
-                    pv.ProductID,
-                    MIN(pv.Price) as VariantMinPrice,
-                    MIN(CASE
-                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
-                            ELSE NULL
-                        END) as VariantCompareAtPrice,
-                    (SELECT pv_img.ImageURL
-                     FROM ProductVariants pv_img
-                     WHERE pv_img.ProductID = pv.ProductID
-                       AND pv_img.Price = MIN(pv.Price)
-                       AND pv_img.IsActive = 1
-                       AND pv_img.ImageURL IS NOT NULL
-                     ORDER BY pv_img.VariantID
-                     LIMIT 1) as VariantImageURL,
-                    (SELECT pv_sku.SKU
-                     FROM ProductVariants pv_sku
-                     WHERE pv_sku.ProductID = pv.ProductID
-                       AND pv_sku.Price = MIN(pv.Price)
-                       AND pv_sku.IsActive = 1
-                     ORDER BY pv_sku.VariantID
-                     LIMIT 1) as VariantSKU,
-                    MIN(pv.StockQuantity) as VariantMinStockQuantity
-                FROM ProductVariants pv
-                WHERE pv.IsActive = 1
-                GROUP BY pv.ProductID
-            ) as variant_info'), function ($join) {
-                $join->on('p.ProductID', '=', 'variant_info.ProductID');
-            })
-            ->where('p.IsActive', 1)
-            ->where('p.AdminApprovalStatus', 'Approved') // Đảm bảo 'Approved' trong dấu nháy
-            ->whereNotNull('variant_info.VariantMinPrice')
-            // CHỈNH SỬA Ở ĐÂY: Sắp xếp theo Discount giảm dần
-            ->orderByDesc('p.Discount')
-            ->orderByDesc('p.CreatedAt')
-            ->limit(6)
-            ->select(
-                'p.ProductID',
-                'p.Name as ProductName',
-                'p.Description as ProductDescription',
-                'p.Discount as ProductLevelDiscount', // Chọn cột Discount để có thể thấy giá trị
-                'variant_info.VariantMinPrice as Price',
-                'variant_info.VariantCompareAtPrice as CompareAtPrice',
-                'variant_info.VariantSKU as SKU',
-                'variant_info.VariantMinStockQuantity as StockQuantity',
-                DB::raw('COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL')
-            )
-            ->get();
+         $variantSubQuery = DB::raw("(
+        SELECT
+            ProductID,
+            Price AS VariantMinPrice,
+            SKU AS VariantSKU,
+            StockQuantity AS VariantStockQuantity,
+            ImageURL AS VariantImageURL,
+            -- DÒNG THAY ĐỔI: Lấy CompareAtPrice NHỎ NHẤT từ TẤT CẢ các biến thể của sản phẩm này
+            MinCompareAtPrice AS VariantCompareAtPrice
+        FROM (
+            SELECT
+                pv.*,
+                ROW_NUMBER() OVER(PARTITION BY pv.ProductID ORDER BY pv.Price ASC, pv.VariantID ASC) as rn,
+                -- Tính toán giá so sánh nhỏ nhất trên toàn bộ nhóm sản phẩm
+                MIN(CASE
+                        WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                        ELSE NULL
+                    END) OVER (PARTITION BY pv.ProductID) as MinCompareAtPrice
+            FROM ProductVariants pv
+            WHERE pv.IsActive = 1
+        ) as ranked_variants
+        WHERE rn = 1 -- Chỉ lấy thông tin của biến thể rẻ nhất (SKU, Image,...)
+    ) as variant_info");
+
+    $productsData = DB::table('Products as p')
+        ->leftJoin('ProductImages as pi', function ($join) {
+            $join->on('p.ProductID', '=', 'pi.ProductID')
+                 ->where('pi.IsPrimary', '=', 1);
+        })
+        // SỬ DỤNG TRUY VẤN CON MỚI Ở ĐÂY
+        ->leftJoin($variantSubQuery, 'p.ProductID', '=', 'variant_info.ProductID')
+        ->where('p.IsActive', 1)
+        ->where('p.AdminApprovalStatus', 'Approved')
+        ->whereNotNull('variant_info.VariantMinPrice')
+        ->orderByDesc('p.Discount')
+        ->orderByDesc('p.CreatedAt')
+        ->limit(6)
+        ->select(
+            'p.ProductID',
+            'p.Name as ProductName',
+            'p.Description as ProductDescription',
+            'p.Discount as ProductLevelDiscount',
+            'variant_info.VariantMinPrice as Price',
+            'variant_info.VariantCompareAtPrice as CompareAtPrice', // Đã được cập nhật theo logic mới
+            'variant_info.VariantSKU as SKU',
+            'variant_info.VariantStockQuantity as StockQuantity',
+            DB::raw('COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL')
+        )
+        ->get();
     
         $processedProducts = $productsData->map(function ($product) {
             // Xử lý ImageURL

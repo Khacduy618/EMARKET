@@ -32,8 +32,13 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type PaymentMethodType = 'COD' | 'BankTransfer' | 'OnlineGateway';
+export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
+
+export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
+export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
+export const PAYPAL_APP_SECRET = process.env.PAYPAL_APP_SECRET || '';
+
 
 export interface StatusTab {
   id: OrderTabStatus; // Sử dụng OrderTabStatus đã định nghĩa ở đây
@@ -199,7 +204,7 @@ export interface CheckoutData {
     // Thêm các thông tin khác nếu cần
     paymentMethod: {
         method: string;
-        type: 'COD' | 'OnlineGateway';
+        type: 'COD' | 'Paypal';
         canChange: boolean;
     };
 }
