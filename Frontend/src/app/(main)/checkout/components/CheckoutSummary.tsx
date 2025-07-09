@@ -67,9 +67,9 @@ import { toast } from 'react-toastify';
 import { Loader, AlertTriangle } from 'lucide-react';
 
 // --- Helper component cho các nút PayPal (để giữ cho code chính gọn gàng) ---
-const PaypalButtonWrapper = ({ currency, summary, onPlaceOrder }: { currency: string, summary: CheckoutData['summary'], onPlaceOrder: (details: OrderResponseBody) => void }) => {
+const PaypalButtonWrapper = ({ currency, summary, onCompleteOrder }: { currency: string, summary: CheckoutData['summary'], onCompleteOrder: (details: OrderResponseBody) => void }) => {
     const [{ isPending, isRejected }] = usePayPalScriptReducer();
-
+  
     // Trạng thái tải và lỗi cho chính script PayPal
     if (isPending) return <div className="flex justify-center items-center h-[48px]"><Loader className="w-6 h-6 animate-spin text-blue-500" /></div>;
     if (isRejected) {
@@ -98,7 +98,7 @@ const PaypalButtonWrapper = ({ currency, summary, onPlaceOrder }: { currency: st
         return actions.order.capture().then((details: OrderResponseBody) => {
             const payerName = details.purchase_units?.[0]?.shipping?.name?.full_name || 'Khách hàng';
             toast.success(`Giao dịch thành công bởi ${payerName}.`);
-            onPlaceOrder(details); // Chuyển thông tin chi tiết về cho handler chính
+            onCompleteOrder(details); // Chuyển thông tin chi tiết về cho handler chính
         }).catch((err: any) => {
             toast.error("Không thể xử lý thanh toán. Vui lòng thử lại.");
             console.error("PayPal Capture Error:", err);
@@ -128,11 +128,14 @@ interface CheckoutSummaryProps {
   summary: CheckoutData['summary'];
   paymentMethod: CheckoutData['paymentMethod'];
   payPalClientID: string;
-  onPlaceOrder: (paypalDetails?: OrderResponseBody) => void;
+  orderId: number | null;
+  onPlaceOrder: () => void;
+  onCompleteOrder: (paypalDetails?: OrderResponseBody) => void;
 }
 
 // --- Component CheckoutSummary Chính ---
-const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMethod, payPalClientID, onPlaceOrder }) => {
+const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMethod, payPalClientID, onPlaceOrder,orderId,onCompleteOrder}) => {
+  
   const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
@@ -169,29 +172,36 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMetho
           <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
         </p>
         
-        <div className="w-full max-w-[250px]">
+        <div className="w-full max-w-[250px] text-end">
           {/* --- LOGIC ĐIỀU KIỆN --- */}
-          {paymentMethod.type === 'Paypal' ? (
-            // Nếu là PayPal, hiển thị các nút PayPal
-            payPalClientID ? (
-              <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
-                <PaypalButtonWrapper 
-                  currency="USD"
-                  summary={summary}
-                  onPlaceOrder={onPlaceOrder}
-                />
-              </PayPalScriptProvider>
-            ) : (
-              <div className="text-red-500 text-center text-sm p-3">PayPal chưa được cấu hình.</div>
-            )
-          ) : (
-            // Nếu là COD, hiển thị nút "Đặt Hàng" truyền thống
+          {!orderId ? (
+            // TRẠNG THÁI 1: CHƯA CÓ ĐƠN HÀNG NHÁP
             <button
-              onClick={() => onPlaceOrder()} // Gọi onPlaceOrder không có tham số
-              className="w-full bg-orange-500 text-white px-12 py-3 rounded-md text-base font-semibold hover:bg-orange-600 transition-colors"
+              onClick={onPlaceOrder} // Gọi hàm tạo đơn hàng nháp
+              className="bg-blue-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-blue-700 transition-colors"
             >
-              Đặt Hàng
+              Tiến hành Thanh toán
             </button>
+          ) : (
+            // TRẠNG THÁI 2: ĐÃ CÓ ĐƠN HÀNG NHÁP, HIỂN THỊ CÁC LỰA CHỌN CUỐI CÙNG
+            <>
+              {paymentMethod.type === 'Paypal' ? (
+                <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
+                  <PaypalButtonWrapper 
+                    currency="USD"
+                    summary={summary}
+                    onCompleteOrder={onCompleteOrder} // Gắn hàm hoàn tất đơn hàng
+                  />
+                </PayPalScriptProvider>
+              ) : ( // Giả sử còn lại là COD
+                <button
+                  onClick={() => onCompleteOrder()} // Gọi hàm hoàn tất không cần paypalDetails
+                  className="bg-orange-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-orange-700 transition-colors"
+                >
+                  Xác nhận Đặt hàng (COD)
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

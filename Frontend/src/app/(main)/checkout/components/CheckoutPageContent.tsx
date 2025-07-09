@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FaCommentDots } from 'react-icons/fa6';
 import { FaQuestionCircle } from 'react-icons/fa'; // FaQuestionCircle cho "Được đồng kiểm"
 
@@ -32,6 +32,7 @@ import { CheckCheck, Loader2 } from 'lucide-react';
 import { fetchProductById } from '@/services/product';
 import { toast } from 'react-toastify';
 import { OrderResponseBody } from '@paypal/paypal-js';
+import { getAuthToken } from '@/services/api';
 
 
 const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
@@ -52,8 +53,11 @@ const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number
 
 
 const CheckoutPageContent = () => {
-   const router = useRouter();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+    const [orderId, setOrderId] = useState<number | null>(null);
+    const [orderCode, setOrderCode] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -62,8 +66,71 @@ const CheckoutPageContent = () => {
     const [addressToUpdateId, setAddressToUpdateId] = useState<number | null>(null);
     const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
 
-  useEffect(() => {
-        const buildCheckoutData = async () => {
+
+useEffect(() => {
+    const orderIdFromUrl = searchParams.get('orderId');
+    setOrderId(orderIdFromUrl ? Number(orderIdFromUrl) : null);
+
+    const loadData = async () => {
+        setLoading(true);
+        setError(null);
+
+        if (orderIdFromUrl) {
+            // === TRƯỜNG HỢP 2: ĐÃ CÓ ĐƠN HÀNG NHÁP ===
+            try {
+                // Bạn cần tạo một API endpoint mới để lấy chi tiết đơn hàng
+                const response = await fetch(`/api/orders/${orderIdFromUrl}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}` // Đảm bảo có xác thực
+                    }
+                });
+                if (!response.ok) throw new Error("Không tìm thấy thông tin đơn hàng.");
+                
+                const orderDetails = await response.json();
+                
+                // Chuyển đổi dữ liệu từ API về định dạng CheckoutData để hiển thị lại
+                // (Phần này cần bạn tự viết logic chuyển đổi, dưới đây là ví dụ)
+                const reconstructedCheckoutData: CheckoutData = {
+                    orderId: orderDetails.OrderID,
+                    address: orderDetails.address,
+                    shopOrders: orderDetails.shopOrders,
+                    
+                    // Thêm giá trị mặc định cho trường bị thiếu
+                    appliedPlatformVouchers: {
+                        freeShipVoucher: null,
+                        saleOffVoucher: null,
+                    },
+
+                    summary: {
+                        totalProductsPrice: orderDetails.SubtotalAmount,
+                        totalShippingFee: orderDetails.ShippingFee,
+                        totalDiscount: orderDetails.DiscountAmount,
+                        finalTotal: orderDetails.TotalAmount,
+                        // Giả định các giá trị này = 0 khi hiển thị lại
+                        totalSaleoff: 0,
+                        totalFreeship: 0,
+                        totalShopVoucherDiscount: 0, 
+                        totalPlatformVoucherDiscount: 0,
+                        address: orderDetails.address
+                    },
+                    paymentMethod: {
+                        method: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : 'Thanh toán khi nhận hàng',
+                        type: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : 'COD',
+                        canChange: true,
+                    },
+                };
+                
+                setOrderCode(orderDetails.OrderCode);
+                setCheckoutData(reconstructedCheckoutData);
+
+            } catch (e: any) {
+                console.error("Failed to fetch pending order:", e);
+                setError('Không thể tải thông tin đơn hàng. Vui lòng thử lại.');
+            }
+
+        } else {
+           
+            const buildCheckoutData = async () => {
             const storedDataString = localStorage.getItem('checkoutData');
             if (!storedDataString) {
                 setError('Không tìm thấy dữ liệu thanh toán. Vui lòng quay lại giỏ hàng.');
@@ -140,6 +207,7 @@ const CheckoutPageContent = () => {
                 const summaryFromCart = storedData.summary;
 
                const finalCheckoutData: CheckoutData = {
+                    orderId: storedData.orderId, 
                     address: defaultAddress,
                     shopOrders: shopOrders.map(so => ({ ...so, shippingFee: shippingFeePerShop })), // Cập nhật phí ship cho từng đơn
                     appliedPlatformVouchers: storedData.appliedPlatformVouchers,
@@ -169,7 +237,14 @@ const CheckoutPageContent = () => {
         };
 
         buildCheckoutData();
-    }, []);
+        }
+        setLoading(false);
+    };
+
+    loadData();
+
+    }, [searchParams]);
+
     const handleConfirmNewAddress = (selectedAddress: Address) => {
         if (!checkoutData) return;
 
@@ -309,33 +384,136 @@ const CheckoutPageContent = () => {
 //     // router.push(`/purchase?status=${redirectStatus}`);
 //   };
 
-const handlePlaceOrder = (paypalDetails?: OrderResponseBody) => {
-    if (!checkoutData) return;
+    const handlePlaceOrder = async () => {
+        if (!checkoutData || !checkoutData.address) {
+            toast.error("Vui lòng chọn địa chỉ giao hàng.");
+            return;
+        }
 
-    console.log('Placing order with:', checkoutData);
-    let redirectStatus: OrderStatus = 'Pending';
-    const paymentType = checkoutData.paymentMethod.type;
+        // Tạo payload để gửi lên API /api/orders/place
+        const payload = {
+            shippingAddressId: checkoutData.address.AddressID,
+            shippingFullName: checkoutData.address.FullName,
+            shippingPhoneNumber: checkoutData.address.PhoneNumber,
+            notes: checkoutData.shopOrders.map(so => so.messageToSeller).filter(m => m).join('; '),
+            totalAmount: checkoutData.summary.finalTotal,
+            subtotalAmount: checkoutData.summary.totalProductsPrice,
+            shippingFee: checkoutData.summary.totalShippingFee,
+            discountAmount: checkoutData.summary.totalDiscount,
+            paymentMethod: checkoutData.paymentMethod.type,
+            items: checkoutData.shopOrders.flatMap(shopOrder => 
+                shopOrder.items.map(item => ({
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    priceAtPurchase: item.price,
+                    subtotal: item.subtotal,
+                }))
+            ),
+        };
+        
+        try {
+            // Gọi API để tạo đơn hàng nháp
+            const response = await fetch('/api/orders/place', { // Sử dụng route mới
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Giả sử bạn đã có cơ chế lấy token
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                },
+                body: JSON.stringify(payload),
+            });
 
-    if (paymentType === 'COD') {
-      redirectStatus = 'Pending';
-      toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
-    } else if (paymentType === 'Paypal' && paypalDetails) {
-      console.log('PayPal Details:', paypalDetails);
-      toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
-      // If a successful PayPal transaction happened, the order is paid
-      redirectStatus = 'Processing'; 
-      // Toast message is already shown in PaypalButtonWrapper, so no need to repeat
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Không thể đặt hàng.');
+            }
+
+            toast.success("Đã tạo đơn hàng nháp thành công!");
+
+            // Xóa dữ liệu cũ trong localStorage và chuyển hướng với orderId
+            localStorage.removeItem('checkoutData');
+            router.push(`/checkout?orderId=${result.orderId}`); // Tải lại trang với orderId trên URL
+
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+    // HÀM 2: Khi nhấn nút thanh toán cuối cùng (COD hoặc PayPal)
+    const handleCompleteOrder = async (paypalDetails?: OrderResponseBody) => {
+        if (!orderId) {
+            toast.error("Không tìm thấy mã đơn hàng.");
+            return;
+        }
+
+        const paymentMethod = checkoutData?.paymentMethod.type.toUpperCase() || 'COD';
+        let payload: any = { paymentMethod };
+        if (paymentMethod === 'PAYPAL' && paypalDetails) {
+            payload.paymentDetails = {
+                transactionId: paypalDetails.id,
+                status: paypalDetails.status,
+            };
+        }
+
+        try {
+            const response = await fetch(`/api/orders/${orderId}/complete`, {
+                method: 'PUT',
+                headers: {  'Content-Type': 'application/json',
+                    // Giả sử bạn đã có cơ chế lấy token
+                    'Authorization': `Bearer ${getAuthToken()}`,},
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "Hoàn tất đơn hàng thất bại.");
+            
+            toast.success(`Đơn hàng ${result.orderCode} đã được xác nhận!`);
+            localStorage.removeItem('checkoutData');
+            router.push('/purchase?status=Processing');
+
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+    const handlePaymentSuccess = async (paypalDetails: OrderResponseBody) => {
+        if (!checkoutData || !checkoutData.orderId) {
+            toast.error("Không tìm thấy đơn hàng để cập nhật. Vui lòng thử lại.");
+            return;
+        }
+        
+        // Gọi API để cập nhật trạng thái đơn hàng đã có
+        try {
+            // Bạn sẽ cần tạo một API route mới để cập nhật, ví dụ: /api/orders/{orderId}/update-payment
+            const response = await fetch(`/api/orders/${checkoutData.orderId}/update-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    paymentMethod: 'PAYPAL',
+                    paymentDetails: {
+                        transactionId: paypalDetails.id,
+                        status: paypalDetails.status,
+                    }
+                }),
+            });
+
+            if (!response.ok) throw new Error("Cập nhật thanh toán thất bại.");
+
+            localStorage.removeItem('checkoutData');
+            toast.success("Thanh toán thành công!");
+            router.push(`/purchase?status=Processing`);
+
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     }
 
-    // You might want to delay the redirect to let the user see the success toast
-    setTimeout(() => {
-        // router.push(`/purchase?status=${redirectStatus}`);
-        console.log(`Redirecting to /purchase?status=${redirectStatus}`);
-    }, 1500);
-  };
 return (
         <div className="bg-gray-100 min-h-screen pb-40">
-            
+            {orderId && orderCode && (
+                    <div className="p-4 bg-blue-100 border border-blue-300 text-blue-800 rounded-md text-center my-4">
+                        Bạn đang hoàn tất thanh toán cho đơn hàng: <span className="font-bold">{orderCode}</span>
+                    </div>
+                )}
             <div className="container mx-auto max-w-6xl px-4">
                 <UpdateAddressModal
                 isOpen={isUpdateAddressModalOpen}
@@ -392,7 +570,10 @@ return (
                 <CheckoutSummary summary={checkoutData.summary} 
                     paymentMethod={checkoutData.paymentMethod}
                     payPalClientID={PAYPAL_CLIENT_ID}
-                    onPlaceOrder={handlePlaceOrder}  />
+                    orderId={orderId} // Truyền orderId xuống
+                    onPlaceOrder={handlePlaceOrder} // Gắn với nút "Tiến hành thanh toán"
+                    onCompleteOrder={handleCompleteOrder}// Dành cho PayPal
+                />
             </div>
         </div>
     );

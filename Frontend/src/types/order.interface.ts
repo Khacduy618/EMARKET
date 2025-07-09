@@ -32,7 +32,7 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
+export type PaymentMethodType = 'COD' | 'Paypal';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
 export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
@@ -170,6 +170,7 @@ export interface CheckoutShopOrder {
 }
 
 export interface StoredCheckoutData {
+    orderId?: number;
     selectedItems: CartItem[];
     appliedShopVouchers: AppliedShopVouchers;
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -197,6 +198,7 @@ export interface CheckoutSummaryDetails {
 }
 
 export interface CheckoutData {
+    orderId?: number; 
     address: Address | null;
     shopOrders: CheckoutShopOrder[];
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -207,6 +209,7 @@ export interface CheckoutData {
         type: 'COD' | 'Paypal';
         canChange: boolean;
     };
+    paidAt?: any;
 }
 
 export interface OrderStatusHistory {

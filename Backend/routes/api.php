@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
-
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
 use App\Http\Middleware\HandleImage;
@@ -110,6 +110,12 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
+     // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
+    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+    // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
+    Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
+    
     
 });
 
