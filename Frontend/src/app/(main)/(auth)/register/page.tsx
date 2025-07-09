@@ -1,4 +1,4 @@
-// app/(main)/(auth)/register/page.tsx - PHIÊN BẢN SỬA ĐỔI
+// app/(main)/(auth)/register/page.tsx
 
 "use client";
 
