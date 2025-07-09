@@ -190,18 +190,6 @@ export default function ProductListPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-3xl font-bold text-gray-900">Quản lý sản phẩm</h4>
-            <p className="text-gray-600 mt-1">Quản lý và theo dõi tất cả sản phẩm trong hệ thống</p>
-          </div>
-          <Button onClick={fetchProducts} variant="outline" className="gap-2 bg-transparent text-sm">
-            <RefreshCw className="w-4 h-4" />
-            Làm mới
-          </Button>
-        </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
