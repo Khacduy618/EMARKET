@@ -279,22 +279,17 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
-    // Mối quan hệ với ProductImage
-   
-    // public function attributeValues()
 
      public function scopeActive($query)
     {
-        return $this->hasManyThrough(
-            AttributeValue::class,
-            ProductVariant::class,
-            'ProductID', // Khóa ngoại trên ProductVariant
-            'AttributeValueID', // Khóa ngoại trên AttributeValue
-            'ProductID', // Khóa chính cục bộ
-            'VariantID' // Khóa chính trên ProductVariant
-        )->select(['attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value'])->distinct();
+        // Giả sử cột kiểm tra active trong bảng products của bạn là 'IsActive' = 1
+        return $query->where('IsActive', 1);
     }
-   
+    public function scopeApproved($query)
+    {
+        // Giả sử cột kiểm tra duyệt trong bảng products của bạn là 'AdminApprovalStatus' = 'Approved'
+        return $query->where('AdminApprovalStatus', 'Approved');
+    }
     public function scopePublishedAndAvailable(Builder $query): Builder
     {
         return $query->where('IsActive', 1)
@@ -311,5 +306,5 @@ class Product extends Model
         // 'ProductID' trong bảng OrderItems liên kết với 'ProductID' trong bảng Products
         return $this->hasMany(OrderItem::class, 'ProductID', 'ProductID');
     }
+    
 }
-
