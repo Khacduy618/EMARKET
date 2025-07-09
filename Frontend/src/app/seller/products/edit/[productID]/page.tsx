@@ -126,7 +126,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
           {/* Search Header */}
-          <div className="p-3 border-b border-gray-200">
+          {/* <div className="p-3 border-b border-gray-200">
             <div className="relative">
               <input
                 type="text"
@@ -149,7 +149,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                 />
               </svg>
             </div>
-          </div>
+          </div> */}
 
           {/* Categories List */}
           <div className="max-h-80 overflow-y-auto">

@@ -124,10 +124,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Orders
         Route::get('/seller/orders', [SellerOrderController::class, 'index']);
-        Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
         // Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
         // Route::get('/seller/orders', [SellerOrderController::class, 'index']);
-
+    
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
