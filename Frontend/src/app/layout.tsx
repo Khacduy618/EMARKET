@@ -3,8 +3,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./globals.css";
-
-import Header from "./(main)/(auth)/components/Header"; // 1. Import Header
+import Header from "./components/Header";
 
 export const metadata = {
     title: "My E-commerce Store",
