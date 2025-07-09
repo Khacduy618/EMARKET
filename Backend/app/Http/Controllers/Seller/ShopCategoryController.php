@@ -64,7 +64,7 @@ class ShopCategoryController extends Controller
     public function registerCategory(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'CategoryID' => 'required|exists:platformcategories,CategoryID',
+            'CategoryID' => 'required|exists:PlatformCategories,CategoryID',
         ]);
 
         if ($validator->fails()) {

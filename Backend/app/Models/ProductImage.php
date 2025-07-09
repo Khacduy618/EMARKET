@@ -6,23 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductImage extends Model
 {
-    
-    use HasFactory;
+    protected $table = 'ProductImages'; // đúng tên bảng
+    protected $primaryKey = 'ImageID'; // đúng khóa chính
 
-    /** 
-     * Tên bảng trong database.
-     */
-    protected $table = 'productimages';
 
-    /**
-     * Khóa chính của bảng.
-     */
-    protected $primaryKey = 'ImageID';
-
-    /**
-     * Khai báo để Eloquent tự động quản lý cột 'CreatedAt'.
-     * Vì không có cột 'UpdatedAt', chúng ta cần nói rõ cho Eloquent.
-     */
     public $timestamps = true; // Bật tính năng timestamp
     const CREATED_AT = 'CreatedAt'; // Chỉ định tên cột "created at"
     const UPDATED_AT = null; // Báo cho Eloquent biết không có cột "updated at"

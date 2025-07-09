@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class PlatformCategory extends Model {
     use HasFactory;
 
-    protected $table = 'platformcategories';
+    protected $table = 'PlatformCategories';
     protected $primaryKey = 'CategoryID';
     public $timestamps = true;
 

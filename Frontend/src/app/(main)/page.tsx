@@ -104,9 +104,9 @@ import ResponsiveCategoryMenu from '../components/home/ResponsiveCategoryMenu'; 
 import FlashSaleSection from "../components/home/FlashSales";
 import BestSellingProducts from "../components/home/BestSellingProducts";
 import HeroBannerSlider from "../components/home/banner";
-import ProductsCart from "../components/home/ProductCard";
 import NewArrivalsSection from "../components/home/NewArrivalSection";
 import BannerSlider from "../components/BannerSlider";
+import TodaySuggestions from '../components/home/ProductCard';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -157,8 +157,8 @@ export default function Home() {
               <FlashSaleSection />
               <BestSellingProducts />
               <HeroBannerSlider />
-              <ProductsCart />
-              <NewArrivalsSection />
+              <TodaySuggestions />
+              {/* <NewArrivalsSection /> */}
             </div>
           </main>
         </div>

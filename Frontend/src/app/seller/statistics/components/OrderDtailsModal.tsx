@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, Calendar, User, DollarSign, ChevronLeft, ChevronRight } from "lucide-react"
+import { Package, Calendar, User, ChevronLeft, ChevronRight } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -227,7 +227,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <DollarSign className="w-4 h-4 text-gray-400" />
+                             
                               <span className="font-bold text-green-600">{formatVND(order.TotalAmount)}</span>
                             </div>
                           </TableCell>

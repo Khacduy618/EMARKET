@@ -66,23 +66,19 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // <-- BƯỚC 1: Import hook usePathname
+import type { IHome } from '@/types/Ihome';
 
-type Category = {
-    CategoryID: number;
-    Name: string;
-    ImageURL: string | null;
-    IsActive: boolean;
-};
+
 
 export default function CategoryMenu() {
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<IHome.Category[]>([]);
     const pathname = usePathname(); // <-- BƯỚC 2: Lấy đường dẫn URL hiện tại
 
     // useEffect để lấy danh sách categories không thay đổi, giữ nguyên
     useEffect(() => {
         axios.get('http://localhost:8001/api/categorySubMenu')
             .then((response) => {
-                const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
+                const activeCategories = response.data.filter((cat: IHome.Category) => cat.IsActive);
                 setCategories(activeCategories);
             })
             .catch((error) => console.error('Lỗi khi tải danh mục:', error));

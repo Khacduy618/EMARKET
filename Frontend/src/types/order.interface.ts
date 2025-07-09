@@ -1,251 +1,12 @@
-// // types/order.interface.ts
-
-// // Cập nhật OrderStatus để khớp với tên tabs và trạng thái thực tế
-// export type OrderStatus =
-//   'PendingPayment' |   // Chờ thanh toán
-//   'Processing' |       // Chờ giao hàng (hoặc Đang xử lý)
-//   'Shipped' |          // Vận chuyển
-//   'Delivered' |        // Đã giao hàng (nếu có tab riêng cho nó)
-//   'Completed' |        // Hoàn thành
-//   'Cancelled' |        // Đã hủy (CancelledByBuyer/Seller)
-//   'ReturnedRefunded';  // Trả hàng/Hoàn tiền (Returned/Refunded/ReturnInProgress)
-
-
-// export type ReturnItemStatus =
-//   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
-//   'Refunded' | 'PartiallyRefunded';
-
-// // Enum cho Level của Shop (Mall, Yêu thích+)
-// export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
-
-// export interface OrderItem {
-//   OrderItemID: number;
-//   VariantID: number;
-//   Quantity: number;
-//   PriceAtPurchase: number; // Giá tại thời điểm mua, sau khi đã áp dụng mọi chiết khấu của item.
-//   OriginalPrice: number;   // Giá gốc (trước khi có sale/discount của sản phẩm), dùng để gạch ngang.
-//   Subtotal: number;        // Tổng tiền cho số lượng item này (PriceAtPurchase * Quantity)
-//   IsFlashSaleItem: boolean;
-//   FlashSaleDealID: number | null;
-//   ReturnStatus: ReturnItemStatus;
-//   CreatedAt: string;
-
-//   productName: string;
-//   productImageURL: string;
-//   classification: string; // Phân loại hàng: #08 Unknown, Glycol Therapy 110ml
-
-//   // THÔNG TIN LIÊN QUAN ĐẾN ĐÁNH GIÁ (cho từng OrderItem)
-//   canReview: boolean; // Có thể đánh giá sản phẩm này không
-//   reviewDeadline?: string; // Hạn chót đánh giá (ISO string)
-//   reviewReward?: number; // Số xu nhận được khi đánh giá
-// }
-
-// export interface Order {
-//   OrderID: number;
-//   OrderCode: string;
-//   UserID: number;
-//   OrderDate: string; // ISO string
-//   TotalAmount: number; // Tổng tiền cuối cùng của đơn hàng
-//   SubtotalAmount: number; // Tổng tiền các sản phẩm trước phí ship/voucher
-//   ShippingFee: number;
-//   DiscountAmount: number;
-//   ShippingAddressID: number;
-//   ShippingFullName: string;
-//   ShippingPhoneNumber: string;
-//   Notes: string | null;
-//   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway';
-//   PaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
-//   OverallStatus: OrderStatus; // TRẠNG THÁI TỔNG THỂ CỦA ĐƠN HÀNG
-
-//   PlatformVoucherCode: string | null;
-//   PlatformDiscountAmount: number;
-//   CreatedAt: string;
-//   UpdatedAt: string;
-
-//   items: OrderItem[]; // Danh sách các mặt hàng trong đơn hàng này
-
-//   // THÔNG TIN VỀ SHOP CẦN HIỂN THỊ
-//   ShopID: number;
-//   shopName: string;
-//   shopLevel: ShopLevel; // Mall, Yêu thích+, Thường
-//   isFavoriteShop: boolean; // Có đang follow shop này không
-// }
-// types/order.interface.ts
-// import { Address } from './address.interface';
-// import { ShopSummary } from './shop.interface';
-// import { ProductVariant } from './product.interface'; // Import ProductVariant đầy đủ
-// import { CartItem } from './cartItem.interface'; // Import CartItem nếu cần dùng lại
-
-// export type OrderStatus =
-//   'Pending' | 
-//   'PendingPayment' |         // (từ SQL)
-//   'Processing' |       // (từ SQL)
-//   'Shipped' |          // (từ SQL)
-//   'Delivered' |        // (từ SQL)
-//   'Completed' |        // (từ SQL)
-//   'CancelledByBuyer' | // (từ SQL)
-//   'CancelledBySeller' |// (từ SQL)
-//   'Returned' |         // (từ SQL)
-//   'ReturnInProgress' | // (từ SQL)
-//   'ReturnedRefunded' | // Custom UI status cho "Trả hàng/Hoàn tiền"
-//   'Cancelled';         // Custom UI status cho "Đã hủy" (tổng hợp)
-
-
-// export type ReturnItemStatus =
-//   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
-//   'Refunded' | 'PartiallyRefunded';
-
-// export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
-
-// export type PaymentMethodType = 'COD' | 'BankTransfer' | 'OnlineGateway';
-// export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
-
-// // --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG ORDER (LỊCH SỬ ĐƠN HÀNG) ---
-// // Bao gồm các trường cần thiết từ ProductVariant và các trường bổ sung cho OrderItem
-// export interface OrderItem { // Đây là OrderItem cho Order (lịch sử đơn hàng)
-//   OrderItemID: number;
-//   OrderID: number;
-//   VariantID: number;
-//   ProductID: number;
-//   Quantity: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
-//   PriceAtPurchase: number;
-//   OriginalPrice: number;
-//   Subtotal: number; // <--- ĐẢM BẢO TRƯỜNG NÀY CÓ Ở ĐÂY
-//   IsFlashSaleItem: boolean;
-//   FlashSaleDealID: number | null;
-//   ReturnStatus: ReturnItemStatus;
-//   CreatedAt: string;
-
-//   productName: string;
-//   productImageURL: string;
-//   classification: string;
-//   productAttributes?: { attributeName: string; attributeValue: string }[];
-
-//   canReview: boolean;
-//   reviewDeadline?: string;
-//   reviewReward?: number;
-// }
-
-// // --- ĐỊNH NGHĨA CHUNG CHO ITEM TRONG CHECKOUT (GIỎ HÀNG/TRƯỚC KHI TẠO ĐƠN) ---
-// // Các trường cần thiết từ CartItem và ProductVariant
-// export interface CheckoutProductItem { // Đây là Product Item cho Checkout (giỏ hàng/trước khi đặt hàng)
-//   VariantID: number;
-//   ProductID: number;
-//   productName: string;
-//   productImageURL: string;
-//   classification: string;
-
-//   price: number;
-//   originalPrice?: number;
-//   quantity: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
-//   subtotal: number; // <--- THÊM DÒNG NÀY ĐỂ KHẮC PHỤC LỖI
-
-//   hasInsurance: boolean;
-//   insurancePrice?: number;
-//   insuranceDescription?: string;
-//   insuranceLearnMoreLink?: string;
-
-//   SKU?: string | null;
-//   CompareAtPrice?: number | null;
-//   StockQuantity?: number;
-//   IsActive?: boolean;
-//   CreatedAt?: string;
-//   UpdatedAt?: string;
-// }
-
-
-// // --- INTERFACE CHO Order (LỊCH SỬ ĐƠN HÀNG) ---
-// export interface Order {
-//   OrderID: number;
-//   OrderCode: string;
-//   UserID: number;
-//   OrderDate: string;
-//   TotalAmount: number;
-//   SubtotalAmount: number;
-//   ShippingFee: number;
-//   DiscountAmount: number;
-//   ShippingAddressID: number;
-//   ShippingFullName: string;
-//   ShippingPhoneNumber: string;
-//   Notes: string | null;
-//   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway';
-//   PaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
-//   OverallStatus: OrderStatus;
-
-//   PlatformVoucherCode: string | null;
-//   PlatformDiscountAmount: number;
-//   CreatedAt: string;
-//   UpdatedAt: string;
-
-//   items: OrderItem[]; // Sử dụng OrderItem cho lịch sử đơn hàng
-
-//   ShopID: number;
-//   shopName: string;
-//   shopLevel: ShopLevel;
-//   isFavoriteShop: boolean;
-// }
-
-// // --- INTERFACE CHO CheckoutData (TRANG THANH TOÁN) ---
-// export interface CheckoutShopOrder {
-//   ShopID: number;
-//   shopName: string;
-//   shopLevel: ShopLevel;
-//   isFavoriteShop: boolean;
-
-//   items: CheckoutProductItem[]; // Sử dụng CheckoutProductItem cho trang thanh toán
-
-//   shippingMethod: string;
-//   shippingFee: number;
-//   deliveryEstimate: string;
-//   shippingVoucherDiscount?: number;
-//   shippingVoucherNote?: string;
-
-//   messageToSeller: string;
-// }
-
-// export interface CheckoutVoucher {
-//   VoucherID: number;
-//   type: 'platform' | 'shop';
-//   code: string;
-//   description: string;
-//   discountAmount: number;
-//   isSelected: boolean;
-// }
-
-// export interface CheckoutSummaryDetails {
-//   totalProductsPrice: number;
-//   totalShippingFee: number;
-//   totalVoucherDiscount: number;
-//   totalShopeeCoinsDiscount: number;
-//   totalPayment: number;
-// }
-
-// export interface CheckoutData {
-//   user: {
-//     UserID: number;
-//     Username: string;
-//   };
-//   address: Address;
-//   shopOrders: CheckoutShopOrder[];
-//   availablePlatformVouchers: CheckoutVoucher[];
-//   shopeeCoins: {
-//     currentCoins: number;
-//     isApplied: boolean;
-//     appliedAmount: number;
-//   };
-//   paymentMethod: {
-//     method: string;
-//     type: PaymentMethodType;
-//     canChange: boolean;
-//   };
-//   checkoutSummary: CheckoutSummaryDetails;
-// }
 
 
 // types/order.interface.ts
 import { Address } from './address.interface';
-import { ShopSummary } from './shop.interface';
-import { ProductVariant } from './product.interface';
+import { ShopSummary, ShopLevel } from './shop.interface';
+import { Product, ProductSummary, ProductVariant } from './product.interface';
+import { AppliedShopVouchers, AppliedVouchersCombined, Voucher } from './voucher.interface';
+import { CartItem } from './cartItem.interface';
+
 // import { ProductVariant } from './product.interface'; // Không cần import ProductVariant đầy đủ nếu bạn đã có MockVariant
 
 // Enums từ SQL và UI
@@ -271,9 +32,13 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
-export type PaymentMethodType = 'COD' | 'BankTransfer' | 'OnlineGateway';
+export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
+
+export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
+export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
+export const PAYPAL_APP_SECRET = process.env.PAYPAL_APP_SECRET || '';
+
 
 export interface StatusTab {
   id: OrderTabStatus; // Sử dụng OrderTabStatus đã định nghĩa ở đây
@@ -310,21 +75,23 @@ export interface OrderItem {
 // --- INTERFACE CheckoutProductItem (CHO GIỎ HÀNG/CHECKOUT) ---
 // Bao gồm các trường từ MockVariant (nếu cần) và các trường cần thiết cho UI Checkout
 export interface CheckoutProductItem {
-  VariantID: number;
-  ProductID: number;
-  productName: string;
-  productImageURL: string;
+  variantId: number;          // Sửa từ VariantID
+  productId: number;          // Sửa từ ProductID
+  shopId: number;             // Thêm vào để biết item thuộc shop nào
+  name: string;               // Sửa từ productName
+  imageUrl: string | null;    // Sửa từ productImageURL
   classification: string;
 
-  price: number; // Đơn giá hiện tại của sản phẩm (sau khuyến mãi nếu có)
-  originalPrice?: number; // Giá gốc để gạch ngang
+  price: number;
+  originalPrice: number | null; // Sử dụng number | null cho nhất quán
   quantity: number;
-  subtotal: number; // Thành tiền (price * quantity)
+  subtotal: number;
 
   hasInsurance: boolean;
   insurancePrice?: number;
   insuranceDescription?: string;
   insuranceLearnMoreLink?: string;
+  product?: ProductSummary | null;
 
   // Các trường từ ProductVariant (nếu cần cho mock data hoặc hiển thị chi tiết hơn)
   SKU?: string | null;
@@ -377,59 +144,69 @@ export interface Order {
 }
 
 // --- INTERFACE CheckoutData (CHO TRANG THANH TOÁN) ---
+// export interface CheckoutProductItem {
+//     variantId: number;
+//     productId: number;
+//     shopId: number;
+//     name: string;
+//     imageUrl: string | null;
+//     classification: string;
+//     price: number; // Giá bán sau khi đã tính discount của sản phẩm
+//     originalPrice?: number; // Giá gốc để gạch ngang
+//     quantity: number;
+//     subtotal: number;
+// }
+
 export interface CheckoutShopOrder {
-  ShopID: number;
-  shopName: string;
-  shopLevel: ShopLevel;
-  isFavoriteShop: boolean;
-
-  items: CheckoutProductItem[];
-
-  shippingMethod: string;
-  shippingFee: number;
-  deliveryEstimate: string;
-  shippingVoucherDiscount?: number;
-  shippingVoucherNote?: string;
-
-  messageToSeller: string;
+    shopId: number;
+    shopName: string;
+    shopLevel: ShopLevel;
+    items: CheckoutProductItem[];
+    shippingMethod: string;
+    shippingFee: number;
+    deliveryEstimate: string;
+    appliedVoucher: Voucher | null; // Voucher của shop đã áp dụng
+    messageToSeller: string;
 }
 
-export interface CheckoutVoucher {
-  VoucherID: number;
-  type: 'platform' | 'shop';
-  code: string;
-  description: string;
-  discountAmount: number;
-  isSelected: boolean;
+export interface StoredCheckoutData {
+    selectedItems: CartItem[];
+    appliedShopVouchers: AppliedShopVouchers;
+    appliedPlatformVouchers: AppliedVouchersCombined;
+    summary: { // Đảm bảo cấu trúc summary khớp
+        totalSubtotal: number;
+        totalDiscount: number;
+        finalTotal: number;
+        totalSaleoff: number;
+        totalFreeship: number;
+        totalShopVoucherDiscount: number;
+        totalPlatformVoucherDiscount: number;
+    };
 }
 
 export interface CheckoutSummaryDetails {
-  totalProductsPrice: number;
-  totalShippingFee: number;
-  totalVoucherDiscount: number;
-  totalShopeeCoinsDiscount: number;
-  totalPayment: number;
+    totalProductsPrice: number;
+    totalShippingFee: number;
+    totalSaleoff: number;
+    totalFreeship: number;
+    totalShopVoucherDiscount: number; // Giảm giá từ voucher của các shop
+    totalPlatformVoucherDiscount: number; // Giảm giá từ voucher toàn sàn
+    totalDiscount: number; // Tổng giảm giá (shop + platform)
+    finalTotal: number;     // Tổng thanh toán
+    address : Address | null;
 }
 
 export interface CheckoutData {
-  user: {
-    UserID: number;
-    Username: string;
-  };
-  address: Address;
-  shopOrders: CheckoutShopOrder[];
-  availablePlatformVouchers: CheckoutVoucher[];
-  shopeeCoins: {
-    currentCoins: number;
-    isApplied: boolean;
-    appliedAmount: number;
-  };
-  paymentMethod: {
-    method: string;
-    type: PaymentMethodType;
-    canChange: boolean;
-  };
-  checkoutSummary: CheckoutSummaryDetails;
+    address: Address | null;
+    shopOrders: CheckoutShopOrder[];
+    appliedPlatformVouchers: AppliedVouchersCombined;
+    summary: CheckoutSummaryDetails;
+    // Thêm các thông tin khác nếu cần
+    paymentMethod: {
+        method: string;
+        type: 'COD' | 'Paypal';
+        canChange: boolean;
+    };
 }
 
 export interface OrderStatusHistory {

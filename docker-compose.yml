@@ -1,6 +1,5 @@
 
 version: '3.8'
-
 services:
   # Frontend Service (Next.js)
   frontend:
@@ -10,24 +9,25 @@ services:
     container_name: ecommerce_frontend
     working_dir: /app
     ports:
-      - "3000:3000" # Vẫn giữ để có thể truy cập trực tiếp nếu cần debug
+      - "3000:3000"
     volumes:
       - ./Frontend:/app
-      - /app/node_modules # Giữ node_modules trong container, không bị ghi đè bởi host
-      - /app/.next        # Giữ cache build của Next.js
+      - /app/node_modules
+      - /app/.next
     environment:
-      NODE_ENV: development # Cho pnpm run dev
-      # NEXT_PUBLIC_API_URL trỏ tới Nginx trên host, với /api prefix
-      # Trình duyệt sẽ gọi http://localhost/api/...
-      NEXT_PUBLIC_API_URL: http://backend:8001/api 
-      INTERNAL_API_URL: http://nginx/api
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost/api
+      NEXT_PUBLIC_SOCKET_SERVER_URL: http://localhost:3002
+      INTERNAL_API_URL: http://localhost/api
+      TZ: Asia/Ho_Chi_Minh
     networks:
       - ecommerce_network
     depends_on:
-      - backend # Frontend có thể cần backend sẵn sàng
-      - nginx
+      - backend
+      - socket_chat_server
+    restart: unless-stopped
 
-  # Backend Service (Laravel App - PHP-FPM)
+  # Backend Service (Laravel App)
   backend:
     build:
       context: ./Backend
@@ -35,78 +35,146 @@ services:
     container_name: ecommerce_backend
     working_dir: /var/www/html
     ports:
-      - "8001:8000" 
+      - "8001:8000"
     volumes:
-      - ./Backend:/var/www/html # Mount source code cho development
-      # Để vendor trong image, không bị host mount ghi đè (tùy chọn, nhưng tốt hơn)
-      # Nếu không dùng dòng dưới, đảm bảo chạy `composer install` trong container sau khi up nếu cần
+      - ./Backend:/var/www/html
       - /var/www/html/vendor
     env_file:
-      - ./Backend/.env # Đảm bảo file .env tồn tại trong thư mục Backend
+      - ./Backend/.env
     environment:
-      # Các biến này sẽ ghi đè giá trị trong .env nếu được đặt ở đây
-      # Quan trọng: DB_HOST phải là tên service của database
-      DB_HOST: db
+      DB_HOST: db # Đã đổi tên service DB MySQL
       DB_PORT: 3306
-      # Các biến khác như APP_KEY, APP_URL nên để trong Backend/.env
+      TZ: Asia/Ho_Chi_Minh
     depends_on:
       - db
     networks:
       - ecommerce_network
+    restart: unless-stopped
 
-  # Nginx Service (Reverse Proxy)
+  # Nginx Service
   nginx:
     image: nginx:alpine
     container_name: ecommerce_nginx
     ports:
-      - "80:80" # Nginx sẽ là cổng chính vào hệ thống
+      - "80:80"
     volumes:
-      # Mount source code của Laravel để Nginx có thể tìm thấy public/index.php
-      - ./Backend:/var/www/html:ro # ro (read-only) là tốt nếu Nginx chỉ đọc
-      # Mount file cấu hình Nginx
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./Backend:/var/www/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      TZ: Asia/Ho_Chi_Minh
     depends_on:
       - backend
-      # - frontend
+      - frontend
     networks:
       - ecommerce_network
+    restart: unless-stopped
 
   # Database Service (MySQL)
   db:
     image: mysql:8.0
     container_name: ecommerce_db
     ports:
-      - "33061:3306" # Port 33061 trên host map vào port 3306 của container
+      - "33061:3306"
     environment:
-      MYSQL_DATABASE: ecommerce       # Phải khớp với DB_DATABASE của backend
-      MYSQL_ROOT_PASSWORD: ""        # Mật khẩu root rỗng
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Cho phép mật khẩu root rỗng
-      TZ: Asia/Ho_Chi_Minh 
+      MYSQL_DATABASE: ecommerce # Hoặc tên DB của bạn
+      MYSQL_ROOT_PASSWORD: ""   # Hoặc đặt mật khẩu
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      TZ: Asia/Ho_Chi_Minh
     volumes:
-      - ./ecommerce_db_data:/var/lib/mysql # Sử dụng named volume để persist data
+      - ecommerce_db_data:/var/lib/mysql
     networks:
       - ecommerce_network
+    restart: unless-stopped
 
-  # phpMyAdmin Service (Tùy chọn)
+  # phpMyAdmin Service
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: ecommerce_phpmyadmin
     ports:
-      - "8081:80" # Truy cập phpMyAdmin qua http://localhost:8081
+      - "8081:80"
     environment:
-      PMA_HOST: db         # Kết nối đến service 'db' (MySQL)
+      PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: root       # User để login vào MySQL
-      PMA_PASSWORD: ""     # Password (rỗng trong trường hợp này)
-      UPLOAD_LIMIT: 300M   # Giới hạn upload file nếu cần
+      PMA_USER: root
+      PMA_PASSWORD: ""
+      UPLOAD_LIMIT: 300M
     depends_on:
       - db
     networks:
       - ecommerce_network
+    restart: unless-stopped
+
+  # ----- CÁC SERVICE CHO CHAT (CẬP NHẬT) -----
+
+  # Socket.IO Chat Server Service
+  socket_chat_server:
+    build:
+      context: ./SocketServerChat
+      dockerfile: Dockerfile
+    container_name: ecommerce_socket_chat_server
+    working_dir: /usr/src/app
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./SocketServerChat:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./SocketServerChat/.env # MONGODB_URI sẽ trỏ đến db_mongo
+    environment:
+      NODE_ENV: development
+      TZ: Asia/Ho_Chi_Minh
+      # LARAVEL_API_URL và LARAVEL_TOKEN_VALIDATION_ENDPOINT vẫn đọc từ .env
+    networks:
+      - ecommerce_network
+    depends_on:
+      - db_mongo # Socket server cần MongoDB cục bộ sẵn sàng
+      - backend  # Nếu cần gọi API Laravel để xác thực token
+    restart: unless-stopped
+
+  # MongoDB Service (Cục bộ - MỚI)
+  db_mongo:
+    image: mongo:latest # Hoặc phiên bản cụ thể như mongo:6.0
+    container_name: ecommerce_db_mongo
+    ports:
+      - "27017:27017" # Expose port MongoDB ra host (để Mongo Express hoặc client khác kết nối)
+    volumes:
+      - ecommerce_mongo_data:/data/db # Sử dụng named volume để persist data
+      - ./data_mongo_import:/data/import
+    environment:
+      # MONGO_INITDB_ROOT_USERNAME: your_mongo_admin_user # Tùy chọn: tạo user admin cho MongoDB
+      # MONGO_INITDB_ROOT_PASSWORD: your_mongo_admin_password
+      TZ: Asia/Ho_Chi_Minh
+    networks:
+      - ecommerce_network
+    restart: unless-stopped
+
+  # Mongo Express Service (MỚI - UI quản lý MongoDB)
+  mongo_express:
+    image: mongo-express:latest
+    container_name: ecommerce_mongo_express
+    ports:
+      - "8082:8081" # Truy cập Mongo Express qua http://localhost:8082
+    environment:
+      ME_CONFIG_MONGODB_SERVER: db_mongo # Tên service của MongoDB container
+      ME_CONFIG_MONGODB_PORT: 27017
+      # ME_CONFIG_MONGODB_ENABLE_ADMIN: "true" # Cho phép login bằng admin user của MongoDB
+      # ME_CONFIG_MONGODB_AUTH_DATABASE: admin # Database để xác thực (nếu đã tạo admin user)
+      # ME_CONFIG_MONGODB_AUTH_USERNAME: your_mongo_admin_user
+      # ME_CONFIG_MONGODB_AUTH_PASSWORD: your_mongo_admin_password
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: 123456
+      ME_CONFIG_SITE_BASEURL: / # Nếu bạn muốn truy cập Mongo Express từ root path của port 8082
+      TZ: Asia/Ho_Chi_Minh
+    depends_on:
+      - db_mongo
+    networks:
+      - ecommerce_network
+    restart: unless-stopped
 
 networks:
   ecommerce_network:
     driver: bridge
 
-volumes: # Khai báo named volume cho data MySQL
+volumes:
   ecommerce_db_data:
+  ecommerce_mongo_data: # Named volume cho MongoDB cục bộ

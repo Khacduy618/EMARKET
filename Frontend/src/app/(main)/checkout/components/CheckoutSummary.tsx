@@ -1,111 +1,55 @@
-// // app/(main)/checkout/components/CheckoutSummary.tsx
-// import React from 'react';
-// import Link from 'next/link';
-// import { CheckoutSummaryDetails } from '@/types'; // Lấy types từ '@/types'
-
-// const formatVND = (price: number): string => {
-//   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-// };
-
-// interface CheckoutSummaryProps {
-//   summary: CheckoutSummaryDetails;
-// }
-
-// const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary }) => {
-//   return (
-//     <>
-//       <div className="sticky container bottom-0 left-0 rounded-lg bg-white shadow-lg border-t border-gray-200 py-4 px-6 z-20">
-//         <div className="container mx-auto max-w-6xl flex justify-end items-center">
-//           <div className="flex-1 grid grid-cols-2 gap-y-2 text-sm text-gray-700 pr-10">
-//             <span className="col-span-1 text-right">Tổng tiền hàng:</span>
-//             <span className="col-span-1 text-right">{formatVND(summary.totalProductsPrice)}</span>
-
-//             <span className="col-span-1 text-right">Tổng tiền phí vận chuyển:</span>
-//             <span className="col-span-1 text-right">{formatVND(summary.totalShippingFee)}</span>
-
-//             <span className="col-span-1 text-right">Tổng cộng Voucher giảm giá:</span>
-//             <span className="col-span-1 text-right text-orange-500 font-semibold">-{formatVND(summary.totalVoucherDiscount)}</span>
-
-//             {summary.totalShopeeCoinsDiscount > 0 && (
-//               <>
-//                 <span className="col-span-1 text-right">Giảm giá từ Shopee Xu:</span>
-//                 <span className="col-span-1 text-right text-orange-500 font-semibold">-{formatVND(summary.totalShopeeCoinsDiscount)}</span>
-//               </>
-//             )}
-
-//             <span className="col-span-1 text-right text-base font-bold mt-2">Tổng thanh toán:</span>
-//             <span className="col-span-1 text-right text-3xl font-bold text-orange-500 mt-2">{formatVND(summary.totalPayment)}</span>
-//           </div>
-//           <button className="bg-orange-500 text-white px-10 py-3 rounded-md text-base font-semibold hover:bg-orange-600 transition-colors flex-shrink-0">
-//             Đặt hàng
-//           </button>
-//         </div>
-//         {/* Thông báo "Nhấn Đặt hàng..." */}
-//         <div className="py-2 px-6 z-10 text-xs text-gray-500 text-center">
-//           <p>Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với <Link href="#" className="text-blue-500 hover:underline">Điều khoản Emarket</Link></p>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default CheckoutSummary;
-// app/(main)/checkout/components/CheckoutSummary.tsx
 'use client';
 
 import React from 'react';
 import Link from 'next/link';
 import { CheckoutSummaryDetails } from '@/types';
 
-const formatVND = (price: number): string => {
+const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
 interface CheckoutSummaryProps {
   summary: CheckoutSummaryDetails;
-  onPlaceOrder: () => void; // Bắt buộc phải có hàm xử lý đặt hàng
+  onPlaceOrder: () => void;
 }
 
 const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, onPlaceOrder }) => {
   return (
-    <>
-      <div className="sticky bottom-0 left-0 container bg-white shadow-lg border-t border-gray-200 py-4 px-6 z-20">
-        <div className="container mx-auto max-w-6xl flex justify-end items-center">
-          <div className="flex-1 grid grid-cols-2 gap-y-2 text-sm text-gray-700 pr-10">
-            <span className="col-span-1 text-right">Tổng tiền hàng:</span>
-            <span className="col-span-1 text-right">{formatVND(summary.totalProductsPrice)}</span>
-
-            <span className="col-span-1 text-right">Tổng tiền phí vận chuyển:</span>
-            <span className="col-span-1 text-right">{formatVND(summary.totalShippingFee)}</span>
-
-            <span className="col-span-1 text-right">Tổng cộng Voucher giảm giá:</span>
-            <span className="col-span-1 text-right text-orange-500 font-semibold">-{formatVND(summary.totalVoucherDiscount)}</span>
-
-            {summary.totalShopeeCoinsDiscount > 0 && (
-              <>
-                <span className="col-span-1 text-right">Giảm giá từ Shopee Xu:</span>
-                <span className="col-span-1 text-right text-orange-500 font-semibold">-{formatVND(summary.totalShopeeCoinsDiscount)}</span>
-              </>
-            )}
-
-            <span className="col-span-1 text-right text-base font-bold mt-2">Tổng thanh toán:</span>
-            <span className="col-span-1 text-right text-3xl font-bold text-orange-500 mt-2">{formatVND(summary.totalPayment)}</span>
+    <div className='sticky bottom-0 mt-4'>
+      <div className=" bg-white rounded-ss-sm rounded-se-sm shadow-sm border border-gray-200">
+        <div className="p-4 space-y-2 text-sm border-b">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Chi tiết thanh toán</h3>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Tổng tiền hàng</span>
+            <span className="text-gray-800">{formatPrice(summary.totalProductsPrice)}</span>
           </div>
-          <button
-            onClick={onPlaceOrder}
-            className="bg-orange-500 text-white px-10 py-3 rounded-md text-base font-semibold hover:bg-orange-600 transition-colors flex-shrink-0"
-          >
-            Đặt hàng
-          </button>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Phí vận chuyển</span>
+            <span className="text-gray-800">{formatPrice(summary.totalShippingFee)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Tổng cộng Voucher giảm giá</span>
+            <span className="text-green-600 font-medium">-{formatPrice(summary.totalDiscount)}</span>
+          </div>
         </div>
-        {/* Thông báo "Nhấn Đặt hàng..." */}
-      <div className=" text-xs text-gray-500 text-center">
-        <p>Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý với <Link href="#" className="text-blue-500 hover:underline">Điều khoản Shopee</Link></p>
+        <div className="py-4 px-4 flex justify-between items-center">
+          <span className="font-semibold text-gray-800">Tổng thanh toán:</span>
+          <span className="text-2xl font-bold text-orange-500">{formatPrice(summary.finalTotal)}</span>
+        </div>
       </div>
+      <div className=" bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
+        <p className="text-xs text-gray-500 max-w-md">
+          Nhấn "Đặt Hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
+          <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
+        </p>
+        <button
+          onClick={onPlaceOrder}
+          className="bg-orange-500 text-white px-12 py-3 rounded-md text-base font-semibold hover:bg-orange-600 transition-colors"
+        >
+          Đặt Hàng
+        </button>
       </div>
-
-      
-    </>
+    </div>
   );
 };
 

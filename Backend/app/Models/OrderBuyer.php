@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class OrderBuyer extends Model
 {
     use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';

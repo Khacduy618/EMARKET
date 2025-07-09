@@ -1,53 +1,57 @@
-const API_BASE_URL = 'http://localhost:8001/api';
 
+export const API_BASE_URL = 'http://localhost:8001/api';
+
+export const getAuthToken = (): string | null => {
+    // Get token from localStorage
+    return localStorage.getItem('authToken');
+};
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
-//         let errorDetails = 'Something went wrong';
-//         const contentType = response.headers.get('content-type');
-
-//         if (contentType && contentType.includes('application/json')) {
-//             try {
-//                 const error = await response.json();
-//                 errorDetails = error.message || JSON.stringify(error) || error.available_stock;
-                
-//             } catch (jsonError) {
-//                 console.error('Failed to parse error response as JSON:', jsonError);
-//                 errorDetails = `Failed to parse error response as JSON. Status: ${response.status}`;
-//             }
-//         } else {
-//             try {
-//                 errorDetails = await response.text();
-//             } catch (textError) {
-//                 console.error('Failed to read error response as text:', textError);
-//                 errorDetails = `Failed to read error response. Status: ${response.status}`;
-//             }
+//         let errorData: any = { message: 'An unknown error occurred.' };
+//         try {
+//             // Try to parse JSON from error response
+//             errorData = await response.json();
+//         } catch (e) {
+//             // If parsing fails, use a generic message
+//             console.error('Failed to parse error response JSON:', e);
+//             errorData = { message: 'An unknown error occurred on the server.' };
 //         }
-//         throw new Error(`API Error: ${response.status} - ${errorDetails}`);
+
+//         const error = new Error(errorData.message || 'Something went wrong.');
+//         // Attach the full response details to the error object
+//         // This is what allows your component to access err.response.data
+//         (error as any).response = {
+//             status: response.status,
+//             data: errorData,
+//         };
+//         throw error;
 //     }
 //     return response.json();
 // };
 export const handleResponse = async (response: Response) => {
     if (!response.ok) {
-        let errorData: any = { message: 'An unknown error occurred.' };
+        let errorData = { message: 'An unknown error occurred.' };
         try {
-            // Try to parse JSON from error response
             errorData = await response.json();
         } catch (e) {
-            // If parsing fails, use a generic message
-            console.error('Failed to parse error response JSON:', e);
-            errorData = { message: 'An unknown error occurred on the server.' };
+            // Body lỗi không phải là JSON
         }
-
-        const error = new Error(errorData.message || 'Something went wrong.');
-        // Attach the full response details to the error object
-        // This is what allows your component to access err.response.data
-        (error as any).response = {
-            status: response.status,
-            data: errorData,
-        };
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        (error as any).response = { status: response.status, data: errorData };
         throw error;
     }
-    return response.json();
+
+    // --- LOGIC MỚI ĐỂ XỬ LÝ BODY RỖNG ---
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        // Nếu có header JSON, hãy thử parse nó
+        return response.json();
+    } else {
+        // Nếu không có body JSON (ví dụ: status 204 No Content, hoặc chỉ là text)
+        // trả về một giá trị thành công mà không cần parse.
+        // Bạn có thể trả về `true` hoặc một đối tượng cho biết thành công.
+        return { success: true, message: "Operation successful" }; 
+    }
 };
 
 export const getProductAttributes = async (productId: number) => {

@@ -38,15 +38,37 @@ interface Suggestions {
 }
 
 // --- Component con cho từng mục trong NavMenu ---
+// const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
+//     if (!theme || !theme.itemClass) return null; // Guard clause
+//     const finalClass = isScrolled
+//         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
+//         : `${theme.itemClass.base}`;
+//     return (
+//         <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
+//             <span>{item.Name}</span>
+//         </a>
+//     );
+// };
 const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
     if (!theme || !theme.itemClass) return null; // Guard clause
+
     const finalClass = isScrolled
         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
         : `${theme.itemClass.base}`;
+
+    // Tạo URL an toàn bằng cách mã hóa tên danh mục
+    const searchQuery = encodeURIComponent(item.Name);
+
     return (
-        <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
+        // SỬA ĐỔI CHÍNH Ở ĐÂY:
+        // 1. Dùng <Link> của Next.js để điều hướng phía client, giúp trang không bị tải lại.
+        // 2. href trỏ đến trang /search với query `q` là tên danh mục đã được mã hóa.
+        <Link
+            href={`/search?q=${searchQuery}`}
+            className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}
+        >
             <span>{item.Name}</span>
-        </a>
+        </Link>
     );
 };
 
@@ -147,8 +169,9 @@ export default function Header() {
             await api.post('/logout', {}); // Assuming logout is a POST request to /api/logout
 
             // Remove the token from localStorage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+            if (localStorage.getItem('authToken')) { localStorage.removeItem('authToken'); }
+            if (localStorage.getItem('user')) { localStorage.removeItem('user'); }
+            if (localStorage.getItem('checkoutData')) { localStorage.removeItem('checkoutData'); }
 
             // Update state and redirect to login page
             setIsLoggedIn(false);
@@ -158,6 +181,7 @@ export default function Header() {
             // Even if API call fails, attempt to remove token and redirect
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
+            localStorage.removeItem('checkoutData');
             setIsLoggedIn(false);
             router.push('/login');
         }
@@ -169,12 +193,12 @@ export default function Header() {
     return (
         // *** SỬA ĐỔI CHÍNH Ở ĐÂY ***
         // Thẻ div bao ngoài cùng này sẽ chịu trách nhiệm dính lại
-        <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="sticky top-0 z-30 bg-white shadow-sm">
             {/* PHẦN 1: HEADER CHÍNH (logo, tìm kiếm, icons) */}
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">
                     <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
-                        <a href="#" className="hover:text-gray-200">Kênh Người Bán</a>
+                        <a href="/seller-dashboard" className="hover:text-gray-200">Kênh Người Bán</a>
                         <div className="relative">
                             <button className="flex items-center gap-1 hover:text-gray-200" onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}>
                                 {selectedLanguage} <ChevronDown size={14} />
@@ -216,13 +240,13 @@ export default function Header() {
                             )}
                         </div>
 
-                        
+
                         <div className="flex items-center space-x-2 md:space-x-4 order-2 md:order-3">
                             <Link href="/cart" className="relative p-1 md:p-2 hover:opacity-80">
                                 <ShoppingCart size={26} />
                                 <span className="absolute top-0 right-0 bg-white text-orange-500 rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">0</span>
                             </Link>
-                            
+
                         </div>
                     </div>
                 </div>

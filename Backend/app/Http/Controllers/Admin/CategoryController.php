@@ -7,6 +7,7 @@ use App\Models\PlatformCategory;
 use Illuminate\Http\Request;
 use App\utils\CategoryUtil;
 
+
 class CategoryController extends Controller {
  
   public function getAllCategory() {
@@ -63,7 +64,7 @@ class CategoryController extends Controller {
     try {
       $category = new PlatformCategory();
       $category->Name = $req->Name;
-      $category->ParentCategoryID = $req->Parent;
+      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
       $category->ImageURL = $req->image_name;
       $category->IsActive = true;
 
@@ -106,7 +107,7 @@ class CategoryController extends Controller {
       }
 
       $category->Name = $req->Name;
-      $category->ParentCategoryID = $req->Parent;
+      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
       $category->ImageURL = $req->image_name ?? $category->ImageURL;
       $category->IsActive = true;
 
@@ -120,4 +121,6 @@ class CategoryController extends Controller {
       return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
     }
   }
+
+  
 }

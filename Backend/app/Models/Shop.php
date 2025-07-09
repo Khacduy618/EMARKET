@@ -15,7 +15,7 @@ use App\Models\Voucher;
 class Shop extends Model
 {
     use HasFactory;
-
+    protected $table = 'Shops';
     protected $primaryKey = 'ShopID';
     public $timestamps = false;
     protected $fillable = [

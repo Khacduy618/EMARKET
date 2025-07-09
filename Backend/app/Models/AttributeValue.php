@@ -11,7 +11,7 @@ class AttributeValue extends Model
 {
     use HasFactory;
 
-    protected $table = 'attributevalues'; // Tên bảng giả định
+    protected $table = 'AttributeValues'; // Tên bảng giả định
     protected $primaryKey = 'AttributeValueID';
     public $timestamps = false; // Giả sử
 

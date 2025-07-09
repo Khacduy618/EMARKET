@@ -120,11 +120,12 @@ export default function ProductDetailModal({
                   </div>
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4" />
-                    {product.viewCount.toLocaleString()} lượt xem
+                    {(product.viewCount ?? 0).toLocaleString()} lượt xem
+
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {new Date(product.CreatedAt).toLocaleDateString("vi-VN")}
+                    {product.CreatedAt ? new Date(product.CreatedAt).toLocaleDateString("vi-VN") : "Không rõ ngày"}
                   </div>
                 </div>
               </div>
@@ -271,13 +272,12 @@ export default function ProductDetailModal({
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
-                                  <DollarSign className="w-3 h-3 text-green-600" />
-                                  <span className="font-medium text-green-600">{variant.Price.toLocaleString()}₫</span>
+                                  <span className="font-medium text-green-600">{(variant.Price ?? 0).toLocaleString()}₫</span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <span className="text-gray-500 line-through">
-                                  {variant.CompareAtPrice.toLocaleString()}₫
+                                  {(variant.CompareAtPrice ?? 0).toLocaleString()}₫
                                 </span>
                               </TableCell>
                               <TableCell>

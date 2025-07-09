@@ -379,8 +379,8 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         ),
         'League\\Uri\\' => 
         array (
-            0 => __DIR__ . '/..' . '/league/uri',
-            1 => __DIR__ . '/..' . '/league/uri-interfaces',
+            0 => __DIR__ . '/..' . '/league/uri-interfaces',
+            1 => __DIR__ . '/..' . '/league/uri',
         ),
         'League\\MimeTypeDetection\\' => 
         array (
@@ -526,8 +526,8 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\AddressController' => __DIR__ . '/../..' . '/app/Http/Controllers/AddressController.php',
         'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
-        'App\\Http\\Controllers\\Admin\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductController.php',
         'App\\Http\\Controllers\\Admin\\ProductControllers' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductControllers.php',
         'App\\Http\\Controllers\\Admin\\ShopController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ShopController.php',
         'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
@@ -535,19 +535,24 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         'App\\Http\\Controllers\\BannerController' => __DIR__ . '/../..' . '/app/Http/Controllers/BannerController.php',
         'App\\Http\\Controllers\\CartController' => __DIR__ . '/../..' . '/app/Http/Controllers/CartController.php',
         'App\\Http\\Controllers\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/CategoryController.php',
+        'App\\Http\\Controllers\\ChatController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\FeaturedProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/FeaturedProductController.php',
         'App\\Http\\Controllers\\FlashSaleController' => __DIR__ . '/../..' . '/app/Http/Controllers/FlashSaleController.php',
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
+        'App\\Http\\Controllers\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrderController.php',
+        'App\\Http\\Controllers\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
         'App\\Http\\Controllers\\Seller\\SellerOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerOrderController.php',
         'App\\Http\\Controllers\\Seller\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerRegisterController.php',
         'App\\Http\\Controllers\\Seller\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopCategoryController.php',
         'App\\Http\\Controllers\\Seller\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopProductController.php',
+        'App\\Http\\Controllers\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopProductController.php',
         'App\\Http\\Controllers\\VoucherController' => __DIR__ . '/../..' . '/app/Http/Controllers/VoucherController.php',
         'App\\Http\\Middleware\\EnsureIsSeller' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureIsSeller.php',
         'App\\Http\\Middleware\\HandleImage' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleImage.php',
+        'App\\Http\\Middleware\\VerifyInternalSecret' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyInternalSecret.php',
         'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
         'App\\Http\\Requests\\StoreProductRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreProductRequest.php',
         'App\\Models\\Address' => __DIR__ . '/../..' . '/app/Models/Address.php',
@@ -557,6 +562,7 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         'App\\Models\\Cart' => __DIR__ . '/../..' . '/app/Models/Cart.php',
         'App\\Models\\CartItem' => __DIR__ . '/../..' . '/app/Models/CartItem.php',
         'App\\Models\\Category' => __DIR__ . '/../..' . '/app/Models/Category.php',
+        'App\\Models\\ConversationMeta' => __DIR__ . '/../..' . '/app/Models/ConversationMeta.php',
         'App\\Models\\FlashSale' => __DIR__ . '/../..' . '/app/Models/FlashSale.php',
         'App\\Models\\NewArrivalModel' => __DIR__ . '/../..' . '/app/Models/NewArrivalModel.php',
         'App\\Models\\Order' => __DIR__ . '/../..' . '/app/Models/Order.php',
@@ -572,7 +578,6 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         'App\\Models\\Shop' => __DIR__ . '/../..' . '/app/Models/Shop.php',
         'App\\Models\\ShopCategory' => __DIR__ . '/../..' . '/app/Models/ShopCategory.php',
         'App\\Models\\ShopFollow' => __DIR__ . '/../..' . '/app/Models/ShopFollow.php',
-        'App\\Models\\ShopOrder' => __DIR__ . '/../..' . '/app/Models/ShopOrder.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Models\\UserVoucher' => __DIR__ . '/../..' . '/app/Models/UserVoucher.php',
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',

@@ -107,6 +107,8 @@ export default function ProductListPage() {
       } else {
         toast.error(json.message || "Không thể tải danh sách sản phẩm")
       }
+      setProducts(json.data.data);
+      setTotalPage(json.data.last_page || 1);
     } catch (err) {
       console.error("Lỗi fetch:", err)
       toast.error("Không thể tải danh sách sản phẩm")

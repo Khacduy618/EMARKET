@@ -13,7 +13,7 @@ use App\Models\OrderBuyer;
 class UserVoucher extends Model
 {
     use HasFactory;
-
+    protected $table = 'UserVouchers';
     protected $primaryKey = 'UserVoucherID'; // Changed from UserUsedVoucherID
 
     protected $fillable = [

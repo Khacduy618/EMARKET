@@ -13,7 +13,7 @@ use App\Models\UserVoucher;
 class Voucher extends Model
 {
     use HasFactory;
-
+    protected $table = 'Vouchers';
     protected $primaryKey = 'VoucherID';
 
     protected $fillable = [
@@ -62,7 +62,7 @@ class Voucher extends Model
     /**
      * Get the user used vouchers for this voucher.
      */
-    public function userUsedVouchers(): HasMany
+    public function userVouchers(): HasMany
     {
         return $this->hasMany(UserVoucher::class, 'VoucherID', 'VoucherID');
     }
