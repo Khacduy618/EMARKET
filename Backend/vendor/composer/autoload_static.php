@@ -526,8 +526,10 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\AddressController' => __DIR__ . '/../..' . '/app/Http/Controllers/AddressController.php',
         'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
-        'App\\Http\\Controllers\\Admin\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductController.php',
+        'App\\Http\\Controllers\\Admin\\ProductControllers' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductControllers.php',
+        'App\\Http\\Controllers\\Admin\\ShopController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ShopController.php',
         'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\BannerController' => __DIR__ . '/../..' . '/app/Http/Controllers/BannerController.php',
@@ -538,22 +540,18 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Http\\Controllers\\FeaturedProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/FeaturedProductController.php',
         'App\\Http\\Controllers\\FlashSaleController' => __DIR__ . '/../..' . '/app/Http/Controllers/FlashSaleController.php',
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
+        'App\\Http\\Controllers\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
         'App\\Http\\Controllers\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/SellerRegisterController.php',
         'App\\Http\\Controllers\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopCategoryController.php',
         'App\\Http\\Controllers\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShopProductController.php',
-<<<<<<< HEAD
-        'App\\Http\\Middleware\\EnsureIsSeller' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureIsSeller.php',
-        'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
-        'App\\Http\\Requests\\StoreProductRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreProductRequest.php',
-=======
         'App\\Http\\Controllers\\VoucherController' => __DIR__ . '/../..' . '/app/Http/Controllers/VoucherController.php',
         'App\\Http\\Middleware\\EnsureIsSeller' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureIsSeller.php',
         'App\\Http\\Middleware\\HandleImage' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleImage.php',
         'App\\Http\\Middleware\\VerifyInternalSecret' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyInternalSecret.php',
         'App\\Http\\Requests\\SellerRegisterRequest' => __DIR__ . '/../..' . '/app/Http/Requests/SellerRegisterRequest.php',
->>>>>>> mergwithCuong
+        'App\\Http\\Requests\\StoreProductRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreProductRequest.php',
         'App\\Models\\Address' => __DIR__ . '/../..' . '/app/Models/Address.php',
         'App\\Models\\Attribute' => __DIR__ . '/../..' . '/app/Models/Attribute.php',
         'App\\Models\\AttributeValue' => __DIR__ . '/../..' . '/app/Models/AttributeValue.php',
@@ -576,12 +574,11 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'App\\Models\\Shop' => __DIR__ . '/../..' . '/app/Models/Shop.php',
         'App\\Models\\ShopCategory' => __DIR__ . '/../..' . '/app/Models/ShopCategory.php',
         'App\\Models\\ShopFollow' => __DIR__ . '/../..' . '/app/Models/ShopFollow.php',
-        'App\\Models\\ShopOrder' => __DIR__ . '/../..' . '/app/Models/ShopOrder.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Models\\UserVoucher' => __DIR__ . '/../..' . '/app/Models/UserVoucher.php',
         'App\\Models\\Voucher' => __DIR__ . '/../..' . '/app/Models/Voucher.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
-<<<<<<< HEAD
+        'App\\utils\\CategoryUtil' => __DIR__ . '/../..' . '/app/utils/CategoryUtil.php',
         'Appstract\\Opcache\\Commands\\Clear' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Clear.php',
         'Appstract\\Opcache\\Commands\\Compile' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Compile.php',
         'Appstract\\Opcache\\Commands\\Config' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/Commands/Config.php',
@@ -592,9 +589,6 @@ class ComposerStaticInit85c1d2065f70e38b0d6bf66559fb13c5
         'Appstract\\Opcache\\OpcacheClass' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheClass.php',
         'Appstract\\Opcache\\OpcacheFacade' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheFacade.php',
         'Appstract\\Opcache\\OpcacheServiceProvider' => __DIR__ . '/..' . '/appstract/laravel-opcache/src/OpcacheServiceProvider.php',
-=======
-        'App\\utils\\CategoryUtil' => __DIR__ . '/../..' . '/app/utils/CategoryUtil.php',
->>>>>>> mergwithCuong
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',

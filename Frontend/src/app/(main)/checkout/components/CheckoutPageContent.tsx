@@ -25,11 +25,13 @@ import {
   OrderStatus,
   CheckoutSummaryDetails,
   PaymentMethodType,
-  StoredCheckoutData
+  StoredCheckoutData,
+  PAYPAL_CLIENT_ID
 } from '@/types';
 import { CheckCheck, Loader2 } from 'lucide-react';
 import { fetchProductById } from '@/services/product';
 import { toast } from 'react-toastify';
+import { OrderResponseBody } from '@paypal/paypal-js';
 
 
 const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
@@ -254,8 +256,8 @@ const CheckoutPageContent = () => {
   const handlePaymentMethodChange = () => {
     setCheckoutData(prev => {
       if (!prev) return null;
-      const newType: PaymentMethodType = prev.paymentMethod.type === 'COD' ? 'OnlineGateway' : 'COD';
-      const newMethod = newType === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán online (giả lập)';
+      const newType: PaymentMethodType = prev.paymentMethod.type === 'COD' ? 'Paypal' : 'COD';
+      const newMethod = newType === 'COD' ? 'Thanh toán khi nhận hàng' : 'Paypal';
       return {
         ...prev,
         paymentMethod: { ...prev.paymentMethod, type: newType, method: newMethod },
@@ -263,26 +265,49 @@ const CheckoutPageContent = () => {
     });
   };
 
-  const handlePlaceOrder = () => {
+//   const handlePlaceOrder = () => {
+//     if (!checkoutData) return;
+
+//     console.log('Placing order with:', checkoutData);
+
+//     let redirectStatus: OrderStatus;
+//     const paymentType = checkoutData.paymentMethod.type;
+
+//     if (paymentType === 'COD') {
+//       redirectStatus = 'Pending';
+//     } else if (paymentType === 'Paypal' || paymentType === 'Stripe') {
+//       redirectStatus = 'Shipped';
+//     } else {
+//       redirectStatus = 'Pending';
+//     }
+
+//     alert(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}. Chuyển hướng tới Đơn Mua.`);
+//     router.push(`/purchase?status=${redirectStatus}`);
+//   };
+const handlePlaceOrder = (paypalDetails?: OrderResponseBody) => {
     if (!checkoutData) return;
 
     console.log('Placing order with:', checkoutData);
+    if(paypalDetails) {
+      console.log('PayPal Details:', paypalDetails);
+      // Here you would send the paypalDetails.id (the transaction ID)
+      // to your backend to verify and save the order.
+    }
 
-    let redirectStatus: OrderStatus;
+    let redirectStatus: OrderStatus = 'Pending';
     const paymentType = checkoutData.paymentMethod.type;
 
     if (paymentType === 'COD') {
       redirectStatus = 'Pending';
-    } else if (paymentType === 'OnlineGateway' || paymentType === 'BankTransfer') {
-      redirectStatus = 'Shipped';
-    } else {
-      redirectStatus = 'Pending';
+    } else if (paymentType === 'Paypal') {
+      // If a successful PayPal transaction happened, the order is paid
+      redirectStatus = 'Processing'; // or 'Shipped' depending on your flow
     }
 
-    alert(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}. Chuyển hướng tới Đơn Mua.`);
-    router.push(`/purchase?status=${redirectStatus}`);
+    toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
+    // Uncomment the redirect when you're ready
+    // router.push(`/purchase?status=${redirectStatus}`);
   };
-
 return (
         <div className="bg-gray-100 min-h-screen pb-40">
             
@@ -334,6 +359,8 @@ return (
                 <CheckoutPaymentSection
                     paymentMethod={checkoutData.paymentMethod}
                     onPaymentMethodChange={handlePaymentMethodChange}
+                    payPalClientID={PAYPAL_CLIENT_ID}
+                    summary={checkoutData.summary} 
                 />
                 <CheckoutSummary summary={checkoutData.summary} onPlaceOrder={handlePlaceOrder} />
             </div>
