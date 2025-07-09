@@ -661,7 +661,7 @@ const CartPage: React.FC = () => {
         
         cart.cartItems.forEach(item => {
             if (selectedCartItemIds.has(item.CartItemID)) {
-                finalprice =item.productVariant?.CompareAtPrice ? item.productVariant?.CompareAtPrice * (1 - item.productVariant?.product.Discount / 100) : 0;
+                finalprice = (item.productVariant?.CompareAtPrice || item.productVariant?.Price) * (1 - item.productVariant?.product.Discount / 100);
                 // console.log(`price:${price}`);
                 total += (Math.floor(finalprice) || 0) * item.Quantity;
             }
