@@ -38,15 +38,37 @@ interface Suggestions {
 }
 
 // --- Component con cho từng mục trong NavMenu ---
+// const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
+//     if (!theme || !theme.itemClass) return null; // Guard clause
+//     const finalClass = isScrolled
+//         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
+//         : `${theme.itemClass.base}`;
+//     return (
+//         <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
+//             <span>{item.Name}</span>
+//         </a>
+//     );
+// };
 const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
     if (!theme || !theme.itemClass) return null; // Guard clause
+
     const finalClass = isScrolled
         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
         : `${theme.itemClass.base}`;
+
+    // Tạo URL an toàn bằng cách mã hóa tên danh mục
+    const searchQuery = encodeURIComponent(item.Name);
+
     return (
-        <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
+        // SỬA ĐỔI CHÍNH Ở ĐÂY:
+        // 1. Dùng <Link> của Next.js để điều hướng phía client, giúp trang không bị tải lại.
+        // 2. href trỏ đến trang /search với query `q` là tên danh mục đã được mã hóa.
+        <Link
+            href={`/search?q=${searchQuery}`}
+            className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}
+        >
             <span>{item.Name}</span>
-        </a>
+        </Link>
     );
 };
 
@@ -147,9 +169,9 @@ export default function Header() {
             await api.post('/logout', {}); // Assuming logout is a POST request to /api/logout
 
             // Remove the token from localStorage
-            if(localStorage.getItem('authToken')){localStorage.removeItem('authToken');}
-            if(localStorage.getItem('user')){localStorage.removeItem('user');}
-            if(localStorage.getItem('checkoutData')){localStorage.removeItem('checkoutData');}
+            if (localStorage.getItem('authToken')) { localStorage.removeItem('authToken'); }
+            if (localStorage.getItem('user')) { localStorage.removeItem('user'); }
+            if (localStorage.getItem('checkoutData')) { localStorage.removeItem('checkoutData'); }
 
             // Update state and redirect to login page
             setIsLoggedIn(false);
