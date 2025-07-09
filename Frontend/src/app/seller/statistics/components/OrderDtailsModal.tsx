@@ -93,6 +93,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       })
+      console.log(response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -186,7 +187,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                       <TableHead>Khách hàng</TableHead>
                       <TableHead>Số sản phẩm</TableHead>
                       <TableHead>Tổng tiền</TableHead>
-                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Trạng thái 88</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

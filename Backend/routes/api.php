@@ -84,6 +84,7 @@ use App\Http\Controllers\Admin\ShopController as ShopController;
 use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Seller\ShopCategoryController; 
+use App\Http\Controllers\Seller\SellerOrderController;
 
 Route::middleware('auth:sanctum')->group(function (){
     // Auth routes already defined above, removing duplicates
@@ -177,14 +178,46 @@ Route::get('/admin/products/{id}', [AdminProductController::class, 'detailProduc
   |                            Seller route                           |
   |___________________________________________________________________| */
 
+// Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
-  Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-  Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-  Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
+    Route::get('/user', [AuthController::class, 'user']);
+
+    // Seller protected routes (must be seller)
+    Route::middleware('seller')->group(function () {
+        // Shop category
+        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+
+        // Shop products
+        Route::get('/products', [ShopProductController::class, 'index']);
+        Route::post('/shop/products', [ShopProductController::class, 'addProduct']);
+        Route::get('/shop/products/{productID}', [ShopProductController::class, 'showProduct']);
+        Route::post('/shop/products/{productID}', [ShopProductController::class, 'updateProduct']);
+        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
+        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+
+        // Orders
+        Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+        // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
+
+        // Statistics
+        Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+        Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
+    });
 });
+
+
+
+
 //route chat;
-
-
 
 Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function (Request $request) {
     Log::info('--- Socket Token Validation Endpoint Hit ---');
