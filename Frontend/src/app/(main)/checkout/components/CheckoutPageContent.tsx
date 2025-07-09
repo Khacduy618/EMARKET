@@ -284,29 +284,54 @@ const CheckoutPageContent = () => {
 //     alert(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}. Chuyển hướng tới Đơn Mua.`);
 //     router.push(`/purchase?status=${redirectStatus}`);
 //   };
+// const handlePlaceOrder = (paypalDetails?: OrderResponseBody) => {
+//     if (!checkoutData) return;
+
+//     console.log('Placing order with:', checkoutData);
+//     if(paypalDetails) {
+//       console.log('PayPal Details:', paypalDetails);
+//       // Here you would send the paypalDetails.id (the transaction ID)
+//       // to your backend to verify and save the order.
+//     }
+
+//     let redirectStatus: OrderStatus = 'Pending';
+//     const paymentType = checkoutData.paymentMethod.type;
+
+//     if (paymentType === 'COD') {
+//       redirectStatus = 'Pending';
+//     } else if (paymentType === 'Paypal') {
+//       // If a successful PayPal transaction happened, the order is paid
+//       redirectStatus = 'Processing'; // or 'Shipped' depending on your flow
+//     }
+
+//     toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
+//     // Uncomment the redirect when you're ready
+//     // router.push(`/purchase?status=${redirectStatus}`);
+//   };
+
 const handlePlaceOrder = (paypalDetails?: OrderResponseBody) => {
     if (!checkoutData) return;
 
     console.log('Placing order with:', checkoutData);
-    if(paypalDetails) {
-      console.log('PayPal Details:', paypalDetails);
-      // Here you would send the paypalDetails.id (the transaction ID)
-      // to your backend to verify and save the order.
-    }
-
     let redirectStatus: OrderStatus = 'Pending';
     const paymentType = checkoutData.paymentMethod.type;
 
     if (paymentType === 'COD') {
       redirectStatus = 'Pending';
-    } else if (paymentType === 'Paypal') {
+      toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
+    } else if (paymentType === 'Paypal' && paypalDetails) {
+      console.log('PayPal Details:', paypalDetails);
+      toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
       // If a successful PayPal transaction happened, the order is paid
-      redirectStatus = 'Processing'; // or 'Shipped' depending on your flow
+      redirectStatus = 'Processing'; 
+      // Toast message is already shown in PaypalButtonWrapper, so no need to repeat
     }
 
-    toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
-    // Uncomment the redirect when you're ready
-    // router.push(`/purchase?status=${redirectStatus}`);
+    // You might want to delay the redirect to let the user see the success toast
+    setTimeout(() => {
+        // router.push(`/purchase?status=${redirectStatus}`);
+        console.log(`Redirecting to /purchase?status=${redirectStatus}`);
+    }, 1500);
   };
 return (
         <div className="bg-gray-100 min-h-screen pb-40">
@@ -359,10 +384,15 @@ return (
                 <CheckoutPaymentSection
                     paymentMethod={checkoutData.paymentMethod}
                     onPaymentMethodChange={handlePaymentMethodChange}
-                    payPalClientID={PAYPAL_CLIENT_ID}
-                    summary={checkoutData.summary} 
+                    isPaid = {false}
+                    paidAt = ''
+                    // payPalClientID={PAYPAL_CLIENT_ID}
+                    // summary={checkoutData.summary} 
                 />
-                <CheckoutSummary summary={checkoutData.summary} onPlaceOrder={handlePlaceOrder} />
+                <CheckoutSummary summary={checkoutData.summary} 
+                    paymentMethod={checkoutData.paymentMethod}
+                    payPalClientID={PAYPAL_CLIENT_ID}
+                    onPlaceOrder={handlePlaceOrder}  />
             </div>
         </div>
     );
