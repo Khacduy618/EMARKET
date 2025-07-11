@@ -33,6 +33,7 @@ import { fetchProductById } from '@/services/product';
 import { toast } from 'react-toastify';
 import { OrderResponseBody } from '@paypal/paypal-js';
 import { getAuthToken } from '@/services/api';
+import PaymentMethodSelectionModal from './PaymentMethodSelectionModal';
 
 
 const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
@@ -65,7 +66,12 @@ const CheckoutPageContent = () => {
     const [isUpdateAddressModalOpen, setIsUpdateAddressModalOpen] = useState(false);
     const [addressToUpdateId, setAddressToUpdateId] = useState<number | null>(null);
     const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
+
+    console.log("--- COMPONENT RE-RENDERED ---");
+    console.log("Current Order ID State:", orderId);
+    console.log("Current Payment Method State:", checkoutData?.paymentMethod);
 
 useEffect(() => {
     const orderIdFromUrl = searchParams.get('orderId');
@@ -74,7 +80,7 @@ useEffect(() => {
     const loadData = async () => {
         setLoading(true);
         setError(null);
-
+console.log(`[useEffect] Found orderId in URL: ${orderIdFromUrl}. Fetching order details...`);
         if (orderIdFromUrl) {
             // === TRƯỜNG HỢP 2: ĐÃ CÓ ĐƠN HÀNG NHÁP ===
             try {
@@ -87,6 +93,15 @@ useEffect(() => {
                 if (!response.ok) throw new Error("Không tìm thấy thông tin đơn hàng.");
                 
                 const orderDetails = await response.json();
+                // let paymentMethodEnum = orderDetails.paymentMethod.type || 'COD'; // Mặc định
+                // if (orderDetails.paymentMethod.type === 'Paypal') {
+                //     paymentMethodEnum = 'Paypal';
+                // } else if (orderDetails.paymentMethod.type === 'VNPay') {
+                //     paymentMethodEnum = 'VNPay';
+                // } else{
+                //     paymentMethodEnum = orderDetails.paymentMethod.type || 'COD'
+                // }
+
                 
                 // Chuyển đổi dữ liệu từ API về định dạng CheckoutData để hiển thị lại
                 // (Phần này cần bạn tự viết logic chuyển đổi, dưới đây là ví dụ)
@@ -114,12 +129,12 @@ useEffect(() => {
                         address: orderDetails.address
                     },
                     paymentMethod: {
-                        method: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : 'Thanh toán khi nhận hàng',
-                        type: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : 'COD',
+                        method: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : ( orderDetails.PaymentMethod === 'VNPay' ? 'VNPay' : 'Thanh toán khi nhận hàng'),
+                        type: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : ( orderDetails.PaymentMethod === 'VNPay' ? 'VNPay' : 'COD'),
                         canChange: true,
                     },
                 };
-                
+                console.log("[useEffect] Reconstructed checkoutData from API:", reconstructedCheckoutData);
                 setOrderCode(orderDetails.OrderCode);
                 setCheckoutData(reconstructedCheckoutData);
 
@@ -129,7 +144,7 @@ useEffect(() => {
             }
 
         } else {
-           
+           console.log("[useEffect] No orderId in URL. Building data from localStorage...");
             const buildCheckoutData = async () => {
             const storedDataString = localStorage.getItem('checkoutData');
             if (!storedDataString) {
@@ -224,7 +239,7 @@ useEffect(() => {
                     },
                     paymentMethod: { method: 'Thanh toán khi nhận hàng', type: 'COD', canChange: true },
                 };
-                
+                console.log("[useEffect] Built checkoutData from localStorage:", finalCheckoutData);
                 setCheckoutData(finalCheckoutData);
 
 
@@ -244,6 +259,40 @@ useEffect(() => {
     loadData();
 
     }, [searchParams]);
+
+
+    const handleVnPayPayment = async () => {
+        console.log(`[handleVnPayPayment] Initiated for orderId: ${orderId}`);
+        if (!orderId) {
+            toast.error("Không tìm thấy đơn hàng để thanh toán.");
+            return;
+        }
+        try {
+             console.log(`[handleVnPayPayment] Calling API /api/vnpay/create-payment/${orderId}`);
+            const response = await fetch(`/api/vnpay/create-payment/${orderId}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` ,'Content-Type': 'application/json', // Thêm header này để rõ ràng
+                'Accept': 'application/json',},
+                
+            });
+            console.log("VNPay create payment response status:", response.status);
+            const data = await response.json();
+             console.log("Data received from /api/vnpay/create-payment:", data);
+            if (data.payment_url) {
+                console.log("Redirecting to VNPay URL:", data.payment_url); 
+                // Điều hướng người dùng đến cổng thanh toán VNPay
+                window.location.href = data.payment_url;
+            } else {
+                const errorMessage = data.message || "Không thể lấy URL thanh toán từ server.";
+                console.error("Failed to get VNPay URL:", errorMessage, data);
+                throw new Error("Không thể tạo yêu cầu thanh toán VNPay.");
+            }
+        } catch (error: any) {
+            
+             console.error(`[handleVnPayPayment] FAILED for orderId: ${orderId}`, error);
+            toast.error(error.message);
+        }
+    };
 
     const handleConfirmNewAddress = (selectedAddress: Address) => {
         if (!checkoutData) return;
@@ -328,18 +377,148 @@ useEffect(() => {
   };
   const handleShippingMethodChange = (shopId: number) => alert(`Thay đổi phương thức vận chuyển cho shop ${shopId} đang được phát triển!`);
   const handleSelectPlatformVoucher = () => alert('Chọn Shopee Voucher đang được phát triển!');
-  const handlePaymentMethodChange = () => {
-    setCheckoutData(prev => {
-      if (!prev) return null;
-      const newType: PaymentMethodType = prev.paymentMethod.type === 'COD' ? 'Paypal' : 'COD';
-      const newMethod = newType === 'COD' ? 'Thanh toán khi nhận hàng' : 'Paypal';
-      return {
-        ...prev,
-        paymentMethod: { ...prev.paymentMethod, type: newType, method: newMethod },
-      };
-    });
-  };
+//   const handlePaymentMethodChange = () => {
+//     setCheckoutData(prev => {
+//       if (!prev) return null;
+//       const newType: PaymentMethodType = prev.paymentMethod.type === 'COD' ? 'Paypal' : 'COD';
+//       const newMethod = newType === 'COD' ? 'Thanh toán khi nhận hàng' : 'Paypal';
+//       return {
+//         ...prev,
+//         paymentMethod: { ...prev.paymentMethod, type: newType, method: newMethod },
+//       };
+//     });
+//   };
+// const handlePaymentMethodChange = () => {
+//         if (!checkoutData) return;
 
+//         // Nếu đã có đơn hàng nháp, không cho thay đổi trực tiếp
+//         // (Luồng hủy và tạo lại sẽ được xử lý ở CheckoutPaymentSection)
+//         if (checkoutData.orderId) {
+//             toast.info("Để thay đổi phương thức thanh toán, vui lòng hủy đơn hàng nháp và đặt lại.");
+//             // Ở đây có thể kích hoạt hàm onCancelAndChange nếu muốn
+//             return;
+//         }
+
+//         // Tạo một modal hoặc một UI đơn giản để người dùng chọn
+//         // Dưới đây là cách dùng `window.prompt` đơn giản để minh họa
+//         const newMethod = window.prompt("Chọn phương thức thanh toán mới: COD, PAYPAL, hoặc VNPAY", checkoutData.paymentMethod.type);
+
+//         if (newMethod && ['COD', 'PAYPAL', 'VNPAY'].includes(newMethod.toUpperCase())) {
+//             const newType = newMethod.toUpperCase() as PaymentMethodType;
+//             let methodName = '';
+
+//             switch (newType) {
+//                 case 'Paypal':
+//                     methodName = 'PayPal';
+//                     break;
+//                 case 'VNPay':
+//                     methodName = 'Cổng thanh toán VNPay';
+//                     break;
+//                 case 'COD':
+//                 default:
+//                     methodName = 'Thanh toán khi nhận hàng';
+//                     break;
+//             }
+
+//             setCheckoutData(prev => {
+//                 if (!prev) return null;
+//                 return {
+//                     ...prev,
+//                     paymentMethod: {
+//                         ...prev.paymentMethod,
+//                         type: newType,
+//                         method: methodName,
+//                     },
+//                 };
+//             });
+//         } else if (newMethod !== null) {
+//             toast.error("Phương thức thanh toán không hợp lệ.");
+//         }
+//     };
+
+const handlePaymentMethodChange = () => {
+        // Nếu đã có đơn hàng nháp, dùng luồng hủy
+        if (orderId) {
+             handleCancelAndChange();
+        } else {
+            // Nếu chưa có, chỉ mở modal để chọn
+            setIsPaymentModalOpen(true);
+        }
+    };
+
+    // HÀM MỚI: Xử lý khi người dùng xác nhận lựa chọn trong Modal
+    const handleConfirmPaymentMethod = (selectedType: PaymentMethodType) => {
+         console.log("handleConfirmPaymentMethod] User confirmed new method: ",selectedType);
+        let methodName = '';
+        switch (selectedType) {
+            case 'Paypal':
+                methodName = 'PayPal';
+                break;
+            case 'VNPay':
+                methodName = 'Cổng thanh toán VNPay';
+                break;
+            case 'COD':
+            default:
+                methodName = 'Thanh toán khi nhận hàng';
+                break;
+        }
+
+        setCheckoutData(prev => {
+            if (!prev) return null;
+            console.log("Updating payment method to:", selectedType); // <--- THÊM DÒNG NÀY ĐỂ DEBUG
+            
+            const newState = {
+                ...prev,
+                paymentMethod: {
+                    ...prev.paymentMethod,
+                    type: selectedType,
+                    method: methodName,
+                },
+            };
+             console.log("[handleConfirmPaymentMethod] Updating state to:", newState.paymentMethod);
+            return newState;
+        });
+        
+        setIsPaymentModalOpen(false); // Đóng modal sau khi xác nhận
+    };
+
+    // HÀM HỦY ĐƠN HÀNG NHÁP (quan trọng)
+    const handleCancelAndChange = async () => {
+        if (!orderId) return;
+        
+        const isConfirmed = window.confirm("Việc này sẽ hủy đơn hàng nháp hiện tại để bạn có thể tạo lại với phương thức thanh toán mới. Bạn có chắc chắn không?");
+        if (!isConfirmed) return;
+
+        try {
+             const authToken = getAuthToken(); // Lấy token xác thực
+            if (!authToken) {
+                toast.error("Vui lòng đăng nhập để thực hiện thao tác này.");
+                return;
+            }
+            
+            toast.info("Đang hủy đơn hàng nháp...");
+
+            const response = await fetch(`/api/orders/${orderId}/cancel-draft`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Không thể hủy đơn hàng nháp.");
+            }
+
+
+            toast.info("Đơn hàng nháp đã được hủy. Vui lòng bắt đầu lại từ giỏ hàng.");
+            router.push('/cart'); 
+
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
 //   const handlePlaceOrder = () => {
 //     if (!checkoutData) return;
 
@@ -385,6 +564,7 @@ useEffect(() => {
 //   };
 
     const handlePlaceOrder = async () => {
+        console.log("[handlePlaceOrder] Initiated. Current checkoutData:", checkoutData);
         if (!checkoutData || !checkoutData.address) {
             toast.error("Vui lòng chọn địa chỉ giao hàng.");
             return;
@@ -413,6 +593,7 @@ useEffect(() => {
         
         try {
             // Gọi API để tạo đơn hàng nháp
+             console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
             const response = await fetch('/api/orders/place', { // Sử dụng route mới
                 method: 'POST',
                 headers: {
@@ -436,11 +617,13 @@ useEffect(() => {
             router.push(`/checkout?orderId=${result.orderId}`); // Tải lại trang với orderId trên URL
 
         } catch (error: any) {
+            console.error("[handlePlaceOrder] FAILED:", error);
             toast.error(error.message);
         }
     };
     // HÀM 2: Khi nhấn nút thanh toán cuối cùng (COD hoặc PayPal)
     const handleCompleteOrder = async (paypalDetails?: OrderResponseBody) => {
+        console.log(`[handleCompleteOrder] Initiated for orderId: ${orderId}`);
         if (!orderId) {
             toast.error("Không tìm thấy mã đơn hàng.");
             return;
@@ -472,6 +655,7 @@ useEffect(() => {
             router.push('/purchase?status=Processing');
 
         } catch (error: any) {
+            console.error(`[handleCompleteOrder] FAILED for orderId: ${orderId}`, error);
             toast.error(error.message);
         }
     };
@@ -524,7 +708,12 @@ return (
                 addressId={editingAddressId} // Truyền ID hoặc null
                 onSuccess={handleAddressSuccess} // Callback khi thành công
             />
-
+<PaymentMethodSelectionModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                currentMethod={checkoutData.paymentMethod.type}
+                onConfirm={handleConfirmPaymentMethod}
+            />
                  <AddressSelectionModal
                 isOpen={isAddressModalOpen}
                 onClose={() => setIsAddressModalOpen(false)}
@@ -564,6 +753,7 @@ return (
                     onPaymentMethodChange={handlePaymentMethodChange}
                     isPaid = {false}
                     paidAt = ''
+                    // onCancelAndChange={handleCancelAndChange}
                     // payPalClientID={PAYPAL_CLIENT_ID}
                     // summary={checkoutData.summary} 
                 />
@@ -573,6 +763,7 @@ return (
                     orderId={orderId} // Truyền orderId xuống
                     onPlaceOrder={handlePlaceOrder} // Gắn với nút "Tiến hành thanh toán"
                     onCompleteOrder={handleCompleteOrder}// Dành cho PayPal
+                    onVnPayPayment={handleVnPayPayment} 
                 />
             </div>
         </div>

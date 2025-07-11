@@ -32,7 +32,7 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type PaymentMethodType = 'COD' | 'Paypal';
+export type PaymentMethodType = 'COD' | 'Paypal' | 'VNPay';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
 export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
@@ -206,7 +206,7 @@ export interface CheckoutData {
     // Thêm các thông tin khác nếu cần
     paymentMethod: {
         method: string;
-        type: 'COD' | 'Paypal';
+        type: PaymentMethodType;
         canChange: boolean;
     };
     paidAt?: any;

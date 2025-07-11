@@ -57,14 +57,14 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 // Import các types cần thiết
 import { CheckoutData } from '@/types';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import type { OrderResponseBody } from "@paypal/paypal-js";
 import { toast } from 'react-toastify';
-import { Loader, AlertTriangle } from 'lucide-react';
+import { Loader, AlertTriangle, Loader2 } from 'lucide-react';
 
 // --- Helper component cho các nút PayPal (để giữ cho code chính gọn gàng) ---
 const PaypalButtonWrapper = ({ currency, summary, onCompleteOrder }: { currency: string, summary: CheckoutData['summary'], onCompleteOrder: (details: OrderResponseBody) => void }) => {
@@ -131,14 +131,77 @@ interface CheckoutSummaryProps {
   orderId: number | null;
   onPlaceOrder: () => void;
   onCompleteOrder: (paypalDetails?: OrderResponseBody) => void;
+  onVnPayPayment: () => Promise<void>;
 }
 
 // --- Component CheckoutSummary Chính ---
-const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMethod, payPalClientID, onPlaceOrder,orderId,onCompleteOrder}) => {
-  
+const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMethod, payPalClientID, onPlaceOrder,orderId,onCompleteOrder, onVnPayPayment}) => {
+   const [isProcessing, setIsProcessing] = useState(false);
+console.log("--- CheckoutSummary RENDERED ---");
+    console.log("Props received: orderId =", orderId, ", paymentMethod.type =", paymentMethod.type);
+  const handleVnPayClick = async () => {
+      setIsProcessing(true);
+      try {
+          await onVnPayPayment();
+      } catch (error) {
+          toast.error("Không thể khởi tạo thanh toán VNPay.");
+          setIsProcessing(false);
+      }
+      // Không set isProcessing(false) vì trang sẽ được điều hướng
+  };
   const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
+ let actionButton = null;
+
+  if (!orderId) {
+      // TRẠNG THÁI 1: CHƯA CÓ ĐƠN HÀNG NHÁP
+      actionButton = (
+          <button
+            onClick={onPlaceOrder}
+            className="w-full bg-blue-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Tiến hành Thanh toán
+          </button>
+      );
+  } else {
+      // TRẠNG THÁI 2: ĐÃ CÓ ĐƠN HÀNG NHÁP
+      switch (paymentMethod.type) {
+          case 'Paypal':
+              actionButton = (
+                  <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
+                      <PaypalButtonWrapper 
+                          currency="USD"
+                          summary={summary}
+                          onCompleteOrder={onCompleteOrder}
+                      />
+                  </PayPalScriptProvider>
+              );
+              break;
+          case 'VNPay':
+              actionButton = (
+                  <button
+                      onClick={handleVnPayClick}
+                      disabled={isProcessing}
+                      className="w-full bg-[#005a9f] text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-[#004a8f] transition-colors disabled:bg-gray-400 flex justify-center items-center"
+                  >
+                      {isProcessing ? <Loader2 className="animate-spin" /> : 'Thanh toán qua VNPay'}
+                  </button>
+              );
+              break;
+          case 'COD':
+          default:
+              actionButton = (
+                  <button
+                      onClick={() => onCompleteOrder()}
+                      className="w-full bg-orange-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-orange-700 transition-colors"
+                  >
+                      Xác nhận Đặt hàng (COD)
+                  </button>
+              );
+              break;
+      }
+  }
 
   return (
     <div className='sticky bottom-0 mt-4'>
@@ -165,15 +228,15 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMetho
         </div>
       </div>
 
-      {/* --- KHU VỰC HÀNH ĐỘNG ĐÃ ĐƯỢC CẬP NHẬT --- */}
-      <div className=" bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
+      
+      {/* <div className=" bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
         <p className="text-xs text-gray-500 max-w-md">
           Nhấn "Đặt Hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
           <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
         </p>
         
         <div className="w-full max-w-[250px] text-end">
-          {/* --- LOGIC ĐIỀU KIỆN --- */}
+         
           {!orderId ? (
             // TRẠNG THÁI 1: CHƯA CÓ ĐƠN HÀNG NHÁP
             <button
@@ -185,24 +248,45 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMetho
           ) : (
             // TRẠNG THÁI 2: ĐÃ CÓ ĐƠN HÀNG NHÁP, HIỂN THỊ CÁC LỰA CHỌN CUỐI CÙNG
             <>
-              {paymentMethod.type === 'Paypal' ? (
-                <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
-                  <PaypalButtonWrapper 
-                    currency="USD"
-                    summary={summary}
-                    onCompleteOrder={onCompleteOrder} // Gắn hàm hoàn tất đơn hàng
-                  />
-                </PayPalScriptProvider>
-              ) : ( // Giả sử còn lại là COD
-                <button
-                  onClick={() => onCompleteOrder()} // Gọi hàm hoàn tất không cần paypalDetails
-                  className="bg-orange-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-orange-700 transition-colors"
+             
+                {paymentMethod.type === 'Paypal' && (
+                    <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
+                        <PaypalButtonWrapper 
+                            currency="USD"
+                            summary={summary}
+                            onCompleteOrder={onCompleteOrder}
+                        />
+                    </PayPalScriptProvider>
+                )}
+                
+                {paymentMethod.type === 'VNPay' && (
+                     <button
+                    onClick={handleVnPayClick}
+                    disabled={isProcessing}
+                    className="w-full bg-red-600 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-400"
                 >
-                  Xác nhận Đặt hàng (COD)
+                    {isProcessing ? <Loader2 className="mx-auto animate-spin" /> : 'Thanh toán qua VNPay'}
                 </button>
-              )}
+                )}
+                
+                {paymentMethod.type === 'COD' && (
+                    <button onClick={() => onCompleteOrder()} className="bg-orange-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-orange-700 transition-colors">
+                        Xác nhận Đặt hàng (COD)
+                    </button>
+                )}
+             
             </>
           )}
+        </div>
+      </div> */}
+      <div className="bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
+        <p className="text-xs text-gray-500 max-w-md">
+          Nhấn "Đặt Hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
+          <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
+        </p>
+        
+        <div className="w-full max-w-[250px] text-end">
+          {actionButton}
         </div>
       </div>
     </div>

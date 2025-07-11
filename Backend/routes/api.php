@@ -85,6 +85,7 @@ use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Seller\ShopCategoryController; 
 use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\VNPayController;
 
 Route::middleware('auth:sanctum')->group(function (){
     // Auth routes already defined above, removing duplicates
@@ -111,13 +112,18 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
      // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
-    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
     Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+
+    Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);
     // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
     Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
+
+    Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
     
 });
+Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
 
 
 Route::get('/products/{product_id}/variants/filter',[ProductController::class, 'filterVariants']);

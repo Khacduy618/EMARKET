@@ -113,6 +113,7 @@ class OrderController extends Controller
      */
     public function placeOrder(Request $request)
     {
+        Log::info('--- Received request for placeOrder ---', $request->all());
         // Validation tương tự như hàm create, nhưng không cần thông tin thanh toán
         $validator = Validator::make($request->all(), [
             'shippingAddressId'     => 'required|integer|exists:addresses,AddressID',
@@ -123,7 +124,7 @@ class OrderController extends Controller
             'subtotalAmount'        => 'required|numeric|min:0',
             'shippingFee'           => 'required|numeric|min:0',
             'discountAmount'        => 'required|numeric|min:0',
-            'paymentMethod'         => 'required|string|in:COD,Paypal', // Chỉ chấp nhận 2 loại này từ frontend
+            'paymentMethod'         => 'required|string|in:COD,Paypal,VNPay', // Chỉ chấp nhận 2 loại này từ frontend
             'items'                 => 'required|array|min:1',
             'items.*.variantId'     => 'required|integer|exists:productvariants,VariantID',
             'items.*.quantity'      => 'required|integer|min:1',
@@ -132,6 +133,7 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
+             Log::warning('placeOrder validation failed:', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -148,8 +150,16 @@ class OrderController extends Controller
                 $paymentStatus = 'Pending';
                 $overallStatus = 'Pending';
                 // Chuyển đổi paymentMethod từ 'Paypal' -> 'Paypal' để lưu vào DB
-                $paymentMethodEnum = ($validatedData['paymentMethod'] === 'Paypal') ? 'Paypal' : 'COD';
-
+                $paymentMethodEnum = 'COD'; // Mặc định
+                if ($validatedData['paymentMethod'] === 'Paypal') {
+                    $paymentMethodEnum = 'Paypal';
+                } elseif ($validatedData['paymentMethod'] === 'VNPay') {
+                    $paymentMethodEnum = 'VNPay';
+                }
+ Log::info('placeOrder: Creating order with data:', [
+                    'UserID' => $user->UserID, 
+                    'PaymentMethod' => $paymentMethodEnum
+                ]);
                 // Insert vào bảng `ordersbuyer`
                 $orderId = DB::table('ordersbuyer')->insertGetId([
                     'OrderCode'           => $orderCode,
@@ -183,7 +193,7 @@ class OrderController extends Controller
                     ];
                 }
                 DB::table('orderitems')->insert($orderItems);
-                
+                Log::info("placeOrder: Successfully created OrderID: {$orderId}");
                 // Cập nhật tồn kho
                 // foreach ($validatedData['items'] as $item) {
                 //     DB::table('productvariants')
@@ -235,10 +245,12 @@ class OrderController extends Controller
 
         // Validate dữ liệu thanh toán
         $validator = Validator::make($request->all(), [
-            'paymentMethod'      => 'required|string|in:PAYPAL,COD',
+            'paymentMethod'      => 'required|string|in:Paypal,COD,VNPay',
             'paymentDetails'     => 'nullable|array',
-            'paymentDetails.transactionId' => 'required_if:paymentMethod,PAYPAL|string',
-            'paymentDetails.status' => 'required_if:paymentMethod,PAYPAL|string',
+            'paymentDetails.transactionId' => 'required_if:paymentMethod,Paypal|string',
+            'paymentDetails.status' => 'required_if:paymentMethod,Paypal|string',
+            'paymentDetails.vnp_TxnRef'      => 'required_if:paymentMethod,VNPay|string',
+            'paymentDetails.vnp_ResponseCode'=> 'required_if:paymentMethod,VNPay|string',
         ]);
 
         if ($validator->fails()) {
@@ -266,7 +278,7 @@ class OrderController extends Controller
                 $paymentStatus = $order->PaymentStatus;
                 $overallStatus = $order->OverallStatus;
 
-                if ($validatedData['paymentMethod'] === 'PAYPAL' && isset($validatedData['paymentDetails']['status']) && $validatedData['paymentDetails']['status'] === 'COMPLETED') {
+                if ($validatedData['paymentMethod'] === 'Paypal' && isset($validatedData['paymentDetails']['status']) && $validatedData['paymentDetails']['status'] === 'COMPLETED') {
                     $paymentStatus = 'Paid';
                     $overallStatus = 'Processing';
                 } elseif ($validatedData['paymentMethod'] === 'COD') {
@@ -322,6 +334,59 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             Log::error('Order completion failed for OrderID ' . $orderId . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
             return response()->json(['message' => 'An error occurred during order completion.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Hủy một đơn hàng nháp để người dùng có thể tạo lại.
+     */
+    public function cancelDraft(Request $request, $orderId)
+    {
+        $user = $request->user();
+
+        try {
+            DB::transaction(function () use ($orderId, $user) {
+                // Tìm đơn hàng nháp thuộc sở hữu của user
+                $order = DB::table('ordersbuyer')
+                    ->where('OrderID', $orderId)
+                    ->where('UserID', $user->UserID)
+                    // Chỉ hủy được đơn hàng đang ở trạng thái nháp
+                    ->where('OverallStatus', 'Pending') 
+                    ->first();
+
+                // Nếu không tìm thấy đơn hàng hoặc đơn đã được xử lý, không làm gì cả
+                if (!$order) {
+                    return;
+                }
+
+                // Lấy lại các items đã đặt để khôi phục tồn kho
+                $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
+
+                // 1. Khôi phục số lượng tồn kho (dùng increment)
+                foreach ($orderItems as $item) {
+                    DB::table('productvariants')
+                        ->where('VariantID', $item->VariantID)
+                        ->increment('StockQuantity', $item->Quantity);
+                }
+
+                // 2. Xóa các order items liên quan
+                // Thao tác này sẽ tự động được thực hiện nếu bạn đã thiết lập
+                // 'ON DELETE CASCADE' ở khóa ngoại trong CSDL.
+                // Nhưng để chắc chắn, chúng ta vẫn có thể xóa tường minh.
+                DB::table('orderitems')->where('OrderID', $orderId)->delete();
+
+                // 3. Xóa đơn hàng chính
+                DB::table('ordersbuyer')->where('OrderID', $orderId)->delete();
+
+                // Lưu ý: Logic khôi phục giỏ hàng ở đây có thể không cần thiết,
+                // vì luồng tốt nhất là hướng người dùng về trang giỏ hàng để họ bắt đầu lại.
+            });
+
+            return response()->json(['message' => 'Draft order has been cancelled successfully.']);
+
+        } catch (\Exception $e) {
+            Log::error('Draft order cancellation failed for OrderID ' . $orderId . ': ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred while cancelling the draft order.'], 500);
         }
     }
 }
