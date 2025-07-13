@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@dwcks/bad-word-filter-vi-en':
+        specifier: ^1.1.3
+        version: 1.1.3
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -79,6 +82,9 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@dwcks/bad-word-filter-vi-en@1.1.3':
+    resolution: {integrity: sha512-krIwQh8hhre9HjZ1qkMyOJnPKKG8S/yjVeXj1iJOJ/Jxz3rdq0ceAgePanyfJK4+jZ0E0j2Tg4glcPDCgad9ZQ==}
 
   '@emnapi/core@1.4.3':
     resolution: {integrity: sha512-4m62DuCE07lw01soJwPiBGC0nAww0Q+RY70VZ+n49yDIO13yyinhbWCeNnaob0lakDtWQzSdtNWzJeOJt2ma+g==}
@@ -2172,6 +2178,8 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@dwcks/bad-word-filter-vi-en@1.1.3': {}
 
   '@emnapi/core@1.4.3':
     dependencies:
