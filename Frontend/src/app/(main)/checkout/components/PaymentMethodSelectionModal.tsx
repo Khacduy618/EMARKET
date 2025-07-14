@@ -50,7 +50,7 @@ const PaymentMethodSelectionModal: React.FC<PaymentMethodSelectionModalProps> = 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+    <div className="fixed inset-0 z-50 flex justify-center items-center">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md m-4">
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-semibold text-gray-900">Chọn phương thức thanh toán</h3>

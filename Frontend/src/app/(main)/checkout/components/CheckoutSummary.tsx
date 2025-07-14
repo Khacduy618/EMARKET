@@ -136,7 +136,11 @@ interface CheckoutSummaryProps {
 
 // --- Component CheckoutSummary Chính ---
 const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMethod, payPalClientID, onPlaceOrder,orderId,onCompleteOrder, onVnPayPayment}) => {
-   const [isProcessing, setIsProcessing] = useState(false);
+  const totalVoucherDiscount = 
+      (summary.totalShopVoucherDiscount ?? 0) + 
+      (summary.totalSaleoff ?? 0) + // = totalPlatformVoucherDiscount
+      (summary.totalFreeship ?? 0);
+  const [isProcessing, setIsProcessing] = useState(false);
 console.log("--- CheckoutSummary RENDERED ---");
     console.log("Props received: orderId =", orderId, ", paymentMethod.type =", paymentMethod.type);
   const handleVnPayClick = async () => {
@@ -217,10 +221,12 @@ console.log("--- CheckoutSummary RENDERED ---");
             <span className="text-gray-600">Phí vận chuyển</span>
             <span className="text-gray-800">{formatPrice(summary.totalShippingFee)}</span>
           </div>
+          {totalVoucherDiscount > 0 && (
           <div className="flex justify-between">
-            <span className="text-gray-600">Tổng cộng Voucher giảm giá</span>
-            <span className="text-green-600 font-medium">-{formatPrice(summary.totalDiscount)}</span>
+            <span>Tổng cộng Voucher giảm giá</span>
+            <span className="text-green-600">-{formatPrice(totalVoucherDiscount)}</span>
           </div>
+        )}
         </div>
         <div className="py-4 px-4 flex justify-between items-center">
           <span className="font-semibold text-gray-800">Tổng thanh toán:</span>

@@ -106,26 +106,24 @@ useEffect(() => {
                     shopOrders: orderDetails.shopOrders,
                     
                     // Thêm giá trị mặc định cho trường bị thiếu
-                    appliedPlatformVouchers: {
-                        freeShipVoucher: null,
-                        saleOffVoucher: null,
-                    },
+                    appliedPlatformVouchers: orderDetails.appliedPlatformVouchers,
+
 
                     summary: {
                         totalProductsPrice: orderDetails.SubtotalAmount,
                         totalShippingFee: orderDetails.ShippingFee,
+                         totalShopVoucherDiscount: orderDetails.summary.totalShopVoucherDiscount,
+                         totalFreeship: orderDetails.summary.totalFreeship, 
+                        
+                        totalPlatformVoucherDiscount: orderDetails.summary.totalPlatformVoucherDiscount,
                         totalDiscount: orderDetails.DiscountAmount,
                         finalTotal: orderDetails.TotalAmount,
-                        // Giả định các giá trị này = 0 khi hiển thị lại
-                        totalSaleoff: 0,
-                        totalFreeship: 0,
-                        totalShopVoucherDiscount: 0, 
-                        totalPlatformVoucherDiscount: 0,
+                        totalSaleoff: orderDetails.summary.totalPlatformVoucherDiscount,
                         address: orderDetails.address
                     },
                     paymentMethod: {
                         method: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : ( orderDetails.PaymentMethod === 'VNPay' ? 'VNPay' : 'Thanh toán khi nhận hàng'),
-                        type: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : ( orderDetails.PaymentMethod === 'VNPay' ? 'VNPay' : 'COD'),
+                        type: orderDetails.PaymentMethod,
                         canChange: true,
                     },
                 };
@@ -557,6 +555,17 @@ const handlePaymentMethodChange = () => {
                 ),
             }));
 
+        const platformVoucherCodes: { saleOff?: string, freeShip?: string } = {};
+        const platformDiscountAmounts: { saleOff?: number, freeShip?: number } = {};
+
+        if (checkoutData.appliedPlatformVouchers.saleOffVoucher && checkoutData.summary.totalSaleoff > 0) {
+            platformVoucherCodes.saleOff = checkoutData.appliedPlatformVouchers.saleOffVoucher.Code;
+            platformDiscountAmounts.saleOff = checkoutData.summary.totalSaleoff;
+        }
+        if (checkoutData.appliedPlatformVouchers.freeShipVoucher && checkoutData.summary.totalFreeship > 0) {
+            platformVoucherCodes.freeShip = checkoutData.appliedPlatformVouchers.freeShipVoucher.Code;
+            platformDiscountAmounts.freeShip = checkoutData.summary.totalFreeship;
+        }
         // Tạo payload để gửi lên API /api/orders/place
         const payload = {
             shippingAddressId: checkoutData.address.AddressID,
@@ -569,8 +578,11 @@ const handlePaymentMethodChange = () => {
             discountAmount: checkoutData.summary.totalDiscount,
             paymentMethod: checkoutData.paymentMethod.type,
             items: itemsPayload,
-            platformVoucherCode: checkoutData.appliedPlatformVouchers.saleOffVoucher?.Code ?? null,
-            platformDiscountAmount: checkoutData.summary.totalPlatformVoucherDiscount,
+
+            platformVoucherData: {
+                codes: platformVoucherCodes,
+                discounts: platformDiscountAmounts
+            },
             totalShopVoucherDiscount: checkoutData.summary.totalShopVoucherDiscount, // Tổng giảm giá từ voucher shop
             shopVouchersApplied: shopVouchersApplied
         };

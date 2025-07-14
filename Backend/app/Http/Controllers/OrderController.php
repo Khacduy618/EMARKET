@@ -353,43 +353,57 @@ class OrderController extends Controller
             )
             ->where('oi.OrderID', $orderId)
             ->get();
-            
+
+
+        // --- Xử lý Platform Vouchers ---
+        $platformVoucherCodes = json_decode($order->PlatformVoucherCode, true) ?: [];
+        $platformVouchersInfo = [];
+        if (!empty($platformVoucherCodes)) {
+             $platformVouchersInfo = DB::table('vouchers')->whereIn('Code', $platformVoucherCodes)->get();
+        }
+        
+       $appliedPlatformSaleOffVoucher = null;
+        $appliedPlatformFreeShipVoucher = null;
+
+        foreach ($platformVouchersInfo as $voucher) {
+            if ($voucher->VoucherType === 'SaleOff') {
+                $appliedPlatformSaleOffVoucher = $voucher;
+            } elseif ($voucher->VoucherType === 'FreeShip') {
+                $appliedPlatformFreeShipVoucher = $voucher;
+            }
+        }
+
+        // Đọc và phân tích JSON từ cột PlatformDiscountAmount
+        $platformDiscounts = json_decode($order->PlatformDiscountAmount, true) ?: ['saleOff' => 0, 'freeShip' => 0];
+        $platformSaleOffDiscount = $platformDiscounts['saleOff'] ?? 0;
+        $platformFreeshipDiscount = $platformDiscounts['freeShip'] ?? 0;
+        
+        // --- Xử lý Shop Vouchers (không đổi) ---
+        $appliedShopVoucherCodes = $order->shopvoucher ? explode(', ', $order->shopvoucher) : [];
+        $appliedShopVouchers = DB::table('vouchers')->whereIn('Code', $appliedShopVoucherCodes)->get()->keyBy('ShopID');
+
         // 4. (Quan trọng) Gom nhóm các sản phẩm lại theo từng cửa hàng (shop)
         $shopOrders = [];
         foreach ($orderItems as $item) {
             // Lấy classification cho từng item
-            $attributes = DB::table('productvariantattribute as pva')
-                ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
-                ->join('attributes as a', 'av.AttributeID', '=', 'a.AttributeID')
-                ->where('pva.VariantID', $item->variantId)
-                ->select('a.Name as attributeName', 'av.Value as attributeValue')
-                ->get();
-
-            $item->classification = $attributes->map(function ($attr) {
-                return $attr->attributeValue;
-            })->implode(', ');
-
-            $item->product = (object)[
-                'ProductID' => $item->productId,
-                'Name'      => $item->name,
-                'Discount'  => $item->Discount,
-            ];
+            $attributes = DB::table('productvariantattribute as pva')->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')->where('pva.VariantID', $item->variantId)->select('av.Value')->get();
+            $item->classification = $attributes->pluck('Value')->implode(', ');
+            $item->product = (object)['ProductID' => $item->productId, 'Name' => $item->name, 'Discount'  => $item->Discount];
 
             if (!isset($shopOrders[$item->shopId])) {
-                // Nếu shop chưa có trong danh sách, tạo mới
                 $shopOrders[$item->shopId] = [
                     'shopId' => $item->shopId,
                     'shopName' => $item->shopName,
                     'shopLevel' => $item->shopLevel,
                     'items' => [],
-                    'shippingMethod' => 'Nhanh', // Giả định
-                    'shippingFee' => 30000,      // Giả định, bạn nên lấy từ DB nếu có
-                    'deliveryEstimate' => '2-3 ngày', // Giả định
-                    'appliedVoucher' => null,         // Giả định
-                    'messageToSeller' => '',          // Giả định
+                    'shippingMethod' => 'Nhanh',
+                    'shippingFee' => 30000, // << LƯU Ý: Lấy giá trị thực tế nếu có
+                    'deliveryEstimate' => '2-3 ngày',
+                    // Gắn voucher của shop vào đây
+                    'appliedVoucher' => $appliedShopVouchers->get($item->shopId) ?? null,
+                    'messageToSeller' => '',
                 ];
             }
-            // Thêm item vào shop tương ứng
             $shopOrders[$item->shopId]['items'][] = $item;
         }
 
@@ -400,10 +414,25 @@ class OrderController extends Controller
             'SubtotalAmount' => (int) $order->SubtotalAmount,
             'ShippingFee' => (int) $order->ShippingFee,
             'DiscountAmount' => (int) $order->DiscountAmount,
+            'appliedPlatformVouchers' => [
+                'saleOffVoucher' => $appliedPlatformSaleOffVoucher, 
+                'freeShipVoucher' => $appliedPlatformFreeShipVoucher
+            ],
             'TotalAmount' => (int) $order->TotalAmount,
             'PaymentMethod' => $order->PaymentMethod,
             'address' => $address,
             'shopOrders' => array_values($shopOrders), // Chuyển từ associative array sang indexed array
+             'summary' => [
+                'totalProductsPrice' => (int) $order->SubtotalAmount,
+                'totalShippingFee' => (int) $order->ShippingFee,
+                'totalShopVoucherDiscount' => (int) $order->shopdiscountamount,
+                // Giá trị này từ DB là của voucher sale-off
+               'totalPlatformVoucherDiscount' => (int) $platformSaleOffDiscount, // Giảm giá sale-off
+                'totalFreeship' => (int) $platformFreeshipDiscount,           // Giảm giá freeship
+                'totalDiscount' => (int) $order->DiscountAmount,
+                'finalTotal' => (int) $order->TotalAmount,
+            ]
+            
         ];
         
         return response()->json($responsePayload);
@@ -486,9 +515,14 @@ class OrderController extends Controller
             'shippingFee'           => 'required|numeric|min:0',
             'discountAmount'        => 'required|numeric|min:0',
 
-            // Dữ liệu voucher mới
-            'platformVoucherCode'       => 'nullable|string|max:50',
-            'platformDiscountAmount'    => 'required|numeric|min:0',
+             'platformVoucherData'               => 'required|array',
+            'platformVoucherData.codes'         => 'required|array',
+            'platformVoucherData.codes.saleOff' => 'nullable|string',
+            'platformVoucherData.codes.freeShip'=> 'nullable|string',
+            'platformVoucherData.discounts'     => 'required|array',
+            'platformVoucherData.discounts.saleOff' => 'nullable|numeric',
+            'platformVoucherData.discounts.freeShip'  => 'nullable|numeric',
+            
             'totalShopVoucherDiscount'  => 'required|numeric|min:0',
             'shopVouchersApplied'       => 'nullable|array',
             'shopVouchersApplied.*.code' => 'required_with:shopVouchersApplied|string',
@@ -554,7 +588,10 @@ class OrderController extends Controller
 
                 // Lấy các giá trị discount từ voucher
                 $serverShopVoucherDiscount = $validatedData['totalShopVoucherDiscount'];
-                $serverPlatformVoucherDiscount = $validatedData['platformDiscountAmount'];
+
+                $platformSaleOffDiscount = $validatedData['platformVoucherData']['discounts']['saleOff'] ?? 0;
+                $platformFreeshipDiscount = $validatedData['platformVoucherData']['discounts']['freeShip'] ?? 0;
+                $serverPlatformVoucherDiscount =  $platformSaleOffDiscount + $platformFreeshipDiscount;
                 
                 // TÍNH TOÁN TỔNG GIẢM GIÁ
                 // $serverTotalDiscount = $serverTotalProductDiscount + $serverShopVoucherDiscount + $serverPlatformVoucherDiscount;
@@ -562,6 +599,8 @@ class OrderController extends Controller
                 // TÍNH TOÁN TỔNG TIỀN CUỐI CÙNG
                 $shippingFee = $validatedData['shippingFee'];
                 $serverTotalAmount = $serverSubtotalAmount + $shippingFee - $serverShopVoucherDiscount - $serverPlatformVoucherDiscount;
+                // Lấy giá trị giảm giá từ payload
+                
 
                 // SO SÁNH GIÁ TRỊ TỪ CLIENT VÀ SERVER (để an toàn)
                 // (Có thể bỏ qua nếu bạn tin tưởng client, nhưng không khuyến khích)
@@ -574,6 +613,10 @@ class OrderController extends Controller
                 $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
 
                 $paymentMethodEnum = $validatedData['paymentMethod'];
+                 $platformVoucherCodesJson = json_encode($validatedData['platformVoucherData']['codes']);
+                // Encode mảng voucher discounts thành chuỗi JSON
+                $platformDiscountAmountsJson = json_encode($validatedData['platformVoucherData']['discounts']);
+                
                 $shopVoucherCodes = !empty($validatedData['shopVouchersApplied']) 
                     ? implode(', ', array_column($validatedData['shopVouchersApplied'], 'code')) 
                     : null;
@@ -669,9 +712,10 @@ class OrderController extends Controller
                     'PaymentMethod'       => $paymentMethodEnum,
                     'PaymentStatus'       => 'Pending',
                     'OverallStatus'       => 'Pending',
-                    // Lưu thông tin voucher
-                    'PlatformVoucherCode'    => $validatedData['platformVoucherCode'],
-                    'PlatformDiscountAmount' => $serverPlatformVoucherDiscount,
+                    // LƯU CHUỖI JSON
+                    'PlatformVoucherCode'    => $platformVoucherCodesJson,
+                    'PlatformDiscountAmount' => $platformDiscountAmountsJson,
+                    
                     'shopvoucher'            => $shopVoucherCodes,
                     'shopdiscountamount'     => $serverShopVoucherDiscount,
                     'CreatedAt'              => now(),
