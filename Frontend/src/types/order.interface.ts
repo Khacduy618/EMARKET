@@ -95,7 +95,7 @@ export interface CheckoutProductItem {
 
   // Các trường từ ProductVariant (nếu cần cho mock data hoặc hiển thị chi tiết hơn)
   SKU?: string | null;
-  CompareAtPrice?: number | null; // Optional
+  CompareAtPrice?: number; // Optional
   StockQuantity?: number;
   IsActive?: boolean;
   CreatedAt?: string; // Optional

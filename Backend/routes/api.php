@@ -111,8 +111,12 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
-     // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
+     
+
+    Route::get('/orders', [OrderController::class, 'index']);
+
     Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+    // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
     Route::post('/orders/place', [OrderController::class, 'placeOrder']);
 
     Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);

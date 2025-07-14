@@ -80,27 +80,22 @@ useEffect(() => {
     const loadData = async () => {
         setLoading(true);
         setError(null);
-console.log(`[useEffect] Found orderId in URL: ${orderIdFromUrl}. Fetching order details...`);
+    console.log(`[useEffect] Found orderId in URL: ${orderIdFromUrl}. Fetching order details...`);
         if (orderIdFromUrl) {
             // === TRƯỜNG HỢP 2: ĐÃ CÓ ĐƠN HÀNG NHÁP ===
             try {
+                console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
                 // Bạn cần tạo một API endpoint mới để lấy chi tiết đơn hàng
-                const response = await fetch(`/api/orders/${orderIdFromUrl}`, {
+                const response = await fetch(`/api/orders/${orderIdFromUrl}?context=checkout`, {
                     headers: {
                         'Authorization': `Bearer ${getAuthToken()}` // Đảm bảo có xác thực
                     }
                 });
+                console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
                 if (!response.ok) throw new Error("Không tìm thấy thông tin đơn hàng.");
                 
                 const orderDetails = await response.json();
-                // let paymentMethodEnum = orderDetails.paymentMethod.type || 'COD'; // Mặc định
-                // if (orderDetails.paymentMethod.type === 'Paypal') {
-                //     paymentMethodEnum = 'Paypal';
-                // } else if (orderDetails.paymentMethod.type === 'VNPay') {
-                //     paymentMethodEnum = 'VNPay';
-                // } else{
-                //     paymentMethodEnum = orderDetails.paymentMethod.type || 'COD'
-                // }
+               
 
                 
                 // Chuyển đổi dữ liệu từ API về định dạng CheckoutData để hiển thị lại
@@ -519,49 +514,14 @@ const handlePaymentMethodChange = () => {
             toast.error(error.message);
         }
     };
-//   const handlePlaceOrder = () => {
-//     if (!checkoutData) return;
+    
+    const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
+        // Giá gốc để tính chiết khấu là CompareAtPrice nếu có, ngược lại là Price
+        const basePrice = originalPrice ?? price;
+        const finalPrice = Math.floor(basePrice * (1 - (discount ?? 0) / 100));
+        return finalPrice;
+    };
 
-//     console.log('Placing order with:', checkoutData);
-
-//     let redirectStatus: OrderStatus;
-//     const paymentType = checkoutData.paymentMethod.type;
-
-//     if (paymentType === 'COD') {
-//       redirectStatus = 'Pending';
-//     } else if (paymentType === 'Paypal' || paymentType === 'Stripe') {
-//       redirectStatus = 'Shipped';
-//     } else {
-//       redirectStatus = 'Pending';
-//     }
-
-//     alert(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}. Chuyển hướng tới Đơn Mua.`);
-//     router.push(`/purchase?status=${redirectStatus}`);
-//   };
-// const handlePlaceOrder = (paypalDetails?: OrderResponseBody) => {
-//     if (!checkoutData) return;
-
-//     console.log('Placing order with:', checkoutData);
-//     if(paypalDetails) {
-//       console.log('PayPal Details:', paypalDetails);
-//       // Here you would send the paypalDetails.id (the transaction ID)
-//       // to your backend to verify and save the order.
-//     }
-
-//     let redirectStatus: OrderStatus = 'Pending';
-//     const paymentType = checkoutData.paymentMethod.type;
-
-//     if (paymentType === 'COD') {
-//       redirectStatus = 'Pending';
-//     } else if (paymentType === 'Paypal') {
-//       // If a successful PayPal transaction happened, the order is paid
-//       redirectStatus = 'Processing'; // or 'Shipped' depending on your flow
-//     }
-
-//     toast.success(`Đặt hàng thành công! Trạng thái đơn hàng: ${redirectStatus}.`);
-//     // Uncomment the redirect when you're ready
-//     // router.push(`/purchase?status=${redirectStatus}`);
-//   };
 
     const handlePlaceOrder = async () => {
         console.log("[handlePlaceOrder] Initiated. Current checkoutData:", checkoutData);
@@ -569,6 +529,33 @@ const handlePaymentMethodChange = () => {
             toast.error("Vui lòng chọn địa chỉ giao hàng.");
             return;
         }
+         // TÍNH TOÁN LẠI CÁC GIÁ TRỊ TRƯỚC KHI GỬI
+        const itemsPayload = checkoutData.shopOrders.flatMap(shopOrder =>
+            shopOrder.items.map(item => {
+                // Tính toán giá cuối cùng và thành tiền cho từng sản phẩm
+                const finalPrice = calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount);
+                return {
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    // GỬI ĐI GIÁ ĐÃ GIẢM
+                    priceAtPurchase: finalPrice,
+                    // GỬI ĐI THÀNH TIỀN DỰA TRÊN GIÁ ĐÃ GIẢM
+                    subtotal: finalPrice * item.quantity,
+                };
+            })
+        );
+        
+        // CHUẨN BỊ THÔNG TIN VOUCHER
+        const shopVouchersApplied = checkoutData.shopOrders
+            .filter(so => so.appliedVoucher)
+            .map(so => ({
+                shopId: so.shopId,
+                code: so.appliedVoucher!.Code,
+                discount: calculateDiscountForVoucher(
+                    so.appliedVoucher!,
+                    so.items.reduce((sum, item) => sum + calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount) * item.quantity, 0)
+                ),
+            }));
 
         // Tạo payload để gửi lên API /api/orders/place
         const payload = {
@@ -581,14 +568,11 @@ const handlePaymentMethodChange = () => {
             shippingFee: checkoutData.summary.totalShippingFee,
             discountAmount: checkoutData.summary.totalDiscount,
             paymentMethod: checkoutData.paymentMethod.type,
-            items: checkoutData.shopOrders.flatMap(shopOrder => 
-                shopOrder.items.map(item => ({
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    priceAtPurchase: item.price,
-                    subtotal: item.subtotal,
-                }))
-            ),
+            items: itemsPayload,
+            platformVoucherCode: checkoutData.appliedPlatformVouchers.saleOffVoucher?.Code ?? null,
+            platformDiscountAmount: checkoutData.summary.totalPlatformVoucherDiscount,
+            totalShopVoucherDiscount: checkoutData.summary.totalShopVoucherDiscount, // Tổng giảm giá từ voucher shop
+            shopVouchersApplied: shopVouchersApplied
         };
         
         try {
@@ -607,6 +591,12 @@ const handlePaymentMethodChange = () => {
             const result = await response.json();
 
             if (!response.ok) {
+                 if (result.errors) {
+                    // Lỗi validation, có thể hiển thị lỗi đầu tiên
+                    const firstErrorKey = Object.keys(result.errors)[0];
+                    const firstErrorMessage = result.errors[firstErrorKey][0];
+                    throw new Error(`Lỗi dữ liệu: ${firstErrorMessage}`);
+                }
                 throw new Error(result.message || 'Không thể đặt hàng.');
             }
 
@@ -689,6 +679,33 @@ const handlePaymentMethodChange = () => {
         } catch (error: any) {
             toast.error(error.message);
         }
+    }
+if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-20 text-red-500">
+                {error}
+                <Link href="/cart" className="text-blue-500 hover:underline ml-2">
+                    Quay lại giỏ hàng
+                </Link>
+            </div>
+        );
+    }
+
+    // Đây là "rào chắn" quan trọng nhất để sửa lỗi `map`
+    if (!checkoutData) {
+        return (
+            <div className="text-center py-20">
+                Không có dữ liệu thanh toán để hiển thị.
+            </div>
+        );
     }
 
 return (
