@@ -32,7 +32,7 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
+export type PaymentMethodType = 'COD' | 'Paypal' | 'VNPay';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
 export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
@@ -95,13 +95,23 @@ export interface CheckoutProductItem {
 
   // Các trường từ ProductVariant (nếu cần cho mock data hoặc hiển thị chi tiết hơn)
   SKU?: string | null;
-  CompareAtPrice?: number | null; // Optional
+  CompareAtPrice?: number; // Optional
   StockQuantity?: number;
   IsActive?: boolean;
   CreatedAt?: string; // Optional
   UpdatedAt?: string; // Optional
 }
 
+export interface OrderDetailShopOrder {
+    shopId: number;
+    shopName: string;
+    shopLevel: ShopLevel;
+    isFavoriteShop: boolean;
+    items: OrderItem[];
+    // Thêm các trường voucher cho shop
+    appliedShopVoucherCode?: string | null;
+    shopVoucherDiscountAmount?: number ;
+}
 
 // --- INTERFACE Order (LỊCH SỬ ĐƠN HÀNG) ---
 export interface Order {
@@ -120,13 +130,18 @@ export interface Order {
   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-
+  
+  shopvoucher: string | null;
+  shopdiscountamount: number;
+  
   PlatformVoucherCode: string | null;
   PlatformDiscountAmount: number;
   CreatedAt: string;
   UpdatedAt: string;
 
   items: OrderItem[];
+
+  shopOrders: OrderDetailShopOrder[];
 
   ShopID: number;
   shopName: string;
@@ -170,6 +185,7 @@ export interface CheckoutShopOrder {
 }
 
 export interface StoredCheckoutData {
+    orderId?: number;
     selectedItems: CartItem[];
     appliedShopVouchers: AppliedShopVouchers;
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -197,6 +213,7 @@ export interface CheckoutSummaryDetails {
 }
 
 export interface CheckoutData {
+    orderId?: number; 
     address: Address | null;
     shopOrders: CheckoutShopOrder[];
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -204,9 +221,10 @@ export interface CheckoutData {
     // Thêm các thông tin khác nếu cần
     paymentMethod: {
         method: string;
-        type: 'COD' | 'Paypal';
+        type: PaymentMethodType;
         canChange: boolean;
     };
+    paidAt?: any;
 }
 
 export interface OrderStatusHistory {
@@ -224,3 +242,42 @@ export interface ShippingTracking {
   date: string; // Ngày (ví dụ: "17-06-2025")
   time: string; // Giờ (ví dụ: "02:02")
 }
+
+export const formatDateTime = (dateString: Date) => {
+    const dateTimeOptions: Intl.DateTimeFormatOptions = {
+        month: 'short', // abbreviated month name (e.g., 'Oct')
+        year: 'numeric', // abbreviated month name (e.g., 'Oct')
+        day: 'numeric', // numeric day of the month (e.g., '25')
+        hour: 'numeric', // numeric hour (e.g., '8')
+        minute: 'numeric', // numeric minute (e.g., '30')
+        hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    };
+    const dateOptions: Intl.DateTimeFormatOptions = {
+        weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
+        month: 'short', // abbreviated month name (e.g., 'Oct')
+        year: 'numeric', // numeric year (e.g., '2023')
+        day: 'numeric', // numeric day of the month (e.g., '25')
+    };
+    const timeOptions: Intl.DateTimeFormatOptions = {
+        hour: 'numeric', // numeric hour (e.g., '8')
+        minute: 'numeric', // numeric minute (e.g., '30')
+        hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+    };
+    const formattedDateTime: string = new Date(dateString).toLocaleString(
+        'en-US',
+        dateTimeOptions
+    );
+    const formattedDate: string = new Date(dateString).toLocaleString(
+        'en-US',
+        dateOptions
+    );
+    const formattedTime: string = new Date(dateString).toLocaleString(
+        'en-US',
+        timeOptions
+    );
+    return {
+        dateTime: formattedDateTime,
+        dateOnly: formattedDate,
+        timeOnly: formattedTime,
+    };
+};

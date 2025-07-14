@@ -64,95 +64,24 @@
 
 import React from 'react';
 import { CreditCard, Loader, AlertTriangle } from 'lucide-react';
-import { CheckoutData } from '@/types';
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+import { Badge } from "@/components/ui/badge";
+import { CheckoutData, formatDateTime } from '@/types';
 import { toast } from 'react-toastify';
-import type { OnApproveData, CreateOrderData, OrderResponseBody } from "@paypal/paypal-js";
 
 
 interface CheckoutPaymentSectionProps {
   paymentMethod: CheckoutData['paymentMethod'];
   onPaymentMethodChange: () => void;
-  payPalClientID: string;
+//   payPalClientID: string;
+  isPaid: boolean;
+  paidAt: CheckoutData['paidAt'];
   // Pass down the summary or final total to be used in the order
-  summary: CheckoutData['summary']; 
+//   summary: CheckoutData['summary']; 
 }
 
-const PaypalButtonWrapper = ({ currency, summary, onPlaceOrder }: { currency: string, summary: CheckoutData['summary'], onPlaceOrder: (details: any) => void }) => {
-    const [{ isPending, isRejected }] = usePayPalScriptReducer();
-
-    if (isPending) {
-        return (
-            <div className="flex gap-2 justify-center items-center text-center w-full py-2">
-                <Loader className="w-4 h-4 animate-spin" /> 
-                <span>Loading PayPal...</span>
-            </div>
-        );
-    }
-    if (isRejected) {
-        return (
-            <div className="flex gap-2 justify-center items-center text-center text-red-600 w-full py-2">
-                 <AlertTriangle className="w-4 h-4" />
-                <span>Error: Could not load PayPal.</span>
-            </div>
-        );
-    }
-    
-    const createOrder = (data: CreateOrderData, actions: any) => {
-        console.log("Creating PayPal order with amount:", summary.finalTotal);
-        // Ensure the finalTotal is a string with two decimal places
-        const amountValue = summary.finalTotal.toFixed(2);
-
-        return actions.order.create({
-            purchase_units: [{
-                amount: {
-                    // FIX #1: Added currency_code as required by the PayPal API
-                    currency_code: currency,
-                    value: amountValue, 
-                },
-                // You can add more details here, like item breakdown or shipping info
-            }],
-        });
-    };
-
-    const onApprove = (data: OnApproveData, actions: any) => {
-        console.log("PayPal order approved:", data);
-        
-        // Capture the funds from the transaction
-        return actions.order.capture().then(function(details: any) {
-            // FIX #2 & #3: Using the modern, non-deprecated way to get payer info
-            // The shipping name is often the most useful for order fulfillment.
-            const payerName = details.purchase_units?.[0]?.shipping?.name?.full_name || details.payer?.name?.given_name || 'Customer';
-            
-            console.log("Transaction Details:", details);
-            toast.success(`Transaction completed successfully by ${payerName}.`);
-
-            // This is where you would call your backend to save the order
-            // and then redirect the user or update the UI.
-            // Example: onPlaceOrder(details);
-        }).catch((err: any) => {
-            console.error("Failed to capture PayPal transaction:", err);
-            toast.error("An error occurred while processing your payment.");
-        });
-    };
-
-    const onError = (err: any) => {
-        console.error("PayPal Buttons Error:", err);
-        toast.error("An error occurred with the PayPal payment.");
-    };
-
-    return (
-        <PayPalButtons
-            style={{ layout: "vertical", label: "pay", height: 48 }}
-            createOrder={createOrder}
-            onApprove={onApprove}
-            onError={onError}
-        />
-    );
-}
 
 // You will need to pass the `summary` and `onPlaceOrder` props to this component
-const CheckoutPaymentSection: React.FC<CheckoutPaymentSectionProps> = ({ paymentMethod, onPaymentMethodChange, payPalClientID, summary }) => {
+const CheckoutPaymentSection: React.FC<CheckoutPaymentSectionProps> = ({ paymentMethod, onPaymentMethodChange ,isPaid, paidAt}) => {
   return (
     <div className="mt-4 bg-white rounded-sm shadow-sm border border-gray-200 py-4 px-4">
       <div className="flex justify-between items-center">
@@ -161,8 +90,8 @@ const CheckoutPaymentSection: React.FC<CheckoutPaymentSectionProps> = ({ payment
            <span>Phương thức thanh toán</span>
         </div>
         <div className="flex items-center text-sm">
-          <div className="ml-auto mr-4 text-gray-700 min-w-[250px]">
-            {paymentMethod.type === 'Paypal' ? (
+          <div className="ml-auto mr-4 text-gray-700 min-w-[250px] justify-center">
+            {/* {paymentMethod.type === 'Paypal' ? (
                 payPalClientID ? (
                     // Note: You might want to use a currency like "VND" if your PayPal account supports it.
                     // For sandbox testing, "USD" is the most reliable.
@@ -181,7 +110,25 @@ const CheckoutPaymentSection: React.FC<CheckoutPaymentSectionProps> = ({ payment
                 )
             ) : (
                 <span>{paymentMethod.method}</span>
-            )}
+            )} */}
+                        <p className="text-center">{paymentMethod.method}</p>
+                        
+                            {/* Hiển thị trạng thái thanh toán cho các phương thức không phải COD */}
+                            {paymentMethod.type !== 'COD' && (
+                                <div className="mt-3 text-center">
+                                {isPaid ? (
+                                    <Badge variant='secondary'>
+                                        Paid at {formatDateTime(paidAt!).dateTime}
+                                    </Badge>
+                                ) : (
+                                    <Badge variant='destructive'>
+                                        Not Paid
+                                    </Badge>
+                                )}
+                                </div>
+                            )}
+                        
+                        
           </div>
           {paymentMethod.canChange && (
             <button onClick={onPaymentMethodChange} className="text-blue-500 hover:text-blue-600 font-medium">THAY ĐỔI</button>

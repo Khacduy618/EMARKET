@@ -1,5 +1,5 @@
 
-export const API_BASE_URL = 'http://localhost/api';
+export const API_BASE_URL = 'http://localhost:8001/api';
 
 export const getAuthToken = (): string | null => {
     // Get token from localStorage
