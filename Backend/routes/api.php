@@ -26,7 +26,10 @@ use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-// Lấy API của Category Trả về dạng json theo CRUD 
+/* ___________________________________________________________________
+  |                           Người dùng                              |
+  |___________________________________________________________________| */
+  // Lấy API của Category Trả về dạng json theo CRUD 
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
@@ -67,6 +70,7 @@ Route::get('/products/{currentProductId}/related', [ProductController::class, 'g
 // router tìm kiếm lọc sản phẩm 
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
+Route::get('/searchAll', [SearchController::class, 'searchAll']);
 // API 1: Lấy các tùy chọn cho bộ lọc (danh mục, brand, khoảng giá...)
 // Frontend sẽ gọi API này để lấy dữ liệu xây dựng nên thanh sidebar.
 // Ví dụ cách gọi từ Frontend: /api/filters/available?base_category_id=1
