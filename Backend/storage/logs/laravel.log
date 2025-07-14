@@ -10852,3 +10852,91 @@
 [2025-07-14 17:01:39] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
 [2025-07-14 17:01:40] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
 [2025-07-14 17:01:41] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:05:16] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:05:16] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:05:31] local.INFO: Cart data fetched from DB. Number of rows: 12  
+[2025-07-14 17:05:31] local.INFO: Cart data structured successfully. Number of items: 6  
+[2025-07-14 17:05:33] local.INFO: Cart data fetched from DB. Number of rows: 12  
+[2025-07-14 17:05:33] local.INFO: Cart data structured successfully. Number of items: 6  
+[2025-07-14 17:06:10] local.INFO: --- Received request for placeOrder --- {"shippingAddressId":7,"shippingFullName":"Nguyễn Khắc Duy","shippingPhoneNumber":"0932105214","notes":null,"totalAmount":193483000,"subtotalAmount":193573000,"shippingFee":60000,"discountAmount":150000,"paymentMethod":"VNPay","items":[{"variantId":2,"quantity":1,"priceAtPurchase":32775000,"subtotal":32775000},{"variantId":1,"quantity":1,"priceAtPurchase":28975000,"subtotal":28975000},{"variantId":10,"quantity":2,"priceAtPurchase":38640000,"subtotal":77280000},{"variantId":11,"quantity":1,"priceAtPurchase":48760000,"subtotal":48760000},{"variantId":19,"quantity":3,"priceAtPurchase":1701000,"subtotal":5103000},{"variantId":13,"quantity":1,"priceAtPurchase":680000,"subtotal":680000}],"platformVoucherCode":"WELCOME50","platformDiscountAmount":50000,"totalShopVoucherDiscount":100000,"shopVouchersApplied":[{"shopId":1,"code":"BICHTECH10","discount":100000}]} 
+[2025-07-14 17:06:12] local.INFO: placeOrder: Creating order with data: {"UserID":1,"PaymentMethod":"VNPay"} 
+[2025-07-14 17:06:12] local.INFO: placeOrder: Creating order with server-calculated data: {"OrderCode":"EMK202507141T6JMC","UserID":1,"TotalAmount":193483000.0,"SubtotalAmount":193573000.0,"ShippingFee":60000,"DiscountAmount":14777000.0,"ShippingAddressID":7,"ShippingFullName":"Nguyễn Khắc Duy","ShippingPhoneNumber":"0932105214","Notes":null,"PaymentMethod":"VNPay","PaymentStatus":"Pending","OverallStatus":"Pending","PlatformVoucherCode":"WELCOME50","PlatformDiscountAmount":50000,"shopvoucher":"BICHTECH10","shopdiscountamount":100000,"CreatedAt":"2025-07-14 17:06:12","UpdatedAt":"2025-07-14 17:06:12"} 
+[2025-07-14 17:06:12] local.INFO: placeOrder: Successfully created OrderID: 2071  
+[2025-07-14 17:06:14] local.ERROR: Undefined property: stdClass::$Discount {"userId":1,"exception":"[object] (ErrorException(code: 0): Undefined property: stdClass::$Discount at /var/www/html/app/Http/Controllers/OrderController.php:280)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(256): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(2, 'Undefined prope...', '/var/www/html/a...', 280)
+#1 /var/www/html/app/Http/Controllers/OrderController.php(280): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}(2, 'Undefined prope...', '/var/www/html/a...', 280)
+#2 /var/www/html/app/Http/Controllers/OrderController.php(152): App\\Http\\Controllers\\OrderController->showForCheckout(Object(Illuminate\\Http\\Request), '2071')
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(46): App\\Http\\Controllers\\OrderController->show(Object(Illuminate\\Http\\Request), '2071')
+#4 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\OrderController), 'show')
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\\Routing\\Route->runController()
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate\\Routing\\Route->run()
+#7 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#8 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#9 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#10 /var/www/html/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#11 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#12 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#14 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#15 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#16 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#17 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#18 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#19 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#26 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#39 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#40 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#41 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#42 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
+#43 {main}
+"} 
+[2025-07-14 17:14:09] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-14 17:14:09] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-14 17:14:10] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 66 đơn hàng.  
+[2025-07-14 17:14:11] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-14 17:14:11] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-14 17:14:12] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 66 đơn hàng.  
+[2025-07-14 17:14:14] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 1030 ---  
+[2025-07-14 17:14:14] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 1030.  
+[2025-07-14 17:14:16] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 1030 ---  
+[2025-07-14 17:14:17] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 1030.  
+[2025-07-14 17:14:23] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-14 17:14:23] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-14 17:14:24] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 66 đơn hàng.  
+[2025-07-14 17:14:25] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-14 17:14:25] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-14 17:14:26] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 66 đơn hàng.  
+[2025-07-14 17:14:33] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:14:34] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:14:35] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:14:35] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:19:57] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:19:58] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:22:53] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:22:54] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:23:05] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:23:05] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:23:45] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-14 17:23:46] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-14 17:29:29] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-14 17:29:29] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-14 17:29:30] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 66 đơn hàng.  

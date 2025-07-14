@@ -158,22 +158,76 @@ class OrderController extends Controller
         
     }
 
-    /**
+    // /**
+    //  * Hàm private để lấy dữ liệu cho trang CHI TIẾT ĐƠN HÀNG (Order).
+    //  */
+    // private function showForOrderDetail(Request $request, $orderId)
+    // {
+    //     Log::info("--- [showForOrderDetail] Bắt đầu cho OrderID: {$orderId} ---");
+    //     $user = $request->user();
+        
+    //     $order = DB::table('ordersbuyer as ob')
+    //         ->leftJoin('orderitems as oi_main', 'ob.OrderID', '=', 'oi_main.OrderID')
+    //         ->leftJoin('productvariants as pv_main', 'oi_main.VariantID', '=', 'pv_main.VariantID')
+    //         ->leftJoin('products as p_main', 'pv_main.ProductID', '=', 'p_main.ProductID')
+    //         ->leftJoin('shops as s', 'p_main.ShopID', '=', 's.ShopID')
+    //         ->where('ob.OrderID', $orderId)
+    //         ->where('ob.UserID', $user->UserID)
+    //         ->select('ob.*', 's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel')
+    //         ->first();
+
+    //     if (!$order) {
+    //         Log::warning("[showForOrderDetail] Không tìm thấy OrderID: {$orderId} cho UserID: {$user->UserID}.");
+    //         return response()->json(['message' => 'Order not found.'], 404);
+    //     }
+
+    //     $orderItems = DB::table('orderitems as oi')
+    //         ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+    //         ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+    //         ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
+    //         ->where('oi.OrderID', $orderId)
+    //         ->select('oi.*', 'p.Name as productName', 'pv.VariantID as VariantID_alias', 'p.ProductID as ProductID_alias', DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'), DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'))
+    //         ->get();
+        
+    //     if ($orderItems->isNotEmpty()) {
+    //         $variantIds = $orderItems->pluck('VariantID')->unique();
+    //         $attributes = DB::table('productvariantattribute as pva')
+    //             ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
+    //             ->whereIn('pva.VariantID', $variantIds)
+    //             ->select('pva.VariantID', 'av.Value')
+    //             ->get()->groupBy('VariantID');
+
+    //         foreach ($orderItems as $item) {
+    //             $itemAttributes = $attributes->get($item->VariantID, collect());
+    //             $item->classification = $itemAttributes->pluck('Value')->implode(', ');
+    //             $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
+    //         }
+    //     }
+        
+    //     $order->items = $orderItems;
+    //     $order->isFavoriteShop = $order->ShopID ? DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $order->ShopID)->exists() : false;
+    //     $order->orderStatusHistory = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
+    //     $order->shippingTracking = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
+    //     $order->shippingProvider = 'Giao Hàng Nhanh';
+    //     $order->trackingNumber = 'SPXVN' . rand(100000000000, 999999999999);
+
+    //     Log::info("[showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: {$orderId}.");
+    //     return response()->json($order);
+    // }
+        /**
      * Hàm private để lấy dữ liệu cho trang CHI TIẾT ĐƠN HÀNG (Order).
+     * SỬA ĐỔI: Dữ liệu trả về sẽ được gom nhóm theo từng shop (shopOrders)
+     * thay vì một danh sách items phẳng.
      */
     private function showForOrderDetail(Request $request, $orderId)
     {
         Log::info("--- [showForOrderDetail] Bắt đầu cho OrderID: {$orderId} ---");
         $user = $request->user();
-        
-        $order = DB::table('ordersbuyer as ob')
-            ->leftJoin('orderitems as oi_main', 'ob.OrderID', '=', 'oi_main.OrderID')
-            ->leftJoin('productvariants as pv_main', 'oi_main.VariantID', '=', 'pv_main.VariantID')
-            ->leftJoin('products as p_main', 'pv_main.ProductID', '=', 'p_main.ProductID')
-            ->leftJoin('shops as s', 'p_main.ShopID', '=', 's.ShopID')
-            ->where('ob.OrderID', $orderId)
-            ->where('ob.UserID', $user->UserID)
-            ->select('ob.*', 's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel')
+
+        // 1. Lấy thông tin chính của đơn hàng
+        $order = DB::table('ordersbuyer')
+            ->where('OrderID', $orderId)
+            ->where('UserID', $user->UserID)
             ->first();
 
         if (!$order) {
@@ -181,38 +235,79 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found.'], 404);
         }
 
-        $orderItems = DB::table('orderitems as oi')
+        // 2. Lấy tất cả items của đơn hàng và join với thông tin sản phẩm, shop
+        $orderItemsWithDetails = DB::table('orderitems as oi')
             ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
             ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+            ->join('shops as s', 'p.ShopID', '=', 's.ShopID') // JOIN thêm bảng shops
             ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
             ->where('oi.OrderID', $orderId)
-            ->select('oi.*', 'p.Name as productName', 'pv.VariantID as VariantID_alias', 'p.ProductID as ProductID_alias', DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'), DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'))
+            ->select(
+                'oi.OrderItemID', 'oi.OrderID', 'oi.VariantID', 'oi.Quantity', 
+                'oi.PriceAtPurchase', 'oi.Subtotal', 'oi.ReturnStatus',
+                'p.ProductID', 'p.Name as productName',
+                DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'),
+                DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'),
+                // Lấy thông tin shop cho mỗi item
+                's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel'
+            )
             ->get();
-        
-        if ($orderItems->isNotEmpty()) {
-            $variantIds = $orderItems->pluck('VariantID')->unique();
-            $attributes = DB::table('productvariantattribute as pva')
+
+        // 3. Gom nhóm các item lại theo ShopID
+        $shopOrdersGrouped = [];
+        if ($orderItemsWithDetails->isNotEmpty()) {
+            $allVariantIds = $orderItemsWithDetails->pluck('VariantID')->unique();
+            $allAttributes = DB::table('productvariantattribute as pva')
                 ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
-                ->whereIn('pva.VariantID', $variantIds)
+                ->whereIn('pva.VariantID', $allVariantIds)
                 ->select('pva.VariantID', 'av.Value')
                 ->get()->groupBy('VariantID');
-
-            foreach ($orderItems as $item) {
-                $itemAttributes = $attributes->get($item->VariantID, collect());
+            
+            foreach ($orderItemsWithDetails as $item) {
+                // Thêm classification vào item
+                $itemAttributes = $allAttributes->get($item->VariantID, collect());
                 $item->classification = $itemAttributes->pluck('Value')->implode(', ');
                 $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
+                
+                $shopId = $item->ShopID;
+                if (!isset($shopOrdersGrouped[$shopId])) {
+                    // Nếu shop này chưa có trong group, khởi tạo
+                    $shopOrdersGrouped[$shopId] = [
+                        'shopId' => $shopId,
+                        'shopName' => $item->shopName,
+                        'shopLevel' => $item->shopLevel,
+                        'isFavoriteShop' => DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $shopId)->exists(),
+                        'items' => []
+                    ];
+                }
+                // Thêm item vào shop tương ứng
+                $shopOrdersGrouped[$shopId]['items'][] = $item;
             }
         }
         
-        $order->items = $orderItems;
-        $order->isFavoriteShop = $order->ShopID ? DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $order->ShopID)->exists() : false;
-        $order->orderStatusHistory = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
-        $order->shippingTracking = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
-        $order->shippingProvider = 'Giao Hàng Nhanh';
-        $order->trackingNumber = 'SPXVN' . rand(100000000000, 999999999999);
+        // 4. Tạo cấu trúc payload trả về
+        $responsePayload = (array)$order; // Chuyển object $order thành mảng
+        $responsePayload['shopOrders'] = array_values($shopOrdersGrouped); // Thêm mảng shopOrders đã gom nhóm
+        // Xóa thuộc tính items phẳng không cần thiết nữa
+        // (tạm thời giữ lại để không làm crash các component khác nếu có dùng)
+        // unset($responsePayload['items']);
+        $responsePayload['items'] = $orderItemsWithDetails; // Vẫn trả về items phẳng để không làm ảnh hưởng các chỗ khác
+
+        // Thêm các dữ liệu mock
+        $responsePayload['orderStatusHistory'] = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
+        $responsePayload['shippingTracking'] = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
+        $responsePayload['shippingProvider'] = 'Giao Hàng Nhanh';
+        $responsePayload['trackingNumber'] = 'SPXVN' . rand(100000000000, 999999999999);
+
+        // Map các cột voucher của order vào shopOrder đầu tiên (giả định chỉ có 1 shop voucher/đơn hàng)
+        // Đây là cách làm đơn giản, nếu 1 đơn hàng có nhiều shop thì cần logic phức tạp hơn
+        if (!empty($responsePayload['shopOrders'])) {
+             $responsePayload['shopOrders'][0]['appliedShopVoucherCode'] = $order->shopvoucher;
+             $responsePayload['shopOrders'][0]['shopVoucherDiscountAmount'] = $order->shopdiscountamount;
+        }
 
         Log::info("[showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: {$orderId}.");
-        return response()->json($order);
+        return response()->json($responsePayload);
     }
     /**
      * Hàm private để lấy dữ liệu cho trang CHECKOUT (CheckoutData).

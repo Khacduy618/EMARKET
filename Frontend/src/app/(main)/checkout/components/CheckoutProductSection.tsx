@@ -31,7 +31,7 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
       <div className="flex justify-between items-center pb-3 border-b border-gray-100 mb-3">
          <div className="flex items-center gap-2 text-gray-800 text-sm flex-1">
            {shopOrder.shopLevel === 'Mall' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>}
-           {shopOrder.shopLevel === 'Yêu thích+' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>}
+           {shopOrder.shopLevel === 'Favorite' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>}
            <span className="font-semibold">{shopOrder.shopName}</span>
            <button className="flex items-center text-blue-500 hover:text-blue-600 whitespace-nowrap">
              <FaCommentDots className="mr-1" /> Chat ngay

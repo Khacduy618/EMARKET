@@ -102,6 +102,16 @@ export interface CheckoutProductItem {
   UpdatedAt?: string; // Optional
 }
 
+export interface OrderDetailShopOrder {
+    shopId: number;
+    shopName: string;
+    shopLevel: ShopLevel;
+    isFavoriteShop: boolean;
+    items: OrderItem[];
+    // Thêm các trường voucher cho shop
+    appliedShopVoucherCode?: string | null;
+    shopVoucherDiscountAmount?: number ;
+}
 
 // --- INTERFACE Order (LỊCH SỬ ĐƠN HÀNG) ---
 export interface Order {
@@ -120,13 +130,18 @@ export interface Order {
   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-
+  
+  shopvoucher: string | null;
+  shopdiscountamount: number;
+  
   PlatformVoucherCode: string | null;
   PlatformDiscountAmount: number;
   CreatedAt: string;
   UpdatedAt: string;
 
   items: OrderItem[];
+
+  shopOrders: OrderDetailShopOrder[];
 
   ShopID: number;
   shopName: string;
