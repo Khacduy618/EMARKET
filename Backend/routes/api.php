@@ -16,7 +16,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
-use App\Http\Controllers\ShopProductController;
+use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

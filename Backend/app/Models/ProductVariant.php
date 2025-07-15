@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class ProductVariant extends Model
 {
@@ -110,4 +111,10 @@ class ProductVariant extends Model
         return null; // Trả về null nếu variant không có ảnh riêng
     }
     
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? Storage::disk('public')->url($value) : null,
+        );
+    }
 }
