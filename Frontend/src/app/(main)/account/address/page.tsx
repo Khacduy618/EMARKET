@@ -2,177 +2,262 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect, FormEvent } from 'react';
 import { toast } from 'react-toastify';
-import useSWR from 'swr'; // Dùng SWR để fetch và cache dữ liệu
-import { Address } from '@/types/address.interface'; // Import interface
-import { PlusCircle, Edit, Trash2, Home, MapPin, Phone, User } from 'lucide-react';
-// import các hàm service (bạn cần tạo file này)
+import useSWR from 'swr';
+import { Address, AddressPayload } from '@/types/address.interface';
+import { PlusCircle, Edit3, Trash2, MapPin, Phone, X, Home } from 'lucide-react';
 import { getAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/services/address';
 
-
-// Component cho một thẻ địa chỉ
-function AddressCard({ address, onEdit, onDelete, onSetDefault }: { address: Address; onEdit: () => void; onDelete: () => void; onSetDefault: () => void; }) {
+// ===================================================================
+// =                  Component: Một Thẻ Địa chỉ                    =
+// ===================================================================
+function AddressCard({
+    address,
+    onEdit,
+    onDelete,
+    onSetDefault,
+    isProcessing,
+}: {
+    address: Address;
+    onEdit: () => void;
+    onDelete: () => Promise<void>;
+    onSetDefault: () => Promise<void>;
+    isProcessing: boolean;
+}) {
     return (
-        <div className={`p-4 border rounded-lg ${address.IsDefault ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}`}>
-            <div className="flex justify-between items-start">
-                <div>
-                    <div className="flex items-center font-bold text-gray-800">
-                        {address.FullName}
-                        {address.IsDefault && <span className="ml-3 text-xs font-semibold text-white bg-indigo-500 px-2 py-0.5 rounded-full">Mặc định</span>}
+        <div className={`p-5 border-l-4 ${address.IsDefault ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 bg-white'} rounded-lg shadow-sm transition-all duration-300`}>
+            <div className="flex justify-between items-start gap-4">
+                <div className="space-y-2 flex-grow">
+                    <div className="flex items-center gap-3">
+                        <span className="font-bold text-lg text-gray-900">{address.FullName}</span>
+                        {address.IsDefault && (
+                            <span className="text-xs font-semibold text-white bg-indigo-600 px-2.5 py-1 rounded-full">MẶC ĐỊNH</span>
+                        )}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2 space-y-1">
-                        <p><span className="font-medium">SĐT:</span> {address.PhoneNumber}</p>
-                        <p>{address.Street}, {address.Ward}, {address.District}, {address.City}</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                        <div className="flex items-center gap-2"><Phone size={14} className="text-gray-400" /><span>{address.PhoneNumber}</span></div>
+                        <div className="flex items-start gap-2"><MapPin size={14} className="text-gray-400 mt-0.5 flex-shrink-0" /><span>{`${address.Street}, ${address.Ward || ''}, ${address.District}, ${address.City}`}</span></div>
                     </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <button onClick={onEdit} className="text-xs text-blue-600 hover:underline">Sửa</button>
-                    <button onClick={onDelete} className="text-xs text-red-600 hover:underline">Xóa</button>
+                <div className="flex-shrink-0 flex items-center gap-1 sm:gap-2">
+                    <button onClick={onEdit} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"><Edit3 size={16} /></button>
+                    <button onClick={onDelete} disabled={isProcessing} className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"><Trash2 size={16} /></button>
                 </div>
             </div>
             {!address.IsDefault && (
-                <button onClick={onSetDefault} className="mt-3 text-sm font-semibold text-indigo-600 hover:underline">
-                    Đặt làm mặc định
-                </button>
+                <div className="mt-4 pt-4 border-t border-dashed">
+                    <button onClick={onSetDefault} disabled={isProcessing} className="text-sm font-semibold text-gray-700 hover:text-indigo-600 disabled:opacity-50">
+                        {isProcessing ? 'Đang xử lý...' : 'Đặt làm địa chỉ mặc định'}
+                    </button>
+                </div>
             )}
         </div>
-    )
+    );
 }
 
-// Component cho Modal Thêm/Sửa
-function AddressModal({ isOpen, onClose, address, onSave }: { isOpen: boolean, onClose: () => void, address: Partial<Address> | null, onSave: () => void }) {
-    if (!isOpen) return null;
-
-    const [formData, setFormData] = useState(address || {});
+// ===================================================================
+// =                    Component: Side Panel                      =
+// ===================================================================
+function AddressSidePanel({
+    isOpen,
+    onClose,
+    addressToEdit,
+    onSaveSuccess
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    addressToEdit: Partial<Address> | null;
+    onSaveSuccess: () => void;
+}) {
+    const [formData, setFormData] = useState<Partial<Address>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const isEditing = !!addressToEdit?.AddressID;
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    useEffect(() => {
+        if (isOpen) {
+            setFormData(addressToEdit || { IsDefault: false });
+        }
+    }, [isOpen, addressToEdit]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            if ('AddressID' in formData && formData.AddressID) {
-                // Đây là trường hợp Sửa
-                await updateAddress(formData.AddressID, formData);
+            const payload: AddressPayload = {
+                FullName: formData.FullName || '',
+                PhoneNumber: formData.PhoneNumber || '',
+                Street: formData.Street || '',
+                Ward: formData.Ward,
+                District: formData.District || '',
+                City: formData.City || '',
+                IsDefault: formData.IsDefault || false,
+            };
+            if (isEditing) {
+                await updateAddress((formData as Address).AddressID, payload);
                 toast.success("Cập nhật địa chỉ thành công!");
             } else {
-                // Đây là trường hợp Thêm mới
-                await addAddress(formData);
+                await addAddress(payload);
                 toast.success("Thêm địa chỉ mới thành công!");
             }
-            onSave(); // Gọi callback để re-fetch dữ liệu
-            onClose(); // Đóng modal
+            onSaveSuccess();
+            onClose();
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Đã có lỗi xảy ra.");
         } finally {
             setIsSubmitting(false);
         }
-    }
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    }
+    };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-                <h3 className="text-xl font-bold mb-4">{'AddressID' in formData ? 'Cập nhật Địa chỉ' : 'Thêm Địa chỉ Mới'}</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input type="text" name="FullName" placeholder="Họ và Tên" value={formData.FullName || ''} onChange={handleChange} required className="w-full p-2 border rounded" />
-                    <input type="tel" name="PhoneNumber" placeholder="Số điện thoại" value={formData.PhoneNumber || ''} onChange={handleChange} required className="w-full p-2 border rounded" />
-                    <input type="text" name="Street" placeholder="Số nhà, Tên đường" value={formData.Street || ''} onChange={handleChange} required className="w-full p-2 border rounded" />
-                    <input type="text" name="Ward" placeholder="Phường / Xã" value={formData.Ward || ''} onChange={handleChange} className="w-full p-2 border rounded" />
-                    <input type="text" name="District" placeholder="Quận / Huyện" value={formData.District || ''} onChange={handleChange} required className="w-full p-2 border rounded" />
-                    <input type="text" name="City" placeholder="Tỉnh / Thành phố" value={formData.City || ''} onChange={handleChange} required className="w-full p-2 border rounded" />
+        <div className={`fixed inset-0 z-50 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose}></div>
+            <div className={`pt-32 relative ml-auto h-full w-full max-w-lg bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col h-full">
+                    <div className="flex justify-between items-center p-6 border-b">
+                        <h3 className="text-xl font-bold text-gray-800">{isEditing ? 'Cập nhật Địa chỉ' : 'Thêm Địa chỉ Mới'}</h3>
+                        <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+                    </div>
 
-                    <div className="flex justify-end gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Hủy</button>
-                        <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-indigo-600 text-white rounded disabled:bg-indigo-300">
-                            {isSubmitting ? 'Đang lưu...' : 'Lưu địa chỉ'}
+                    <form id="address-form" onSubmit={handleSubmit} className="flex-grow p-6 space-y-4 overflow-y-auto">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Họ và Tên</label>
+                                <input type="text" name="FullName" placeholder="Nguyễn Văn An" value={formData.FullName || ''} onChange={handleChange} required className="mt-1 w-full p-2.5 border rounded-md" />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Số điện thoại</label>
+                                <input type="tel" name="PhoneNumber" placeholder="0901234567" value={formData.PhoneNumber || ''} onChange={handleChange} required className="mt-1 w-full p-2.5 border rounded-md" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Tỉnh / Thành phố</label>
+                            <input type="text" name="City" placeholder="Ví dụ: TP. Hồ Chí Minh" value={formData.City || ''} onChange={handleChange} required className="mt-1 w-full p-2.5 border rounded-md" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Quận / Huyện</label>
+                            <input type="text" name="District" placeholder="Ví dụ: Quận 1" value={formData.District || ''} onChange={handleChange} required className="mt-1 w-full p-2.5 border rounded-md" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Phường / Xã</label>
+                            <input type="text" name="Ward" placeholder="Ví dụ: Phường Bến Nghé" value={formData.Ward || ''} onChange={handleChange} className="mt-1 w-full p-2.5 border rounded-md" />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Địa chỉ cụ thể (Số nhà, tên đường...)</label>
+                            <input type="text" name="Street" placeholder="Ví dụ: 123 Đường Lê Lợi" value={formData.Street || ''} onChange={handleChange} required className="mt-1 w-full p-2.5 border rounded-md" />
+                        </div>
+                        {!isEditing && (
+                            <div className="flex items-center pt-2">
+                                <input type="checkbox" id="isDefault" name="IsDefault" checked={formData.IsDefault || false} onChange={(e) => setFormData(prev => ({ ...prev, IsDefault: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                <label htmlFor="isDefault" className="ml-3 block text-sm text-gray-900">Đặt làm địa chỉ mặc định</label>
+                            </div>
+                        )}
+                    </form>
+
+                    <div className="flex-shrink-0 flex justify-end gap-4 p-6 border-t bg-gray-50">
+                        <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border rounded-lg hover:bg-gray-50">Hủy</button>
+                        <button type="submit" form="address-form" disabled={isSubmitting} className="px-5 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300">
+                            {isSubmitting ? 'Đang lưu...' : 'Lưu Thay Đổi'}
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );
 }
 
-// Component Trang Chính
+// ===================================================================
+// =                     Component Trang Chính                        =
+// ===================================================================
 export default function AddressPage() {
-    // Fetch dữ liệu bằng SWR
-    const { data: addresses, error, mutate } = useSWR('/api/addresses', getAddresses);
+    const { data: addresses, error, mutate, isLoading } = useSWR('/api/addresses', getAddresses);
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+    const [processingId, setProcessingId] = useState<number | null>(null);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingAddress, setEditingAddress] = useState<Partial<Address> | null>(null);
-
-    const handleOpenAddModal = () => {
-        setEditingAddress(null); // Đảm bảo form trống
-        setIsModalOpen(true);
+    const handleOpenAddPanel = () => {
+        setEditingAddress(null);
+        setIsPanelOpen(true);
     };
 
-    const handleOpenEditModal = (address: Address) => {
+    const handleOpenEditPanel = (address: Address) => {
         setEditingAddress(address);
-        setIsModalOpen(true);
+        setIsPanelOpen(true);
     };
 
-    const handleDeleteAddress = async (addressId: number) => {
+    const handleDelete = async (addressId: number) => {
         if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+            setProcessingId(addressId);
             try {
                 await deleteAddress(addressId);
                 toast.success("Đã xóa địa chỉ.");
-                mutate(); // Re-fetch danh sách địa chỉ
+                mutate();
             } catch (error: any) {
-                toast.error(error.response?.data?.message || "Xóa địa chỉ thất bại.");
+                toast.error(error.response?.data?.message || "Xóa thất bại.");
+            } finally {
+                setProcessingId(null);
             }
         }
     };
 
     const handleSetDefault = async (addressId: number) => {
+        setProcessingId(addressId);
         try {
             await setDefaultAddress(addressId);
             toast.success("Đã đặt làm địa chỉ mặc định.");
             mutate();
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Thao tác thất bại.");
+        } finally {
+            setProcessingId(null);
         }
     };
 
-
-    if (error) return <div className="p-4 bg-red-100 text-red-700 rounded">Lỗi khi tải danh sách địa chỉ.</div>;
-    if (!addresses) return <div>Đang tải...</div>;
-
     return (
-        <div className="p-6 md:p-8 bg-white rounded-lg shadow-md">
+        <div className="p-1">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Sổ Địa chỉ</h2>
-                <button onClick={handleOpenAddModal} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                    <PlusCircle size={20} />
-                    Thêm địa chỉ mới
+                <h1 className="text-2xl font-bold text-gray-800">Sổ Địa Chỉ Của Tôi</h1>
+                <button onClick={handleOpenAddPanel} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm">
+                    <PlusCircle size={18} />
+                    <span className="text-sm font-semibold">Thêm địa chỉ mới</span>
                 </button>
             </div>
 
-            <div className="space-y-4">
-                {addresses.length > 0 ? (
-                    addresses.map(address => (
-                        <AddressCard
-                            key={address.AddressID}
-                            address={address}
-                            onEdit={() => handleOpenEditModal(address)}
-                            onDelete={() => handleDeleteAddress(address.AddressID)}
-                            onSetDefault={() => handleSetDefault(address.AddressID)}
-                        />
-                    ))
-                ) : (
-                    <p className="text-center text-gray-500 py-8">Bạn chưa có địa chỉ nào được lưu.</p>
-                )}
-            </div>
+            {isLoading && <div className="p-8 text-center text-gray-500">Đang tải danh sách địa chỉ của bạn...</div>}
+            {error && <div className="p-4 bg-red-100 text-red-700 rounded-lg">Lỗi khi tải danh sách địa chỉ. Vui lòng thử lại.</div>}
 
-            <AddressModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                address={editingAddress}
-                onSave={mutate} // Khi lưu thành công, re-fetch dữ liệu
+            {!isLoading && !error && (
+                <div className="space-y-4">
+                    {addresses && addresses.length > 0 ? (
+                        addresses.map(address => (
+                            <AddressCard
+                                key={address.AddressID}
+                                address={address}
+                                onEdit={() => handleOpenEditPanel(address)}
+                                onDelete={() => handleDelete(address.AddressID)}
+                                onSetDefault={() => handleSetDefault(address.AddressID)}
+                                isProcessing={processingId === address.AddressID}
+                            />
+                        ))
+                    ) : (
+                        <div className="text-center text-gray-400 py-16 border-2 border-dashed rounded-lg">
+                            <Home size={48} className="mx-auto" />
+                            <p className="mt-4 font-semibold text-lg text-gray-600">Bạn chưa có địa chỉ nào.</p>
+                            <p className="text-sm mt-1">Hãy thêm một địa chỉ mới để giao hàng nhanh hơn!</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <AddressSidePanel
+                isOpen={isPanelOpen}
+                onClose={() => setIsPanelOpen(false)}
+                addressToEdit={editingAddress}
+                onSaveSuccess={() => mutate()}
             />
         </div>
     );
