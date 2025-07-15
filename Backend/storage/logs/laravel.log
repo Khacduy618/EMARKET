@@ -15631,3 +15631,145 @@
 [2025-07-14 19:07:16] local.INFO: [VNPay] Preparing to send data: {"vnp_Version":"2.1.0","vnp_TmnCode":"4NR1OFFG","vnp_Amount":31432266900,"vnp_Command":"pay","vnp_CreateDate":"20250714190716","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250714VUQD0K","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TxnRef":"EMK20250714VUQD0K"} 
 [2025-07-14 19:07:17] local.INFO: VnPay createPayment: Generated payment URL successfully. {"url":"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=31432266900&vnp_Command=pay&vnp_CreateDate=20250714190716&vnp_CurrCode=VND&vnp_IpAddr=172.18.0.9&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+don+hang+EMK20250714VUQD0K&vnp_OrderType=billpayment&vnp_ReturnUrl=http%3A%2F%2Flocalhost%2Fapi%2Fvnpay%2Freturn&vnp_TmnCode=4NR1OFFG&vnp_TxnRef=EMK20250714VUQD0K&vnp_Version=2.1.0&vnp_SecureHash=fc895c81b537107f1a74756d520a16e7f037754fbd52ea7f83ef5dbece600e0bd28be6848b615010ed76aa7b3d3b20448a31c12bb863ff713588319b0d8ae3f4"} 
 [2025-07-14 19:07:17] local.INFO: VNPay Input Data: {"vnp_Amount":31432266900,"vnp_Command":"pay","vnp_CreateDate":"20250714190716","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250714VUQD0K","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TmnCode":"4NR1OFFG","vnp_TxnRef":"EMK20250714VUQD0K","vnp_Version":"2.1.0"} 
+[2025-07-15 00:50:34] local.INFO: Cart data fetched from DB. Number of rows: 12  
+[2025-07-15 00:50:34] local.INFO: Cart data structured successfully. Number of items: 6  
+[2025-07-15 00:50:37] local.INFO: Cart data fetched from DB. Number of rows: 12  
+[2025-07-15 00:50:37] local.INFO: Cart data structured successfully. Number of items: 6  
+[2025-07-15 00:52:50] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2061 ---  
+[2025-07-15 00:52:51] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2061.  
+[2025-07-15 00:54:34] local.INFO: Cart data fetched from DB. Number of rows: 12  
+[2025-07-15 00:54:34] local.INFO: Cart data structured successfully. Number of items: 6  
+[2025-07-15 00:57:03] local.INFO: --- Received request for placeOrder --- {"shippingAddressId":7,"shippingFullName":"Nguyễn Khắc Duy","shippingPhoneNumber":"0932105214","notes":null,"totalAmount":314322669,"subtotalAmount":314442669,"shippingFee":60000,"discountAmount":180000,"paymentMethod":"VNPay","items":[{"variantId":1,"quantity":2,"priceAtPurchase":28975000,"subtotal":57950000},{"variantId":10,"quantity":2,"priceAtPurchase":38640000,"subtotal":77280000},{"variantId":11,"quantity":1,"priceAtPurchase":48760000,"subtotal":48760000},{"variantId":64,"quantity":1,"priceAtPurchase":124669669,"subtotal":124669669},{"variantId":19,"quantity":3,"priceAtPurchase":1701000,"subtotal":5103000},{"variantId":13,"quantity":1,"priceAtPurchase":680000,"subtotal":680000}],"platformVoucherData":{"codes":{"saleOff":"WELCOME50","freeShip":"FREESHIPMAX"},"discounts":{"saleOff":50000,"freeShip":30000}},"totalShopVoucherDiscount":100000,"shopVouchersApplied":[{"shopId":1,"code":"BICHTECH10","discount":100000}]} 
+[2025-07-15 00:57:04] local.INFO: placeOrder: Creating order with data: {"UserID":1,"PaymentMethod":"VNPay"} 
+[2025-07-15 00:57:04] local.INFO: placeOrder: Creating order with server-calculated data: {"OrderCode":"EMK202507158DCMCC","UserID":1,"TotalAmount":314322669.0,"SubtotalAmount":314442669.0,"ShippingFee":60000,"DiscountAmount":21138562.0,"ShippingAddressID":7,"ShippingFullName":"Nguyễn Khắc Duy","ShippingPhoneNumber":"0932105214","Notes":null,"PaymentMethod":"VNPay","PaymentStatus":"Pending","OverallStatus":"Pending","PlatformVoucherCode":"{\"saleOff\":\"WELCOME50\",\"freeShip\":\"FREESHIPMAX\"}","PlatformDiscountAmount":"{\"saleOff\":50000,\"freeShip\":30000}","shopvoucher":"BICHTECH10","shopdiscountamount":100000,"CreatedAt":"2025-07-15 00:57:04","UpdatedAt":"2025-07-15 00:57:04"} 
+[2025-07-15 00:57:05] local.INFO: placeOrder: Successfully created OrderID: 2077  
+[2025-07-15 01:01:08] local.INFO: Cart data fetched from DB. Number of rows: 15  
+[2025-07-15 01:01:08] local.INFO: Cart data structured successfully. Number of items: 7  
+[2025-07-15 01:01:15] local.INFO: Cart data fetched from DB. Number of rows: 15  
+[2025-07-15 01:01:15] local.INFO: Cart data structured successfully. Number of items: 7  
+[2025-07-15 01:01:41] local.INFO: Cart data fetched from DB. Number of rows: 15  
+[2025-07-15 01:01:41] local.INFO: Cart data structured successfully. Number of items: 7  
+[2025-07-15 01:01:43] local.INFO: Cart data fetched from DB. Number of rows: 15  
+[2025-07-15 01:01:43] local.INFO: Cart data structured successfully. Number of items: 7  
+[2025-07-15 01:02:13] local.INFO: Cart data fetched from DB. Number of rows: 18  
+[2025-07-15 01:02:13] local.INFO: Cart data structured successfully. Number of items: 8  
+[2025-07-15 01:02:16] local.INFO: Cart data fetched from DB. Number of rows: 18  
+[2025-07-15 01:02:16] local.INFO: Cart data structured successfully. Number of items: 8  
+[2025-07-15 01:02:18] local.INFO: Cart data fetched from DB. Number of rows: 18  
+[2025-07-15 01:02:18] local.INFO: Cart data structured successfully. Number of items: 8  
+[2025-07-15 01:04:47] local.INFO: --- Received request for placeOrder --- {"shippingAddressId":9,"shippingFullName":"Nguyễn Khắc Duy","shippingPhoneNumber":"0932105214","notes":null,"totalAmount":642101169,"subtotalAmount":642221169,"shippingFee":60000,"discountAmount":180000,"paymentMethod":"VNPay","items":[{"variantId":1,"quantity":2,"priceAtPurchase":28975000,"subtotal":57950000},{"variantId":10,"quantity":2,"priceAtPurchase":38640000,"subtotal":77280000},{"variantId":11,"quantity":1,"priceAtPurchase":48760000,"subtotal":48760000},{"variantId":64,"quantity":1,"priceAtPurchase":124669669,"subtotal":124669669},{"variantId":2,"quantity":10,"priceAtPurchase":32775000,"subtotal":327750000},{"variantId":63,"quantity":1,"priceAtPurchase":28500,"subtotal":28500},{"variantId":19,"quantity":3,"priceAtPurchase":1701000,"subtotal":5103000},{"variantId":13,"quantity":1,"priceAtPurchase":680000,"subtotal":680000}],"platformVoucherData":{"codes":{"saleOff":"WELCOME50","freeShip":"FREESHIPMAX"},"discounts":{"saleOff":50000,"freeShip":30000}},"totalShopVoucherDiscount":100000,"shopVouchersApplied":[{"shopId":1,"code":"BICHTECH10","discount":100000}]} 
+[2025-07-15 01:04:48] local.INFO: placeOrder: Creating order with data: {"UserID":1,"PaymentMethod":"VNPay"} 
+[2025-07-15 01:04:48] local.INFO: placeOrder: Creating order with server-calculated data: {"OrderCode":"EMK20250715M8PC1K","UserID":1,"TotalAmount":642101169.0,"SubtotalAmount":642221169.0,"ShippingFee":60000,"DiscountAmount":38390062.0,"ShippingAddressID":9,"ShippingFullName":"Nguyễn Khắc Duy","ShippingPhoneNumber":"0932105214","Notes":null,"PaymentMethod":"VNPay","PaymentStatus":"Pending","OverallStatus":"Pending","PlatformVoucherCode":"{\"saleOff\":\"WELCOME50\",\"freeShip\":\"FREESHIPMAX\"}","PlatformDiscountAmount":"{\"saleOff\":50000,\"freeShip\":30000}","shopvoucher":"BICHTECH10","shopdiscountamount":100000,"CreatedAt":"2025-07-15 01:04:48","UpdatedAt":"2025-07-15 01:04:48"} 
+[2025-07-15 01:04:49] local.INFO: placeOrder: Successfully created OrderID: 2078  
+[2025-07-15 01:05:35] local.INFO: --- Received request for VnPay createPayment for OrderID: 2078 ---  
+[2025-07-15 01:05:35] local.INFO: [VNPay] Preparing to send data: {"vnp_Version":"2.1.0","vnp_TmnCode":"4NR1OFFG","vnp_Amount":64210116900,"vnp_Command":"pay","vnp_CreateDate":"20250715010535","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250715M8PC1K","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TxnRef":"EMK20250715M8PC1K"} 
+[2025-07-15 01:05:35] local.INFO: VnPay createPayment: Generated payment URL successfully. {"url":"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=64210116900&vnp_Command=pay&vnp_CreateDate=20250715010535&vnp_CurrCode=VND&vnp_IpAddr=172.18.0.9&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+don+hang+EMK20250715M8PC1K&vnp_OrderType=billpayment&vnp_ReturnUrl=http%3A%2F%2Flocalhost%2Fapi%2Fvnpay%2Freturn&vnp_TmnCode=4NR1OFFG&vnp_TxnRef=EMK20250715M8PC1K&vnp_Version=2.1.0&vnp_SecureHash=37074018e41a8e5bfa61920b25cf8d1bbe05853c9f147d87bcee772ec24714fd81d5502a5107f6d03705c07268f9b51da1cc694711376e85e332cc023b7c6ace"} 
+[2025-07-15 01:05:35] local.INFO: VNPay Input Data: {"vnp_Amount":64210116900,"vnp_Command":"pay","vnp_CreateDate":"20250715010535","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250715M8PC1K","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TmnCode":"4NR1OFFG","vnp_TxnRef":"EMK20250715M8PC1K","vnp_Version":"2.1.0"} 
+[2025-07-15 01:05:41] local.INFO: --- Received return callback from VNPay --- {"vnp_Amount":"64210116900","vnp_BankCode":"VNPAY","vnp_CardType":"QRCODE","vnp_OrderInfo":"Thanh toan don hang EMK20250715M8PC1K","vnp_PayDate":"20250715080633","vnp_ResponseCode":"24","vnp_TmnCode":"4NR1OFFG","vnp_TransactionNo":"0","vnp_TransactionStatus":"02","vnp_TxnRef":"EMK20250715M8PC1K","vnp_SecureHash":"f7b94dbea440f7084f9cc50806dde2182572a5a73a2b450754caa0d49f91f901bff8d341b1129539ce7e84d2889107cc64cdaa326666dc654e43305eb3a5e018"} 
+[2025-07-15 01:05:42] local.WARNING: VNPay payment failed or was cancelled for order: EMK20250715M8PC1K {"vnp_Amount":"64210116900","vnp_BankCode":"VNPAY","vnp_CardType":"QRCODE","vnp_OrderInfo":"Thanh toan don hang EMK20250715M8PC1K","vnp_PayDate":"20250715080633","vnp_ResponseCode":"24","vnp_TmnCode":"4NR1OFFG","vnp_TransactionNo":"0","vnp_TransactionStatus":"02","vnp_TxnRef":"EMK20250715M8PC1K"} 
+[2025-07-15 01:05:50] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-15 01:05:50] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-15 01:05:50] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 72 đơn hàng.  
+[2025-07-15 01:05:51] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-15 01:05:51] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-15 01:05:52] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 72 đơn hàng.  
+[2025-07-15 01:06:10] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-15 01:06:11] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-15 01:06:11] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2070 ---  
+[2025-07-15 01:06:12] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2070.  
+[2025-07-15 01:06:20] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-15 01:06:20] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-15 01:06:21] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 72 đơn hàng.  
+[2025-07-15 01:06:22] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-07-15 01:06:22] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-07-15 01:06:22] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 72 đơn hàng.  
+[2025-07-15 01:09:42] local.ERROR: Call to undefined method App\Http\Controllers\ShopProductController::addProduct() {"userId":2,"exception":"[object] (Error(code: 0): Call to undefined method App\\Http\\Controllers\\ShopProductController::addProduct() at /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php:46)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\ShopProductController), 'addProduct')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\\Routing\\Route->runController()
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate\\Routing\\Route->run()
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#4 /var/www/html/app/Http/Middleware/EnsureIsSeller.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): App\\Http\\Middleware\\EnsureIsSeller->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#7 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#8 /var/www/html/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#9 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#10 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#11 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#12 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#13 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#14 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#15 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#16 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#20 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#26 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#37 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#38 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#39 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#40 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
+#41 {main}
+"} 
+[2025-07-15 01:09:56] local.ERROR: Call to undefined method App\Http\Controllers\ShopProductController::addProduct() {"userId":2,"exception":"[object] (Error(code: 0): Call to undefined method App\\Http\\Controllers\\ShopProductController::addProduct() at /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php:46)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\ShopProductController), 'addProduct')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\\Routing\\Route->runController()
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate\\Routing\\Route->run()
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#4 /var/www/html/app/Http/Middleware/EnsureIsSeller.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): App\\Http\\Middleware\\EnsureIsSeller->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#7 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#8 /var/www/html/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#9 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#10 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#11 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#12 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#13 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#14 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#15 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#16 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#20 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#26 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#37 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#38 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#39 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#40 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
+#41 {main}
+"} 
