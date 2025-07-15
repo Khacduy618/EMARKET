@@ -11,3 +11,12 @@ export interface Address {
     CreatedAt: string;
     UpdatedAt: string;
 }
+
+export interface AddressPayload {
+    FullName: string;
+    PhoneNumber: string;
+    Street: string;
+    Ward?: string | null;
+    District: string;
+    City: string;
+}

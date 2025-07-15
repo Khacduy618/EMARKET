@@ -17,11 +17,11 @@ import {
 
 // --- 2. CÁC BIẾN MÔI TRƯỜNG VÀ HÀM HELPER CƠ BẢN ---
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
 
 // Tiện ích để đọc cookie
-function getCookie(name: string): string | null {
+export function getCookie(name: string): string | null {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
@@ -29,7 +29,7 @@ function getCookie(name: string): string | null {
 }
 
 // Tiện ích lấy và giải mã XSRF token
-function getDecodedXsrfToken(): string {
+export function getDecodedXsrfToken(): string {
     const xsrfToken = getCookie('XSRF-TOKEN');
     if (!xsrfToken) {
         // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
@@ -40,7 +40,7 @@ function getDecodedXsrfToken(): string {
 }
 
 // Hàm xử lý response chung, ném lỗi nếu không ok
-async function handleResponse<T>(response: Response): Promise<T> {
+export async function handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 204 || response.status === 201) {
         return {} as T;
     }

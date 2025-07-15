@@ -11,6 +11,7 @@ use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\VoucherController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
@@ -140,4 +141,11 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
         ];
         return response()->json($users);
     });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Route để đặt làm mặc định
+    Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault']);
+    // Route Resource cho các hành động CRUD khác
+    Route::apiResource('addresses', AddressController::class);
 });
