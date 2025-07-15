@@ -226,7 +226,7 @@ const ModernProductCard = ({ product }: { product: Product }) => {
             </div>
 
             {/* Bottom Gradient Border */}
-            <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="h-1 bg-gradient-to-r  opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
     )
 }

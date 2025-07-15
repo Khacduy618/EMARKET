@@ -175,101 +175,49 @@ private function getCategoryWithChildrenIds($categoryId) {
     }
     return array_unique($ids);
 }
-/*
- HÀM TÌM HEARDER
- */
-// public function searchAll(Request $request)
-// {
-//     // --- 1. Lấy và chuẩn hóa đầu vào ---
-//     $keyword = $request->input('q');
-//     $trimmedKeyword = $keyword ? trim($keyword) : null;
-//     $unaccentedKeyword = $trimmedKeyword ? $this->removeVietnameseAccents($trimmedKeyword) : null;
-
-//     // --- 2. Bắt đầu xây dựng câu truy vấn cơ sở ---
-//     $query = Product::query()
-//         ->select([
-//             'Products.ProductID',
-//             'Products.CategoryID',
-//             'Products.Name',
-//             'Products.SoldCount',
-//             'Products.CreatedAt',
-//             // Sửa subquery: Vẫn lấy giá nhỏ nhất, nhưng chỉ cần biến thể IsActive, không cần còn hàng.
-//             // Nếu không có biến thể nào, giá sẽ là NULL.
-//             DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1) as Price')
-//         ]);
-//         // BỎ HẾT CÁC ĐIỀU KIỆN LỌC CỨNG BAN ĐẦU
-//         // ->where('Products.IsActive', 1) // <- Bỏ đi
-//         // ->where('Products.AdminApprovalStatus', 'Approved') // <- Bỏ đi
-//         // ->whereExists(...) // <- Bỏ đi
-
-//     // --- 3. Áp dụng các bộ lọc một cách linh hoạt ---
-
-//     // Lọc theo từ khóa (nếu có)
-//     if ($unaccentedKeyword) {
-//         $query->where(DB::raw("LOWER(CONVERT(Products.Name USING utf8mb4))"), 'LIKE', '%' . mb_strtolower($unaccentedKeyword) . '%');
-//     }
-
-//     // Lọc theo Category (nếu có)
-//     if ($request->filled('category_id')) {
-//         $categoryIds = $this->getCategoryWithChildrenIds($request->input('category_id'));
-//         if (!empty($categoryIds)) {
-//             $query->whereIn('Products.CategoryID', $categoryIds);
-//         }
-//     }
-
-//     // Lọc theo khoảng giá (vẫn giữ lại)
-//     $minPrice = $request->input('min_price');
-//     $maxPrice = $request->input('max_price');
-//     if ($minPrice || $maxPrice) {
-//          $query->where(function ($q) use ($minPrice, $maxPrice) {
-//             $subQueryPrice = DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1)');
-//             if ($minPrice) {
-//                 $q->where($subQueryPrice, '>=', $minPrice);
-//             }
-//             if ($maxPrice) {
-//                 $q->where($subQueryPrice, '<=', $maxPrice);
-//             }
-//         });
-//     }
-    
-//     // Sắp xếp (vẫn giữ lại)
-//     $sortBy = $request->input('sort', 'popular');
-//     $query->when($sortBy === 'newest', fn($q) => $q->orderByDesc('Products.CreatedAt'))
-//           ->when($sortBy === 'bestselling', fn($q) => $q->orderByDesc('Products.SoldCount'))
-//           ->when($sortBy === 'price_asc', fn($q) => $q->orderBy('Price', 'asc'))
-//           ->when($sortBy === 'price_desc', fn($q) => $q->orderBy('Price', 'desc'))
-//           ->when(!in_array($sortBy, ['newest', 'bestselling', 'price_asc', 'price_desc']), fn($q) => $q->orderByDesc('Products.SoldCount')->orderByDesc('Products.CreatedAt'));
-
-//     // --- 4. Phân trang và trả về kết quả ---
-//     $perPage = $request->input('limit', 24);
-//     $results = $query->paginate($perPage);
-    
-//     // Gán ảnh vào kết quả
-//     if ($results->isNotEmpty()) {
-//         $this->attachImagesToCollection($results);
-//     }
-
-//     return response()->json($results);
-// }
 public function searchAll(Request $request)
 {
     // --- 1. Lấy và chuẩn hóa đầu vào ---
     $keyword = $request->input('q');
     $trimmedKeyword = $keyword ? trim($keyword) : null;
     $unaccentedKeyword = $trimmedKeyword ? $this->removeVietnameseAccents($trimmedKeyword) : null;
+    $attributeIdsToFilter = $request->input('attributes', []); // Lấy từ request
 
+$query = Product::query()
+    ->leftJoin('ProductVariants', function ($join) {
+        // Chỉ join với các biến thể đang hoạt động (IsActive = 1)
+        $join->on('Products.ProductID', '=', 'ProductVariants.ProductID')
+             ->where('ProductVariants.IsActive', '=', 1);
+    })
+    ->select([
+        'Products.ProductID',
+        'Products.CategoryID',
+        'Products.Name',
+        'Products.SoldCount',
+        'Products.CreatedAt',
+        // Sử dụng MIN() với GROUP BY để lấy giá thấp nhất
+        DB::raw('MIN(ProductVariants.price) as Price')
+    ])
+    // Đây là lúc gọi scope bạn đã tạo!
+    ->havingAttributes($attributeIdsToFilter) // Có thể thêm tham số thứ 2 là `true` nếu muốn sản phẩm phải có TẤT CẢ thuộc tính
+    ->groupBy([ // Cần group by tất cả các cột của Products để MIN() hoạt động đúng
+        'Products.ProductID',
+        'Products.CategoryID',
+        'Products.Name',
+        'Products.SoldCount',
+        'Products.CreatedAt',
+    ]);
     // --- 2. Bắt đầu xây dựng câu truy vấn cơ sở ---
-    $query = Product::query()
-        ->select([
-            'Products.ProductID',
-            'Products.CategoryID',
-            'Products.Name',
-            'Products.SoldCount',
-            'Products.CreatedAt',
-            DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1) as Price')
-        ]);
-        // Hàm này không có bất kỳ bộ lọc cứng nào (IsActive, StockQuantity)
-
+    // $query = Product::query()
+    //     ->select([
+    //         'Products.ProductID',
+    //         'Products.CategoryID',
+    //         'Products.Name',
+    //         'Products.SoldCount',
+    //         'Products.CreatedAt',
+    //         DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1) as Price')
+    //     ])
+    //    ->havingAttributes();
     // --- 3. Áp dụng các bộ lọc ---
 
     // LỌC SƠ BỘ BẰNG SQL NẾU CÓ TỪ KHÓA (Logic Fuzzy Search)

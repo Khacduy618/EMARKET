@@ -490,7 +490,7 @@ export default function CategorySidebar({ categoryTree, categoryFilters, activeC
     };
 
     return (
-        <div className="bg-white rounded-sm shadow-sm">
+        <div className="bg-white rounded-sm  shadow-sm">
             {/* === PHẦN DANH MỤC === */}
             <div className="p-4">
                 <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2 text-base">

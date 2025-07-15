@@ -15,7 +15,8 @@ use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\PlatformCategory; 
+use Illuminate\Support\Facades\DB;
+
 // Import ProductImage nếu bạn có Model này và muốn type hinting
 // use App\Models\ProductImage;
 
@@ -24,6 +25,8 @@ class Product extends Model
     use HasFactory;
 
     protected $table = 'Products';
+    
+
     protected $primaryKey = 'ProductID';
     public $timestamps = false; 
     protected $fillable = [
@@ -138,7 +141,17 @@ class Product extends Model
                       ->where('AdminApprovalStatus', 'Approved');
      }
 
-
+      public function scopeWithAttributes(Builder $query): Builder
+    {
+        return $query->whereExists(function ($subQuery) {
+            $subQuery->select(DB::raw(1))
+                  ->from('ProductVariants as pv_check')
+                  ->join('ProductVariantAttribute as pva_check', 'pv_check.VariantID', '=', 'pva_check.VariantID')
+                  ->join('AttributeValues as av_check', 'pva_check.AttributeValueID', '=', 'av_check.AttributeValueID')
+                  ->join('Attributes as attr_check', 'av_check.AttributeID', '=', 'attr_check.AttributeID')
+                  ->whereColumn('pv_check.ProductID', 'products.ProductID'); // 'products' là tên bảng mặc định của model Product
+        });
+    }
      ////////////////////////////////////////////////
      public function getSlugAttribute(): ?string
     {
@@ -270,7 +283,7 @@ class Product extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(PlatformCategory::class, 'CategoryID', 'CategoryID');
+        return $this->belongsTo(Category::class, 'CategoryID', 'CategoryID');
     }
     /**
      * Get the reviews for the product.
@@ -279,8 +292,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
-
-     public function scopeActive($query)
+    public function scopeActive($query)
     {
         // Giả sử cột kiểm tra active trong bảng products của bạn là 'IsActive' = 1
         return $query->where('IsActive', 1);
@@ -306,6 +318,20 @@ class Product extends Model
         // 'ProductID' trong bảng OrderItems liên kết với 'ProductID' trong bảng Products
         return $this->hasMany(OrderItem::class, 'ProductID', 'ProductID');
     }
-    
-}
 
+    /**
+     * Scope để chỉ lấy các sản phẩm CÓ biến thể và thuộc tính được gán đầy đủ.
+     * Đây là scope chúng ta cần.
+     */
+    public function scopeHavingAttributes(Builder $query): Builder
+    {
+        return $query->whereExists(function ($subQuery) {
+            $subQuery->select(DB::raw(1))
+                  ->from('ProductVariants as pv_check')
+                  ->join('ProductVariantAttribute as pva_check', 'pv_check.VariantID', '=', 'pva_check.VariantID')
+                  ->join('AttributeValues as av_check', 'pva_check.AttributeValueID', '=', 'av_check.AttributeValueID')
+                  ->join('Attributes as attr_check', 'av_check.AttributeID', '=', 'attr_check.AttributeID')
+                  ->whereColumn('pv_check.ProductID', 'Products.ProductID');
+        });
+    }
+}
