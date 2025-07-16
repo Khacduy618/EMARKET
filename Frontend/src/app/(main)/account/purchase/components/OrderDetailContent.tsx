@@ -10,6 +10,7 @@ import { Order } from '@/types'; // Lấy Order từ '@/types'
 
 import OrderProgressTracker from './OrderProgressTracker';
 import OrderShippingInfo from './OrderShippingInfo';
+import { getFullImageUrl } from '@/services/api';
 
 const formatVND = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -198,8 +199,8 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
                 <div className="flex items-start text-sm">
                   {/* Cột thông tin sản phẩm (Image + Name) - sẽ co giãn */}
                   <div className="flex items-start flex-1">
-                    <Image 
-                      src={item.productImageURL} 
+                    <img 
+                      src={getFullImageUrl(item.productImageURL)} 
                       alt={item.productName} 
                       width={64} 
                       height={64} 

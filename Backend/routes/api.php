@@ -20,6 +20,15 @@ use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Seller\SellerRegisterController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategory;
+use App\Http\Controllers\Admin\ShopController as ShopController;
+use App\Http\Controllers\Admin\ProductControllers;
+use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\Seller\ShopCategoryController; 
+use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\VNPayController;
+
 
 /* ___________________________________________________________________
   |                           Người dùng                              |
@@ -80,16 +89,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
-
-
-use App\Http\Controllers\Seller\SellerRegisterController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategory;
-use App\Http\Controllers\Admin\ShopController as ShopController;
-use App\Http\Controllers\Admin\ProductControllers;
-use App\Http\Controllers\Admin\StatisticsController;
-use App\Http\Controllers\Seller\ShopCategoryController; 
-use App\Http\Controllers\Seller\SellerOrderController;
-use App\Http\Controllers\VNPayController;
 
 Route::middleware('auth:sanctum')->group(function (){
     // Auth routes already defined above, removing duplicates

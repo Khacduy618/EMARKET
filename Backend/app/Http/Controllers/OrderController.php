@@ -515,11 +515,11 @@ class OrderController extends Controller
             'shippingFee'           => 'required|numeric|min:0',
             'discountAmount'        => 'required|numeric|min:0',
 
-             'platformVoucherData'               => 'required|array',
-            'platformVoucherData.codes'         => 'required|array',
+             'platformVoucherData'               => 'nullable|array',
+            'platformVoucherData.codes'         => 'sometimes|array',
             'platformVoucherData.codes.saleOff' => 'nullable|string',
             'platformVoucherData.codes.freeShip'=> 'nullable|string',
-            'platformVoucherData.discounts'     => 'required|array',
+            'platformVoucherData.discounts'     => 'sometimes|array',
             'platformVoucherData.discounts.saleOff' => 'nullable|numeric',
             'platformVoucherData.discounts.freeShip'  => 'nullable|numeric',
             
@@ -587,12 +587,13 @@ class OrderController extends Controller
                 }
 
                 // Lấy các giá trị discount từ voucher
-                $serverShopVoucherDiscount = $validatedData['totalShopVoucherDiscount'];
-
-                $platformSaleOffDiscount = $validatedData['platformVoucherData']['discounts']['saleOff'] ?? 0;
-                $platformFreeshipDiscount = $validatedData['platformVoucherData']['discounts']['freeShip'] ?? 0;
-                $serverPlatformVoucherDiscount =  $platformSaleOffDiscount + $platformFreeshipDiscount;
+                 $serverShopVoucherDiscount = $validatedData['totalShopVoucherDiscount'] ?? 0;
                 
+                // Sử dụng Null Coalescing Operator (??) để cung cấp giá trị mặc định an toàn
+                $platformVoucherData = $validatedData['platformVoucherData'] ?? [];
+                $platformSaleOffDiscount = $platformVoucherData['discounts']['saleOff'] ?? 0;
+                $platformFreeshipDiscount = $platformVoucherData['discounts']['freeShip'] ?? 0;
+                $serverPlatformVoucherDiscount = $platformSaleOffDiscount + $platformFreeshipDiscount;
                 // TÍNH TOÁN TỔNG GIẢM GIÁ
                 // $serverTotalDiscount = $serverTotalProductDiscount + $serverShopVoucherDiscount + $serverPlatformVoucherDiscount;
 
@@ -613,11 +614,11 @@ class OrderController extends Controller
                 $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
 
                 $paymentMethodEnum = $validatedData['paymentMethod'];
-                 $platformVoucherCodesJson = json_encode($validatedData['platformVoucherData']['codes']);
+                $platformVoucherCodesJson = json_encode($platformVoucherData['codes'] ?? []);
                 // Encode mảng voucher discounts thành chuỗi JSON
-                $platformDiscountAmountsJson = json_encode($validatedData['platformVoucherData']['discounts']);
+               $platformDiscountAmountsJson = json_encode($platformVoucherData['discounts'] ?? []);
                 
-                $shopVoucherCodes = !empty($validatedData['shopVouchersApplied']) 
+               $shopVoucherCodes = !empty($validatedData['shopVouchersApplied']) 
                     ? implode(', ', array_column($validatedData['shopVouchersApplied'], 'code')) 
                     : null;
 

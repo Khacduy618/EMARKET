@@ -430,6 +430,7 @@ import Link from 'next/link'; // Import Link để chuyển hướng
 import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
 
 import { Order, OrderStatus } from '@/types'; // Lấy Order và OrderStatus từ '@/types'
+import { getFullImageUrl } from '@/services/api';
 
 const formatVND = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -509,7 +510,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
             {order.shopLevel === 'Mall' && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>
             )}
-            {order.shopLevel === 'Yêu thích+' && (
+            {order.shopLevel === 'Favorite' && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>
             )}
             <h3 className="font-semibold text-gray-800 text-sm">{order.shopName}</h3>
@@ -527,11 +528,9 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
         {order.items.map((item, index) => (
           <div key={item.OrderItemID} className={`flex items-start px-4 py-3 ${index < order.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
             <div className="flex-shrink-0 w-14 h-14 relative mr-3 border border-gray-200 rounded-md overflow-hidden">
-              <Image
-                src={item.productImageURL}
+              <img
+                src={getFullImageUrl(item.productImageURL)}
                 alt={item.productName}
-                layout="fill"
-                objectFit="cover"
               />
             </div>
             <div className="flex-1 flex flex-col">

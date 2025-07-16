@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItemQuantity, removeCartItem, updateCartItemVariant, removeMultipleCartItems } from '@/services/cart';
-import { getProductAttributes } from '@/services/api';
+import { getProductAttributes, getVariantImage } from '@/services/api';
 import { Cart, CartItem, AppliedVouchersCombined, AppliedShopVouchers, Voucher} from '@/types'; 
 import AttributeSelectionDropdown from '@/app/components/cart/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
@@ -1001,7 +1001,12 @@ const CartPage: React.FC = () => {
                                                     className="flex items-center"
                                                     >
                                                         <div className="w-16 h-16 bg-gray-100 rounded-sm mr-4 flex items-center justify-center text-gray-500 overflow-hidden border">
-                                                            <img src={item.productVariant?.ImageURL || '/images/placeholder.png'} alt={item.productVariant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" />
+                                                            {/* <img src={item.productVariant?.ImageURL || '/images/placeholder.png'} alt={item.productVariant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" /> */}
+                                                             <img 
+                                                                src={getVariantImage(item.productVariant, item.productVariant.product)} 
+                                                                alt={item.productVariant?.product?.Name || 'Product Image'}
+                                                                className="object-cover w-full h-full"
+                                                            />
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-semibold text-sm text-gray-800">{item.productVariant?.product?.Name}</span>

@@ -61,7 +61,9 @@ export interface OrderItem {
   FlashSaleDealID: number | null;
   ReturnStatus: ReturnItemStatus;
   CreatedAt: string;
-
+  productVariant: ProductVariant & {
+      product: Product;
+  };
   productName: string;
   productImageURL: string;
   classification: string;

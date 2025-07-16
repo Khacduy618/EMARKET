@@ -11,12 +11,12 @@ export default function ProfileSidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'Hồ sơ', icon: FaUser, href: '/profile' },
-    { name: 'Địa chỉ', icon: FaMapMarkerAlt, href: '/address' },
-    { name: 'Đổi mật khẩu', icon: FaLock, href: '/password' },
-    { name: 'Kho voucher', icon: FaTicketAlt, href: '/vouchers' },
-    { name: 'Đơn mua', icon: FaShoppingBag, href: '/purchase' },
-    { name: 'Chi tiêu', icon: RiPassPendingLine, href: '/spending'}
+    { name: 'Hồ sơ', icon: FaUser, href: '/account/profile' },
+    { name: 'Địa chỉ', icon: FaMapMarkerAlt, href: '/account/address' },
+    { name: 'Đổi mật khẩu', icon: FaLock, href: '/account/password' },
+    { name: 'Kho voucher', icon: FaTicketAlt, href: '/account/vouchers' },
+    { name: 'Đơn mua', icon: FaShoppingBag, href: '/account/purchase' },
+    { name: 'Chi tiêu', icon: RiPassPendingLine, href: '/account/spending'}
   ];
   const DEFAULT_PROFILE_IMAGE = '/images/user-default.png';
 

@@ -111,6 +111,7 @@ export async function addProduct(productFormData: FormData): Promise<any> {
   return response.data;
 }
 
+
 export async function createProduct(productFormData: FormData): Promise<any> {
   console.log("Attempting to send request to /products...");
   console.log("Base URL is:", api.defaults.baseURL); // Kiểm tra baseURL

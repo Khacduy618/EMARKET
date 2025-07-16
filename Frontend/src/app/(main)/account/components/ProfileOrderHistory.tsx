@@ -137,7 +137,7 @@ export default function ProfileOrderHistory() {
 
     const handleTabClick = (tabId: OrderTabStatus) => {
         setActiveTab(tabId);
-        window.history.pushState(null, '', `/purchase?status=${tabId}`);
+        window.history.pushState(null, '', `/account/purchase?status=${tabId}`);
     };
 
     if (loading) {

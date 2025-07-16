@@ -58,7 +58,7 @@ const OrderListModal: React.FC<OrderListModalProps> = ({ isOpen, onClose, orders
                     </div>
                   </div>
                   {/* Bạn có thể thêm nút "Xem chi tiết" ở đây để dẫn đến trang chi tiết đơn hàng */}
-                  {/* <a href={`/account/purchase/${order.orderCode}`} className="text-xs text-indigo-500 hover:underline mt-1 inline-block">Xem chi tiết</a> */}
+                  <a href={`/account/purchase/${order.orderCode}`} className="text-xs text-indigo-500 hover:underline mt-1 inline-block">Xem chi tiết</a>
                 </li>
               ))}
             </ul>

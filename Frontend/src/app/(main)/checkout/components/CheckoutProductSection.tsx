@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { FaCircleQuestion, FaCommentDots } from 'react-icons/fa6';
 import { Building, MessageSquare } from 'lucide-react';
 import { CheckoutShopOrder } from '@/types';
+import { getFullImageUrl } from '@/services/api';
 
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -52,7 +53,7 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
         
         <div key={item.variantId} className="flex items-start py-3 border-b border-gray-100 last:border-b-0">
           <div className="flex-shrink-0 w-16 h-16 relative mr-4 border border-gray-200 rounded-md overflow-hidden">
-            <Image src={item.imageUrl || '/images/placeholder.png'} alt={item.name} width={64} height={64} className="object-cover" />
+            <img src={getFullImageUrl(item.imageUrl)} alt={item.name} width={64} height={64} className="object-cover" />
           </div>
           <div className="flex-1 flex items-start text-sm">
             <div className="flex-1 flex flex-col pr-4">
