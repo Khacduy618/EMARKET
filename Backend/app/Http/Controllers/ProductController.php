@@ -180,14 +180,28 @@ public function destroy($id)
      * @return JsonResponse
      */
     public function getSuggestions(): JsonResponse
-    {
-        $query = $this->buildBaseSuggestionsQuery();
-        
-        // Lấy 30 sản phẩm gợi ý hàng đầu
-        $products = $query->limit(30)->get();
+{
+    // BƯỚC 1: Lấy dữ liệu từ DB (sử dụng các hàm helper đã sửa)
+    // buildBaseSuggestionsQuery đã có scope ->withAttributes() để cố gắng lọc ở DB
+    $query = $this->buildBaseSuggestionsQuery();
+    $products = $query->limit(30)->get();
 
-        return response()->json($this->transformProductCollection($products));
-    }
+    // BƯỚC 2: Biến đổi collection, lúc này trường 'Attributes' sẽ được tính toán
+    // Một số sản phẩm có thể sẽ có 'Attributes' là null
+    $transformedProducts = $this->transformProductCollection($products);
+
+    // BƯỚC 3: LỌC CUỐI CÙNG - "LƯỚI AN TOÀN"
+    // Loại bỏ tất cả các sản phẩm có trường 'Attributes' là null hoặc rỗng.
+    $filteredProducts = $transformedProducts->filter(function ($product) {
+        // Lưu ý: $product ở đây là một MẢNG (array) sau khi đã transform, không phải đối tượng Eloquent.
+        // Chúng ta kiểm tra giá trị của key 'Attributes'.
+        return !empty($product['Attributes']);
+    });
+
+    // BƯỚC 4: Trả về kết quả đã được lọc sạch
+    // ->values() để reset lại index của mảng, đảm bảo nó là một mảng JSON hợp lệ (bắt đầu từ 0, 1, 2...)
+    return response()->json($filteredProducts->values());
+}
 
     /**
      * Lấy tất cả sản phẩm phổ biến, có hỗ trợ phân trang.
@@ -327,96 +341,40 @@ public function destroy($id)
      * @param Product $product
      * @return array
      */
-    private function transformProduct(Product $product): array
-    {
-        return [
-            'ProductID' => $product->ProductID,
-            'Name' => $product->Name,
-            'Description' => $product->Description,
-            'Discount' => $product->Discount,
-            'viewCount' => $product->viewCount,
-            // Lấy giá thấp nhất từ các biến thể đã được tải trước
-            'Price' => $product->variants->min('Price'),
-            // Dùng optional chaining và null coalescing operator để an toàn hơn
-            'PrimaryImageURL' => $product->primaryImage?->ImageURL ?? null,
-            'CreatedAt'=>$product->CreatedAt,
-        ];
-    }
-public function ProductFinalPrice()
-    {
-        $products = Product::where('Products.IsActive', 1) // Chỉ định rõ bảng cho cột IsActive
-            ->where('Products.AdminApprovalStatus', 'Approved') // Chỉ định rõ bảng
-            ->where('Products.Discount', '>', 0) // Lấy sản phẩm có giảm giá (từ bảng Products)
-            ->with([
-                // Lấy ảnh chính từ bảng ProductImages
-                'primaryImage:ProductID,ImageURL', // Chỉ chọn cột cần thiết
+   private function transformProduct(Product $product): array
+{
+    // Tìm biến thể có giá thấp nhất từ collection đã được Eager Load
+    $cheapestVariant = $product->variants->sortBy('Price')->first();
+    
+    // Khởi tạo chuỗi thuộc tính
+    $attributesText = null;
 
-                // Lấy thông tin các biến thể từ bảng ProductVariants
-                // Chúng ta sẽ lấy biến thể đầu tiên hoặc một biến thể mặc định
-                'defaultVariant' => function ($query) {
-                    $query->select('VariantID', 'ProductID', 'SKU', 'Price', 'ImageURL as VariantImageURL') // Chọn cột từ ProductVariants
-                          ->with([
-                              // Lấy các thuộc tính của biến thể đó
-                              // thông qua ProductVariantAttribute -> AttributeValues -> Attributes
-                              'AttributeValues' => function ($q_attr_val) {
-                                  $q_attr_val->select('AttributeValues.AttributeValueID', 'AttributeValues.Value', 'AttributeValues.AttributeID')
-                                             ->with('Attribute:AttributeID,Name'); // Lấy tên thuộc tính (Màu sắc, Kích thước)
-                              }
-                          ]);
-                },
-            ])
-            ->limit(11)
-            ->select('Products.ProductID', 'Products.Name', 'Products.Discount') // Chọn cột từ bảng products
-            ->get();
-
-        $formattedProducts = $products->map(function ($product) {
-            $variant = $product->defaultVariant; // Lấy biến thể đã eager load
-            $variantPrice = null;
-            $variantSku = null;
-            $variantSpecificImage = null;
-            $attributesDescription = [];
-            $finalPrice = 0;
-
-            if ($variant) {
-                $variantPrice = $variant->Price;
-                $variantSku = $variant->SKU;
-                $variantSpecificImage = $variant->VariantImageURL; // Ảnh riêng của biến thể (nếu có)
-
-                if ($variant->attributeValues->isNotEmpty()) {
-                    foreach ($variant->attributeValues as $attrValue) {
-                        if ($attrValue->attribute) { // Đảm bảo attribute được load
-                            $attributesDescription[] = $attrValue->attribute->Name . ': ' . $attrValue->Value;
-                        }
-                    }
-                }
-
-                // Tính giá cuối cùng: Giá biến thể trừ đi khuyến mãi của sản phẩm
-                // Giả sử Product.Discount là số tiền giảm giá trực tiếp
-                if ($product->Discount > 0 && $variantPrice !== null) {
-                    $finalPrice = $variantPrice - $product->Discount;
-                } else {
-                    $finalPrice = $variantPrice;
-                }
-                $finalPrice = max(0, $finalPrice ?? 0); // Đảm bảo giá không âm
+    // Nếu tìm thấy biến thể hợp lệ và nó có thuộc tính
+    if ($cheapestVariant && $cheapestVariant->attributeValues->isNotEmpty()) {
+        // Dùng map để tạo chuỗi "Tên: Giá trị" cho mỗi thuộc tính, sau đó nối chúng lại
+        $attributesText = $cheapestVariant->attributeValues->map(function ($av) {
+            // Kiểm tra để đảm bảo quan hệ `attribute` đã được tải
+            if ($av->attribute) { 
+                return $av->attribute->Name . ': ' . $av->Value;
             }
-
-            return [
-                'ProductID'        => $product->ProductID,
-                'name'             => $product->Name,
-                'product_discount' => $product->Discount, // Khuyến mãi của sản phẩm
-                'average_rating'   => $product->AverageRating,
-                'primary_image_url'=> $product->primaryImage?->ImageURL ?? null,
-                'variant_sku'      => $variantSku,
-                'variant_price'    => $variantPrice, // Giá gốc của biến thể
-                'final_price'      => $finalPrice,   // Giá sau khi áp dụng khuyến mãi sản phẩm
-                'variant_specific_image_url' => $variantSpecificImage, // Ảnh của biến thể
-                'attributes'       => implode(', ', $attributesDescription), // Mô tả thuộc tính của biến thể
-            ];
-        });
-
-        return response()->json($formattedProducts);
+            return null;
+        })->filter()->implode(', '); // filter() để loại bỏ các giá trị null
     }
 
+    // Xây dựng mảng kết quả cuối cùng
+    return [
+        'ProductID'       => $product->ProductID,
+        'Name'            => $product->Name,
+        'Description'     => $product->Description,
+        'Discount'        => $product->Discount,
+        'viewCount'       => $product->viewCount,
+        'Price'           => $cheapestVariant ? round($cheapestVariant->Price) : null,
+        // Ưu tiên ảnh chính, nếu không có thì lấy ảnh của biến thể
+        'PrimaryImageURL' => $product->primaryImage?->ImageURL ?? $cheapestVariant?->ImageURL,
+        'CreatedAt'       => $product->CreatedAt,
+        'Attributes'      => $attributesText, // <<== THÊM TRƯỜNG MỚI VÀO ĐÂY
+    ];
+}
     public function bestSelling() // Có thể đổi tên hàm thành مثلاً featuredOrDiscountedProducts
     {
          $variantSubQuery = DB::raw("(
@@ -688,179 +646,108 @@ public function ProductFinalPrice()
     }
     public function getFeaturedProducts(Request $request): JsonResponse
     {
-        try {
-            $perPage = $request->query('per_page', 12);
+      try {
+        $perPage = $request->query('per_page', 12);
 
-            $products = DB::table('Products as p')
-                ->select(
-                    'p.ProductID',
-                    'p.Name as ProductName',
-                    'pi.ImageURL as PrimaryImage',
-                    DB::raw('MIN(pv.Price) as CurrentPrice'),
-                    DB::raw('MAX(pv.CompareAtPrice) as OriginalPrice'),
-                    DB::raw('COALESCE(SUM(oi.Quantity), 0) as TotalQuantitySold')
-                )
-                ->join('ProductVariants as pv', 'p.ProductID', '=', 'pv.ProductID')
-                ->leftJoin('OrderItems as oi', 'pv.VariantID', '=', 'oi.VariantID')
-
-                // ========== DÒNG CẦN SỬA Ở ĐÂY ==========
-                // Sửa 'productimage' thành tên bảng đúng, ví dụ 'ProductImages'
-                ->leftJoin('ProductImages as pi', function ($join) {
-                    $join->on('p.ProductID', '=', 'pi.ProductID')
-                         ->where('pi.IsPrimary', '=', 1);
-                })
-                // ==========================================
-
-                ->where('p.IsActive', 1)
-                ->where('pv.IsActive', 1)
-                ->where('p.AdminApprovalStatus', 'Approved')
-                ->where(function ($query) {
-                    $query->where('p.Discount', '>', 0)
-                          ->orWhereRaw('pv.CompareAtPrice > pv.Price');
-                })
-                ->groupBy('p.ProductID', 'p.Name', 'pi.ImageURL')
-                ->orderBy('TotalQuantitySold', 'desc')
-                ->orderBy('p.Name', 'asc')
-                ->paginate($perPage);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Lấy danh sách sản phẩm nổi bật thành công.',
-                'data' => $products
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Đã có lỗi xảy ra.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Lấy danh sách các biến thể sản phẩm và các tùy chọn thuộc tính khả dụng dựa trên các lựa chọn hiện tại.
-     *
-     * @param Request $request
-     * @param int $productId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function filterVariants(Request $request, $productId)
-    {
-        $selectedAttributeValueIds = explode(',', $request->query('attribute_values', ''));
-        // Loại bỏ các giá trị rỗng và chuyển sang kiểu int
-        $selectedAttributeValueIds = array_filter(array_map('intval', $selectedAttributeValueIds));
-        $numSelectedAttributes = count($selectedAttributeValueIds);
-
-        // 1. Lấy tất cả các VariantID hợp lệ (active, in_stock) cho sản phẩm này
-        // Đây là base set để tìm kiếm
-        $baseValidVariantIds = ProductVariant::where('ProductID', $productId)
+        // BƯỚC 1: DÙNG ELOQUENT ĐỂ LẤY DANH SÁCH ID SẢN PHẨM HỢP LỆ (Giữ nguyên)
+        $validProductIds = Product::query()
             ->where('IsActive', 1)
-            ->where('StockQuantity', '>', 0)
-            ->pluck('VariantID')
-            ->toArray();
+            ->where('AdminApprovalStatus', 'Approved')
+            ->whereHas('variants.attributeValues')
+            ->whereHas('variants', function ($query) {
+                $query->where('IsActive', 1)->where('StockQuantity', '>', 0);
+            })
+            ->pluck('ProductID');
 
-        if (empty($baseValidVariantIds)) {
+        if ($validProductIds->isEmpty()) {
+            $emptyPaginator = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
             return response()->json([
                 'success' => true,
-                'message' => 'No active or in-stock variants found for this product.',
-                'data' => [
-                    'selected_product_id' => $productId,
-                    'current_selected_attribute_value_ids' => $selectedAttributeValueIds,
-                    'matching_variants_count' => 0,
-                    'exact_matched_variant' => null,
-                    'available_attributes_options' => []
-                ]
+                'message' => 'Không tìm thấy sản phẩm nổi bật nào.',
+                'data' => $emptyPaginator
             ]);
         }
 
-        // 2. Tìm các VariantID khớp với TẤT CẢ các AttributeValueID đã chọn
-        $query = DB::table('ProductVariants AS PV')
-            ->select('PV.VariantID')
-            ->join('ProductVariantAttribute AS PVA', 'PV.VariantID', '=', 'PVA.VariantID')
-            ->where('PV.ProductID', $productId)
-            ->where('PV.IsActive', 1)
-            ->where('PV.StockQuantity', '>', 0);
+        // BƯỚC 2: DÙNG QUERY BUILDER ĐỂ LẤY DỮ LIỆU CHÍNH, ĐÃ PHÂN TRANG (Giữ nguyên)
+        $paginatedProducts = DB::table('Products as p')
+            ->select(
+                'p.ProductID',
+                'p.Name as ProductName',
+                'pi.ImageURL as PrimaryImage',
+                DB::raw('(SELECT MIN(pv_price.Price) FROM ProductVariants pv_price WHERE pv_price.ProductID = p.ProductID AND pv_price.IsActive = 1 AND pv_price.StockQuantity > 0) as CurrentPrice'),
+                DB::raw('(SELECT MAX(pv_comp.CompareAtPrice) FROM ProductVariants pv_comp WHERE pv_comp.ProductID = p.ProductID AND pv_comp.IsActive = 1 AND pv_comp.StockQuantity > 0 AND pv_comp.CompareAtPrice > pv_comp.Price) as OriginalPrice'),
+                DB::raw('COALESCE(p.SoldCount, 0) as TotalQuantitySold')
+            )
+            ->leftJoin('ProductImages as pi', function ($join) {
+                $join->on('p.ProductID', '=', 'pi.ProductID')
+                     ->where('pi.IsPrimary', '=', 1);
+            })
+            ->whereIn('p.ProductID', $validProductIds)
+            ->orderBy('TotalQuantitySold', 'desc')
+            ->orderBy('p.CreatedAt', 'desc')
+            ->paginate($perPage);
 
-        if ($numSelectedAttributes > 0) {
-            $query->whereIn('PVA.AttributeValueID', $selectedAttributeValueIds)
-                ->groupBy('PV.VariantID')
-                ->havingRaw('COUNT(DISTINCT PVA.AttributeValueID) = ?', [$numSelectedAttributes]);
-        } else {
-            // Nếu không có thuộc tính nào được chọn, tất cả baseValidVariantIds đều là "matching_variants"
-            $query->whereIn('PV.VariantID', $baseValidVariantIds);
-        }
+        // <<== BƯỚC 3: LẤY TẤT CẢ THUỘC TÍNH CHO CÁC SẢN PHẨM TRÊN TRANG HIỆN TẠI ==>>
+        // Lấy danh sách ID sản phẩm từ trang hiện tại
+        $productIdsOnCurrentPage = $paginatedProducts->pluck('ProductID');
 
-        $matchingVariantIds = $query->pluck('VariantID')->toArray();
+        // Chạy 1 truy vấn để lấy tất cả biến thể và thuộc tính liên quan
+        $variantsWithAttributes = ProductVariant::with(['attributeValues.attribute'])
+            ->whereIn('ProductID', $productIdsOnCurrentPage)
+            ->where('IsActive', 1)
+            ->get()
+            // Nhóm kết quả theo ProductID để dễ dàng tra cứu
+            ->groupBy('ProductID');
 
-        // Chuẩn bị dữ liệu trả về
-        $exactMatchedVariant = null;
 
-        if (empty($matchingVariantIds)) {
-            // Không tìm thấy biến thể nào khớp với các lựa chọn hiện tại
-            $matchingVariantsCount = 0;
-            $availableAttributesOptions = $this->getAvailableAttributeOptions(
-                $productId,
-                $baseValidVariantIds, // Vẫn dựa vào các variant ban đầu để hiển thị các tùy chọn cơ bản
-                $selectedAttributeValueIds
-            );
-        } else {
-            // Lấy thông tin chi tiết của các biến thể khớp
-            $matchingVariants = ProductVariant::with(['attributeValues.attribute'])
-                ->whereIn('VariantID', $matchingVariantIds)
-                ->get();
+        // <<== BƯỚC 4: GHÉP DỮ LIỆU THUỘC TÍNH VÀO KẾT QUẢ ==>>
+        $paginatedProducts->getCollection()->transform(function ($product) use ($variantsWithAttributes) {
+            // Lấy ra tất cả các biến thể của sản phẩm hiện tại từ collection đã fetch
+            $productVariants = $variantsWithAttributes->get($product->ProductID);
+            $attributesText = null;
 
-            $matchingVariantsCount = $matchingVariants->count();
-
-            // Nếu chỉ có một biến thể khớp duy nhất và tất cả thuộc tính của nó đã được chọn
-            if ($matchingVariantsCount === 1) {
-                $variant = $matchingVariants->first();
-                $variantAttributeValueIds = $variant->attributeValues->pluck('AttributeValueID')->toArray();
-
-                // Kiểm tra xem tất cả các thuộc tính của variant đó có nằm trong selectedAttributeValueIds không
-                // Điều này có nghĩa là người dùng đã chọn đầy đủ các thuộc tính để xác định một variant duy nhất
-                if (count($selectedAttributeValueIds) === count($variantAttributeValueIds) &&
-                    empty(array_diff($selectedAttributeValueIds, $variantAttributeValueIds)) &&
-                    empty(array_diff($variantAttributeValueIds, $selectedAttributeValueIds))) {
-                    $exactMatchedVariant = [
-                        'variant_id' => $variant->VariantID,
-                        'product_id' => $variant->ProductID,
-                        'sku' => $variant->SKU,
-                        'price' => $variant->Price,
-                        'compare_at_price' => $variant->CompareAtPrice,
-                        'stock_quantity' => $variant->StockQuantity,
-                        'image_url' => $variant->ImageURL,
-                        'attributes_display' => $variant->attributeValues->map(function($av) {
-                            return [
-                                'attribute_id' => $av->AttributeID,
-                                'name' => $av->attribute->Name,
-                                'value_id' => $av->AttributeValueID,
-                                'value' => $av->Value
-                            ];
-                        })
-                    ];
+            if ($productVariants) {
+                // Tìm biến thể có giá rẻ nhất (giống với CurrentPrice đã tính)
+                $cheapestVariant = $productVariants
+                    ->where('StockQuantity', '>', 0)
+                    ->sortBy('Price')
+                    ->first();
+                
+                // Nếu tìm thấy biến thể rẻ nhất, lấy thuộc tính của nó
+                if ($cheapestVariant && $cheapestVariant->attributeValues->isNotEmpty()) {
+                    $attributesText = $cheapestVariant->attributeValues->map(function ($av) {
+                        // Nối 'Tên thuộc tính: Giá trị'
+                        return $av->attribute->Name . ': ' . $av->Value;
+                    })->implode(', '); // Nối các chuỗi lại với nhau, ví dụ: "Màu sắc: Đen, RAM: 8GB"
                 }
             }
+            
+            // Thêm trường 'Attributes' vào đối tượng sản phẩm
+            $product->Attributes = $attributesText;
 
-            // Lấy các tùy chọn thuộc tính khả dụng dựa trên CÁC BIẾN THỂ CÒN LẠI SAU KHI LỌC
-            $availableAttributesOptions = $this->getAvailableAttributeOptions(
-                $productId,
-                $matchingVariantIds, // Giờ đây chỉ dựa vào các variant đã khớp
-                $selectedAttributeValueIds
-            );
-        }
+            // Xử lý các trường khác như cũ
+            if ($product->PrimaryImage && !str_starts_with($product->PrimaryImage, 'http')) {
+                $product->PrimaryImage = asset($product->PrimaryImage);
+            }
+            if ($product->OriginalPrice !== null && $product->CurrentPrice !== null && $product->OriginalPrice <= $product->CurrentPrice) {
+                $product->OriginalPrice = null;
+            }
+            return $product;
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Product variants and available options retrieved successfully.',
-            'data' => [
-                'selected_product_id' => $productId,
-                'current_selected_attribute_value_ids' => $selectedAttributeValueIds,
-                'matching_variants_count' => $matchingVariantsCount,
-                'exact_matched_variant' => $exactMatchedVariant,
-                'available_attributes_options' => $availableAttributesOptions
-            ]
+            'message' => 'Lấy danh sách sản phẩm nổi bật thành công.',
+            'data' => $paginatedProducts
         ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Đã có lỗi xảy ra.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
     }
 
     /**
