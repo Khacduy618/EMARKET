@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!isLoading) {
             const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+            console.log('is auth page ' , isAuthPage, user);
             const isProtectedPage = pathname.startsWith('/account');
 
             if (user && isAuthPage) {

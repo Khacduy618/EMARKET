@@ -96,9 +96,9 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="flex min-h-screen bg-white">
+        <div className="flex min-h-screen bg-white text-black">
             <div className="hidden lg:flex w-1/2 items-center justify-center bg-gray-50 p-12">
-                <Image src="/login-banner.png" alt="E-commerce Register" width={550} height={550} className="object-contain" />
+                <Image src="/images/app-logo.jpg" alt="E-commerce Register" width={550} height={550} className="object-contain" />
             </div>
 
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
