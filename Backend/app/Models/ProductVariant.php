@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class ProductVariant extends Model
 {
@@ -27,6 +28,7 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
     }
+    
 
     // Mối quan hệ đến ProductVariantAttribute (bảng trung gian)
     public function attributeLinks()
@@ -35,9 +37,19 @@ class ProductVariant extends Model
     }
 
     // Mối quan hệ nhiều-nhiều đến AttributeValues thông qua ProductVariantAttribute
+    // public function attributeValues()
+    // {
+    //     return $this->belongsToMany(
+    //         AttributeValue::class, 
+    //         'productvariantattribute', // Tên bảng trung gian
+    //         'VariantID',               // Khóa ngoại của model hiện tại trong bảng trung gian
+    //         'AttributeValueID'         // Khóa ngoại của model được join trong bảng trung gian
+    //     );
+    // }
     public function attributeValues()
     {
-        return $this->belongsToMany(AttributeValue::class, 'productvariantattribute', 'VariantID', 'AttributeValueID');
+        return $this->belongsToMany(AttributeValue::class, 'productvariantattribute', 'VariantID', 'AttributeValueID')
+            ->select(['attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value']);
     }
     public function getFormattedPriceAttribute(): ?string
     {
@@ -97,5 +109,12 @@ class ProductVariant extends Model
             return Storage::url(ltrim($this->ImageURL, '/'));
         }
         return null; // Trả về null nếu variant không có ảnh riêng
+    }
+    
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? Storage::disk('public')->url($value) : null,
+        );
     }
 }

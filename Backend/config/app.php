@@ -14,8 +14,8 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    // 'timezone' => 'Asia/Ho_Chi_Minh',
-
+    'timezone' => 'Asia/Ho_Chi_Minh',
+    'internal_api_secret_key' => env('INTERNAL_API_SECRET_KEY', null),
 
     /*
     |--------------------------------------------------------------------------

@@ -9,9 +9,9 @@ interface AccountLayoutProps { // Đổi tên interface cho phù hợp
 export default function AccountLayout({ children }: AccountLayoutProps) { // Đổi tên component
   return (
     <div className="flex justify-center py-8 px-4 bg-gray-100 min-h-[calc(100vh-100px)]">
-      <div className="flex w-full max-w-6xl gap-5 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="flex w-full max-w-[1250px] bg-white rounded-lg shadow-sm border border-gray-200">
         <ProfileSidebar />
-        <main className="flex-1 p-6"> {/* Padding áp dụng cho toàn bộ nội dung chính */}
+        <main className="flex-1 justify-center p-6"> {/* Padding áp dụng cho toàn bộ nội dung chính */}
           {children}
         </main>
       </div>

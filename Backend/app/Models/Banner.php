@@ -10,7 +10,7 @@ class Banner extends Model
 {
     use HasFactory;
 
-    protected $table = 'Banners'; // Tên bảng của bạn (chú ý chữ 'B' viết hoa nếu trong DB là vậy)
+    protected $table = 'banners'; // Tên bảng của bạn (chú ý chữ 'B' viết hoa nếu trong DB là vậy)
     protected $primaryKey = 'BannerID'; // Khóa chính
 
     /**

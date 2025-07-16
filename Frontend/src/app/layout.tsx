@@ -11,21 +11,28 @@ export const metadata = {
 };
 
 export default function RootLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    return (
-        <html lang="vi">
-            <body className="bg-gray-50" suppressHydrationWarning>
-                <AuthProvider>
-                    <ToastContainer position="top-center" autoClose={3000} />
-                    <Header />
-                    <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-                        {children}
-                    </main>
-                </AuthProvider>
-            </body>
-        </html>
-    );
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default text-slate-500" style={{ backgroundColor: '#f8f4f4' }}>
+        {/* <body style={{ backgroundColor: '#f8f4f4' }}> */}
+        {children}
+        <ToastContainer
+          position="top-right" // Vị trí hiển thị
+          autoClose={3000} // Tự động đóng sau 5 giây
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light" // "light", "dark", "colored"
+        />
+      </body>
+    </html>
+  );
 }

@@ -12,4 +12,5 @@ export interface User {
     UpdatedAt: string;
     email_verified_at?: string;
     two_factor_enabled?: boolean;
+    Token?: string | null;
 }

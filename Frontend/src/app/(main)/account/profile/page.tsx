@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // app/(main)/(account)/profile/page.tsx
 
 "use client";
@@ -122,3 +123,13 @@ export default function ProfileDetailsPage() {
         </div>
     );
 }
+=======
+import ProfileDetails from "../components/ProfileDetails";
+
+
+export default function ProfilePage() {
+  return (
+    <ProfileDetails />
+  );
+}
+>>>>>>> mienN

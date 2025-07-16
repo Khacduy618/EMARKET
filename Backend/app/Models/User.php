@@ -27,6 +27,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $appends = [
         'two_factor_enabled',
@@ -99,6 +101,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'Username',
         'Email',
         'Password',
+        'Avatar',
         'FullName',
         'Phone',
         'Level',
@@ -208,4 +211,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserVoucher::class, 'UserID', 'UserID');
     }
+<<<<<<< HEAD
 }
+=======
+
+
+    public function conversationMetas()
+    {
+        return $this->hasMany(ConversationMeta::class, 'user_id', 'UserID');
+    }
+}
+>>>>>>> mienN

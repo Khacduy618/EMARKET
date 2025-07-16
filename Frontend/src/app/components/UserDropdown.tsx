@@ -51,10 +51,10 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ handleLogout }) => {
 
         <div className="absolute right-0 top-0 z-10 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-gray-900/5 focus:outline-none user-dropdown-menu" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabIndex={-1}>
             <div className="py-1" role="none">
-                <Link href="/profile" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-0">
+                <Link href="/account/profile" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-0">
                     Tài khoản của tôi
                 </Link>
-                <Link href="/orders" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-1">
+                <Link href="/account/purchase" className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabIndex={-1} id="menu-item-1">
                     Đơn mua
                 </Link>
                 <button

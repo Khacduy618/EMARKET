@@ -59,6 +59,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'seller' => \App\Http\Middleware\EnsureIsSeller::class,
+            'auth.socketserver' => \App\Http\Middleware\VerifyInternalSecret::class
+        //
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

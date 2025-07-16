@@ -9,19 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Address extends Model
 {
     use HasFactory;
-
-    // --- CÁC SỬA ĐỔI QUAN TRỌNG ---
-
-    /**
-     * Tên bảng trong database.
-     * Eloquent sẽ không còn tìm bảng 'addresses' nữa.
-     */
     protected $table = 'Addresses';
-
-    /**
-     * Tên của khóa chính.
-     * Của bạn là 'AddressID', không phải 'id' mặc định.
-     */
     protected $primaryKey = 'AddressID';
 
     /**

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // app/(main)/(account)/password/page.tsx
 
 "use client";
@@ -112,3 +113,13 @@ export default function ChangePasswordPage() {
         </div>
     );
 }
+=======
+// app/(main)/(account)/resetpassword/page.tsx
+import ProfileChangePassword from '../components/ProfileChangePassword';
+
+export default function ResetPasswordPage() {
+  return (
+    <ProfileChangePassword />
+  );
+}
+>>>>>>> mienN

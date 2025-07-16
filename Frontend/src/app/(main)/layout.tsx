@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import "../globals.css";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
-import NavMenu from "../components/NavMenu";
+// import NavMenu from "../components/NavMenu";
 import Footer from "../components/Footer";
+import { Session } from "inspector/promises";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
     title: "Create Next App",
@@ -16,15 +18,27 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return (
-        <>
-            {/* <Header /> */}
-            <main className="relative z-10">
-                {children}
-            </main>
+  return (
+    <>
+      <Header />
+      <main className="relative z-10">
+        <ToastContainer
+          position="top-right" // Vị trí hiển thị
+          autoClose={5000} // Tự động đóng sau 5 giây
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light" // "light", "dark", "colored"
+        />
+        {children}
+      </main>
 
-            {/* Phần chân trang */}
-            <Footer />
-        </>
-    );
+      {/* Phần chân trang */}
+      <Footer />
+    </>
+  );
 }

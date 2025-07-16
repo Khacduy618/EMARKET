@@ -1,32 +1,62 @@
-// File: app/productdetail/[id]/page.tsx
 
+import { notFound } from 'next/navigation';
 import ProductDetail from '../components/Productdetail';
+import React from 'react';
+import { getMockComments, mockProduct } from '../data';
+import ProductDescription from '../components/ProductDescription';
+import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
+import { ProductComments } from '../components/ProductComents'; 
 
-interface ProductPageProps {
-    params: {
-        id: string;
-    };
-}
+// Bỏ interface ProductPageProps hoặc không dùng nó cho component chính
 
-// THÊM 'async' VÀO ĐÂY
-export default async function ProductPage({ params }: ProductPageProps) {
-    const { id } = params;
+// ===> SỬA LỖI Ở ĐÂY: Định nghĩa type trực tiếp trong signature <===
+export default async function ProductPage({ params }: { params: { id: string } }) {
+    // Bây giờ việc destructure sẽ không còn cảnh báo
+    const { id } = await params;
+    const productIdAsNumber = parseInt(id, 10);
+
+    // Kiểm tra nếu ID không hợp lệ
+    if (isNaN(productIdAsNumber)) {
+        notFound(); // Chuyển hướng đến trang 404
+    }
+
+    const initialComments = await getMockComments(params.id);
+    const product = mockProduct;
 
     return (
-        <main>
-            <ProductDetail productId={id} />
-        </main>
+        <div className="container mx-auto px-4 py-8 text-black">
+            <main>
+                <ProductDetail
+                    productId={productIdAsNumber}
+                    descriptionSlot={<ProductDescription productId={productIdAsNumber} />}
+                    sidebarSlot={<RelatedProductsSidebar currentProductId={productIdAsNumber} />}
+                />
+                {/* Phần bình luận - Truyền dữ liệu vào Client Component */}
+                <ProductComments initialComments={initialComments} />
+            </main>
+        </div>
+        
     );
 }
 
-// Hàm này đã có 'async' và đã đúng, giữ nguyên
-export async function generateMetadata({ params }: ProductPageProps) {
-    // Trong tương lai, bạn có thể fetch API ở đây để lấy tên sản phẩm thật
-    // const response = await fetch(`http://localhost:8001/api/products/${params.id}`);
-    // const product = await response.json();
+
+// ===> SỬA CẢ Ở ĐÂY: Hàm generateMetadata cũng cần được cập nhật <===
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const id = await params.id;
+
+    // Logic fetch metadata của bạn ở đây...
+    // const product = await fetch(`.../api/products/${id}`).then(res => res.json());
+    // if (!product) {
+    //     return { title: 'Sản phẩm không tồn tại' };
+    // }
+    // return {
+    //     title: product.name,
+    //     description: product.description,
+    // };
+
+    // Ví dụ metadata
     return {
-        // title: product.Name, 
-        title: `Sản phẩm ID: ${params.id}`,
-        description: `Chi tiết sản phẩm với ID ${params.id}`,
+        title: `Chi tiết sản phẩm #${id}`,
     };
+        
 }

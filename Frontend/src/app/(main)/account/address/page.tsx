@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // app/(main)/(account)/address/page.tsx
 
 "use client";
@@ -262,3 +263,12 @@ export default function AddressPage() {
         </div>
     );
 }
+=======
+import ProfileAddress from "../components/ProfileAddress";
+
+export default function AddressPage() {
+  return (
+    <ProfileAddress />
+  );
+}
+>>>>>>> mienN
