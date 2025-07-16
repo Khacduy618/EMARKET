@@ -17,8 +17,8 @@ import {
 
 // --- 2. CÁC BIẾN MÔI TRƯỜNG VÀ HÀM HELPER CƠ BẢN ---
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost';
 
 // Tiện ích để đọc cookie
 export function getCookie(name: string): string | null {
