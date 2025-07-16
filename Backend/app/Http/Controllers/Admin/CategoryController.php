@@ -64,7 +64,7 @@ class CategoryController extends Controller {
     try {
       $category = new PlatformCategory();
       $category->Name = $req->Name;
-      $category->ParentCategoryID = $req->Parent;
+      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
       $category->ImageURL = $req->image_name;
       $category->IsActive = true;
 
@@ -107,7 +107,7 @@ class CategoryController extends Controller {
       }
 
       $category->Name = $req->Name;
-      $category->ParentCategoryID = $req->Parent;
+      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
       $category->ImageURL = $req->image_name ?? $category->ImageURL;
       $category->IsActive = true;
 

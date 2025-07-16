@@ -12,12 +12,12 @@ export interface Shop {
     AddressCity?: string | null;
     ShopPhone?: string | null;
     AverageRating?: number | null;
-    Level?: 'Thường' | 'Mall' | null;
+    Level?: 'Normal' | 'Mall' | 'Favorite';
     Status?: 'PendingApproval' | 'Approved' | 'Suspended' | 'Rejected' | null;
     CreatedAt?: string | null;
     UpdatedAt?: string | null;
 }
-export type ShopLevel = 'Thường' | 'Mall' | 'Yêu thích+';
+export type ShopLevel = 'Normal' | 'Mall' | 'Favorite';
 
 // Thêm ShopSummary để sử dụng trong các đối tượng lồng nhau nếu cần thiết
 export interface ShopSummary {

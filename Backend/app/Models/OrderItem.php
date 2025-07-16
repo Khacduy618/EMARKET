@@ -10,11 +10,10 @@ use App\Models\OrderBuyer;
 use App\Models\ProductVariant;
 use App\Models\ReturnRequest;
 
-class OrderItem extends Model
-{
+class OrderItem extends Model {
     use HasFactory;
 
-    protected $table = 'OrderItems';
+    protected $table = 'orderitems';
 
     /**
      * Khai báo khóa chính để Eloquent không nhầm lẫn.
@@ -22,33 +21,16 @@ class OrderItem extends Model
     protected $primaryKey = 'OrderItemID';
 
     protected $fillable = [
-        'OrderID', // Changed from ShopOrderID
-        'VariantID', // Changed from ProductID
-        'Quantity',
-        'PriceAtPurchase',
-        'Subtotal',
-        'IsFlashSaleItem',
-        'FlashSaleDealID',
-        'ReturnStatus',
+        'OrderID', 'VariantID', 'Quantity', 'PriceAtPurchase', 
+        'Subtotal', 'IsFlashSaleItem', 'FlashSaleDealID', 'ReturnStatus'
     ];
 
-    protected $casts = [
-        'IsFlashSaleItem' => 'boolean',
-        'ReturnStatus' => 'string', // Cast enum to string
-    ];
-
-    /**
-     * Get the order that owns the order item.
-     */
-    public function order(): BelongsTo // Changed from shopOrder
+    public function order()
     {
-        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
+        return $this->belongsTo(Order::class, 'OrderID', 'OrderID');
     }
 
-    /**
-     * Get the product variant associated with the order item.
-     */
-    public function productVariant(): BelongsTo // Changed from product
+    public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }

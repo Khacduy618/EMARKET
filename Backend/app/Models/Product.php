@@ -308,4 +308,3 @@ class Product extends Model
     }
     
 }
-
