@@ -17,7 +17,7 @@ import 'swiper/css/effect-fade';
 import type { IHome } from '@/types/Ihome';
 
 // API Endpoint đã được định nghĩa rõ ràng
-const API_URL = 'http://localhost:8001/api/banners?position=homepage_carousel';
+const API_URL = 'http://localhost/api/banners?position=homepage_carousel';
 
 const HeroBannerSlider: React.FC = () => {
     const [banners, setBanners] = useState<IHome.Banner[]>([]);
@@ -72,7 +72,7 @@ const HeroBannerSlider: React.FC = () => {
             return imageUrl;
         }
         // Nếu ImageURL luôn là path tương đối, ví dụ: /images/banners/mybanner.jpg
-        const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'http://localhost:8001';
+        const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'http://localhost';
         return `${imageBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
     };
 

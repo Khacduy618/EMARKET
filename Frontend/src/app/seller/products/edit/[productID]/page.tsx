@@ -276,7 +276,7 @@ export default function EditProductPage() {
 
       setImages(
         productData.images.map((img) => ({
-          preview: `http://localhost:8001/storage/${img.ImageURL}`,
+          preview: `http://localhost/storage/${img.ImageURL}`,
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
@@ -290,7 +290,7 @@ export default function EditProductPage() {
           productData.variants.map((v) => ({
             VariantID: v.VariantID,
             Images: v.ImageURL
-              ? [{ preview: `http://localhost:8001/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
+              ? [{ preview: `http://localhost/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
               : [],
             Price: v.Price || 0,
             CompareAtPrice: v.CompareAtPrice || null,

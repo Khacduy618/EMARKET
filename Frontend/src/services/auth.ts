@@ -17,8 +17,8 @@ import {
 
 // --- 2. CÁC BIẾN MÔI TRƯỜNG VÀ HÀM HELPER CƠ BẢN ---
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
-const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:8001';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
+const BASE_URL = 'http://localhost'; 
 
 // Tiện ích để đọc cookie
 export function getCookie(name: string): string | null {
@@ -57,7 +57,7 @@ export async function handleResponse<T>(response: Response): Promise<T> {
 // --- 3. CÁC HÀM API CHÍNH ---
 
 export const getCsrfCookie = async (): Promise<void> => {
-    await fetch(`${WEB_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
+    await fetch(`${BASE_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
 };
 
 // HÀM LOGIN ĐÃ ĐƯỢC SỬA LẠI ĐỂ XỬ LÝ 2FA
@@ -241,8 +241,9 @@ export const getAdminUsers = async (): Promise<any[]> => {
 
 export const resendVerificationEmail = async (email: string): Promise<void> => {
     const xsrfToken = getCookie('XSRF-TOKEN');
+    console.log('xsrfToken: ' , xsrfToken);
     const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
-
+console.log('xsrfToken: ' , decodedXsrfToken);
     // Theo chuẩn Fortify, endpoint thường là 'email/verification-notification'
     const response = await fetch(`${API_URL}/email/verification-notification`, {
         method: 'POST',

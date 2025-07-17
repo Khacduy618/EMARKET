@@ -67,7 +67,7 @@ services:
       - frontend
     networks:
       - ecommerce_network
-    restart: unless-stopped
+    restart: on-failure 
 
   # Database Service (MySQL)
   db:

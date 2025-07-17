@@ -60,7 +60,7 @@ export default function ProductDetailModal({
     const fetchDetail = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`http://localhost:8001/api/admin/products/${productId}`, {
+        const res = await fetch(`http://localhost/api/admin/products/${productId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },

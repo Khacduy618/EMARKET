@@ -2,7 +2,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 const api = axios.create({
-  baseURL: "http://localhost:8001/api", // Ensure this matches your Laravel API base URL
+  baseURL: "http://localhost/api", // Ensure this matches your Laravel API base URL
   headers: {
     Accept: "application/json",
   },

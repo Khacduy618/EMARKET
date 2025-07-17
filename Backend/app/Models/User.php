@@ -211,9 +211,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserVoucher::class, 'UserID', 'UserID');
     }
-<<<<<<< HEAD
-}
-=======
 
 
     public function conversationMetas()
@@ -221,4 +218,3 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ConversationMeta::class, 'user_id', 'UserID');
     }
 }
->>>>>>> mienN

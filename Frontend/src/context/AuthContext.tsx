@@ -78,14 +78,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const router = useRouter();
     const pathname = usePathname();
 
+    // const fetchUser = async () => {
+    //     try {
+    //         const userData = await apiGetMe();
+    //         console.log('1. Got user data from API:', userData);
+    //          console.log('2. Calling setUser now...');
+    //         setUser(userData);
+    //     } catch (err) {
+    //         console.error("Lỗi khi fetchUser:", err);
+    //         setUser(null);
+    //     }
+    // };
     const fetchUser = async () => {
-        try {
-            const userData = await apiGetMe();
+    try {
+        const userData = await apiGetMe();
+        // THÊM KIỂM TRA NÀY
+        if (userData && userData.UserID) { // Kiểm tra một trường chắc chắn có trong user data
+            console.log("1. Got VALID user data from API:", userData);
             setUser(userData);
-        } catch (err) {
+        } else {
+            // Nếu apiGetMe trả về một object lỗi, chúng ta coi như không có user
+            console.log("1. apiGetMe returned an invalid user object:", userData);
             setUser(null);
         }
-    };
+    } catch (err) {
+        console.log("Error during fetchUser, setting user to null:", err);
+        setUser(null); // Đặt user thành null khi có lỗi
+    }
+};
 
     // Khởi tạo Auth ban đầu
     useEffect(() => {
@@ -100,13 +120,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // useEffect mới để bảo vệ Route phía Client
     useEffect(() => {
         if (!isLoading) {
+            console.log('3. useEffect is running. Current user state is:', user);
             const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+            console.log('Redirect useEffect is running. User is:', user); // << Thêm log này để xem
             console.log('is auth page ' , isAuthPage, user);
             const isProtectedPage = pathname.startsWith('/account');
 
             if (user && isAuthPage) {
+                 console.log('User exists and is on auth page, redirecting to /');
                 router.push('/');
             } else if (!user && isProtectedPage) {
+                
                 router.push('/login');
             }
         }
@@ -117,26 +141,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
         setRequiresTwoFactor(false);
         const toastId = toast.loading("Đang đăng nhập...");
-
         try {
-            await getCsrfCookie();
-            const response: LoginResponse = await apiLogin(credentials);
+        await getCsrfCookie();
+        
+        // apiLogin bây giờ sẽ trả về một object có dạng { user: User, ... }
+        const loginResponse = await apiLogin(credentials);
 
-            if (response && response.two_factor === true) {
-                setRequiresTwoFactor(true);
-                toast.dismiss(toastId);
-                router.push('/two-factor-challenge');
-            } else {
-                await fetchUser();
-                toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
-                // useEffect ở trên sẽ lo việc chuyển hướng
-            }
-        } catch (error: any) {
-            const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
-            setError(message);
-            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-            throw error;
+        // KIỂM TRA VÀ SỬ DỤNG USER TRỰC TIẾP TỪ RESPONSE
+        if (loginResponse && loginResponse.user) {
+            
+            console.log("Login successful, setting user directly from login response:", loginResponse.user);
+            
+            // GỌI setUser VỚI DỮ LIỆU USER VỪA NHẬN ĐƯỢC
+            setUser(loginResponse.user);
+
+            toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
+            // useEffect sẽ tự động chuyển hướng bạn đi khi state 'user' thay đổi
+
+        } else if (loginResponse && loginResponse.two_factor === true) {
+            setRequiresTwoFactor(true);
+            toast.dismiss(toastId);
+            router.push('/two-factor-challenge');
+        } else {
+            // Trường hợp response không hợp lệ
+            throw new Error('Login response was invalid.');
         }
+
+    } catch (error: any) {
+        const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
+        setError(message);
+        setUser(null); // Đảm bảo user là null khi login thất bại
+        toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+        throw error;
+    }
+        // try {
+        //     await getCsrfCookie();
+        //     const response: LoginResponse = await apiLogin(credentials);
+
+        //     if (response && response.two_factor === true) {
+        //         setRequiresTwoFactor(true);
+        //         toast.dismiss(toastId);
+        //         router.push('/two-factor-challenge');
+        //     } else {
+        //         await fetchUser();
+        //         toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
+        //         // useEffect ở trên sẽ lo việc chuyển hướng
+        //     }
+        // } catch (error: any) {
+        //     const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
+        //     setError(message);
+        //     toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+        //     throw error;
+        // }
+
     };
 
     const register = async (payload: RegisterPayload) => {

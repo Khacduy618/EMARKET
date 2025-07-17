@@ -18,8 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default text-slate-500" style={{ backgroundColor: '#f8f4f4' }}>
-        {/* <body style={{ backgroundColor: '#f8f4f4' }}> */}
+          <AuthProvider>
+{/* <body style={{ backgroundColor: '#f8f4f4' }}> */}
         {children}
+       
         <ToastContainer
           position="top-right" // Vị trí hiển thị
           autoClose={3000} // Tự động đóng sau 5 giây
@@ -32,6 +34,8 @@ export default function RootLayout({
           pauseOnHover
           theme="light" // "light", "dark", "colored"
         />
+           </AuthProvider>
+        
       </body>
     </html>
   );

@@ -17,7 +17,18 @@ import { User as AuthUserType } from '@/types';
 // Giả sử bạn có file này, nếu không hãy xóa hoặc tạo nó
 import { getActiveSeasonTheme, SeasonTheme } from '@/types/seasonalThemes';
 
-const fetcher = (url: string) => axios.get(url).then(res => res.data);
+// --- Fetcher cho SWR ---
+// const fetcher = (url: string) => axios.get(url).then(res => res.data);
+const fetcher = (url: string) => axios.get(url).then(res => {
+    // Giả sử API của bạn trả về { success: true, data: [...] }
+    
+    // Chúng ta chỉ trả về phần 'data' cho SWR
+    if (res.data && res.data.data) {
+        return res.data.data;
+    }
+    // Nếu API trả về mảng trực tiếp hoặc cấu trúc khác, trả về nguyên gốc
+    return res.data;
+});
 
 // --- Định nghĩa kiểu dữ liệu (TypeScript) ---
 interface SuggestionProduct { ProductID: number; Name: string; ImageURL: string | null; }
@@ -26,36 +37,15 @@ interface Suggestions { products: SuggestionProduct[]; shops: SuggestionShop[]; 
 
 
 // --- Component con cho từng mục trong NavMenu ---
-// const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
-//     if (!theme || !theme.itemClass) return null; // Guard clause
-//     const finalClass = isScrolled
-//         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
-//         : `${theme.itemClass.base}`;
-//     return (
-//         <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
-//             <span>{item.Name}</span>
-//         </a>
-//     );
-// };
 const CategoryMenuItem = ({ item, theme, isScrolled }: { item: any; theme: SeasonTheme; isScrolled: boolean }) => {
     if (!theme || !theme.itemClass) return null;
     const finalClass = isScrolled
         ? `${theme.itemClass.scrolled} ${theme.itemClass.scrolledHover}`
         : `${theme.itemClass.base}`;
-
-    // Tạo URL an toàn bằng cách mã hóa tên danh mục
-    const searchQuery = encodeURIComponent(item.Name);
-
     return (
-        // SỬA ĐỔI CHÍNH Ở ĐÂY:
-        // 1. Dùng <Link> của Next.js để điều hướng phía client, giúp trang không bị tải lại.
-        // 2. href trỏ đến trang /search với query `q` là tên danh mục đã được mã hóa.
-        <Link
-            href={`/search?q=${searchQuery}`}
-            className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}
-        >
+        <a href={`#${item.Slug}`} className={`flex items-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 cursor-pointer ${finalClass}`}>
             <span>{item.Name}</span>
-        </Link>
+        </a>
     );
 };
 
@@ -83,44 +73,22 @@ export default function Header() {
     const [isSuggestBoxOpen, setIsSuggestBoxOpen] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
 
-    const { data: navData, error: navError } = useSWR('http://localhost:8001/api/category', fetcher);
+    const { data: navData, error: navError } = useSWR('http://localhost/api/category', fetcher);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeTheme, setActiveTheme] = useState<SeasonTheme | null>(null);
 
     // --- Các hàm và useEffect không thay đổi ---
     const fetchSuggestions = useCallback(async (query: string) => {
-        if (query.length < 2) {
-            setSuggestions(null);
-            setIsSuggestBoxOpen(false);
-            return;
-        }
+        if (query.length < 2) { setSuggestions(null); setIsSuggestBoxOpen(false); return; }
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost:8001/api/search/suggest?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`http://localhost/api/search/suggest?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Lỗi mạng');
-
-            const rawData = await response.json();
-
-            // SỬA LỖI CHÍNH Ở ĐÂY
-            // Đảm bảo chúng ta đọc đúng key từ API (Products với P hoa)
-            // và gán nó vào key chuẩn của front-end (products với p thường)
-            const normalizedSuggestions: Suggestions = {
-                products: rawData.Products || [], // <--- SỬA TỪ rawData.products THÀNH rawData.Products
-                shops: rawData.shops || [],
-            };
-
-            setSuggestions(normalizedSuggestions);
-
-            const hasResults = normalizedSuggestions.products.length > 0 || normalizedSuggestions.shops.length > 0;
-            setIsSuggestBoxOpen(hasResults);
-
-        } catch (error) {
-            console.error("Lỗi khi tải gợi ý:", error);
-            setSuggestions(null);
-            setIsSuggestBoxOpen(false);
-        } finally {
-            setIsLoading(false);
-        }
+            const data: Suggestions = await response.json();
+            setSuggestions(data);
+            setIsSuggestBoxOpen(!!data);
+        } catch (error) { console.error("Lỗi khi tải gợi ý:", error); }
+        finally { setIsLoading(false); }
     }, []);
 
     useEffect(() => {
@@ -144,7 +112,10 @@ export default function Header() {
     }, []);
 
     const flattenedCategories = useMemo(() => {
-        if (!navData) return [];
+        if (!navData || !Array.isArray(navData)) { // <-- THÊM KIỂM TRA
+        // Nếu navData không tồn tại hoặc không phải là mảng, trả về mảng rỗng
+        return [];
+    }
         return navData.flatMap((parent: any) => [parent, ...(parent.children || [])]);
     }, [navData]);
 
@@ -164,7 +135,7 @@ export default function Header() {
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">
                     <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
-                        <a href="/seller-dashboard" className="hover:text-gray-200">Kênh Người Bán</a>
+                        <a href="#" className="hover:text-gray-200">Kênh Người Bán</a>
                         <div className="relative">
                             <button className="flex items-center gap-1 hover:text-gray-200" onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}>
                                 {selectedLanguage} <ChevronDown size={14} />
@@ -228,50 +199,7 @@ export default function Header() {
                             </form>
                             {isSuggestBoxOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-sm shadow-lg max-h-80 overflow-y-auto">
-                                    {isLoading ? (
-                                        <div className="p-3 text-center text-sm text-gray-500">Đang tìm...</div>
-                                    ) : (
-                                        // SỬA Ở ĐÂY: Thêm `?.` để kiểm tra an toàn
-                                        (suggestions && (suggestions?.products?.length > 0 || suggestions?.shops?.length > 0)) ? (
-                                            <ul className="text-gray-800 text-sm divide-y divide-gray-100">
-                                                {/* SỬA Ở ĐÂY: Dùng `?.map` để lặp qua mảng một cách an toàn */}
-                                                {suggestions?.shops?.map(shop => (
-                                                    <li key={`shop-${shop.ShopID}`}>
-                                                        <Link href={`/shop/${shop.ShopID}`} className="flex items-center gap-3 p-2.5 hover:bg-gray-100" onClick={() => setIsSuggestBoxOpen(false)}>
-                                                            <Store className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                                            <span className='font-semibold'>Tìm shop "{shop.ShopName}"</span>
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                                {/* SỬA Ở ĐÂY: Dùng `?.map` để lặp qua mảng một cách an toàn */}
-                                                {suggestions?.products?.map(product => (
-                                                    <li key={`product-${product.ProductID}`}>
-                                                        <Link href={`/productdetail/${product.ProductID}`} className="flex items-center gap-3 p-2.5 hover:bg-gray-100" onClick={() => setIsSuggestBoxOpen(false)}>
-                                                            {/* === SỬA ĐỔI BẮT ĐẦU TỪ ĐÂY === */}
-                                                            {product.ImageURL ? (
-                                                                // Nếu có ảnh, hiển thị ảnh
-                                                                <img
-                                                                    src={product.ImageURL}
-                                                                    alt={product.Name}
-                                                                    className="w-10 h-10 object-cover rounded-sm flex-shrink-0 border border-gray-100"
-                                                                />
-                                                            ) : (
-                                                                // Nếu không có ảnh, hiển thị icon thay thế
-                                                                <div className="w-10 h-10 bg-gray-100 flex items-center justify-center rounded-sm flex-shrink-0">
-                                                                    <Search className="w-5 h-5 text-gray-400" />
-                                                                </div>
-                                                            )}
-                                                            {/* === KẾT THÚC SỬA ĐỔI === */}
-
-                                                            <span className='line-clamp-1 font-medium'>{product.Name}</span>
-                                                        </Link>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <div className="p-3 text-center text-sm text-gray-500">Không tìm thấy gợi ý nào.</div>
-                                        )
-                                    )}
+                                    {isLoading ? (<div className="p-3 text-center text-sm text-gray-500">Đang tìm...</div>) : (suggestions && (suggestions.products.length > 0 || suggestions.shops.length > 0) ? (<ul className="text-gray-800 text-sm divide-y divide-gray-100">{suggestions.shops.map(shop => (<li key={`shop-${shop.ShopID}`}><Link href={`/shop/${shop.ShopID}`} className="flex items-center gap-3 p-2.5 hover:bg-gray-100" onClick={() => setIsSuggestBoxOpen(false)}><Store className="w-5 h-5 text-gray-400 flex-shrink-0" /><span className='font-semibold'>Tìm shop "{shop.ShopName}"</span></Link></li>))}{suggestions.products.map(product => (<li key={`product-${product.ProductID}`}><Link href={`/products/${product.ProductID}`} className="flex items-center gap-3 p-2.5 hover:bg-gray-100" onClick={() => setIsSuggestBoxOpen(false)}><Search className="w-5 h-5 text-gray-400 flex-shrink-0" /><span className='line-clamp-1'>{product.Name}</span></Link></li>))}</ul>) : (<div className="p-3 text-center text-sm text-gray-500">Không tìm thấy gợi ý nào.</div>))}
                                 </div>
                             )}
                         </div>

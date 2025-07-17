@@ -20,7 +20,7 @@ export default function OrderDetails({ order, updateStatus }: OrderDetailsProps)
             <h2 className="text-xl font-semibold mt-4 mb-2">Thông tin giao hàng</h2>
             <p><strong>Họ tên:</strong> {order.ShippingFullName}</p>
             <p><strong>Số điện thoại:</strong> {order.ShippingPhoneNumber}</p>
-            <p><strong>Địa chỉ:</strong> {order.shippingAddress?.Street}, {order.shippingAddress?.Ward}, {order.shippingAddress?.District}, {order.shippingAddress?.City}</p>
+            <p><strong>Địa chỉ:</strong> {order.shipping_address?.Street}, {order.shipping_address?.Ward}, {order.shipping_address?.District}, {order.shipping_address?.City}</p>
 
             <h2 className="text-xl font-semibold mt-4 mb-2">Sản phẩm</h2>
             <table className="min-w-full bg-white border">

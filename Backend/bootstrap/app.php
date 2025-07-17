@@ -46,16 +46,32 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    // ->withMiddleware(function (Middleware $middleware) { // << XÓA HOẶC COMMENT KHỐI NÀY
-    //     $middleware->validateCsrfTokens(
-    //         except: ['api/*']
-    //     );
-    // })
-    ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+    ->withMiddleware(function (Middleware $middleware) { // << XÓA HOẶC COMMENT KHỐI NÀY
+            $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
 
+        $middleware->validateCsrfTokens(
+            except: ['api/*']
+        );
+         $middleware->redirectGuestsTo(function (Request $request) {
+            // Nếu request muốn nhận JSON (tức là một API call từ frontend)
+            if ($request->expectsJson()) {
+                // thì không chuyển hướng, trả về null để middleware tự động
+                // ném một AuthenticationException, sau đó sẽ được chuyển thành 
+                // response JSON 401 Unauthenticated.
+                return null;
+            }
+
+            // Đối với các request web thông thường (nếu có), bạn có thể
+            // trả về URL frontend của bạn.
+            return config('app.frontend_url') . '/login';
+        });
+        
+    })
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->trustProxies(at: '*');
+       $middleware->api(prepend: [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+    ]);
         $middleware->alias([
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,

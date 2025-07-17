@@ -34,7 +34,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
 
   useEffect(() => {
     if (show) {
-      fetch("http://localhost:8001/api/admin/categories/getAllCategory", {
+      fetch("http://localhost/api/admin/categories/getAllCategory", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -82,7 +82,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:8001/api/admin/categories/create", {
+      const res = await fetch("http://localhost/api/admin/categories/create", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,

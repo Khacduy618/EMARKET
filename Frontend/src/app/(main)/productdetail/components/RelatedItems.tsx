@@ -69,7 +69,7 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
             setLoading(true);
             setError(null);
             try {
-                const apiUrl = `http://localhost:8001/api/products/${currentProductId}/related`;
+                const apiUrl = `http://localhost/api/products/${currentProductId}/related`;
                 const response = await axios.get<ApiProduct[]>(apiUrl); // <<<--- API trả về kiểu ApiProduct
 
                 // === SỬA LỖI NẰM Ở ĐÂY ===

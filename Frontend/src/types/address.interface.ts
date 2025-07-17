@@ -37,5 +37,5 @@ export interface AddressPayload {
     Ward?: string | null;
     District: string;
     City: string;
-    IsDefault?: boolean;
+    IsDefault?: boolean | number;
 }

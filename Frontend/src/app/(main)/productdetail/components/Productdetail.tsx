@@ -128,7 +128,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost:8001/api/productDetail/${productId}`);
+                const response = await axios.get(`http://localhost/api/productDetail/${productId}`);
                 const productData: Product = response.data;
                 setProduct(productData);
 

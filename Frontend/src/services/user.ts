@@ -1,7 +1,7 @@
 import { handleResponse } from './api';
 import { Address } from '../types'; // Import Address interface
 
-const API_BASE_URL = 'http://localhost:8001/api';
+const API_BASE_URL = 'http://localhost/api';
 
 const getAuthToken = (): string | null => {
     return localStorage.getItem('authToken');

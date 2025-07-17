@@ -130,7 +130,7 @@ export default function ShopeeProductsPage() {
 
   
 
-  // const BACKEND_URL = "http://localhost:8001"
+  // const BACKEND_URL = "http://localhost"
   // const getPrimaryImage = (product: Product): string => {
   //   const primaryImg = product.images.find((img) => img.IsPrimary)
   //   const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL

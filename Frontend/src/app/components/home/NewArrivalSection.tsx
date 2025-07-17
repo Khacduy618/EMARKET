@@ -40,7 +40,7 @@
 // //                 setLoading(true);
 // //                 setError(null);
 
-// //                 const response = await axios.get<Product[]>('http://localhost:8001/api/new-arrivals');
+// //                 const response = await axios.get<Product[]>('http://localhost/api/new-arrivals');
 // //                 setProducts(response.data);
 // //             } catch (err) {
 // //                 if (axios.isAxiosError(err)) {
@@ -222,7 +222,7 @@
 //             try {
 //                 setLoading(true);
 //                 setError(null);
-//                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/new-arrivals');
+//                 const response = await axios.get<ApiProduct[]>('http://localhost/api/new-arrivals');
 
 //                 const processedData = response.data.map((p): ProcessedProduct | null => {
 //                     if (!p.variant || p.variant.price == null) return null;
@@ -418,7 +418,7 @@ const NewArrivalsSection: React.FC = () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/new-arrivals');
+                const response = await axios.get<ApiProduct[]>('http://localhost/api/new-arrivals');
                 console.log("test new:", response)
                 const processedData = response.data.map((p): ProcessedProduct | null => {
                     // SỬA LỖI: Bỏ qua sản phẩm nếu không có variant hoặc không có giá
@@ -440,7 +440,7 @@ const NewArrivalsSection: React.FC = () => {
                     // Nếu imageUrl tồn tại và là đường dẫn tương đối (bắt đầu bằng '/')
                     if (imageUrl && imageUrl.startsWith('/')) {
                         // Nối nó với địa chỉ của backend để tạo URL đầy đủ
-                        imageUrl = `${`http://localhost:8001/api/new-arrivals`}${imageUrl}`;
+                        imageUrl = `${`http://localhost/api/new-arrivals`}${imageUrl}`;
                     }
                     const finalPrice = p.variant.price;
                     const originalPrice = p.variant.compare_at_price;
@@ -593,7 +593,7 @@ export default NewArrivalsSection;
 
 //     useEffect(() => {
 //         const fetchNewArrivals = async () => {
-//             const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
+//             const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost';
 
 //             try {
 //                 setLoading(true);

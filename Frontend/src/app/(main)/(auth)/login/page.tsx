@@ -69,6 +69,7 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        console.log("Submitting with:", { email, password });
         setShowResendLink(false);
 
         if (!validateForm()) return;

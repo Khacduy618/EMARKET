@@ -5,7 +5,6 @@ import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 // import NavMenu from "../components/NavMenu";
 import Footer from "../components/Footer";
-import { Session } from "inspector/promises";
 import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // app/(main)/(account)/address/page.tsx
 
 "use client";
@@ -153,7 +152,7 @@ function AddressSidePanel({
                         </div>
                         {!isEditing && (
                             <div className="flex items-center pt-2">
-                                <input type="checkbox" id="isDefault" name="IsDefault" checked={formData.IsDefault || false} onChange={(e) => setFormData(prev => ({ ...prev, IsDefault: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                <input type="checkbox" id="isDefault" name="IsDefault" checked={!!formData.IsDefault} onChange={(e) => setFormData(prev => ({ ...prev, IsDefault: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                                 <label htmlFor="isDefault" className="ml-3 block text-sm text-gray-900">Đặt làm địa chỉ mặc định</label>
                             </div>
                         )}
@@ -263,12 +262,3 @@ export default function AddressPage() {
         </div>
     );
 }
-=======
-import ProfileAddress from "../components/ProfileAddress";
-
-export default function AddressPage() {
-  return (
-    <ProfileAddress />
-  );
-}
->>>>>>> mienN

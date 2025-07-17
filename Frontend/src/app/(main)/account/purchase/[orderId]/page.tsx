@@ -6,6 +6,7 @@ import OrderDetailContent from '../components/OrderDetailContent';
 import { Order } from '@/types';
 import { getAuthToken } from '@/services/api';
 import { Loader2 } from 'lucide-react';
+import { getDecodedXsrfToken } from '@/services/auth';
 
 export default function OrderIdPage() {
     const params = useParams();
@@ -34,7 +35,7 @@ export default function OrderIdPage() {
 
             try {
                 const response = await fetch(`/api/orders/${orderId}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                           method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
                 });
 
                 if (!response.ok) {

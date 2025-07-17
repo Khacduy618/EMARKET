@@ -31,6 +31,13 @@ use App\Http\Controllers\VNPayController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
+
+Route::get('/test', function () {
+    // Ghi log để chắc chắn route này được chạy
+    \Illuminate\Support\Facades\Log::info('--- /api/test route was hit! ---'); 
+    
+    return response()->json(['message' => 'Laravel API is alive and working!']);
+});
 // Lấy API của Category Trả về dạng json theo CRUD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
@@ -73,65 +80,14 @@ Route::get('/products/{currentProductId}/related', [ProductController::class, 'g
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 Route::get('/searchAll', [SearchController::class, 'searchAll']);
-// API 1: Lấy các tùy chọn cho bộ lọc (danh mục, brand, khoảng giá...)
-// Frontend sẽ gọi API này để lấy dữ liệu xây dựng nên thanh sidebar.
-// Ví dụ cách gọi từ Frontend: /api/filters/available?base_category_id=1
 Route::get('/filters/available', [CategoryController::class, 'getAvailableFilters']);
-
-// API 2: Lấy danh sách sản phẩm đã được lọc theo các tiêu chí
-// Frontend sẽ gọi API này để hiển thị danh sách sản phẩm chính.
-// Ví dụ cách gọi từ Frontend: /api/products/filter?categories=5,8&sort=price_asc&page=1
-
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
-// Route::post('/register', [AuthController::class, 'register']);
-// Route::post('/login',    [AuthController::class, 'login']);
-// Route::middleware('auth:sanctum')->group(function (){
-//     // Auth routes already defined above, removing duplicates
-//     Route::get('/me', [AuthController::class, 'me']);
-//     Route::post('/logout', [AuthController::class, 'logout']);
-//
-//     // Cart routes - require authentication
-//
-//     Route::get('/cart', [CartController::class, 'index']);
-//     Route::post('/cart/items', [CartController::class, 'addItem']);
-//     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
-//     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
-//     //voucher routes
-//      Route::get('/vouchers', [VoucherController::class, 'index']);
-//
-// });
-    Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
-
-// Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-//     ->middleware(['guest'])
-//     ->name('password.reset');
-
-
-// Route::get('/reset-password/{token}', function (Request $request, $token) {
-//     $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-//     $email = $request->query('email'); // Hoặc $request->input('email')
-//
-//     if (!$email) {
-//         // Nếu không có email, chuyển hướng đến một trang lỗi trên frontend
-//         return redirect()->away($frontendUrl . '/invalid-link');
-//     }
-//
-//     $redirectUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);
-//
-//     return redirect()->away($redirectUrl);
-//
-// })->middleware(['guest'])->name('password.reset');
 
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
 
-Route::get('/login', [AuthController::class, 'loginRedirect'])->name('login');
 
-// Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
 
@@ -140,11 +96,9 @@ Route::get('/csrf-init', function () {
 });
 
 // Route me của bạn BẮT BUỘC phải CÓ middleware auth:sanctum
-Route::get('/me', function (Request $request) {
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
-
-// Route::middleware('auth:sanctum')->put('/user/password', [AuthController::class, 'updatePassword']);
+});
 
 Route::get('/user', function (Request $request) {
   return $request->user();
@@ -186,13 +140,8 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
 //     // Route Resource cho các hành động CRUD khác
 //     Route::apiResource('addresses', AddressController::class);
 // });
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function (){
-    // Auth routes already defined above, removing duplicates
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Cart routes - require authentication
     

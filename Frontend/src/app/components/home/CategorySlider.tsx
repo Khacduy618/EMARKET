@@ -17,7 +17,7 @@
 //     const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
 //     useEffect(() => {
-//         axios.get('http://localhost:8001/api/categorySubMenu')
+//         axios.get('http://localhost/api/categorySubMenu')
 //             .then((response) => {
 //                 const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
 //                 setCategories(activeCategories);
@@ -46,7 +46,7 @@
 //                         >
 //                             {cat.ImageURL && (
 //                                 <img
-//                                     src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost:8001${cat.ImageURL}`}
+//                                     src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost${cat.ImageURL}`}
 //                                     alt={cat.Name}
 //                                     className="w-5 h-5 mr-3 object-contain"
 //                                 />
@@ -76,7 +76,7 @@ export default function CategoryMenu() {
 
     // useEffect để lấy danh sách categories không thay đổi, giữ nguyên
     useEffect(() => {
-        axios.get('http://localhost:8001/api/categorySubMenu')
+        axios.get('http://localhost/api/categorySubMenu')
             .then((response) => {
                 const activeCategories = response.data.filter((cat: IHome.Category) => cat.IsActive);
                 setCategories(activeCategories);
@@ -111,7 +111,7 @@ export default function CategoryMenu() {
                             >
                                 {cat.ImageURL && (
                                     <img
-                                        src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost:8001${cat.ImageURL}`}
+                                        src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost${cat.ImageURL}`}
                                         alt={cat.Name}
                                         className="w-5 h-5 mr-3 object-contain"
                                     />

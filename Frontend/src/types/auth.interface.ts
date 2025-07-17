@@ -1,5 +1,7 @@
 // types/auth.interface.ts
 
+import { User } from "./user.interface";
+
 // Dùng cho Login Payload
 export interface LoginPayload {
     email: string;
@@ -51,7 +53,9 @@ export interface UpdateProfilePayload {
 }
 
 export interface LoginResponse {
-    two_factor?: boolean; // Thuộc tính này sẽ là true
+   two_factor?: boolean; // Dấu '?' cho biết đây là thuộc tính tùy chọn
+    user?: User;          // << THÊM DÒNG NÀY. Cũng nên là tùy chọn.
+    message?: string
 }
 
 export interface TwoFactorQrCodeResponse {
