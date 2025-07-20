@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\VoucherController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
@@ -148,4 +149,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault']);
     // Route Resource cho các hành động CRUD khác
     Route::apiResource('addresses', AddressController::class);
+});
+
+Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+    // Route này sẽ tự tạo:
+    // GET    /api/admin/users             -> index()
+    // POST   /api/admin/users             -> store()
+    // GET    /api/admin/users/{user}      -> show()
+    // PUT    /api/admin/users/{user}      -> update()
+    // DELETE /api/admin/users/{user}      -> destroy()
+    Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
+
+    // Route cập nhật trạng thái vẫn giữ riêng
+    Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
 });

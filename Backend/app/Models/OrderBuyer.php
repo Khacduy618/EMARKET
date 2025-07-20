@@ -15,9 +15,18 @@ class OrderBuyer extends Model
 {
     use HasFactory;
 
-    protected $table = 'orders_buyer';
+    protected $table = 'OrdersBuyer';
 
+    /**
+     * Tên của cột khóa chính.
+     */
     protected $primaryKey = 'OrderID';
+
+    /**
+     * Tên của các cột timestamp.
+     */
+    const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
 
     protected $fillable = [
         'OrderCode',
