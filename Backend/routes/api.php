@@ -1,7 +1,6 @@
 <?php
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductController AS BuyerProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
@@ -12,19 +11,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
 use App\Http\Middleware\HandleImage;
-use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
-use App\Http\Controllers\Admin\ShopController AS ShopController;
 use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
-use App\Http\Controllers\Admin\StatisticsController; //admin
-use App\Http\Controllers\SellerRegisterController;
-use App\Http\Controllers\ShopCategoryController ; 
-use App\Http\Controllers\ShopProductController ;
+use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Seller\SellerRegisterController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategory;
+use App\Http\Controllers\Admin\ShopController as ShopController;
+use App\Http\Controllers\Admin\ProductControllers;
+use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\Seller\ShopCategoryController; 
+use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\VNPayController;
+
 
 /* ___________________________________________________________________
   |                           Người dùng                              |
@@ -86,7 +90,6 @@ Route::get('/user', function (Request $request) {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
-
 Route::middleware('auth:sanctum')->group(function (){
     // Auth routes already defined above, removing duplicates
     Route::get('/me', [AuthController::class, 'me']);
@@ -111,11 +114,26 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
+     
+
+    Route::get('/orders', [OrderController::class, 'index']);
+
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+    // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
+    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+
+    Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);
+    // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
+    Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
+
+    Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
+    
     
 });
+Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
 
 
-Route::get('/products/{product_id}/variants/filter',[BuyerProductController::class, 'filterVariants']);
+Route::get('/products/{product_id}/variants/filter',[ProductController::class, 'filterVariants']);
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
@@ -149,29 +167,21 @@ Route::middleware('auth:sanctum' )->group(function () {
 
 // Category route
 Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
-
 Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
-
-Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])
-  ->middleware(HandleImage::class);
-
+Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
 Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-
-Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])
-  ->middleware(HandleImage::class);
-
+Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
 Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
-// End category route
 
 // Shop route
 Route::get('/admin/shops', [ShopController::class, "index"]);
-
 Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
-
 Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
-// End Shop route
 
 // Product route
+Route::get('/admin/products', [ProductControllers::class, "index"]);
+Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
 Route::get('/admin/products', [AdminProductController::class, "index"]);
 
 Route::put('/admin/products/{id}/approval-status', [AdminProductController::class, 'updateApprovalStatus']);
@@ -187,14 +197,46 @@ Route::get('/admin/products/{id}', [AdminProductController::class, 'detailProduc
   |                            Seller route                           |
   |___________________________________________________________________| */
 
+// Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
-  Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-  Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-  Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
+    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
+    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
+    Route::get('/user', [AuthController::class, 'user']);
+
+    // Seller protected routes (must be seller)
+    Route::middleware('seller')->group(function () {
+        // Shop category
+        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+
+        // Shop products
+        Route::get('/products', [ShopProductController::class, 'index']);
+        Route::post('/shop/products', [ShopProductController::class, 'addProduct']);
+        Route::get('/shop/products/{productID}', [ShopProductController::class, 'showProduct']);
+        Route::post('/shop/products/{productID}', [ShopProductController::class, 'updateProduct']);
+        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
+        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+
+        // Orders
+        Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+        // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
+
+        // Statistics
+        Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+        Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
+    });
 });
+
+
+
+
 //route chat;
-
-
 
 Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function (Request $request) {
     Log::info('--- Socket Token Validation Endpoint Hit ---');
