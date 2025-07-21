@@ -1,4 +1,4 @@
-import { Product, ProductVariant,ProductImage } from "@/types";
+import { ProductVariant,ProductImage } from "@/types";
 
 export const API_BASE_URL = 'http://localhost/api';
 
