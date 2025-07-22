@@ -541,7 +541,7 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
         'App\\Http\\Controllers\\NewArrivalController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewArrivalController.php',
         'App\\Http\\Controllers\\ProductDetailController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductDetailController.php',
         'App\\Http\\Controllers\\SearchController' => __DIR__ . '/../..' . '/app/Http/Controllers/SearchController.php',
-        'App\\Http\\Controllers\\Seller\\SellerOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerOrderController.php',
+        'App\\Http\\Controllers\\SellerOrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/SellerOrderController.php',
         'App\\Http\\Controllers\\Seller\\SellerRegisterController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/SellerRegisterController.php',
         'App\\Http\\Controllers\\Seller\\ShopCategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopCategoryController.php',
         'App\\Http\\Controllers\\Seller\\ShopProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/Seller/ShopProductController.php',

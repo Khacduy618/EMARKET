@@ -21,7 +21,7 @@ return array(
     'App\\Http\\Controllers\\NewArrivalController' => $baseDir . '/app/Http/Controllers/NewArrivalController.php',
     'App\\Http\\Controllers\\ProductDetailController' => $baseDir . '/app/Http/Controllers/ProductDetailController.php',
     'App\\Http\\Controllers\\SearchController' => $baseDir . '/app/Http/Controllers/SearchController.php',
-    'App\\Http\\Controllers\\Seller\\SellerOrderController' => $baseDir . '/app/Http/Controllers/Seller/SellerOrderController.php',
+    'App\\Http\\Controllers\\SellerOrderController' => $baseDir . '/app/Http/Controllers/SellerOrderController.php',
     'App\\Http\\Controllers\\Seller\\SellerRegisterController' => $baseDir . '/app/Http/Controllers/Seller/SellerRegisterController.php',
     'App\\Http\\Controllers\\Seller\\ShopCategoryController' => $baseDir . '/app/Http/Controllers/Seller/ShopCategoryController.php',
     'App\\Http\\Controllers\\Seller\\ShopProductController' => $baseDir . '/app/Http/Controllers/Seller/ShopProductController.php',
