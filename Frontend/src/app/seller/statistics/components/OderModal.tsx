@@ -34,7 +34,7 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
     if (show && date) {
       setLoading(true)
       setError(null)
-      fetch(`http://localhost:8001/api/seller/orders?date=${encodeURIComponent(date)}`, {
+      fetch(`http://localhost:8001/api/seller/orderss?date=${encodeURIComponent(date)}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
