@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { da } from "date-fns/locale"
+import Link from "next/link";
+import { Calendar, Package } from "lucide-react"
+
 
 type Order = {
   OrderID: number
@@ -46,7 +48,7 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
         .then((data) => {
           setOrders(data)
           setLoading(false)
-          console.log(data);
+        
         })
         .catch((err) => {
           setError(err.message)
@@ -137,12 +139,10 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
                     {orders.map((order) => (
                       <TableRow key={order.OrderID} className="hover:bg-orange-50/50 transition-colors">
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium text-gray-900">#{order.OrderID}</div>
-                            <Badge variant="outline" className="text-xs">
-                              {order.OrderCode}
-                            </Badge>
-                          </div>
+                          <Link href={`/seller/statistics/${order.OrderID}`} className="flex items-center space-x-2 text-sm text-blue-600 hover:underline">
+                            <span className="text-blue-600 font-bold">#{order.OrderID}</span>
+                          </Link>
+
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">

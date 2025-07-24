@@ -10,7 +10,7 @@ edit  | `icon`     |              |`allow null`    |
 
 pnpm dlx shadcn@latest init
 
-pnpm dlx shadcn@latest add toast  
+pnpm dlx shadcn@latest add alert  
 
 pnpm dlx shadcn@latest add calendar popover
 

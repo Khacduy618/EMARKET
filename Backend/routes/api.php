@@ -211,6 +211,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
+
+        Route::get('/seller/statistics/orders/deaill/{id}', [StatisticsController::class, 'showOderDetail']);
     });
 });
 
