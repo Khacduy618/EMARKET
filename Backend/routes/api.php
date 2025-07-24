@@ -337,5 +337,5 @@ Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(fun
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
-  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
+  Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
 });
