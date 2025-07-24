@@ -61,23 +61,35 @@ class CategoryController extends Controller {
   }
 
   public function createPost(Request $req) {
-    try {
-      $category = new PlatformCategory();
-      $category->Name = $req->Name;
-      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
-      $category->ImageURL = $req->image_name;
-      $category->IsActive = true;
+    $validated = $req->validate([
+        'Name' => 'required|string|max:255',
+        // Thêm các rule khác nếu cần, ví dụ:
+        // 'image_name' => 'required|string',
+        // 'Parent' => 'nullable|integer|exists:platform_categories,id'
+    ], [
+        'Name.required' => 'Tên danh mục không được để trống',
+        'Name.string' => 'Tên danh mục phải là chuỗi',
+        'Name.max' => 'Tên danh mục không được vượt quá 255 ký tự',
+    ]);
 
-      if ($category->save()) {
-        return response()->json(['status' => 'success', 'message' => 'Thêm danh mục thành công']);
-      } else {
-        return response()->json(['status' => 'error', 'message' => 'Không thể lưu danh mục, vui lòng thử lại'], 500);
-      }
+    try {
+        $category = new PlatformCategory();
+        $category->Name = $req->Name;
+        $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
+        $category->ImageURL = $req->image_name;
+        $category->IsActive = true;
+
+        if ($category->save()) {
+            return response()->json(['status' => 'success', 'message' => 'Thêm danh mục thành công']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Không thể lưu danh mục, vui lòng thử lại'], 500);
+        }
 
     } catch (\Exception $e) {
-      return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
+        return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
     }
-  }
+}
+
 
   public function deleteCategory(Request $req){
     try {

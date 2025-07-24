@@ -101,4 +101,6 @@ class SellerOrderController extends Controller {
 
         return response()->json(['message' => 'Order status updated', 'order' => $order]);
     }
+
+    
 }

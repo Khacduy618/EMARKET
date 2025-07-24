@@ -15,7 +15,7 @@ class EnsureIsSeller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        if ($user->Role !== 'Người bán') {
+        if ($user->Role !== 'Seller') {
             return response()->json(['message' => 'Unauthorized: Only sellers can access this resource'], 403);
         }
 

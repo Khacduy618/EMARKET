@@ -1,12 +1,11 @@
-'use client';
+"use client"
 
-import React from 'react';
-import Link from 'next/link';
-import { Menu, Search, Bell, ChevronDown, User, Settings, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState, useEffect } from "react"
+import { Menu, Search, Bell, ChevronDown, User, Settings, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +13,86 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import  Sidebar  from "./Sidebar"; // đảm bảo đường dẫn đúng
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import Sidebar from "./Sidebar" // đảm bảo đường dẫn đúng
+
+interface UserData {
+  UserID: number
+  Username: string
+  Email: string
+  FullName: string
+  Phone: string
+  Role: string
+  Level: string
+  Avatar: string
+  IsActive: boolean
+  CreatedAt: string
+  UpdatedAt: string
+  email_verified_at: string | null
+  two_factor_confirmed_at: string | null
+  two_factor_recovery_codes: string | null
+  two_factor_secret: string | null
+}
 
 const Header = () => {
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    try {
+      const userDataString = localStorage.getItem("user")
+      if (userDataString) {
+        const parsedUserData = JSON.parse(userDataString)
+        setUserData(parsedUserData)
+      }
+    } catch (error) {
+      console.error("Lỗi khi đọc dữ liệu user từ localStorage:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Hàm để lấy tên hiển thị
+  const getDisplayName = () => {
+    if (!userData) return "Người dùng"
+    return userData.FullName || userData.Username || "Người dùng"
+  }
+
+  // Hàm để lấy role hiển thị
+  const getDisplayRole = () => {
+    if (!userData) return "User"
+    return `${userData.Role} - ${userData.Level}` || userData.Role || "Seller"
+  }
+
+  // Hàm để lấy avatar
+  const getAvatarUrl = () => {
+    if (!userData || !userData.Avatar) return null
+    return userData.Avatar
+  }
+
+  // Hàm để lấy initials cho fallback
+  const getInitials = () => {
+    const name = userData?.FullName || userData?.Username || "User"
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("user")
+      localStorage.removeItem("authToken")
+      // Redirect to login page or refresh
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error)
+    }
+  }
+
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-4">
       <div className="flex items-center justify-between">
@@ -36,10 +110,7 @@ const Header = () => {
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Tìm kiếm sản phẩm, đơn hàng..."
-              className="pl-10 w-64 hidden md:block"
-            />
+            <Input placeholder="Tìm kiếm sản phẩm, đơn hàng..." className="pl-10 w-64 hidden md:block" />
           </div>
         </div>
 
@@ -55,12 +126,12 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>NV</AvatarFallback>
+                  <AvatarImage src={getAvatarUrl() || "/placeholder.svg?height=32&width=32"} alt={getDisplayName()} />
+                  <AvatarFallback>{getInitials()}</AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">Nguyễn Văn Shop</p>
-                  <p className="text-xs text-gray-500">Seller Pro</p>
+                  <p className="text-sm font-medium">{loading ? "Đang tải..." : getDisplayName()}</p>
+                  <p className="text-xs text-gray-500">{loading ? "..." : getDisplayRole()}</p>
                 </div>
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -77,7 +148,7 @@ const Header = () => {
                 Cài đặt
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Đăng xuất
               </DropdownMenuItem>
@@ -86,7 +157,7 @@ const Header = () => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header
