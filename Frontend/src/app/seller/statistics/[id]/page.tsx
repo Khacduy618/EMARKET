@@ -187,6 +187,50 @@ export default function Page() {
     }
   }
 
+  const getPaymentStatusText = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return 'Chờ thanh toán';
+      case 'Paid':
+        return 'Đã thanh toán';
+      case 'Failed':
+        return 'Thanh toán thất bại';
+      case 'Refunded':
+        return 'Đã hoàn tiền';
+      case 'PartiallyRefunded':
+        return 'Hoàn tiền một phần';
+      default:
+        return 'Không xác định';
+    }
+  };
+
+
+  const translatePaymentStatus = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return 'Đang chờ xử lý';
+      case 'Processing':
+        return 'Đang xử lý';
+      case 'Shipped':
+        return 'Đã gửi hàng';
+      case 'Delivered':
+        return 'Đã giao hàng';
+      case 'CancelledByBuyer':
+        return 'Người mua đã hủy';
+      case 'CancelledBySeller':
+        return 'Người bán đã hủy';
+      case 'Returned':
+        return 'Đã hoàn trả';
+      case 'ReturnInProgress':
+        return 'Hoàn trả đang xử lý';
+      case 'Completed':
+        return 'Đã hoàn tất';
+      default:
+        return status;
+    }
+  };
+
+
   const handleBack = () => {
     router.back()
   }
@@ -280,14 +324,18 @@ export default function Page() {
               <CreditCard className="h-5 w-5 text-gray-400" />
               <div>
                 <p className="text-sm text-gray-600">Trạng thái thanh toán</p>
-                <Badge className={getStatusColor(order.PaymentStatus)}>{order.PaymentStatus}</Badge>
+                <Badge className={getStatusColor(order.PaymentStatus)}>
+                  {getPaymentStatusText(order.PaymentStatus)}
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Package className="h-5 w-5 text-gray-400" />
               <div>
                 <p className="text-sm text-gray-600">Trạng thái đơn hàng</p>
-                <Badge className={getStatusColor(order.OverallStatus)}>{order.OverallStatus}</Badge>
+                <Badge className={getStatusColor(order.OverallStatus)}>
+                  {translatePaymentStatus(order.OverallStatus)}
+                </Badge>
               </div>
             </div>
           </div>
