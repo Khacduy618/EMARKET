@@ -287,15 +287,18 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div>
+          <Button className="mb-5" variant="outline" size="sm" onClick={handleBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Quay lại
+          </Button>
+        </div>
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay lại
-              </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Hóa đơn chi tiết</h1>
                 <p className="text-gray-600">Mã đơn hàng: {order.OrderCode}</p>
