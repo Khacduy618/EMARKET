@@ -3,6 +3,7 @@ export interface User {
     Username: string;
     Email: string;
     FullName?: string;
+    Avatar?:string;
     DefaultShippingAddressID?: number;
     Phone?: string;
     Level: 'Đồng' | 'Bạc' | 'Vàng' | 'Bạch kim' | 'Kim cương';

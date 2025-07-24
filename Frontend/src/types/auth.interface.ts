@@ -50,6 +50,7 @@ export interface UpdateProfilePayload {
     Username?: string;
     Email?: string;
     Phone?: string;
+    Avatar?: string;
 }
 
 export interface LoginResponse {

@@ -162,6 +162,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
+    Route::delete('addresses/{address}', [AddressController::class, 'destroy']);
      
 
     Route::get('/orders', [OrderController::class, 'index']);
