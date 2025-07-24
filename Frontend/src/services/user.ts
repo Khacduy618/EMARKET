@@ -21,10 +21,9 @@ export interface UpdateAddressResponse {
  * @returns A promise that resolves with the user's addresses.
  */
 export const fetchUserAddresses = async (): Promise<FetchAddressesResponse> => {
-    const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/addresses`, {
         headers: {
-            'Authorization': `Bearer ${token}`,
+            
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },

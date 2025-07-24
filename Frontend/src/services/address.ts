@@ -12,6 +12,7 @@ export const getAddresses = async (url: string): Promise<Address[]> => {
         credentials: 'include',
         headers: { 'Accept': 'application/json' },
     });
+    console.log(response)
     return handleResponse<Address[]>(response);
 };
 

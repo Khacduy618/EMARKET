@@ -502,7 +502,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 
   return (
     // Wrap the entire card in a Link component
-    <Link href={`/purchase/${order.OrderID}`} passHref className="block"> {/* passHref để Link truyền href xuống div */}
+    <Link href={`/account/purchase/${order.OrderID}`} passHref className="block"> {/* passHref để Link truyền href xuống div */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 cursor-pointer hover:shadow-md transition-shadow duration-200"> {/* Thêm cursor-pointer và hover effect */}
         {/* Shop Header */}
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">

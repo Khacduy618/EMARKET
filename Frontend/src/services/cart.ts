@@ -7,13 +7,15 @@ import {handleResponse,getAuthToken, API_BASE_URL } from '../services/api';
 
 
 export const fetchCart = async (): Promise<Cart> => {
-    const token = getAuthToken();
+    
     const response = await fetch(`${API_BASE_URL}/cart`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+         method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json',
+            'Accept': 'application/json',
+         },
     });
+    console.log(response)
     return handleResponse(response);
 };
 

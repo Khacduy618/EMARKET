@@ -23,7 +23,7 @@ class AddressController extends Controller
         }
 
         // Sử dụng Query Builder để truy vấn bảng 'Addresses'
-        $addresses = DB::table('Addresses')
+        $addresses = DB::table('addresses')
             ->where('UserID', $user->UserID) // Lọc theo UserID của người dùng hiện tại
             ->whereNull('DeletedAt') // Chỉ lấy những địa chỉ chưa bị xóa mềm
             ->orderBy('IsDefault', 'desc') // Sắp xếp địa chỉ mặc định (IsDefault = 1) lên đầu

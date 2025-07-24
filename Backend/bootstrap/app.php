@@ -52,6 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(
             except: ['api/*']
         );
+        
          $middleware->redirectGuestsTo(function (Request $request) {
             // Nếu request muốn nhận JSON (tức là một API call từ frontend)
             if ($request->expectsJson()) {

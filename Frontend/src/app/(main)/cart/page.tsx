@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItemQuantity, removeCartItem, updateCartItemVariant, removeMultipleCartItems } from '@/services/cart';
-import { getProductAttributes, getVariantImage } from '@/services/api';
+import { getAuthToken, getProductAttributes, getVariantImage } from '@/services/api';
 import { Cart, CartItem, AppliedVouchersCombined, AppliedShopVouchers, Voucher} from '@/types'; 
 import AttributeSelectionDropdown from '@/app/components/cart/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
@@ -205,7 +205,7 @@ const CartPage: React.FC = () => {
 
 
     useEffect(() => {
-        const authToken = localStorage.getItem('authToken');
+        const authToken = getAuthToken();
         if (!authToken) {
             router.push('/login');
             return;
