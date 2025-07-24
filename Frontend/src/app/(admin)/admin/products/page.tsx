@@ -169,7 +169,7 @@ export default function ProductListPage() {
           setProducts((prev) =>
             prev.map((p) => (p.ProductID === productId ? { ...p, AdminApprovalStatus: newStatus } : p)),
           )
-          toast.success("Cập nhật trạng thái thành công!")
+          toast.success("Cập nhật trạng thái thành công!") 
         } else {
           toast.error(json.message || "Có lỗi xảy ra")
         }
@@ -551,19 +551,6 @@ export default function ProductListPage() {
           <ProductDetailModal productId={selectedProductId} show={showModal} onHide={() => setShowModal(false)} />
         )}
       </div>
-
-      {/* Toast Container - Đã thêm phần này */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
     </>
   )
 }
