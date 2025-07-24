@@ -88,6 +88,12 @@ return [
             'retry_after' => 60,
         ],
 
+        'resend' => [
+            'transport' => 'resend',
+            // 'api_key' => env('RESEND_API_KEY'),
+            // 'domain' => env('RESEND_DOMAIN'),
+        ],
+
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => [

@@ -1,9 +1,22 @@
+import { ProductVariant,ProductImage } from "@/types";
+import { getCookie } from "./auth";
 
-export const API_BASE_URL = 'http://localhost:8001/api';
+export const API_BASE_URL = 'http://localhost/api';
+
+interface ProductWithImages {
+    images?: ProductImage[] | null;
+}
 
 export const getAuthToken = (): string | null => {
-    // Get token from localStorage
-    return localStorage.getItem('authToken');
+    
+    const xsrfToken = getCookie('XSRF-TOKEN');
+
+        if (!xsrfToken) {
+            // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
+            console.warn('CSRF token not found in cookies.');
+            return '';
+        }
+        return decodeURIComponent(xsrfToken);
 };
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
@@ -87,3 +100,46 @@ export const api = {
         return handleResponse(response);
     },
 };
+/**
+ * HÀM MỚI ĐA DỤNG: Chuyển đổi một đường dẫn ảnh tương đối từ API thành một URL hoàn chỉnh.
+ * Xử lý các trường hợp: URL tuyệt đối, URL tương đối, và URL null/undefined.
+ * @param relativePath - Đường dẫn ảnh từ API (ví dụ: 'product_images/abc.png')
+ * @returns - Đường dẫn ảnh hợp lệ cho thẻ <Image> (ví dụ: '/storage/product_images/abc.png')
+ */
+export const getFullImageUrl = (relativePath: string | null | undefined): string => {
+    if (!relativePath) {
+        return '/placeholder.png'; // Trả về ảnh mặc định
+    }
+
+    // Nếu đã là URL đầy đủ, trả về luôn
+    if (relativePath.startsWith('http')) {
+        return relativePath;
+    }
+
+    // Xây dựng đường dẫn đúng mà server có thể hiểu
+    const path = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    return `/storage/${path}`;
+};
+
+// export const getPrimaryImage = (product: ProductWithImages): string => {
+//     const primaryImg = product.images?.find((img) => img.IsPrimary);
+//     const imagePath = primaryImg?.ImageURL || product.images?.[0]?.ImageURL;
+
+//     if (imagePath) {
+//       return `/storage/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
+//     }
+//     return "/placeholder.svg";
+// }
+export const getPrimaryImage = (product: ProductWithImages): string => {
+    const primaryImg = product.images?.find((img) => img.IsPrimary);
+    const imagePath = primaryImg?.ImageURL || product.images?.[0]?.ImageURL;
+    return getFullImageUrl(imagePath); // Gọi hàm mới
+}
+
+export const getVariantImage = (variant: ProductVariant, product: ProductWithImages): string => {
+    const imagePath = variant.ImageURL;
+    if (!imagePath) {
+        return getPrimaryImage(product);
+    }
+    return getFullImageUrl(imagePath); // Gọi hàm mới
+}

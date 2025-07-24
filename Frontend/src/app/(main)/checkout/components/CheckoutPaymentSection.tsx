@@ -74,7 +74,7 @@ interface CheckoutPaymentSectionProps {
   onPaymentMethodChange: () => void;
 //   payPalClientID: string;
   isPaid: boolean;
-  paidAt: any;
+  paidAt: CheckoutData['paidAt'];
   // Pass down the summary or final total to be used in the order
 //   summary: CheckoutData['summary']; 
 }

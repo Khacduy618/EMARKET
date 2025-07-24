@@ -1,19 +1,28 @@
+// services/api.ts
 import axios from 'axios';
 
-// Giả sử bạn lưu token trong localStorage sau khi đăng nhập
-const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+const api = axios.create({
+    // baseURL phải trỏ đến thư mục /api của backend
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api',
 
-const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api', // URL tới backend Laravel
+    // RẤT QUAN TRỌNG: Cho phép gửi cookie đi
+    withCredentials: true,
+
+    // CÁC DÒNG QUAN TRỌNG NHẤT:
+    // Yêu cầu axios TỰ ĐỘNG đọc cookie tên là 'XSRF-TOKEN'...
+    xsrfCookieName: 'XSRF-TOKEN',
+
+    // ...và TỰ ĐỘNG đặt giá trị của nó vào header 'X-XSRF-TOKEN'
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+
+    // Các header mặc định khác
     headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
     },
 });
 
-// Thêm token vào mỗi request nếu có
-if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
+// KHÔNG CẦN BẤT KỲ INTERCEPTOR NÀO Ở ĐÂY
+// Axios đã tự xử lý XSRF một cách thông minh.
 
-export default axiosInstance;
+export default api;

@@ -9,6 +9,7 @@
 
 # Environment files
 .env
+./Backend/vendor/
 temp
 *.log
 dist

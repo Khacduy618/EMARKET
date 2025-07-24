@@ -32,7 +32,7 @@ export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
   'Refunded' | 'PartiallyRefunded';
 
-export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
+export type PaymentMethodType = 'COD' | 'Paypal' | 'VNPay';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
 export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
@@ -61,7 +61,9 @@ export interface OrderItem {
   FlashSaleDealID: number | null;
   ReturnStatus: ReturnItemStatus;
   CreatedAt: string;
-
+  productVariant: ProductVariant & {
+      product: Product;
+  };
   productName: string;
   productImageURL: string;
   classification: string;
@@ -95,13 +97,23 @@ export interface CheckoutProductItem {
 
   // Các trường từ ProductVariant (nếu cần cho mock data hoặc hiển thị chi tiết hơn)
   SKU?: string | null;
-  CompareAtPrice?: number | null; // Optional
+  CompareAtPrice?: number; // Optional
   StockQuantity?: number;
   IsActive?: boolean;
   CreatedAt?: string; // Optional
   UpdatedAt?: string; // Optional
 }
 
+export interface OrderDetailShopOrder {
+    shopId: number;
+    shopName: string;
+    shopLevel: ShopLevel;
+    isFavoriteShop: boolean;
+    items: OrderItem[];
+    // Thêm các trường voucher cho shop
+    appliedShopVoucherCode?: string | null;
+    shopVoucherDiscountAmount?: number ;
+}
 
 // --- INTERFACE Order (LỊCH SỬ ĐƠN HÀNG) ---
 export interface Order {
@@ -120,13 +132,18 @@ export interface Order {
   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-
+  
+  shopvoucher: string | null;
+  shopdiscountamount: number;
+  
   PlatformVoucherCode: string | null;
   PlatformDiscountAmount: number;
   CreatedAt: string;
   UpdatedAt: string;
 
   items: OrderItem[];
+
+  shopOrders: OrderDetailShopOrder[];
 
   ShopID: number;
   shopName: string;
@@ -170,6 +187,7 @@ export interface CheckoutShopOrder {
 }
 
 export interface StoredCheckoutData {
+    orderId?: number;
     selectedItems: CartItem[];
     appliedShopVouchers: AppliedShopVouchers;
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -197,6 +215,7 @@ export interface CheckoutSummaryDetails {
 }
 
 export interface CheckoutData {
+    orderId?: number; 
     address: Address | null;
     shopOrders: CheckoutShopOrder[];
     appliedPlatformVouchers: AppliedVouchersCombined;
@@ -204,9 +223,10 @@ export interface CheckoutData {
     // Thêm các thông tin khác nếu cần
     paymentMethod: {
         method: string;
-        type: 'COD' | 'Paypal';
+        type: PaymentMethodType;
         canChange: boolean;
     };
+    paidAt?: any;
 }
 
 export interface OrderStatusHistory {

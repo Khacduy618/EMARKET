@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw } from 'lucide-react';
 import RelatedItems from './RelatedItems';
 import { toast } from 'react-toastify';
+import { getFullImageUrl } from '@/services/api'; 
 import { addCartItem } from '@/services/cart';
 import ConfirmModal from '@/app/components/ConfirmModal';
 
@@ -77,19 +78,6 @@ interface ProductDetailProps {
     sidebarSlot: React.ReactNode;
 }
 
-// --- HELPER FUNCTIONS ---
-const fullImageUrl = (url: string | null) => {
-    if (!url) return '/placeholder.png'; // If no URL, return default image
-
-    // If it's an absolute URL (already has http), return it as is.
-    if (url.startsWith('http')) {
-        return url;
-    }
-
-    // If it's a relative URL (starts with '/'), return it as is.
-    // Next.js will automatically handle this path correctly from the /public folder.
-    return url;
-};
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -140,7 +128,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost:8001/api/productDetail/${productId}`);
+                const response = await axios.get(`http://localhost/api/productDetail/${productId}`);
                 const productData: Product = response.data;
                 setProduct(productData);
 
@@ -478,8 +466,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                         {product.images.slice(0, 4).map((image) => (
                             <div key={image.ImageID} onClick={() => setSelectedImage(image.ImageURL)}
                                 className={`w-20 h-20 bg-gray-50 rounded flex items-center justify-center cursor-pointer p-1 border transition-all ${selectedImage === image.ImageURL ? 'border-orange-500' : 'border-gray-200 hover:border-orange-300'}`}>
-                                <Image
-                                    src={fullImageUrl(image.ImageURL)}
+                                 <img
+                                    // SỬ DỤNG HÀM MỚI Ở ĐÂY
+                                    src={getFullImageUrl(image.ImageURL)}
                                     alt="thumbnail"
                                     width={80}
                                     height={80}
@@ -491,13 +480,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                     <div className="flex-1 bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
                         <div className="relative aspect-square w-full">
                             {selectedImage && ( // Render image only if selectedImage is not null
-                                <Image
+                                <img
                                     key={selectedImage} // Add key to force re-render Image component when src changes
-                                    src={fullImageUrl(selectedImage)}
+                                    src={getFullImageUrl(selectedImage)}
                                     alt={product.Name}
-                                    fill
+                                    
                                     className="object-contain w-full h-full p-4"
-                                    priority
+                                    
                                 />
                             )}
                            {pricingInfo.discountPercent > 0 && (

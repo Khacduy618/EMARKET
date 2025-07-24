@@ -10,18 +10,43 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductCard from './ProductCard';
 import { Loader2 } from 'lucide-react';
+import { getFullImageUrl } from '@/services/api';
 
-// Định nghĩa cấu trúc dữ liệu cho một sản phẩm.
-interface Product {
+// // Định nghĩa cấu trúc dữ liệu cho một sản phẩm.
+// interface Product {
+//     id: number;
+//     name: string;
+//     imageUrl: string;
+//     price: number;
+//     originalPrice?: number;
+//     discountPercent?: number;
+//     rating: number;
+//     reviewCount: number;
+// }
+
+interface ApiProduct {
+    product_id: number;
+    product_name: string;
+    image_url: string | null; // Đường dẫn tương đối từ API
+    lowest_price: number;
+    original_price?: number;
+    discount?: number;
+    average_rating: number;
+    reviews_count: number;
+}
+
+// Interface cho dữ liệu mà ProductCard mong đợi
+interface ProductForCard {
     id: number;
     name: string;
-    imageUrl: string;
+    imageUrl: string; // URL tuyệt đối, hoàn chỉnh
     price: number;
     originalPrice?: number;
     discountPercent?: number;
     rating: number;
     reviewCount: number;
 }
+
 
 // === SỬA ĐỔI 1: THÊM PROPS CHO COMPONENT ===
 // Component này bây giờ cần nhận vào ID của sản phẩm hiện tại.
@@ -30,14 +55,11 @@ interface RelatedItemsProps {
 }
 
 const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
-    // --- State Management ---
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<ProductForCard[]>([]); // <<<--- State dùng kiểu dữ liệu của Card
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // --- Data Fetching ---
     useEffect(() => {
-        // Nếu không có ID sản phẩm, không làm gì cả.
         if (!currentProductId) {
             setLoading(false);
             return;
@@ -46,29 +68,36 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
         const fetchRelatedProducts = async () => {
             setLoading(true);
             setError(null);
-
             try {
-                // === SỬA ĐỔI 2: XÂY DỰNG URL ĐỘNG ===
-                // Sử dụng template string (dấu `) để chèn ID sản phẩm vào URL.
-                const apiUrl = `http://localhost:8001/api/products/${currentProductId}/related`;
-                console.log("Calling API:", apiUrl); // In ra để debug
+                const apiUrl = `http://localhost/api/products/${currentProductId}/related`;
+                const response = await axios.get<ApiProduct[]>(apiUrl); // <<<--- API trả về kiểu ApiProduct
 
-                const response = await axios.get<Product[]>(apiUrl);
+                // === SỬA LỖI NẰM Ở ĐÂY ===
+                // Chuyển đổi dữ liệu từ API sang định dạng mà ProductCard cần
+                const formattedProducts: ProductForCard[] = response.data.map(apiProduct => ({
+                    id: apiProduct.product_id,
+                    name: apiProduct.product_name,
+                    // Sử dụng getFullImageUrl để tạo URL hoàn chỉnh
+                    imageUrl: getFullImageUrl(apiProduct.image_url),
+                    price: apiProduct.lowest_price,
+                    originalPrice: apiProduct.original_price,
+                    discountPercent: apiProduct.discount,
+                    rating: apiProduct.average_rating,
+                    reviewCount: apiProduct.reviews_count
+                }));
+                // === KẾT THÚC PHẦN SỬA LỖI ===
 
-                setProducts(response.data);
+                setProducts(formattedProducts);
 
             } catch (err) {
                 console.error("Lỗi khi gọi API sản phẩm liên quan:", err);
-                setError("Không thể tải sản phẩm liên quan. Vui lòng thử lại sau.");
+                setError("Không thể tải sản phẩm liên quan.");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchRelatedProducts();
-
-        // === SỬA ĐỔI 3: THÊM `currentProductId` VÀO DEPENDENCY ARRAY ===
-        // useEffect sẽ chạy lại mỗi khi ID sản phẩm hiện tại thay đổi.
     }, [currentProductId]);
 
     // --- Xử lý các trạng thái hiển thị (giữ nguyên) ---

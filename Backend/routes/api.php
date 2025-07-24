@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -9,19 +10,35 @@ use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
-
-use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
-use App\Http\Controllers\ShopProductController;
+use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Seller\SellerRegisterController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategory;
+use App\Http\Controllers\Admin\ShopController as ShopController;
+use App\Http\Controllers\Admin\ProductControllers;
+use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\Seller\ShopCategoryController; 
+use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\VNPayController;
 
-// Lấy API của Category Trả về dạng json theo CRUD 
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
+
+
+Route::get('/test', function () {
+    // Ghi log để chắc chắn route này được chạy
+    \Illuminate\Support\Facades\Log::info('--- /api/test route was hit! ---'); 
+    
+    return response()->json(['message' => 'Laravel API is alive and working!']);
+});
+// Lấy API của Category Trả về dạng json theo CRUD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
@@ -34,8 +51,8 @@ Route::get('/categories/{category}/filters', [CategoryController::class, 'getCat
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
-// Lấy API của Products Trả về dạng json theo CRUD 
-Route::get('/Products', [ProductController::class, 'index']);
+// Lấy API của Products Trả về dạng json theo CRUD
+Route::get('/Products' ,[ProductController::class , 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
 Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
@@ -62,34 +79,69 @@ Route::get('/products/{currentProductId}/related', [ProductController::class, 'g
 // router tìm kiếm lọc sản phẩm 
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
-// API 1: Lấy các tùy chọn cho bộ lọc (danh mục, brand, khoảng giá...)
-// Frontend sẽ gọi API này để lấy dữ liệu xây dựng nên thanh sidebar.
-// Ví dụ cách gọi từ Frontend: /api/filters/available?base_category_id=1
+Route::get('/searchAll', [SearchController::class, 'searchAll']);
 Route::get('/filters/available', [CategoryController::class, 'getAvailableFilters']);
 
-// API 2: Lấy danh sách sản phẩm đã được lọc theo các tiêu chí
-// Frontend sẽ gọi API này để hiển thị danh sách sản phẩm chính.
-// Ví dụ cách gọi từ Frontend: /api/products/filter?categories=5,8&sort=price_asc&page=1
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+
+
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+
+Route::get('/csrf-init', function () {
+    return response()->json(['message' => 'CSRF cookie set.']);
+});
+
+// Route me của bạn BẮT BUỘC phải CÓ middleware auth:sanctum
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    return $request->user();
+});
 
 Route::get('/user', function (Request $request) {
   return $request->user();
 })->middleware('auth:sanctum');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', function () {
+    $data = [
+        'name' => 'Seller Test',
+        'role' => 'Seller',
+        'status' => 'active'
+    ];
+    return response()->json($data);
+});
 
 
-use App\Http\Controllers\Seller\SellerRegisterController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategory;
-use App\Http\Controllers\Admin\ShopController as ShopController;
-use App\Http\Controllers\Admin\ProductControllers;
-use App\Http\Controllers\Admin\StatisticsController;
-use App\Http\Controllers\Seller\ShopCategoryController; 
-use App\Http\Controllers\Seller\SellerOrderController;
+Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+    Route::get('/admin/users', function() {
+        $users = [
+            [
+                'id' => 1,
+                'name' => 'Admin Test',
+                'email' => 'admin@test.com',
+                'role' => 'Admin'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Seller Test',
+                'email' => 'seller@test.com',
+                'role' => 'Seller'
+            ]
+        ];
+        return response()->json($users);
+    });
+});
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     // Route để đặt làm mặc định
+//     Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault']);
+//     // Route Resource cho các hành động CRUD khác
+//     Route::apiResource('addresses', AddressController::class);
+// });
 
 Route::middleware('auth:sanctum')->group(function (){
-    // Auth routes already defined above, removing duplicates
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Cart routes - require authentication
     
@@ -110,8 +162,24 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
+    Route::delete('addresses/{address}', [AddressController::class, 'destroy']);
+     
+
+    Route::get('/orders', [OrderController::class, 'index']);
+
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+    // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
+    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+
+    Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);
+    // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
+    Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
+
+    Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
+    
     
 });
+Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
 
 
 Route::get('/products/{product_id}/variants/filter',[ProductController::class, 'filterVariants']);

@@ -35,15 +35,15 @@
 
 // async function getProductData(id: number): Promise<ProductData | null> {
 //     // URL này SẼ KHÔNG HOẠT ĐỘNG khi chạy trên server trong Docker
-//     // constapiUrl = `http://localhost:8001/api/productDetail/${id}`;
+//     // constapiUrl = `http://localhost/api/productDetail/${id}`;
 
 //     // URL này SẼ HOẠT ĐỘNG vì nó sử dụng tên dịch vụ của Docker
-//     const apiUrl = `http://localhost:8001/productDetail/${id}`;
+//     const apiUrl = `http://localhost/productDetail/${id}`;
 //     // LƯU Ý: Hãy thay "backend" bằng tên dịch vụ backend trong file docker-compose.yml của bạn
 
 //     try {
 //         console.log(`[SERVER-SIDE FETCH] Attempting to connect to: ${apiUrl}`); // Thêm log để debug
-//         const response = await axios.get(`http://localhost:8001/productDetail/${id}`);
+//         const response = await axios.get(`http://localhost/productDetail/${id}`);
 //         return response.data;
 //     } catch (error) {
 //         console.error(`[SERVER-SIDE FETCH] Failed for ID ${id}. URL: ${apiUrl}. Error:`, error);
@@ -194,7 +194,7 @@ export default function ProductDescription({ productId }: ProductDescriptionProp
             setError(null);
 
             // URL này sẽ hoạt động vì nó được gọi từ trình duyệt của người dùng
-            const apiUrl = `http://localhost:8001/api/productDetail/${productId}`;
+            const apiUrl = `http://localhost/api/productDetail/${productId}`;
 
             try {
                 console.log(`[CLIENT-SIDE FETCH] Attempting to connect to: ${apiUrl}`);

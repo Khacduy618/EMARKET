@@ -175,5 +175,181 @@ private function getCategoryWithChildrenIds($categoryId) {
     }
     return array_unique($ids);
 }
+public function searchAll(Request $request)
+{
+    // --- 1. Lấy và chuẩn hóa đầu vào ---
+    $keyword = $request->input('q');
+    $trimmedKeyword = $keyword ? trim($keyword) : null;
+    $unaccentedKeyword = $trimmedKeyword ? $this->removeVietnameseAccents($trimmedKeyword) : null;
+    $attributeIdsToFilter = $request->input('attributes', []); // Lấy từ request
+
+$query = Product::query()
+    ->leftJoin('ProductVariants', function ($join) {
+        // Chỉ join với các biến thể đang hoạt động (IsActive = 1)
+        $join->on('Products.ProductID', '=', 'ProductVariants.ProductID')
+             ->where('ProductVariants.IsActive', '=', 1);
+    })
+    ->select([
+        'Products.ProductID',
+        'Products.CategoryID',
+        'Products.Name',
+        'Products.SoldCount',
+        'Products.CreatedAt',
+        // Sử dụng MIN() với GROUP BY để lấy giá thấp nhất
+        DB::raw('MIN(ProductVariants.price) as Price')
+    ])
+    // Đây là lúc gọi scope bạn đã tạo!
+    ->havingAttributes($attributeIdsToFilter) // Có thể thêm tham số thứ 2 là `true` nếu muốn sản phẩm phải có TẤT CẢ thuộc tính
+    ->groupBy([ // Cần group by tất cả các cột của Products để MIN() hoạt động đúng
+        'Products.ProductID',
+        'Products.CategoryID',
+        'Products.Name',
+        'Products.SoldCount',
+        'Products.CreatedAt',
+    ]);
+    // --- 2. Bắt đầu xây dựng câu truy vấn cơ sở ---
+    // $query = Product::query()
+    //     ->select([
+    //         'Products.ProductID',
+    //         'Products.CategoryID',
+    //         'Products.Name',
+    //         'Products.SoldCount',
+    //         'Products.CreatedAt',
+    //         DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1) as Price')
+    //     ])
+    //    ->havingAttributes();
+    // --- 3. Áp dụng các bộ lọc ---
+
+    // LỌC SƠ BỘ BẰNG SQL NẾU CÓ TỪ KHÓA (Logic Fuzzy Search)
+    if ($unaccentedKeyword) {
+        $searchWords = array_filter(explode(' ', mb_strtolower($unaccentedKeyword)));
+        if (!empty($searchWords)) {
+            $query->where(function ($q) use ($searchWords) {
+                foreach ($searchWords as $word) {
+                    // Tìm các sản phẩm có tên chứa BẤT KỲ từ nào trong từ khóa
+                    $q->orWhere(DB::raw("LOWER(CONVERT(Products.Name USING utf8mb4))"), 'LIKE', '%' . $word . '%');
+                }
+            });
+        }
+    }
+    
+    // Áp dụng các bộ lọc khác (category, giá)
+    if ($request->filled('category_id')) {
+        $categoryIds = $this->getCategoryWithChildrenIds($request->input('category_id'));
+        if (!empty($categoryIds)) $query->whereIn('Products.CategoryID', $categoryIds);
+    }
+    $minPrice = $request->input('min_price');
+    $maxPrice = $request->input('max_price');
+    if ($minPrice || $maxPrice) {
+         $query->where(function ($q) use ($minPrice, $maxPrice) {
+            $subQueryPrice = DB::raw('(SELECT MIN(price) FROM ProductVariants WHERE ProductID = Products.ProductID AND IsActive = 1)');
+            if ($minPrice) $q->where($subQueryPrice, '>=', $minPrice);
+            if ($maxPrice) $q->where($subQueryPrice, '<=', $maxPrice);
+        });
+    }
+    
+    // Lấy tất cả kết quả tiềm năng từ DB để chấm điểm
+    $potentialResults = $query->limit(200)->get();
+
+    // --- 4. CHẤM ĐIỂM ĐỘ LIÊN QUAN VÀ SẮP XẾP BẰNG PHP ---
+    $rankedResults = $potentialResults->map(function ($product) use ($unaccentedKeyword) {
+        if ($unaccentedKeyword) {
+            $productNameUnaccented = mb_strtolower($this->removeVietnameseAccents($product->Name));
+            $keywordLower = mb_strtolower($unaccentedKeyword);
+            
+            similar_text($productNameUnaccented, $keywordLower, $similarityScore); 
+            if (str_contains($productNameUnaccented, $keywordLower)) $similarityScore += 50;
+            $product->relevance_score = $similarityScore;
+        } else {
+            $product->relevance_score = 0;
+        }
+        return $product;
+    });
+
+    // Sắp xếp collection dựa trên yêu cầu từ người dùng
+    $sortBy = $request->input('sort', 'popular');
+    
+    if ($sortBy === 'newest') {
+        $sortedResults = $rankedResults->sortByDesc('CreatedAt');
+    } elseif ($sortBy === 'bestselling') {
+        $sortedResults = $rankedResults->sortByDesc('SoldCount');
+    } elseif ($sortBy === 'price_asc') {
+        $sortedResults = $rankedResults->sortBy('Price');
+    } elseif ($sortBy === 'price_desc') {
+        $sortedResults = $rankedResults->sortByDesc('Price');
+    } else { // Mặc định là 'popular' (Phổ biến/Liên quan)
+        $sortedResults = $rankedResults->sort(function ($a, $b) {
+            if ($a->relevance_score !== $b->relevance_score) {
+                return $b->relevance_score <=> $a->relevance_score;
+            }
+            return $b->SoldCount <=> $a->SoldCount;
+        });
+    }
+    
+    // --- 5. Phân trang thủ công kết quả đã sắp xếp ---
+    $perPage = $request->input('limit', 24);
+    $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+    
+    $currentPageItems = $sortedResults->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+    $results = new \Illuminate\Pagination\LengthAwarePaginator(
+        array_values($currentPageItems), $sortedResults->count(), $perPage, $currentPage,
+        ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+    );
+    
+    if ($results->isNotEmpty()) {
+        $this->attachImagesToCollection($results);
+    }
+
+    return response()->json($results);
+}
+    //======================================================================
+    // CÁC PHƯƠNG THỨC HỖ TRỢ (PRIVATE)
+    //======================================================================
+
+    /**
+     * Gán URL ảnh chính vào một collection các sản phẩm.
+     */
+    private function attachImagesToCollection($collection)
+    {
+        $productIds = $collection->pluck('ProductID')->all();
+        
+        $images = DB::table('ProductImages')
+            ->whereIn('ProductID', $productIds)
+            ->where('IsPrimary', 1)
+            ->pluck('ImageURL', 'ProductID');
+
+        $collection->each(function ($product) use ($images) {
+            $product->ImageURL = $images->get($product->ProductID);
+        });
+    }
+
+    /**
+     * Phương thức private để loại bỏ dấu tiếng Việt, không phân biệt hoa thường.
+     */
+    private function removeVietnameseAccents($str)
+    {
+        $patterns = [
+            '/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/i',
+            '/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/i',
+            '/(ì|í|ị|ỉ|ĩ)/i',
+            '/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/i',
+            '/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/i',
+            '/(ỳ|ý|ỵ|ỷ|ỹ)/i',
+            '/(đ)/i'
+        ];
+        $replacements = ['a', 'e', 'i', 'o', 'u', 'y', 'd'];
+        return preg_replace($patterns, $replacements, $str);
+    }
+
+    private function collectChildrenIds($category, &$ids)
+    {
+        foreach ($category->childrenRecursive as $child) {
+            $ids[] = $child->CategoryID;
+            if ($child->childrenRecursive->isNotEmpty()) {
+                $this->collectChildrenIds($child, $ids);
+            }
+        }
+    }
     
 }

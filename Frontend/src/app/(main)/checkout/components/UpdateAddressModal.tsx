@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Address } from '@/types';
+import { Address, AddressPayload } from '@/types';
 import { createAddress, fetchAddressDetails, updateAddress } from '@/services/user';
 import { toast } from 'react-toastify';
 import AddressPicker from './AddressPicker'; // Import component mới
@@ -63,27 +63,33 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
         e.preventDefault();
         setSubmitting(true);
         
-        try {
-        if (isCreateMode) {
-            // Gọi API tạo mới
-            console.log("Data to be created:", address);
-            const dataToCreate = {
+       const payload: AddressPayload = {
             FullName: address.FullName || '',
             PhoneNumber: address.PhoneNumber || '',
-            City: address.City || '', // Giả sử bạn có dropdown
-            District: address.District || '', // Giả sử bạn có dropdown
-            Ward: address.Ward || '',
+            City: address.City || '',
+            District: address.District || '',
+            Ward: address.Ward || undefined, // Ward có thể là null/undefined
             Street: address.Street || '',
-            IsDefault: !!address.IsDefault
-            // AddressType: address.AddressType || 'Home', // Ví dụ nếu có trường này
-        }; 
-            await createAddress(dataToCreate as Omit<Address, 'AddressID'>);
-            toast.success('Thêm địa chỉ mới thành công!');
-        } else {
-            // Gọi API cập nhật
-            await updateAddress(addressId!, address);
-            toast.success('Cập nhật địa chỉ thành công!');
+            IsDefault: !!address.IsDefault, // Đảm bảo luôn là boolean
+        };
+
+        // Kiểm tra validation đơn giản
+        if (!payload.FullName || !payload.PhoneNumber || !payload.City || !payload.District || !payload.Street) {
+            toast.error("Vui lòng điền đầy đủ các trường bắt buộc.");
+            setSubmitting(false);
+            return;
         }
+
+        try {
+            if (isCreateMode) {
+                // Gọi API tạo mới với payload đã được chuẩn hóa
+                await createAddress(payload);
+                toast.success('Thêm địa chỉ mới thành công!');
+            } else {
+                // Gọi API cập nhật với payload đã được chuẩn hóa
+                await updateAddress(addressId!, payload);
+                toast.success('Cập nhật địa chỉ thành công!');
+            }
         onSuccess(); // Báo cho component cha biết đã thành công
         onClose();   // Đóng modal
         } catch (error: any) {

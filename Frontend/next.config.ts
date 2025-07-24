@@ -1,16 +1,27 @@
 import type { NextConfig } from 'next';
 import type { Configuration as WebpackDevMiddlewareOptions } from 'webpack-dev-middleware';
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   images: {
-    domains: ['store.sony.com.vn', 'localhost', 'theson.vn', 'cdn.hoanghamobile.com','images.samsung.com',  'cdn2.cellphones.com.vn','news.khangz.com', 'cdn.tgdd.vn','down-vn.img.susercontent.com', 'upload.wikimedia.org', 'picsum.photos'],
     remotePatterns: [
+      // Cho phép ảnh từ backend local
       {
-        protocol: 'http', // hoặc 'https' nếu bạn dùng https
-        hostname: 'localhost', // hoặc domain production của bạn, ví dụ 'api.yourdomain.com'
+        protocol: 'http',
+        hostname: 'localhost',
         port: '8001',
-        pathname: '/**', // cho phép tất cả các đường dẫn ảnh
+        pathname: '/storage/**', // Cho phép tất cả các đường dẫn bên trong /storage
       },
+      // Cho phép ảnh từ các nguồn bên ngoài khác
+      { protocol: 'https', hostname: 'store.sony.com.vn' },
+      { protocol: 'https', hostname: 'theson.vn' },
+      { protocol: 'https', hostname: 'cdn.hoanghamobile.com' },
+      { protocol: 'https', hostname: 'images.samsung.com' },
+      { protocol: 'https', hostname: 'cdn2.cellphones.com.vn' },
+      { protocol: 'https', hostname: 'news.khangz.com' },
+      { protocol: 'https', hostname: 'cdn.tgdd.vn' },
+      { protocol: 'https', hostname: 'down-vn.img.susercontent.com' },
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+      { protocol: 'https', hostname: 'picsum.photos' },
     ],
   },
   webpackDevMiddleware: (config: WebpackDevMiddlewareOptions) => {

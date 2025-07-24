@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@dwcks/bad-word-filter-vi-en": "^1.1.3",
     "@paypal/paypal-js": "^8.2.0",
     "@paypal/react-paypal-js": "^8.8.3",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -44,7 +45,8 @@
     "sweetalert2": "^11.22.0",
     "swiper": "^11.2.6",
     "swr": "^2.3.3",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "use-debounce": "^10.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

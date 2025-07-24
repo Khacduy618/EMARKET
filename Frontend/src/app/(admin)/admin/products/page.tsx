@@ -88,7 +88,7 @@ export default function ProductListPage() {
         return
       }
 
-      const res = await fetch(`http://localhost:8001/api/admin/products?${params.toString()}`, {
+      const res = await fetch(`http://localhost/api/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
@@ -151,7 +151,7 @@ export default function ProductListPage() {
           return
         }
 
-        const res = await fetch(`http://localhost:8001/api/admin/products/${productId}/approval-status`, {
+        const res = await fetch(`http://localhost/api/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

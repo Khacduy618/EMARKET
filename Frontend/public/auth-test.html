@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FETCH - Laravel Auth Test</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; line-height: 1.6; }
+        button, input { font-size: 16px; padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ccc;}
+        button { background-color: #007bff; color: white; cursor: pointer; }
+        hr { margin: 20px 0; }
+        pre { background-color: #f2f2f2; border-left: 4px solid #007bff; padding: 10px; white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>Laravel SPA Auth Test (Dùng Fetch thuần)</h1>
+    <p>Bài test này loại bỏ hoàn toàn Axios để kiểm tra lớp giao tiếp HTTP cơ bản nhất.</p>
+    <hr>
+
+    <h2>Thông tin đăng nhập</h2>
+    <div><label>Email: <input type="email" id="email" value="dix@gmail.com"></label></div>
+    <div><label>Password: <input type="password" id="password" value="password123"></label></div>
+    <hr>
+
+    <h2>Quy trình (Thực hiện theo đúng thứ tự)</h2>
+    <button onclick="getCsrf()">1. Lấy CSRF Cookie</button>
+    <button onclick="doLogin()">2. Đăng nhập</button>
+    <button onclick="getMe()">3. Lấy thông tin User</button>
+    
+    <hr>
+    <h2>Log chi tiết</h2>
+    <pre id="log"></pre>
+
+    <script>
+        const logElement = document.getElementById('log');
+        const log = (message, data) => {
+            const entry = typeof message === 'string' ? `> ${message}` : `> ${JSON.stringify(message, null, 2)}`;
+            console.log(message, data !== undefined ? data : '');
+            logElement.textContent += `${entry}\n`;
+            if (data) {
+                logElement.textContent += `  ${JSON.stringify(data, null, 2)}\n`;
+            }
+            logElement.scrollTop = logElement.scrollHeight;
+        };
+        
+        // HÀM HELPER ĐỂ ĐỌC COOKIE
+        function getCookieValue(name) {
+            const cookies = document.cookie.split('; ');
+            for (const cookie of cookies) {
+                const [cookieName, cookieValue] = cookie.split('=');
+                if (cookieName === name) {
+                    // CỰC KỲ QUAN TRỌNG: Giá trị token trong cookie đã được mã hóa URL (URL Encoded).
+                    // Phải giải mã nó trước khi đặt vào header X-XSRF-TOKEN.
+                    // Đây là bước mà rất nhiều người bỏ qua và là nguyên nhân gây ra lỗi.
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null;
+        }
+
+        const backendUrl = 'http://localhost:8000/api'; // Dùng URL gốc ở đây
+
+        // BƯỚC 1: LẤY COOKIE
+        async function getCsrf() {
+            log('Bước 1: Yêu cầu /sanctum/csrf-cookie...');
+            try {
+                const response = await fetch(`${backendUrl}/sanctum/csrf-cookie`, {
+                    // 'include' là cách fetch làm điều tương tự như `withCredentials: true` của Axios.
+                    // Nó ra lệnh cho trình duyệt gửi đi các cookie của tên miền đích và chấp nhận header Set-Cookie.
+                    credentials: 'include',
+                });
+                log(`=> Thành công. Status: ${response.status}. Cookie đã sẵn sàng.`);
+            } catch (error) {
+                log('=> Thất bại khi lấy CSRF cookie.', error);
+            }
+        }
+
+        // BƯỚC 2: ĐĂNG NHẬP (tự tay xử lý CSRF)
+        async function doLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Lấy token từ cookie đã được tạo ở Bước 1
+            const xsrfToken = getCookieValue('XSRF-TOKEN');
+            log(`Bước 2: Chuẩn bị đăng nhập... Đã đọc XSRF-TOKEN: ${xsrfToken ? 'CÓ' : 'KHÔNG'}`);
+
+            if (!xsrfToken) {
+                log('=> LỖI: Không tìm thấy XSRF-TOKEN cookie. Hãy chắc chắn bạn đã chạy Bước 1 thành công.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/login`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        // TỰ TAY THÊM CÁC HEADER CẦN THIẾT
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': xsrfToken, // Gửi token đã được giải mã
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                log(`=> Gửi yêu cầu Login. Server trả về status: ${response.status}`);
+                if (!response.ok) {
+                   log('=> Phản hồi Login KHÔNG thành công (status không phải 2xx).', await response.json());
+                } else {
+                   log('=> Phản hồi Login thành công. Session đã được thiết lập.');
+                }
+            } catch (error) {
+                log('=> Thất bại khi gửi yêu cầu Login.', error);
+            }
+        }
+        
+        // BƯỚC 3: KIỂM TRA XÁC THỰC
+        async function getMe() {
+            log('Bước 3: Yêu cầu /api/user để kiểm tra xác thực...');
+            try {
+                const response = await fetch(`${backendUrl}/user`, {
+                    method: 'GET',
+                    credentials: 'include', // Chỉ cần dòng này, cookie session sẽ tự được gửi đi
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                log(`=> Gửi yêu cầu Get Me. Server trả về status: ${response.status}`);
+                log('=> Dữ liệu trả về:', data);
+            } catch (error) {
+                log('=> Thất bại khi gửi yêu cầu Get Me.', error);
+            }
+        }
+    </script>
+</body>
+</html>

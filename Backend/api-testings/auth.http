@@ -1,0 +1,243 @@
+@contentType = application/json
+@host = http://localhost:8000/api
+@web = http://localhost:8000
+
+
+### me
+
+GET {{host}}/me HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+
+### Acquire_XSRF_TOKEN
+
+GET {{web}}/sanctum/csrf-cookie HTTP/1.1
+
+
+### Login 1
+
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+Accept: {{contentType}}
+
+{
+  "email": "dix@gmail.com",
+  "password": "password123"
+}
+
+
+### Login 2
+
+POST {{host}}/login HTTP/1.1
+Content-Type: application/json
+Accept: {{contentType}}
+
+{
+  "email": "corclan19@gmail.com",
+  "password": "11111111"
+}
+
+
+### Register new user
+
+POST {{host}}/register HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "Email": "dix@gmail.com",
+  "FullName": "Project User",
+  "IsActive": true,
+  "Password": "password123",
+  "Password_confirmation": "password123",
+  "Phone": "01234567890",
+  "Role": "Buyer",
+  "Username": "dix"
+}
+
+
+### Login 2
+
+POST {{host}}/login HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "email": "m16@goat.com",
+  "password": "password123"
+}
+
+
+### Logout
+
+POST {{host}}/logout HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+
+### Request password reset link
+
+POST {{host}}/forgot-password HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "email": "dk@gmail.com"
+}
+
+
+### Reset password with token
+
+POST {{host}}/reset-password HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "email": "dk@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "token": "c6c892f2fb75dbb3ad3505ff0a62320755dfe133130801727ad290b1f0cc08a4"
+}
+
+
+### Resend email verification
+
+POST {{host}}/email/resend HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "email": "m16@goat.com"
+}
+
+
+### Update Password
+
+run #Login 1
+
+PUT {{host}}/user/password HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+X-Xsrf-Token: {{decoded_token}}
+Cookie: XSRF-TOKEN={{token}}
+Cookie: laravel_session={{session}}
+Referer: http://localhost:8000/login
+
+{
+  "current_password": "admin123",
+  "password": "admin123",
+  "password_confirmation": "admin123"
+}
+
+
+### Confirm Password
+
+POST {{host}}/user/confirm-password HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "password": "your-password"
+}
+
+
+### Check Password Confirmation Status
+
+GET {{host}}/user/confirmed-password-status HTTP/1.1
+Accept: {{contentType}}
+
+
+### Enable Two Factor Authentication
+
+POST {{host}}/user/two-factor-authentication HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+
+### Two Factor Challenge (During Login)
+
+POST {{host}}/two-factor-challenge HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "code": "123456"
+}
+
+
+### Get Two Factor QR Code
+
+GET {{host}}/user/two-factor-qr-code HTTP/1.1
+Accept: {{contentType}}
+
+
+### Get Two Factor Recovery Codes
+
+GET {{host}}/user/two-factor-recovery-codes HTTP/1.1
+Accept: {{contentType}}
+
+
+### Generate New Recovery Codes
+
+POST {{host}}/user/two-factor-recovery-codes HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+
+### Get Two Factor Secret Key
+
+GET {{host}}/user/two-factor-secret-key HTTP/1.1
+Accept: {{contentType}}
+
+
+### Disable Two Factor Authentication
+
+DELETE {{host}}/user/two-factor-authentication HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+
+### Confirm Two Factor Authentication
+
+POST {{host}}/user/confirmed-two-factor-authentication HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+
+### Update User Profile Information
+
+PUT {{host}}/user/profile-information HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "Email": "updated@example.com",
+  "FullName": "Updated Full Name",
+  "IsActive": true,
+  "Level": "normal",
+  "Phone": "1234567890",
+  "Role": "Người mua",
+  "Username": "updated_username"
+}
+
+
+### Access Storage File
+
+GET {{host}}/storage/example.jpg HTTP/1.1
+
+
+### Basic Health Check
+
+GET {{host}}/ HTTP/1.1
+Accept: {{contentType}}
+
+
+### Server Status Check
+
+GET {{host}}/up HTTP/1.1
+Accept: {{contentType}}
+
+
+###
+
+GET http://127.0.0.1:8000/api/email/verify/27/276b9ddd427a70f11d76ef8ec0e2a666410d1e78?expires=1750504869&signature=351ee110df276af3508f480b473100e9e77f00e2e89bfa8fdc90f662079c81b9 HTTP/1.1
