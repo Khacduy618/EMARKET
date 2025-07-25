@@ -11,7 +11,7 @@
 .env
 .env.*.backup
 
-# IDE and system files
+# IDE and system file
 .idea
 .vscode
 *.sublime-project
