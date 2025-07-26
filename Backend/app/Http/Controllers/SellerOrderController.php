@@ -7,6 +7,8 @@ use App\Models\OrderBuyer;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class SellerOrderController extends Controller
 {
@@ -19,56 +21,46 @@ class SellerOrderController extends Controller
         }
 
         $shopId = $shop->ShopID;
-        // $shopId = 2 ;
-        // Truy vấn các đơn hàng (ordersbuyer) có chứa ít nhất một sản phẩm (orderitems)
-        // mà sản phẩm đó thuộc về shop của người bán hiện tại.
         $orders = OrderBuyer::whereHas('orderItems.variant.product', function ($query) use ($shopId) {
             $query->where('ShopID', $shopId);
         })
         ->with([
-            // Load các order items, nhưng chỉ những item thuộc về shop này
             'orderItems' => function ($query) use ($shopId) {
                 $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
                     $subQuery->where('ShopID', $shopId);
-                })->with('variant.product:ProductID,Name'); // Lấy thêm tên sản phẩm
+                })->with('variant.product:ProductID,Name');
             }
         ])
         ->select('OrderID', 'OrderCode', 'OrderDate', 'OverallStatus', 'ShippingFullName', 'TotalAmount')
         ->orderBy('OrderDate', 'desc')
-        ->paginate(15); // Phân trang, mỗi trang 15 đơn
+        ->paginate(15);
 
-        // Biến đổi kết quả để thêm tổng tiền của shop trong đơn hàng đó
         $orders->getCollection()->transform(function ($order) {
             $shopSubtotal = $order->orderItems->sum('Subtotal');
             $order->shop_subtotal = $shopSubtotal;
             return $order;
         });
 
-
         return response()->json($orders);
     }
-     public function show($orderId)
+
+    public function show($orderId)
     {
         $user = Auth::user();
-        // Giả sử có quan hệ shop() trong User model
         $shop = $user->shop;
 
         if (!$shop) {
             return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 403);
         }
         $shopId = $shop->ShopID;
-       
-        // $shopId = 2;
-        
-        // BƯỚC 1: TRUY VẤN DỮ LIỆU THÔ TỪ DATABASE
-        // Query vẫn được tối ưu để chỉ lấy các dữ liệu cần thiết
+
         $order = OrderBuyer::where('OrderID', $orderId)
             ->whereHas('orderItems.variant.product', function ($query) use ($shopId) {
                 $query->where('ShopID', $shopId);
             })
             ->with([
                 'user:UserID,Username,Email',
-                'address', // Tải toàn bộ object address
+                'address',
                 'orderItems' => function ($query) use ($shopId) {
                     $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
                         $subQuery->where('ShopID', $shopId);
@@ -79,8 +71,6 @@ class SellerOrderController extends Controller
             ])
             ->firstOrFail();
 
-        // BƯỚC 2: TẠO MỘT MẢNG DỮ LIỆU ĐỂ ĐỊNH DẠNG LẠI (TRANSFORM)
-        // Đây là nơi chúng ta sẽ chuyển đổi sang camelCase và cấu trúc lại JSON
         $transformedData = [
             'orderId'           => $order->OrderID,
             'orderCode'         => $order->OrderCode,
@@ -89,32 +79,23 @@ class SellerOrderController extends Controller
             'shippingFullName'  => $order->ShippingFullName,
             'shippingPhoneNumber' => $order->ShippingPhoneNumber,
             'notes'             => $order->Notes,
-
-            // Thông tin tài chính
             'totalAmount'       => $order->TotalAmount,
             'subtotalAmount'    => $order->SubtotalAmount,
             'shippingFee'       => $order->ShippingFee,
             'discountAmount'    => $order->DiscountAmount,
-            'shopSubtotal'      => $order->orderItems->sum('Subtotal'), // Tính toán trực tiếp
-
-            // Thông tin thanh toán
+            'shopSubtotal'      => $order->orderItems->sum('Subtotal'),
             'paymentMethod'     => $order->PaymentMethod,
             'paymentStatus'     => $order->PaymentStatus,
-
-            // Dữ liệu từ các mối quan hệ (relations)
             'user' => $order->user ? [
                 'username' => $order->user->Username,
                 'email'    => $order->user->Email,
             ] : null,
-
             'address' => $order->address ? [
                 'street'   => $order->address->Street,
                 'ward'     => $order->address->Ward,
                 'district' => $order->address->District,
                 'city'     => $order->address->City,
             ] : null,
-
-            // Định dạng lại mảng order_items
             'orderItems' => $order->orderItems->map(function ($item) {
                 return [
                     'orderItemId'     => $item->OrderItemID,
@@ -132,10 +113,58 @@ class SellerOrderController extends Controller
                         ] : null,
                     ] : null,
                 ];
-            })->values(), // ->values() để reset keys của mảng thành 0, 1, 2...
+            })->values(),
         ];
 
-        // BƯỚC 3: TRẢ VỀ JSON ĐÃ ĐƯỢC ĐỊNH DẠNG
         return response()->json($transformedData);
     }
+
+    public function confirmOrder($orderId)
+    {
+        $order = OrderBuyer::find($orderId);
+        if (!$order) {
+            return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+        }
+        if ($order->OverallStatus !== 'Pending') {
+            return response()->json(['message' => 'Chỉ có thể xác nhận đơn hàng ở trạng thái Pending.'], 400);
+        }
+        $order->OverallStatus = 'Processing';
+        $order->save();
+
+        return response()->json(['message' => 'Đơn hàng đã được xác nhận và đang chuẩn bị.', 'order' => $order], 200);
+    }
+
+    public function cancelOrder($orderId)
+    {
+        $order = OrderBuyer::find($orderId);
+        if (!$order) {
+            return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+        }
+        if ($order->OverallStatus !== 'Pending') {
+            return response()->json(['message' => 'Chỉ có thể hủy đơn hàng ở trạng thái Pending.'], 400);
+        }
+        $order->OverallStatus = 'CancelledBySeller';
+        $order->save();
+
+        return response()->json(['message' => 'Đơn hàng đã được hủy.', 'order' => $order], 200);
+    }
+
+    public function printShippingLabel($orderId)
+{
+    $order = OrderBuyer::find($orderId);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+
+    try {
+        $pdf = Pdf::loadView('pdf.shipping_label', ['order' => $order]);
+        $pdf->setOptions(['defaultFont' => 'DejaVu Sans']);
+        return response($pdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="shipping_label_' . $orderId . '.pdf"');
+    } catch (\Exception $e) {
+        Log::error('PDF Generation Error for order ' . $orderId . ': ' . $e->getMessage());
+        return response()->json(['message' => 'Lỗi tạo PDF: ' . $e->getMessage()], 500);
+    }
+}
 }

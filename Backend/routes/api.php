@@ -125,6 +125,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders
         Route::get('/seller/orders', [SellerOrderController::class, 'index']);
         Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+        Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
+        Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
+        Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
         // Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
         // Route::get('/seller/orders', [SellerOrderController::class, 'index']);
     

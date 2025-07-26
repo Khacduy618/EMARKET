@@ -12,6 +12,7 @@ class OrderBuyer extends Model
 
     protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';
+    public $timestamps = false;
 
     protected $fillable = [
         'OrderCode',
