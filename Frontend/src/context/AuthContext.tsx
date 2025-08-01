@@ -140,14 +140,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const register = async (payload: RegisterPayload) => {
         setError(null);
-        await toast.promise(
-            apiRegister(payload).finally(() => router.push('/register/success')),
-            {
-                pending: 'Đang tạo tài khoản...',
-                success: 'Đăng ký thành công! Vui lòng kiểm tra email.',
-                error: { render: ({ data }: any) => getErrorMessage(data, 'Đăng ký thất bại.') }
-            }
-        );
+        // Bỏ toast.promise và xử lý thủ công để kiểm soát luồng
+        const toastId = toast.loading("Đang tạo tài khoản...");
+        try {
+            // Gọi API
+            await apiRegister(payload);
+
+            // Nếu thành công
+            toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
+            router.push('/register/success'); // << Chỉ chuyển trang khi thành công
+
+        } catch (error: any) {
+            // Nếu thất bại
+            const message = getErrorMessage(error, 'Đăng ký thất bại.');
+            setError(message);
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+            throw error; // Ném lại lỗi để form có thể bắt
+        }
     };
 
     const logout = async () => {

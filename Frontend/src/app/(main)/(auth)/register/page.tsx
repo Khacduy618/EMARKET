@@ -2,20 +2,25 @@
 
 "use client";
 
-import { useState, FormEvent, useEffect, useMemo } from 'react';
+import { useState, FormEvent, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { RegisterPayload } from '@/types';
+import { toast } from 'react-toastify';
 import Image from 'next/image';
 
-// --- TIỆN ÍCH VALIDATION NÂNG CAO CHO NGƯỜI VIỆT ---
-
+// --- TIỆN ÍCH VALIDATION ---
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-// Tên không được chứa số
+const startsWithNumber = (email: string) => /^[0-9]/.test(email);
 const isValidName = (name: string) => !/\d/.test(name);
-// SĐT Việt Nam: Bắt đầu bằng 0, có 10 chữ số
 const isValidVietnamesePhone = (phone: string) => /^0\d{9}$/.test(phone);
+
+// Type cho object lỗi để có gợi ý code
+type FormErrors = {
+    [key in keyof Omit<RegisterPayload, 'IsActive' | 'Role'> | 'Password_confirmation']?: string;
+};
+
 
 export default function RegisterPage() {
     const { register, user, error: apiError } = useAuth();
@@ -29,104 +34,126 @@ export default function RegisterPage() {
         Password: '',
         Password_confirmation: '',
     });
-    const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+    const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (user) router.push('/');
-    }, [user, router]);
-
-    // Kiểm tra form hợp lệ để kích hoạt nút
-    const isFormValid = useMemo(() => {
-        return (
-            isValidName(formData.FullName.trim()) && formData.FullName.trim() !== '' &&
-            formData.Username.trim() !== '' &&
-            isValidVietnamesePhone(formData.Phone) &&
-            isValidEmail(formData.Email) &&
-            formData.Password.length >= 8 &&
-            formData.Password === formData.Password_confirmation
-        );
-    }, [formData]);
-
     // Hàm validation toàn diện
-    const validateForm = (): boolean => {
-        const newErrors: { [key: string]: string | undefined } = {};
-        let isValid = true;
+    const validateForm = useCallback((data: typeof formData): FormErrors => {
+        const newErrors: FormErrors = {};
 
-        if (!formData.FullName.trim()) { newErrors.FullName = "Vui lòng nhập họ và tên."; isValid = false; }
-        else if (!isValidName(formData.FullName)) { newErrors.FullName = "Tên không được chứa số."; isValid = false; }
+        if (!data.FullName.trim()) { newErrors.FullName = "Vui lòng nhập họ và tên."; }
+        else if (!isValidName(data.FullName)) { newErrors.FullName = "Tên không được chứa số."; }
 
-        if (!formData.Username.trim()) { newErrors.Username = "Vui lòng nhập tên đăng nhập."; isValid = false; }
+        if (!data.Username.trim()) { newErrors.Username = "Vui lòng nhập tên đăng nhập."; }
 
-        if (!formData.Email.trim()) { newErrors.Email = "Vui lòng nhập email."; isValid = false; }
-        else if (!isValidEmail(formData.Email)) { newErrors.Email = "Định dạng email không hợp lệ."; isValid = false; }
+        if (!data.Email.trim()) { newErrors.Email = "Vui lòng nhập email."; }
+        else if (startsWithNumber(data.Email)) { newErrors.Email = "Email không được bắt đầu bằng số."; }
+        else if (!isValidEmail(data.Email)) { newErrors.Email = "Định dạng email không hợp lệ."; }
 
-        if (!formData.Phone.trim()) { newErrors.Phone = "Vui lòng nhập số điện thoại."; isValid = false; }
-        else if (!isValidVietnamesePhone(formData.Phone)) { newErrors.Phone = "Số điện thoại không hợp lệ (gồm 10 số, bắt đầu bằng 0)."; isValid = false; }
+        if (!data.Phone.trim()) { newErrors.Phone = "Vui lòng nhập số điện thoại."; }
+        else if (!isValidVietnamesePhone(data.Phone)) { newErrors.Phone = "Số điện thoại không hợp lệ (gồm 10 số, bắt đầu bằng 0)."; }
 
-        if (formData.Password.length < 8) { newErrors.Password = "Mật khẩu phải có ít nhất 8 ký tự."; isValid = false; }
+        if (data.Password.length < 8) { newErrors.Password = "Mật khẩu phải có ít nhất 8 ký tự."; }
 
-        if (formData.Password !== formData.Password_confirmation) { newErrors.Password_confirmation = "Mật khẩu xác nhận không khớp."; isValid = false; }
+        if (data.Password !== data.Password_confirmation) { newErrors.Password_confirmation = "Mật khẩu xác nhận không khớp."; }
 
-        setErrors(newErrors);
-        return isValid;
-    };
+        return newErrors;
+    }, []);
+
+    // Validate form mỗi khi dữ liệu thay đổi
+    useEffect(() => {
+        const hasStartedTyping = Object.values(formData).some(val => val !== '');
+        if (hasStartedTyping) {
+            setErrors(validateForm(formData));
+        }
+    }, [formData, validateForm]);
+
+    // Nút submit chỉ được kích hoạt khi không có lỗi và các trường quan trọng đã điền
+    const isFormValid = useMemo(() => {
+        const currentErrors = validateForm(formData);
+        return Object.keys(currentErrors).length === 0 &&
+            formData.FullName.trim() !== '' &&
+            formData.Username.trim() !== '' &&
+            formData.Email.trim() !== '' &&
+            formData.Phone.trim() !== '' &&
+            formData.Password.trim() !== '' &&
+            formData.Password_confirmation.trim() !== '';
+    }, [formData, validateForm]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) { setErrors(prev => ({ ...prev, [name]: undefined })); }
     };
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!validateForm()) return;
-        if (isSubmitting) return;
-        setIsSubmitting(true);
+        const finalErrors = validateForm(formData);
+        setErrors(finalErrors);
 
+        if (Object.keys(finalErrors).length > 0 || isSubmitting) {
+            toast.warn("Vui lòng kiểm tra lại các thông tin đã nhập.");
+            return;
+        }
+
+        setIsSubmitting(true);
         const payload: RegisterPayload = {
-            ...formData,
-            IsActive: true,
-            Role: 'Buyer',
+            ...formData, IsActive: true, Role: 'Buyer',
         };
 
-        try { await register(payload); }
-        catch (err) { console.error("Đăng ký thất bại:", err); }
+        try {
+            await register(payload);
+        } catch (err: any) {
+            if (err.response?.data?.errors) {
+                const serverErrors = err.response.data.errors;
+                const formattedErrors: FormErrors = {};
+                for (const key in serverErrors) {
+                    formattedErrors[key] = serverErrors[key][0];
+                }
+                setErrors(prev => ({ ...prev, ...formattedErrors }));
+                toast.error("Một số thông tin không hợp lệ, vui lòng kiểm tra lại.");
+            }
+        }
         finally { setIsSubmitting(false); }
     };
 
     return (
         <div className="flex min-h-screen bg-white">
             <div className="hidden lg:flex w-1/2 items-center justify-center bg-gray-50 p-12">
-                <Image src="/login-banner.png" alt="E-commerce Register" width={550} height={550} className="object-contain" />
+                <Image src="/login-banner.png" alt="E-commerce Register" width={550} height={550} className="object-contain" priority />
             </div>
 
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-                <div className="w-full max-w-sm">
+                <div className="w-full max-w-md">
                     <div className="text-left mb-8">
                         <h2 className="text-3xl font-bold tracking-tight text-gray-900">Tạo tài khoản</h2>
-                        <p className="mt-2 text-sm text-gray-500">Nhập thông tin của bạn ở bên dưới</p>
+                        <p className="mt-2 text-sm text-gray-500">Bắt đầu hành trình mua sắm của bạn</p>
                     </div>
 
                     {apiError && (<div className="mb-4 p-3 text-sm text-red-700 bg-red-100 rounded-md">{apiError}</div>)}
 
                     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-                        <input name="FullName" placeholder="Họ và Tên" value={formData.FullName} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.FullName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
-                        {errors.FullName && <p className="mt-1 text-xs text-red-500">{errors.FullName}</p>}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <input name="FullName" placeholder="Họ và Tên" value={formData.FullName} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.FullName ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
+                                {errors.FullName && <p className="mt-1 text-xs text-red-500">{errors.FullName}</p>}
+                            </div>
+                            <div>
+                                <input name="Username" placeholder="Tên đăng nhập" value={formData.Username} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Username ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
+                                {errors.Username && <p className="mt-1 text-xs text-red-500">{errors.Username}</p>}
+                            </div>
+                        </div>
 
-                        <input name="Username" placeholder="Tên đăng nhập" value={formData.Username} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Username ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
-                        {errors.Username && <p className="mt-1 text-xs text-red-500">{errors.Username}</p>}
-
-                        <input name="Email" type="email" placeholder="Email" value={formData.Email} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Email ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
+                        <input name="Email" type="email" placeholder="Email" value={formData.Email} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Email ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
                         {errors.Email && <p className="mt-1 text-xs text-red-500">{errors.Email}</p>}
 
-                        <input name="Phone" type="tel" placeholder="Số điện thoại" value={formData.Phone} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Phone ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
+                        <input name="Phone" type="tel" placeholder="Số điện thoại" value={formData.Phone} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Phone ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
                         {errors.Phone && <p className="mt-1 text-xs text-red-500">{errors.Phone}</p>}
 
-                        <input name="Password" type="password" placeholder="Mật khẩu" value={formData.Password} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Password ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
+                        <input name="Password" type="password" placeholder="Mật khẩu (ít nhất 8 ký tự)" value={formData.Password} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Password ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
                         {errors.Password && <p className="mt-1 text-xs text-red-500">{errors.Password}</p>}
 
-                        <input name="Password_confirmation" type="password" placeholder="Xác nhận mật khẩu" value={formData.Password_confirmation} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Password_confirmation ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:border-indigo-600`} />
+                        <input name="Password_confirmation" type="password" placeholder="Xác nhận mật khẩu" value={formData.Password_confirmation} onChange={handleChange} className={`w-full py-2 bg-transparent border-b-2 ${errors.Password_confirmation ? 'border-red-500' : 'border-gray-300'} text-gray-900 focus:outline-none focus:border-indigo-600 transition-colors`} />
                         {errors.Password_confirmation && <p className="mt-1 text-xs text-red-500">{errors.Password_confirmation}</p>}
 
                         <div className="pt-4">
@@ -135,7 +162,7 @@ export default function RegisterPage() {
                                 disabled={isSubmitting || !isFormValid}
                                 className="w-full px-10 py-3 font-medium text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
                             >
-                                {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+                                {isSubmitting ? 'Đang xử lý...' : 'Tạo tài khoản'}
                             </button>
                         </div>
                     </form>
