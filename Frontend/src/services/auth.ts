@@ -240,19 +240,24 @@ export const getAdminUsers = async (): Promise<any[]> => {
 };
 
 export const resendVerificationEmail = async (email: string): Promise<void> => {
+
+    // BƯỚC 1: LẤY COOKIE MỚI VÀ "LÀM SẠCH" SESSION.
+    // Đây là bước quan trọng nhất để đảm bảo CSRF token luôn hợp lệ.
+    await getCsrfCookie();
+
+    // Sau khi đã có cookie mới, chúng ta mới lấy giá trị của nó.
     const xsrfToken = getCookie('XSRF-TOKEN');
     const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
 
-    // Theo chuẩn Fortify, endpoint thường là 'email/verification-notification'
-    const response = await fetch(`${API_URL}/email/verification-notification`, {
+    // BƯỚC 2: GỬI REQUEST VỚI TOKEN MỚI
+    const response = await fetch(`${API_URL}/email/resend`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // Giữ lại để đảm bảo session được xử lý nhất quán
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-XSRF-TOKEN': decodedXsrfToken || '',
         },
-        // API này yêu cầu email của người dùng cần gửi lại
         body: JSON.stringify({ email: email })
     });
 

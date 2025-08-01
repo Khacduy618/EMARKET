@@ -18,14 +18,14 @@ use App\Http\Controllers\VoucherController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
 // Lấy API của Category Trả về dạng json theo CRUD
-Route::get('/category' ,[CategoryController::class , 'index']);
-Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
+Route::get('/category', [CategoryController::class, 'index']);
+Route::get('/categorySubMenu', [CategoryController::class, 'category_cha_con']);
 
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
 // Lấy API của Products Trả về dạng json theo CRUD
-Route::get('/Products' ,[ProductController::class , 'index']);
+Route::get('/Products', [ProductController::class, 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
 Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
@@ -66,7 +66,7 @@ Route::get('/search', [SearchController::class, 'search']);
 //      Route::get('/vouchers', [VoucherController::class, 'index']);
 //
 // });
-    Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
+Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 // Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
 //     ->middleware(['guest'])
@@ -97,7 +97,9 @@ Route::get('/login', [AuthController::class, 'loginRedirect'])->name('login');
 
 // Route::post('/login', [AuthController::class, 'login']);
 
-Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware('throttle:6,1') // Chỉ cho phép 6 request mỗi phút từ 1 IP
+    ->name('verification.resend'); // Đặt tên cho route
 
 Route::get('/csrf-init', function () {
     return response()->json(['message' => 'CSRF cookie set.']);
@@ -125,7 +127,7 @@ Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', fun
 
 
 Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-    Route::get('/admin/users', function() {
+    Route::get('/admin/users', function () {
         $users = [
             [
                 'id' => 1,

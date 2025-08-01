@@ -140,22 +140,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const register = async (payload: RegisterPayload) => {
         setError(null);
-        // Bỏ toast.promise và xử lý thủ công để kiểm soát luồng
         const toastId = toast.loading("Đang tạo tài khoản...");
         try {
-            // Gọi API
-            await apiRegister(payload);
+            await apiRegister(payload); // Tạo tài khoản
 
-            // Nếu thành công
+            // *** BƯỚC QUAN TRỌNG NHẤT ***
+            // Gọi logout ngay lập tức để hủy session mà Fortify tự tạo.
+            // Điều này đảm bảo user mới tạo không thể login nếu chưa xác thực.
+            await apiLogout();
+
             toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
-            router.push('/register/success'); // << Chỉ chuyển trang khi thành công
+            router.push('/register/success');
 
         } catch (error: any) {
-            // Nếu thất bại
+            // ... xử lý lỗi đăng ký như cũ ...
             const message = getErrorMessage(error, 'Đăng ký thất bại.');
             setError(message);
             toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-            throw error; // Ném lại lỗi để form có thể bắt
+            throw error;
         }
     };
 
@@ -230,14 +232,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const resendVerificationEmail = async (email: string) => {
-        await toast.promise(
-            apiResend(email),
-            {
-                pending: 'Đang gửi lại email...',
-                success: 'Email xác thực mới đã được gửi!',
-                error: 'Gửi lại email thất bại.'
+        const toastId = toast.loading("Đang gửi lại email...");
+        try {
+            await apiResend(email);
+            toast.update(toastId, { render: "Email xác thực mới đã được gửi!", type: "success", isLoading: false, autoClose: 5000 });
+        } catch (error: any) {
+            // Bắt lỗi throttle (429) và hiển thị thông báo thân thiện
+            if (error.response?.status === 429) {
+                toast.update(toastId, { render: "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau 1 phút.", type: "warning", isLoading: false, autoClose: 5000 });
+            } else {
+                toast.update(toastId, { render: "Gửi lại email thất bại.", type: "error", isLoading: false, autoClose: 5000 });
             }
-        );
+            throw error;
+        }
     };
 
     return (
