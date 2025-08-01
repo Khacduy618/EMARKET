@@ -42,7 +42,7 @@ class AuthController extends Controller
         }
 
         // Chuyển hướng đến trang thành công của frontend
-        $redirectUrl = $frontendUrl . '/auth/verify-success?message=' . urlencode('Kích hoạt tài khoản thành công! Bây giờ bạn có thể đăng nhập.');
+        $redirectUrl = $frontendUrl . '/verify-success?message=' . urlencode('Kích hoạt tài khoản thành công! Bây giờ bạn có thể đăng nhập.');
         return redirect()->away($redirectUrl);
     }
 
