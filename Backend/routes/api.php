@@ -68,26 +68,6 @@ Route::get('/search', [SearchController::class, 'search']);
 // });
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
-// Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-//     ->middleware(['guest'])
-//     ->name('password.reset');
-
-
-// Route::get('/reset-password/{token}', function (Request $request, $token) {
-//     $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-//     $email = $request->query('email'); // Hoặc $request->input('email')
-//
-//     if (!$email) {
-//         // Nếu không có email, chuyển hướng đến một trang lỗi trên frontend
-//         return redirect()->away($frontendUrl . '/invalid-link');
-//     }
-//
-//     $redirectUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);
-//
-//     return redirect()->away($redirectUrl);
-//
-// })->middleware(['guest'])->name('password.reset');
-
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
     ->middleware(['signed', 'throttle:6,1'])

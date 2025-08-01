@@ -12,22 +12,38 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Đánh dấu email của người dùng là đã xác thực và chuyển hướng về frontend.
+     */
     public function verifyEmail(Request $request)
     {
+        // Lấy URL của frontend từ file .env
+        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+
         $user = User::findOrFail($request->route('id'));
 
+        // Kiểm tra hash
         if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Link không hợp lệ.'], 403);
+            // Chuyển hướng đến trang lỗi của frontend
+            $redirectUrl = $frontendUrl . '/verify-error?message=' . urlencode('Liên kết xác thực không hợp lệ.');
+            return redirect()->away($redirectUrl);
         }
 
+        // Kiểm tra xem đã xác thực từ trước chưa
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email đã được xác minh.'], 200);
+            // Chuyển hướng đến trang thành công của frontend (nhưng có thể thông báo khác)
+            $redirectUrl = $frontendUrl . '/verify-success?message=' . urlencode('Tài khoản của bạn đã được kích hoạt từ trước.');
+            return redirect()->away($redirectUrl);
         }
 
-        $user->markEmailAsVerified();
-        event(new Verified($user));
+        // Đánh dấu đã xác thực và kích hoạt sự kiện
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
 
-        return response()->json(['message' => 'Xác minh email thành công. Bây giờ bạn có thể đăng nhập.'], 200);
+        // Chuyển hướng đến trang thành công của frontend
+        $redirectUrl = $frontendUrl . '/auth/verify-success?message=' . urlencode('Kích hoạt tài khoản thành công! Bây giờ bạn có thể đăng nhập.');
+        return redirect()->away($redirectUrl);
     }
 
     public function loginRedirect()
@@ -135,5 +151,4 @@ class AuthController extends Controller
             'message' => 'Cập nhật mật khẩu thành công.',
         ]);
     }
-
 }
