@@ -145,3 +145,8 @@ Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(functi
     // Route cập nhật trạng thái vẫn giữ riêng
     Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
 });
+
+Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
+    ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
+Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
+Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);

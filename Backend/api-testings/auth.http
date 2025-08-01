@@ -241,3 +241,17 @@ Accept: {{contentType}}
 ###
 
 GET http://127.0.0.1:8000/api/email/verify/27/276b9ddd427a70f11d76ef8ec0e2a666410d1e78?expires=1750504869&signature=351ee110df276af3508f480b473100e9e77f00e2e89bfa8fdc90f662079c81b9 HTTP/1.1
+
+
+### Check Email Availability
+
+# Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
+# ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
+
+POST {{host}}/check-phone-availability HTTP/1.1
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "Phone": "0935180286"
+}

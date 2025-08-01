@@ -139,24 +139,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (payload: RegisterPayload) => {
+        // Hàm này sẽ ném ra lỗi nếu thất bại, cho phép component cha bắt được.
         setError(null);
         const toastId = toast.loading("Đang tạo tài khoản...");
+
         try {
-            await apiRegister(payload); // Tạo tài khoản
+            await getCsrfCookie();
+            await apiRegister(payload);
 
-            // *** BƯỚC QUAN TRỌNG NHẤT ***
-            // Gọi logout ngay lập tức để hủy session mà Fortify tự tạo.
-            // Điều này đảm bảo user mới tạo không thể login nếu chưa xác thực.
-            await apiLogout();
+            // Dọn dẹp session mà Fortify tự tạo
+            try { await apiLogout(); } catch (e) { }
 
+            // Chỉ chạy các hành động thành công khi không có lỗi
             toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
             router.push('/register/success');
 
         } catch (error: any) {
-            // ... xử lý lỗi đăng ký như cũ ...
+            // XỬ LÝ LỖI Ở ĐÂY
             const message = getErrorMessage(error, 'Đăng ký thất bại.');
-            setError(message);
+            setError(message); // Đặt lỗi này để hiển thị trên form nếu cần
             toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+
+            // **NÉM LẠI LỖI** để handleSubmit trong trang Register có thể bắt được nó
+            // Đây là chìa khóa để ngăn việc chuyển trang
             throw error;
         }
     };

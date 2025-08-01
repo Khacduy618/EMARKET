@@ -151,4 +151,32 @@ class AuthController extends Controller
             'message' => 'Cập nhật mật khẩu thành công.',
         ]);
     }
+
+    /**
+     * Kiểm tra xem một số điện thoại đã tồn tại trong database hay chưa.
+     */
+    public function checkPhone(Request $request)
+    {
+        $validated = $request->validate([
+            'Phone' => 'required|string|max:12',
+        ]);
+
+        $isAvailable = !User::where('Phone', $validated['Phone'])->exists();
+
+        return response()->json(['isAvailable' => $isAvailable]);
+    }
+
+    public function checkUsername(Request $request)
+    {
+        $validated = $request->validate(['Username' => 'required|string']);
+        $isAvailable = !User::where('Username', $validated['Username'])->exists();
+        return response()->json(['isAvailable' => $isAvailable]);
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $validated = $request->validate(['Email' => 'required|email']);
+        $isAvailable = !User::where('Email', $validated['Email'])->exists();
+        return response()->json(['isAvailable' => $isAvailable]);
+    }
 }

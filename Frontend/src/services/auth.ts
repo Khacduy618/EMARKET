@@ -263,3 +263,64 @@ export const resendVerificationEmail = async (email: string): Promise<void> => {
 
     await handleResponse(response);
 };
+
+export const checkPhoneAvailability = async (phone: string): Promise<{ isAvailable: boolean }> => {
+    await getCsrfCookie();
+
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    // BƯỚC 2: GỬI REQUEST VỚI TOKEN HỢP LỆ
+    const response = await fetch(`${API_URL}/check-phone-availability`, {
+        method: 'POST',
+        credentials: 'include', // Giữ lại để đảm bảo tính nhất quán
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Gửi header CSRF đã được làm mới
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+        body: JSON.stringify({ Phone: phone }),
+    });
+
+    return handleResponse<{ isAvailable: boolean }>(response);
+};
+
+export const checkUsernameAvailability = async (username: string): Promise<{ isAvailable: boolean }> => {
+    await getCsrfCookie();
+
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    const response = await fetch(`${API_URL}/check-username-availability`, {
+        method: 'POST',
+        credentials: 'include', // Giữ lại để đảm bảo tính nhất quán
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Gửi header CSRF đã được làm mới
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+        body: JSON.stringify({ Username: username })
+    });
+    return handleResponse(response);
+}
+export const checkEmailAvailability = async (email: string): Promise<{ isAvailable: boolean }> => {
+    await getCsrfCookie();
+
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    const response = await fetch(`${API_URL}/check-email-availability`, {
+        method: 'POST',
+        credentials: 'include', // Giữ lại để đảm bảo tính nhất quán
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Gửi header CSRF đã được làm mới
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
+        body: JSON.stringify({ Email: email })
+    });
+    return handleResponse(response);
+}
