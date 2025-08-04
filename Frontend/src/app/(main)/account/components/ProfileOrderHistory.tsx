@@ -61,6 +61,7 @@ export default function ProfileOrderHistory() {
                 if (!response.ok) throw new Error('Không thể tải lịch sử mua hàng.');
                 const data: Order[] = await response.json();
                 setAllOrders(data);
+                console.log("test:",response)
             } catch (err: any) {
                 setError(err.message);
             } finally {

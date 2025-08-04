@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -63,4 +64,30 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+//     //2 hàm test
+//       public function showLoginForm()
+//     {
+//          return view('auth.login'); // trả về view login
+//     }
+
+//    public function logintest(Request $request)
+// {
+//     $credentials = $request->only('email', 'password');
+
+//     if (Auth::attempt($credentials)) {
+//         $user = Auth::user();
+//         $token = $user->createToken('auth_token')->plainTextToken;
+
+//         return response()->json([
+//             'message' => 'Đăng nhập thành công',
+//             'token' => $token,
+//             'user' => $user
+//         ]);
+//     }
+
+//     return response()->json([
+//         'message' => 'Email hoặc mật khẩu không đúng'
+//     ], 401);
+// }
 }

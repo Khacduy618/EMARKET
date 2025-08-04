@@ -29,12 +29,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class OrderBuyer extends Model
 {
-    use HasFactory, SoftDeletes;
+    // use HasFactory, SoftDeletes;
     use HasFactory;
 
     protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';
-
+        const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
     protected $fillable = [
         'OrderCode',
         'UserID',

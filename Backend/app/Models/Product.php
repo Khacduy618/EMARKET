@@ -334,4 +334,11 @@ class Product extends Model
                   ->whereColumn('pv_check.ProductID', 'Products.ProductID');
         });
     }
+
+    public function followers()
+    {
+        // Ví dụ: return $this->belongsToMany(User::class, 'shop_followers', 'shop_id', 'user_id');
+        // Tạm thời comment lại nếu bạn chưa có
+        return $this->belongsToMany(User::class, 'followers', 'ShopID', 'UserID'); // Giả định có bảng followers
+    }
 }

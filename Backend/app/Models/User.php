@@ -24,7 +24,8 @@ class User extends Authenticatable
     protected $primaryKey = 'UserID';
     protected $keyType = 'int';
     public $incrementing = true;
-
+    const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
     /**
      * The attributes that are mass assignable.
      *
@@ -147,4 +148,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(ConversationMeta::class, 'user_id', 'UserID');
     }
+    public function getAuthPassword()
+{
+    return $this->Password;
+}
+
+public function getAuthIdentifierName()
+{
+    return 'Email';
+}
 }

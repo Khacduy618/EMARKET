@@ -19,7 +19,7 @@ class OrderItem extends Model {
      * Khai báo khóa chính để Eloquent không nhầm lẫn.
      */
     protected $primaryKey = 'OrderItemID';
-
+     public $timestamps = false;
     protected $fillable = [
         'OrderID', 'VariantID', 'Quantity', 'PriceAtPurchase', 
         'Subtotal', 'IsFlashSaleItem', 'FlashSaleDealID', 'ReturnStatus'
@@ -27,7 +27,7 @@ class OrderItem extends Model {
 
     public function order()
     {
-        return $this->belongsTo(Order::class, 'OrderID', 'OrderID');
+        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
     }
 
     public function variant()

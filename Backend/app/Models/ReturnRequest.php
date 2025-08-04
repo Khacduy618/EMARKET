@@ -14,9 +14,14 @@ use App\Models\Shop;
 class ReturnRequest extends Model
 {
     use HasFactory;
-
+     protected $table = 'returnrequests';
     protected $primaryKey = 'ReturnRequestID';
+     const CREATED_AT = 'RequestedAt';
 
+    /**
+     * Định nghĩa lại tên cột 'updated_at' mặc định của Laravel.
+     */
+    const UPDATED_AT = 'LastUpdatedAt';
     protected $fillable = [
         'OrderID', // Changed from ShopOrderID
         'OrderItemID',

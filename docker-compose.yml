@@ -82,10 +82,10 @@ services:
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - ecommerce_db_data:/var/lib/mysql
+    command: --lower_case_table_names=1
     networks:
       - ecommerce_network
     restart: unless-stopped
-
   # phpMyAdmin Service
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest

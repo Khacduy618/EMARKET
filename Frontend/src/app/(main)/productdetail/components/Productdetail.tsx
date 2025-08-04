@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'; // <--- Added useCallback here
 import axios from 'axios';
 import Image from 'next/image';
-import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw } from 'lucide-react';
+import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap } from 'lucide-react';
 import RelatedItems from './RelatedItems';
 import { toast } from 'react-toastify';
-import { getFullImageUrl } from '@/services/api'; 
+import { getFullImageUrl } from '@/services/api';
 import { addCartItem } from '@/services/cart';
 import ConfirmModal from '@/app/components/ConfirmModal';
+import ShopInfo from './ShopInfo';
 
 // --- INTERFACES ---
 // Define the Attribute interface first, as it's nested inside AttributeValue
@@ -69,6 +70,7 @@ interface Product {
     variants: Variant[];
     min_overall_compare_at_price: number | null;
     total_overall_stock_quantity: number;
+    shop: Shop;
 }
 
 // Props of the Component
@@ -77,7 +79,26 @@ interface ProductDetailProps {
     descriptionSlot: React.ReactNode;
     sidebarSlot: React.ReactNode;
 }
+interface ShopStats {
+    rating_count: string;
+    product_count: number;
+    follower_count: string;
+    join_duration: string;
+    response_rate: string;
+    response_time: string;
+    online_status: string;
+}
 
+export interface Shop {
+    ShopID: number;
+    UserID: number;
+    ShopName: string;
+    Description: string;
+    LogoURL: string;
+    // ... các trường khác của shop
+    UpdatedAt: string;
+    stats: ShopStats; // <--- THÊM DÒNG NÀY
+}
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -88,13 +109,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // --- REFACTORED STATE ---
     const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({}); // Starts empty
     const [quantity, setQuantity] = useState<number>(1);
-    
+
     // Other states remain the same...
     const [showLargeQuantityConfirm, setShowLargeQuantityConfirm] = useState(false);
     const [largeQuantityPromptInfo, setLargeQuantityPromptInfo] = useState<{ productName: string; shopPhone: string } | null>(null);
@@ -120,8 +141,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
         }
     }, []); // Empty dependency array means it's created once
 
-    
-// --- REFACTORED: Initial Data Fetch ---
+
+    // --- REFACTORED: Initial Data Fetch ---
     useEffect(() => {
         if (!productId) return;
         const fetchProduct = async () => {
@@ -135,7 +156,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                 // Set initial image to the product's primary image
                 const primaryImage = productData.images?.find(img => img.IsPrimary === 1)?.ImageURL || productData.images?.[0]?.ImageURL;
                 setSelectedImage(primaryImage || null);
-                
+
                 // Reset states for the new product
                 setSelectedOptions({});
                 setSelectedVariant(null);
@@ -151,7 +172,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
         fetchProduct();
     }, [productId]);
 
-    
+
 
     const attributeStructure = useMemo(() => {
         if (!product) return {};
@@ -188,7 +209,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                 )
             );
         });
-        
+
         // 2. From these matching variants, determine what other options are still possible
         const available: Record<string, Set<string>> = {};
         for (const attrName in attributeStructure) {
@@ -202,18 +223,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                 }
             });
         });
-        
+
         // 3. Check if a full, unique variant has been selected
         const allAttributes = Object.keys(attributeStructure);
         const allSelected = allAttributes.every(attrName => selectedOptions[attrName]);
-        
+
         return { available, allSelected };
 
     }, [product, selectedOptions, attributeStructure]);
 
 
 
-     useEffect(() => {
+    useEffect(() => {
         if (!product || !availableOptionsAndTheirStatus.allSelected) {
             setSelectedVariant(null); // Not enough options selected, so no specific variant
             return;
@@ -264,7 +285,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
         if (!selectedVariant || selectedVariant.StockQuantity <= 0) return 0; // If no variant or out of stock
         return Math.min(selectedVariant.StockQuantity, hardLimit);
     }, [selectedVariant]);
- const pricingInfo = useMemo(() => {
+    const pricingInfo = useMemo(() => {
         // Giá trị mặc định
         if (!product) {
             return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
@@ -325,10 +346,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
         // Notify if quantity was clamped by the UI hard limit or stock
         if (newQuantity > currentMaxQuantityForUI) {
             if (currentMaxQuantityForUI > 0) {
-                 showNotification(`Số lượng không thể vượt quá ${currentMaxQuantityForUI} sản phẩm.`, 'warning');
+                showNotification(`Số lượng không thể vượt quá ${currentMaxQuantityForUI} sản phẩm.`, 'warning');
             } else {
-                 showNotification("Sản phẩm này hiện đã hết hàng.", 'error');
-                 clampedQuantity = 0; // Set to 0 if stock became 0 unexpectedly
+                showNotification("Sản phẩm này hiện đã hết hàng.", 'error');
+                clampedQuantity = 0; // Set to 0 if stock became 0 unexpectedly
             }
         } else if (newQuantity < 1 && type === 'input') {
             showNotification("Số lượng phải lớn hơn 0.", 'warning');
@@ -401,8 +422,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
 
             // Update quantity input after successful addition (reset to 1 or clamped value)
             if (response.finalQuantityInCart !== undefined) {
-                 if (response.finalQuantityInCart < quantity && response.finalQuantityInCart > 0) {
-                     setQuantity(response.finalQuantityInCart); // If backend clamped quantity, update UI
+                if (response.finalQuantityInCart < quantity && response.finalQuantityInCart > 0) {
+                    setQuantity(response.finalQuantityInCart); // If backend clamped quantity, update UI
                 } else {
                     setQuantity(1); // Reset to 1 after successful addition
                 }
@@ -433,10 +454,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
         return <div className="flex justify-center items-center min-h-[50vh]"><p className="text-gray-500 text-xl">Không tìm thấy sản phẩm.</p></div>;
     }
 
-    
+
     // --- THAY THẾ TOÀN BỘ HOOK useMemo HIỆN TẠI BẰNG ĐOẠN NÀY ---
 
-   
+
     const canAddToCart = !!selectedVariant && selectedVariant.StockQuantity > 0 && quantity > 0;
 
     return (
@@ -466,7 +487,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                         {product.images.slice(0, 4).map((image) => (
                             <div key={image.ImageID} onClick={() => setSelectedImage(image.ImageURL)}
                                 className={`w-20 h-20 bg-gray-50 rounded flex items-center justify-center cursor-pointer p-1 border transition-all ${selectedImage === image.ImageURL ? 'border-orange-500' : 'border-gray-200 hover:border-orange-300'}`}>
-                                 <img
+                                <img
                                     // SỬ DỤNG HÀM MỚI Ở ĐÂY
                                     src={getFullImageUrl(image.ImageURL)}
                                     alt="thumbnail"
@@ -484,18 +505,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                                     key={selectedImage} // Add key to force re-render Image component when src changes
                                     src={getFullImageUrl(selectedImage)}
                                     alt={product.Name}
-                                    
+
                                     className="object-contain w-full h-full p-4"
-                                    
+
                                 />
                             )}
-                           {pricingInfo.discountPercent > 0 && (
+                            {pricingInfo.discountPercent > 0 && (
                                 <div className="absolute top-4 left-4 bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded-sm">
                                     -{pricingInfo.discountPercent}%
                                 </div>
                             )}
                         </div>
                     </div>
+
                 </div>
 
                 {/* Right Column: Product Info */}
@@ -532,7 +554,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                             {pricingInfo.finalPrice ? formatPrice(pricingInfo.finalPrice) : 'Vui lòng chọn tùy chọn'}
                         </p>
                     </div>
-                    
+
                     <div className="pt-2 space-y-5">
                         {Object.entries(attributeStructure).map(([attributeName, options]) => (
                             <div key={attributeName} className="flex flex-col space-y-2">
@@ -545,17 +567,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                                         const isSelected = selectedOptions[attributeName] === value;
                                         // An option is disabled if it's not in the set of currently available options for its attribute
                                         const isDisabled = !availableOptionsAndTheirStatus.available[attributeName]?.has(value);
-                                        
+
                                         return (
                                             <button
                                                 key={value}
                                                 onClick={() => handleOptionClick(attributeName, value)}
                                                 disabled={isDisabled && !isSelected} // Can't click if disabled, unless it's the one that's already selected (to allow deselecting)
                                                 className={`px-3 py-1.5 text-sm rounded transition-all
-                                                    ${isSelected ? 'bg-orange-500 text-white border-orange-500 shadow-sm' 
-                                                                 : 'bg-white text-gray-700 border border-gray-300'}
-                                                    ${isDisabled && !isSelected ? 'opacity-50 cursor-not-allowed bg-gray-100' 
-                                                                      : 'hover:border-orange-400'}
+                                                    ${isSelected ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                                                        : 'bg-white text-gray-700 border border-gray-300'}
+                                                    ${isDisabled && !isSelected ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                                                        : 'hover:border-orange-400'}
                                                 `}
                                             >
                                                 {value}
@@ -582,7 +604,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                                 min="1"
                                 max={currentMaxQuantityForUI > 0 ? currentMaxQuantityForUI : 1} // Ensure max is at least 1 even if stock is 0 for input type="number" behavior
                                 className="w-16 text-center border-l border-r outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                disabled={!selectedVariant||selectedVariant.StockQuantity === 0}
+                                disabled={!selectedVariant || selectedVariant.StockQuantity === 0}
                             />
                             <button
                                 onClick={() => handleQuantityChange('increase')}
@@ -596,11 +618,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button className="flex-1 bg-orange-100 border border-orange-500 text-orange-500 font-medium py-3 px-6 rounded hover:bg-orange-50 transition-colors flex items-center justify-center">
-                            <Heart size={20} className="mr-2" />
-                            Yêu thích
+
+                        <button
+                            disabled={!canAddToCart}
+                            className={`flex-1 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center
+        ${!canAddToCart
+                                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                                }`}
+                        >
+                            <Zap size={20} className="mr-2" />
+                            Mua Ngay
                         </button>
-                        
+
+
+
                         <button
                             onClick={handleAddToCart}
                             className={`w-1/2 rounded-lg py-3 font-bold transition flex items-center justify-center space-x-2
@@ -649,8 +681,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
                     </div>
                 </div>
             </div>
+            <div className="mt-12">
+                {product.shop && <ShopInfo shop={product.shop} />}
+            </div>
             {/* Related Products */}
             <div className="mt-12">
+
                 <h2 className="text-xl font-semibold mb-6 text-gray-800">Sản phẩm tương tự</h2>
                 <RelatedItems currentProductId={productId} />
             </div>
