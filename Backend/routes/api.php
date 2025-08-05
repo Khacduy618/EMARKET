@@ -96,7 +96,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', function () {
+Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard', function () {
     $data = [
         'name' => 'Seller Test',
         'role' => 'Seller',
