@@ -28,7 +28,7 @@ class SellerRegisterController extends Controller
             ], 400);
         }
 
-        $user->update(['Role' => 'Buyer']);
+        // $user->update(['Role' => 'Buyer']);
 
         $shop = Shop::create([
             'UserID' => $user->UserID,

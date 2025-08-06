@@ -35390,3 +35390,893 @@
 #47 {main}
 "} 
 [2025-08-06 07:53:58] local.INFO: 📦 Nhận webhook từ giao hàng: {"order_id":"2082","status":"CancelledByBuyer","updated_at":"2025-08-06T07:53:54+00:00"} 
+[2025-08-06 08:53:47] local.ERROR: SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#45 {main}
+
+[previous exception] [object] (PDOException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:404)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(404): PDO->prepare('select `p`.`Pro...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `p`.`Pro...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#47 {main}
+"} 
+[2025-08-06 08:54:30] local.ERROR: SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#45 {main}
+
+[previous exception] [object] (PDOException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:404)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(404): PDO->prepare('select `p`.`Pro...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `p`.`Pro...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#47 {main}
+"} 
+[2025-08-06 08:54:53] local.ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'INSERT INTO' (Connection: mysql, SQL: insert into `shops` (`UserID`, `ShopName`, `Description`, `ShopPhone`, `Status`, `updated_at`, `created_at`) values (1, eeeeee, wwwww, 0987676453, PendingApproval, 2025-08-06 08:54:53, 2025-08-06 08:54:53)) {"userId":1,"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'INSERT INTO' (Connection: mysql, SQL: insert into `shops` (`UserID`, `ShopName`, `Description`, `ShopPhone`, `Status`, `updated_at`, `created_at`) values (1, eeeeee, wwwww, 0987676453, PendingApproval, 2025-08-06 08:54:53, 2025-08-06 08:54:53)) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('insert into `sh...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\MySqlConnection.php(42): Illuminate\\Database\\Connection->run('insert into `sh...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Processors\\MySqlProcessor.php(35): Illuminate\\Database\\MySqlConnection->insert('insert into `sh...', Array, 'ShopID')
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3796): Illuminate\\Database\\Query\\Processors\\MySqlProcessor->processInsertGetId(Object(Illuminate\\Database\\Query\\Builder), 'insert into `sh...', Array, 'ShopID')
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(2205): Illuminate\\Database\\Query\\Builder->insertGetId(Array, 'ShopID')
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1408): Illuminate\\Database\\Eloquent\\Builder->__call('insertGetId', Array)
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1373): Illuminate\\Database\\Eloquent\\Model->insertAndSetId(Object(Illuminate\\Database\\Eloquent\\Builder), Array)
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1212): Illuminate\\Database\\Eloquent\\Model->performInsert(Object(Illuminate\\Database\\Eloquent\\Builder))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(1189): Illuminate\\Database\\Eloquent\\Model->save()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\helpers.php(399): Illuminate\\Database\\Eloquent\\Builder->Illuminate\\Database\\Eloquent\\{closure}(Object(App\\Models\\Shop))
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(1188): tap(Object(App\\Models\\Shop), Object(Closure))
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\Traits\\ForwardsCalls.php(23): Illuminate\\Database\\Eloquent\\Builder->create(Array)
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(2449): Illuminate\\Database\\Eloquent\\Model->forwardCallTo(Object(Illuminate\\Database\\Eloquent\\Builder), 'create', Array)
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(2465): Illuminate\\Database\\Eloquent\\Model->__call('create', Array)
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Seller\\SellerRegisterController.php(33): Illuminate\\Database\\Eloquent\\Model::__callStatic('create', Array)
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Seller\\SellerRegisterController->register(Object(App\\Http\\Requests\\SellerRegisterRequest))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Seller\\SellerRegisterController), 'register')
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#48 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#50 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#51 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#52 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#53 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#54 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#55 {main}
+
+[previous exception] [object] (PDOException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'INSERT INTO' at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\MySqlConnection.php:47)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\MySqlConnection.php(47): PDO->prepare('insert into `sh...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\MySqlConnection->Illuminate\\Database\\{closure}('insert into `sh...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('insert into `sh...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\MySqlConnection.php(42): Illuminate\\Database\\Connection->run('insert into `sh...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Processors\\MySqlProcessor.php(35): Illuminate\\Database\\MySqlConnection->insert('insert into `sh...', Array, 'ShopID')
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3796): Illuminate\\Database\\Query\\Processors\\MySqlProcessor->processInsertGetId(Object(Illuminate\\Database\\Query\\Builder), 'insert into `sh...', Array, 'ShopID')
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(2205): Illuminate\\Database\\Query\\Builder->insertGetId(Array, 'ShopID')
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1408): Illuminate\\Database\\Eloquent\\Builder->__call('insertGetId', Array)
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1373): Illuminate\\Database\\Eloquent\\Model->insertAndSetId(Object(Illuminate\\Database\\Eloquent\\Builder), Array)
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(1212): Illuminate\\Database\\Eloquent\\Model->performInsert(Object(Illuminate\\Database\\Eloquent\\Builder))
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(1189): Illuminate\\Database\\Eloquent\\Model->save()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\helpers.php(399): Illuminate\\Database\\Eloquent\\Builder->Illuminate\\Database\\Eloquent\\{closure}(Object(App\\Models\\Shop))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(1188): tap(Object(App\\Models\\Shop), Object(Closure))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\Traits\\ForwardsCalls.php(23): Illuminate\\Database\\Eloquent\\Builder->create(Array)
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(2449): Illuminate\\Database\\Eloquent\\Model->forwardCallTo(Object(Illuminate\\Database\\Eloquent\\Builder), 'create', Array)
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Model.php(2465): Illuminate\\Database\\Eloquent\\Model->__call('create', Array)
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Seller\\SellerRegisterController.php(33): Illuminate\\Database\\Eloquent\\Model::__callStatic('create', Array)
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Seller\\SellerRegisterController->register(Object(App\\Http\\Requests\\SellerRegisterRequest))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Seller\\SellerRegisterController), 'register')
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#48 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#50 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#51 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#52 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#53 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#54 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#55 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#56 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#57 {main}
+"} 
+[2025-08-06 08:58:26] local.ERROR: SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#45 {main}
+
+[previous exception] [object] (PDOException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:404)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(404): PDO->prepare('select `p`.`Pro...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `p`.`Pro...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#47 {main}
+"} 
+[2025-08-06 08:58:35] local.ERROR: SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#45 {main}
+
+[previous exception] [object] (PDOException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:404)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(404): PDO->prepare('select `p`.`Pro...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `p`.`Pro...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#47 {main}
+"} 
+[2025-08-06 08:59:37] local.ERROR: SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY (Connection: mysql, SQL: select `p`.`ProductID`, `p`.`Name` as `ProductName`, `p`.`Description` as `ProductDescription`, `p`.`Discount` as `ProductLevelDiscount`, `variant_info`.`VariantMinPrice` as `Price`, `variant_info`.`VariantCompareAtPrice` as `CompareAtPrice`, `variant_info`.`VariantSKU` as `SKU`, `variant_info`.`VariantMinStockQuantity` as `StockQuantity`, COALESCE(pi.ImageURL, variant_info.VariantImageURL) as ImageURL from `products` as `p` left join `productimages` as `pi` on `p`.`ProductID` = `pi`.`ProductID` and `pi`.`IsPrimary` = 1 left join (
+                SELECT
+                    pv.ProductID,
+                    MIN(pv.Price) as VariantMinPrice,
+                    MIN(CASE
+                            WHEN pv.CompareAtPrice IS NOT NULL AND pv.CompareAtPrice > pv.Price THEN pv.CompareAtPrice
+                            ELSE NULL
+                        END) as VariantCompareAtPrice,
+                    (SELECT pv_img.ImageURL
+                     FROM ProductVariants pv_img
+                     WHERE pv_img.ProductID = pv.ProductID
+                       AND pv_img.Price = MIN(pv.Price)
+                       AND pv_img.IsActive = 1
+                       AND pv_img.ImageURL IS NOT NULL
+                     ORDER BY pv_img.VariantID
+                     LIMIT 1) as VariantImageURL,
+                    (SELECT pv_sku.SKU
+                     FROM ProductVariants pv_sku
+                     WHERE pv_sku.ProductID = pv.ProductID
+                       AND pv_sku.Price = MIN(pv.Price)
+                       AND pv_sku.IsActive = 1
+                     ORDER BY pv_sku.VariantID
+                     LIMIT 1) as VariantSKU,
+                    MIN(pv.StockQuantity) as VariantMinStockQuantity
+                FROM ProductVariants pv
+                WHERE pv.IsActive = 1
+                GROUP BY pv.ProductID
+            ) as variant_info on `p`.`ProductID` = `variant_info`.`ProductID` where `p`.`IsActive` = 1 and `p`.`AdminApprovalStatus` = Approved and `variant_info`.`VariantMinPrice` is not null order by `p`.`Discount` desc, `p`.`CreatedAt` desc limit 6) at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:822)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#45 {main}
+
+[previous exception] [object] (PDOException(code: 42000): SQLSTATE[42000]: Syntax error or access violation: 1055 'ecommerce.pv.Price' isn't in GROUP BY at C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:404)
+[stacktrace]
+#0 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(404): PDO->prepare('select `p`.`Pro...')
+#1 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(809): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `p`.`Pro...', Array)
+#2 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(776): Illuminate\\Database\\Connection->runQueryCallback('select `p`.`Pro...', Array, Object(Closure))
+#3 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(395): Illuminate\\Database\\Connection->run('select `p`.`Pro...', Array, Object(Closure))
+#4 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3131): Illuminate\\Database\\Connection->select('select `p`.`Pro...', Array, true)
+#5 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3116): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3706): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3115): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 C:\\Users\\Admin\\EMARKET\\Backend\\app\\Http\\Controllers\\Admin\\ProductController.php(288): Illuminate\\Database\\Query\\Builder->get()
+#9 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\Admin\\ProductController->bestSelling()
+#10 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\Admin\\ProductController), 'bestSelling')
+#11 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#12 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(808): Illuminate\\Routing\\Route->run()
+#13 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#18 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#19 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#20 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#21 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#22 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(169): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#24 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(208): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 C:\\Users\\Admin\\EMARKET\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#46 C:\\Users\\Admin\\EMARKET\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\Admin\\\\...')
+#47 {main}
+"} 

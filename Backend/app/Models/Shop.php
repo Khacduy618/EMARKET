@@ -17,7 +17,7 @@ class Shop extends Model
     use HasFactory;
 
     protected $primaryKey = 'ShopID';
-
+     public $timestamps = false;
     protected $fillable = [
         'UserID', // Changed from UserID_Owner
         'ShopName',
