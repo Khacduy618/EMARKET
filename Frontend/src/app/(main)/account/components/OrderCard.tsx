@@ -862,7 +862,8 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
         </div>
       </Link>
        {/* 4. Render Modal tại đây, nó sẽ chỉ hiển thị khi state isReturnModalOpen là true */}
-      {isReturnModalOpen && authToken && (
+      <div className="z-50">
+        {isReturnModalOpen && authToken && (
         <ReturnRequestModal
           isOpen={isReturnModalOpen}
           onClose={() => setIsReturnModalOpen(false)}
@@ -871,6 +872,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
           token={authToken}
         />
       )}
+      </div>
     </>
   );
 };

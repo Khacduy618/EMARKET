@@ -130,7 +130,7 @@ export default function Header() {
     // ---- XÓA TOÀN BỘ LOGIC `useEffect` VÀ `handleLogout` DÙNG localStorage ----
 
     return (
-        <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="sticky top-0 z-20 bg-white shadow-sm">
             {/* PHẦN 1: HEADER CHÍNH */}
             <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
                 <div className="container mx-auto px-4">

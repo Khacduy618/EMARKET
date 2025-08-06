@@ -68,7 +68,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
     return (
         // 1. Lớp phủ nền: Đổi sang màu đen mờ để tập trung hơn vào modal
         <div
-            className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ease-in-out"
+            className="fixed inset-0 top-20 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ease-in-out"
             onClick={onClose}
         >
             {/* 2. Panel của modal: Sử dụng flexbox và giới hạn chiều cao tối đa */}
