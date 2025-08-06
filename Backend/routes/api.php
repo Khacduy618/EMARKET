@@ -15,7 +15,6 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\HandleImage;
-use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
 use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
@@ -231,11 +230,11 @@ Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
 Route::get('/admin/products', [ProductControllers::class, "index"]);
 Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
 Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
-Route::get('/admin/products', [AdminProductController::class, "index"]);
+Route::get('/admin/products', [ProductControllers::class, "index"]);
 
-Route::put('/admin/products/{id}/approval-status', [AdminProductController::class, 'updateApprovalStatus']);
+Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
 
-Route::get('/admin/products/{id}', [AdminProductController::class, 'detailProduct']);
+Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
 
 // End product route
 
