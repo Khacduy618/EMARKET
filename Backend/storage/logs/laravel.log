@@ -64,3 +64,9 @@
 [2025-08-06 14:07:32] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
 [2025-08-06 14:07:32] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
 [2025-08-06 14:07:32] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 78 đơn hàng.  
+[2025-08-06 14:18:56] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-06 14:18:56] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-06 14:18:57] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 78 đơn hàng.  
+[2025-08-06 14:18:57] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-06 14:18:57] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-06 14:18:58] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 78 đơn hàng.  

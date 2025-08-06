@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrderBuyer;
 use App\Models\ReturnRequest;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
@@ -177,6 +178,9 @@ class ReturnRequestController extends Controller
         // 6. Cập nhật trạng thái của sản phẩm trong đơn hàng
         $orderItem->ReturnStatus = 'Requested';
         $orderItem->save();
+
+        $statusOrder = OrderBuyer::where('OrderID', $orderItem->OrderID)
+    ->update(['OverallStatus' => 'ReturnInProgress']);
 
         return response()->json([
             'message' => 'Tạo yêu cầu trả hàng thành công!',
