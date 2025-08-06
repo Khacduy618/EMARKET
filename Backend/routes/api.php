@@ -12,11 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AddressController;
-<<<<<<< HEAD
 use App\Http\Controllers\OrderController;
-=======
 use App\Http\Controllers\Admin\UserController as AdminUserController;
->>>>>>> authnew
 use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Seller\ShopProductController;
@@ -42,7 +39,6 @@ Route::get('/test', function () {
     return response()->json(['message' => 'Laravel API is alive and working!']);
 });
 // Lấy API của Category Trả về dạng json theo CRUD
-<<<<<<< HEAD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
@@ -52,11 +48,6 @@ Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 
 Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
 Route::get('/categories/{category}/filters', [CategoryController::class, 'getCategoryFilters']);
 ///
-=======
-Route::get('/category', [CategoryController::class, 'index']);
-Route::get('/categorySubMenu', [CategoryController::class, 'category_cha_con']);
-
->>>>>>> authnew
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
