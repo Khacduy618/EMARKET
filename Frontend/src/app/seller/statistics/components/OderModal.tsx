@@ -34,11 +34,11 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
     if (show && date) {
       setLoading(true)
       setError(null)
-      fetch(`http://localhost:8001/api/seller/orderss?date=${encodeURIComponent(date)}`, {
+      fetch(`http://localhost/api/seller/orderss?date=${encodeURIComponent(date)}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
         .then((res) => {

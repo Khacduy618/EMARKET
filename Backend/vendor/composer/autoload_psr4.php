@@ -99,12 +99,9 @@ return array(
     'Carbon\\Doctrine\\' => array($vendorDir . '/carbonphp/carbon-doctrine-types/src/Carbon/Doctrine'),
     'Carbon\\' => array($vendorDir . '/nesbot/carbon/src/Carbon'),
     'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
-<<<<<<< HEAD
     'Barryvdh\\LaravelIdeHelper\\' => array($vendorDir . '/barryvdh/laravel-ide-helper/src'),
-    'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
-=======
     'Barryvdh\\DomPDF\\' => array($vendorDir . '/barryvdh/laravel-dompdf/src'),
->>>>>>> feature/sellerOrders
+    'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
     'Appstract\\Opcache\\' => array($vendorDir . '/appstract/laravel-opcache/src'),
     'App\\' => array($baseDir . '/app', $vendorDir . '/laravel/pint/app'),
 );

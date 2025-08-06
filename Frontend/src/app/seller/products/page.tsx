@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { getProducts, deleteProduct } from "@/services/seller-category"
 import Swal from "sweetalert2"
+import { getAuthToken } from "@/services/api"
 
 // --- INTERFACES ---
 interface ProductImage {
@@ -43,7 +44,7 @@ export default function ShopeeProductsPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken")
+    const token = getAuthToken();
     if (!token) {
       Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/login"))
       return
@@ -113,7 +114,7 @@ export default function ShopeeProductsPage() {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)
   }
 
-  const BACKEND_URL = "http://localhost:8001"
+  const BACKEND_URL = "http://localhost"
   const getPrimaryImage = (product: Product): string => {
     const primaryImg = product.images.find((img) => img.IsPrimary)
     const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL

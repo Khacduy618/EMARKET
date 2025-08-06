@@ -15,6 +15,7 @@ import CreateCategoryModal from "./components/CreateCategoryModal"
 import EditCategoryModal from "./components/EditCategoryModal"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { getAuthToken } from "@/services/api"
 
 type Category = {
   CategoryID: number
@@ -49,7 +50,6 @@ export default function CategoryPage() {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
         },
       )
@@ -57,7 +57,7 @@ export default function CategoryPage() {
       const res2 = await fetch("http://localhost/api/admin/categories/getAllCategory", {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
 
@@ -105,7 +105,7 @@ export default function CategoryPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           body: JSON.stringify({ _method: "DELETE" }),
         })

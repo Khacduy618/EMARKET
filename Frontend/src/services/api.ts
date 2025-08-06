@@ -2,7 +2,7 @@ import { ProductVariant,ProductImage } from "@/types";
 import { getCookie } from "./auth";
 
 export const API_BASE_URL = 'http://localhost/api';
-
+export const BASE_URL = 'http://localhost';
 interface ProductWithImages {
     images?: ProductImage[] | null;
 }
@@ -118,7 +118,7 @@ export const getFullImageUrl = (relativePath: string | null | undefined): string
 
     // Xây dựng đường dẫn đúng mà server có thể hiểu
     const path = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
-    return `/storage/${path}`;
+    return `${BASE_URL}/storage/${path}`;
 };
 
 // export const getPrimaryImage = (product: ProductWithImages): string => {

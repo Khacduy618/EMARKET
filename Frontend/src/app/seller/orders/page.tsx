@@ -14,6 +14,7 @@ import OrderPagination from "./components/order-pagination"
 import LoadingState from "./components/loading-state"
 import ErrorState from "./components/error-state"
 import EmptyState from "./components/empty-state"
+import { getAuthToken } from "@/services/api";
 
 // --- INTERFACES ---
 interface SellerOrder {
@@ -55,7 +56,7 @@ export default function SellerOrdersPage() {
     const fetchOrders = useCallback(async () => {
         setLoading(true)
         try {
-            const token = localStorage.getItem("authToken")
+            const token = getAuthToken();
             if (!token) {
                 throw new Error("Authentication token not found. Please log in.")
             }
@@ -66,10 +67,10 @@ export default function SellerOrdersPage() {
                 search: searchTerm,
             })
 
-            const response = await axios.get(`http://localhost:8001/api/seller/orders?${params.toString()}`, {
+            const response = await axios.get(`http://localhost/api/seller/orders?${params.toString()}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
+                    
+                    'Accept': "application/json",
                 },
             })
 

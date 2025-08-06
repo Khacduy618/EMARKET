@@ -91,7 +91,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
       console.log(response);

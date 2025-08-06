@@ -62,7 +62,7 @@ export default function ProductDetailModal({
       try {
         const res = await fetch(`http://localhost/api/admin/products/${productId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         })
         const json = await res.json()

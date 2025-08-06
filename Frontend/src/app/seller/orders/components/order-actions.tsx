@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, Printer, X } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { getAuthToken } from "@/services/api";
 
 interface OrderActionsProps {
     status: string;
@@ -34,11 +35,11 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
         });
         if (result.isConfirmed) {
             try {
-                const token = localStorage.getItem("authToken");
+                const token = getAuthToken();
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost:8001/api/seller/orders/${orderId}/confirm`,
+                    `http://localhost/api/seller/orders/${orderId}/confirm`,
                     {},
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -82,13 +83,13 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
         });
         if (result.isConfirmed) {
             try {
-                const token = localStorage.getItem("authToken");
+                const token = getAuthToken();
                 if (!token) throw new Error("Authentication token not found.");
 
                 const response = await axios.put(
-                    `http://localhost:8001/api/seller/orders/${orderId}/print`,
+                    `http://localhost/api/seller/orders/${orderId}/print`,
                     {},
-                    { headers: { Authorization: `Bearer ${token}` }, responseType: "blob" } // Giả định trả về file PDF
+                    { headers: { 'Authorization': `Bearer ${token}` }, responseType: "blob" } // Giả định trả về file PDF
                 );
                 // Tạo URL cho file và mở trong tab mới
                 const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -139,11 +140,11 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
         });
         if (result.isConfirmed) {
             try {
-                const token = localStorage.getItem("authToken");
+                const token = getAuthToken();
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost:8001/api/seller/orders/${orderId}/cancel`,
+                    `http://localhost/api/seller/orders/${orderId}/cancel`,
                     {},
                     { headers: { Authorization: `Bearer ${token}` } }
                 );

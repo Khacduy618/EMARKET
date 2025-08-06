@@ -26,10 +26,9 @@ use App\Http\Controllers\Admin\ShopController as ShopController;
 use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Seller\ShopCategoryController; 
-use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\VNPayController;
 
-use App\Http\Controllers\SellerOrderController;
+use App\Http\Controllers\Seller\SellerOrderController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 

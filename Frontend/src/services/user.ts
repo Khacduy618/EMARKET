@@ -4,7 +4,7 @@ import { Address, AddressPayload } from '../types'; // Import Address interface
 const API_BASE_URL = 'http://localhost/api';
 
 const getAuthToken = (): string | null => {
-    return localStorage.getItem('authToken');
+    return getAuthToken()
 };
 
 export interface FetchAddressesResponse {

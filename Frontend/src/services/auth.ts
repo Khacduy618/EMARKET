@@ -17,7 +17,7 @@ import {
 
 // --- 2. CÁC BIẾN MÔI TRƯỜNG VÀ HÀM HELPER CƠ BẢN ---
 
-export const API_URL = 'http://localhost:8001/api';
+export const API_URL = 'http://localhost/api';
 const WEB_URL = 'http://localhost:8001';
 
 // Tiện ích để đọc cookie

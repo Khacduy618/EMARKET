@@ -93,7 +93,7 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
       const res = await fetch("http://localhost/api/admin/categories/update", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         body: formData,
       })

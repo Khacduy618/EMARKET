@@ -14,6 +14,7 @@ import OrderCustomerInfo from "../components/order-customer-info";
 import OrderActions from "../components/order-actions";
 import LoadingSpinner from "../components/loading-spinner";
 import ErrorMessage from "../components/error-message";
+import { getAuthToken } from "@/services/api";
 
 // --- INTERFACES ---
 interface TransformedOrderDetail {
@@ -72,11 +73,11 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                 setLoading(true);
                 setError(null);
                 try {
-                    const token = localStorage.getItem("authToken");
+                    const token = getAuthToken();
                     if (!token) throw new Error("Authentication token not found.");
 
-                    const response = await axios.get(`http://localhost:8001/api/seller/orders/${orderId}`, {
-                        headers: { Authorization: `Bearer ${token}` },
+                    const response = await axios.get(`http://localhost/api/seller/orders/${orderId}`, {
+                        headers: {"Content-Type": "application/json"},
                     });
                     setOrder(response.data);
                 } catch (err: any) {
@@ -100,11 +101,11 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     const handleConfirmOrder = async () => {
         if (!order) return;
         try {
-            const token = localStorage.getItem("authToken");
+            const token = getAuthToken();
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost:8001/api/seller/orders/${orderId}/confirm`,
+                `http://localhost/api/seller/orders/${orderId}/confirm`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -128,11 +129,11 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     const handleCancelOrder = async () => {
         if (!order) return;
         try {
-            const token = localStorage.getItem("authToken");
+            const token = getAuthToken();
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost:8001/api/seller/orders/${orderId}/cancel`,
+                `http://localhost/api/seller/orders/${orderId}/cancel`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

@@ -82,7 +82,7 @@ export default function ProductListPage() {
       if (filterApproval !== "all") params.set("approval_status", filterApproval)
       if (filterCategory) params.set("category_name", filterCategory)
 
-      const authToken = localStorage.getItem("authToken")
+      const authToken = getAuthToken()
       if (!authToken) {
         toast.error("Không tìm thấy token xác thực")
         return
@@ -145,7 +145,7 @@ export default function ProductListPage() {
       )
     ) {
       try {
-        const authToken = localStorage.getItem("authToken")
+        const authToken = getAuthToken()
         if (!authToken) {
           toast.error("Không tìm thấy token xác thực")
           return

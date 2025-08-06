@@ -10,7 +10,6 @@ use App\Models\ProductVariant;
 use App\Models\ReturnRequest;
 
 class OrderItem extends Model {
-    use HasFactory;
 
     protected $table = 'orderitems';
 

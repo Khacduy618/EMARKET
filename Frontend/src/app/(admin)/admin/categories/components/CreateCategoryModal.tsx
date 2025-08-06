@@ -37,7 +37,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
       fetch("http://localhost/api/admin/categories/getAllCategory", {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
         .then((res) => res.json())
@@ -85,7 +85,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
       const res = await fetch("http://localhost/api/admin/categories/create", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         body: formData,
       })

@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Giả lập việc lấy session sau khi component mount
     const timer = setTimeout(() => {
       // Trong thực tế, bạn sẽ gọi API hoặc đọc từ localStorage/cookie
-      const storedToken = localStorage.getItem('authToken');
+      const storedToken = getAuthToken()
       const storedUser = localStorage.getItem('user');
 
       if (storedToken && storedUser) {

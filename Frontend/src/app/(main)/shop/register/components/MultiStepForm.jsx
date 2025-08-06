@@ -19,7 +19,7 @@ export default function SellerRegisterForm() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
         if (!token) {
@@ -62,12 +62,12 @@ export default function SellerRegisterForm() {
             try {
                 console.log('Sending POST /api/seller/register');
                 const response = await axios.post(
-                    'http://localhost:8001/api/seller/register',
+                    'http://localhost/api/seller/register',
                     formData,
                     {
                         headers: {
                             'Content-Type': 'multipart/form-data', 
-                            Authorization: `Bearer ${token}`
+                            'Authorization': `Bearer ${token}`
                         }
                     }
                   );
