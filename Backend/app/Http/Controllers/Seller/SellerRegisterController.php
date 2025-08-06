@@ -38,6 +38,10 @@ class SellerRegisterController extends Controller
             'ShopPhone' => $request->shop_phone,
             'Status' => 'PendingApproval',
         ]);
+
+        $user->update([
+            'Role' => 'Seller'
+        ]);
       
 
         return response()->json([
