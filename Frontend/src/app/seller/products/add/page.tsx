@@ -59,11 +59,7 @@ export default function ShopeeAddProductPage() {
 
     // --- EFFECTS ---
     useEffect(() => {
-        const token = localStorage.getItem("authToken")
-        if (!token) {
-            Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/login"))
-            return
-        }
+      
         fetchShopCategories()
     }, [router])
 
