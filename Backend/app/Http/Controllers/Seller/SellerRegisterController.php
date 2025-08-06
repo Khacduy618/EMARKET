@@ -39,9 +39,6 @@ class SellerRegisterController extends Controller
             'Status' => 'PendingApproval',
         ]);
 
-        $user->update([
-            'Role' => 'Seller'
-        ]);
       
 
         return response()->json([

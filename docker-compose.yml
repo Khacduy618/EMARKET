@@ -125,7 +125,6 @@ services:
     networks:
       - ecommerce_network
     restart: unless-stopped
-
   # phpMyAdmin Service
   phpmyadmin:
     image: docker.io/phpmyadmin/phpmyadmin:latest

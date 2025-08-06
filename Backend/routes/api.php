@@ -7,6 +7,7 @@ use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -180,6 +181,17 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
+    
+});
+Route::middleware('auth:sanctum')->group(function () {
+    
+    // API cho Người Mua (Buyer)
+    Route::post('/buyer/return-requests', [ReturnRequestController::class, 'createRequest']);
+    Route::get('/buyer/return-requests', [ReturnRequestController::class, 'listMyRequests']);
+    
+    // API cho Người Bán (Seller)
+    Route::get('/seller/return-requests', [ReturnRequestController::class, 'listShopRequests']);
+    Route::put('/seller/return-requests/{id}/respond', [ReturnRequestController::class, 'sellerRespond']);
     
 });
 Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');

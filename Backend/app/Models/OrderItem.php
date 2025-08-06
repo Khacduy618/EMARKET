@@ -30,6 +30,11 @@ class OrderItem extends Model {
         'ReturnStatus'
     ];
 
+    public function order()
+    {
+        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
+    }
+
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');

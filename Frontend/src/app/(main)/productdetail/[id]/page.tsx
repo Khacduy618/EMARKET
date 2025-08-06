@@ -5,7 +5,8 @@ import React from 'react';
 import { getMockComments, mockProduct } from '../data';
 import ProductDescription from '../components/ProductDescription';
 import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
-import { ProductComments } from '../components/ProductComents'; 
+import { ProductComments } from '../components/ProductComents';
+import ShopInfo from '../components/ShopInfo';
 
 // Bỏ interface ProductPageProps hoặc không dùng nó cho component chính
 
@@ -35,7 +36,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <ProductComments initialComments={initialComments} />
             </main>
         </div>
-        
+
     );
 }
 
@@ -58,5 +59,5 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     return {
         title: `Chi tiết sản phẩm #${id}`,
     };
-        
+
 }
