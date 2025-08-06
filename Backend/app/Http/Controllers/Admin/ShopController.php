@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -94,6 +95,16 @@ class ShopController extends Controller
 
     // Cập nhật status
     $shop->Status = $validated['status'];
+    $userId = $shop->UserID;
+
+    if ($shop->Status == "Approved") {
+      $user = User::find($userId);
+      if ($user) {
+        $user->Role = 'Seller';
+        $user->save();
+      }
+    }
+
     $shop->save();
 
     return response()->json([
@@ -104,7 +115,7 @@ class ShopController extends Controller
 
   public function shopDetail($id): JsonResponse
   {
-    $shop = Shop::with(['user:UserID,FullName']) 
+    $shop = Shop::with(['user:UserID,FullName'])
       ->find($id);
 
     if (!$shop) {
