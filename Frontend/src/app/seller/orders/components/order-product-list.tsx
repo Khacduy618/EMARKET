@@ -39,7 +39,11 @@ export default function OrderProductList({ orderItems, formatCurrency }: OrderPr
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={item.variant?.imageUrl || "/placeholder.svg?height=80&width=80&query=product"}
+                                        src={
+                                            item.variant?.imageUrl
+                                                ? `http://localhost:8001/storage/${item.variant.imageUrl}`
+                                                : "/placeholder.svg?height=80&width=80&query=product"
+                                         }
                                         alt={item.variant?.product?.name || "Sản phẩm"}
                                         className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                                     />

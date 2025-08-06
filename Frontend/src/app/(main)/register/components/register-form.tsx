@@ -117,7 +117,6 @@ export default function SellerRegisterForm() {
             } else if (err.response?.status) {
                 errorMessage += ` (Mã lỗi: ${err.response.status})`
             }
-
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -215,50 +214,7 @@ export default function SellerRegisterForm() {
                         )}
                     </div>
 
-                    {/* Logo URL */}
-                    <div className="space-y-2">
-                        <Label htmlFor="logo_url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-orange-500" />
-                            URL Logo cửa hàng
-                        </Label>
-                        <Input
-                            id="logo_url"
-                            name="logo_url"
-                            value={formData.logo_url}
-                            onChange={handleChange}
-                            placeholder="https://example.com/logo.jpg"
-                            className={`h-12 ${fieldErrors.logo_url ? "border-red-500" : ""}`}
-                        />
-                        {fieldErrors.logo_url && (
-                            <p className="text-red-500 text-sm flex items-center gap-1">
-                                <AlertCircle className="h-4 w-4" />
-                                {fieldErrors.logo_url}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Cover Image URL */}
-                    <div className="space-y-2">
-                        <Label htmlFor="cover_image_url" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-orange-500" />
-                            URL Ảnh bìa cửa hàng
-                        </Label>
-                        <Input
-                            id="cover_image_url"
-                            name="cover_image_url"
-                            value={formData.cover_image_url}
-                            onChange={handleChange}
-                            placeholder="https://example.com/cover.jpg"
-                            className={`h-12 ${fieldErrors.cover_image_url ? "border-red-500" : ""}`}
-                        />
-                        {fieldErrors.cover_image_url && (
-                            <p className="text-red-500 text-sm flex items-center gap-1">
-                                <AlertCircle className="h-4 w-4" />
-                                {fieldErrors.cover_image_url}
-                            </p>
-                        )}
-                    </div>
-
+                   
                     {/* Submit Button */}
                     <div className="pt-6">
                         <Button

@@ -12,18 +12,26 @@ use Illuminate\Support\Facades\Log;
 
 class SellerOrderController extends Controller
 {
-    public function index(Request $request)
-    {
-        $shop = Shop::where('UserID', Auth::id())->firstOrFail();
+   public function index(Request $request)
+{
+    $shop = Shop::where('UserID', Auth::id())->firstOrFail();
 
-        if (!$shop) {
-            return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 404);
-        }
+    if (!$shop) {
+        return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 404);
+    }
 
-        $shopId = $shop->ShopID;
-        $orders = OrderBuyer::whereHas('orderItems.variant.product', function ($query) use ($shopId) {
-            $query->where('ShopID', $shopId);
-        })
+    $shopId = $shop->ShopID;
+    $status = $request->query('status'); // lấy status từ query
+
+    $ordersQuery = OrderBuyer::whereHas('orderItems.variant.product', function ($query) use ($shopId) {
+        $query->where('ShopID', $shopId);
+    });
+
+    if ($status && $status !== 'all') {
+        $ordersQuery->where('OverallStatus', $status);
+    }
+
+    $orders = $ordersQuery
         ->with([
             'orderItems' => function ($query) use ($shopId) {
                 $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
@@ -35,14 +43,15 @@ class SellerOrderController extends Controller
         ->orderBy('OrderDate', 'desc')
         ->paginate(15);
 
-        $orders->getCollection()->transform(function ($order) {
-            $shopSubtotal = $order->orderItems->sum('Subtotal');
-            $order->shop_subtotal = $shopSubtotal;
-            return $order;
-        });
+    $orders->getCollection()->transform(function ($order) {
+        $shopSubtotal = $order->orderItems->sum('Subtotal');
+        $order->shop_subtotal = $shopSubtotal;
+        return $order;
+    });
 
-        return response()->json($orders);
-    }
+    return response()->json($orders);
+}
+
 
     public function show($orderId)
     {
@@ -167,4 +176,29 @@ class SellerOrderController extends Controller
         return response()->json(['message' => 'Lỗi tạo PDF: ' . $e->getMessage()], 500);
     }
 }
+   public function handle(Request $request)
+    {
+        // Log lại để kiểm tra nhận đúng chưa
+        Log::info('📦 Nhận webhook từ giao hàng:', $request->all());
+
+        // Validate dữ liệu đến
+        $validated = $request->validate([
+            'order_id' => 'required|string',
+            'status' => 'required|string',
+            'updated_at' => 'required|date',
+        ]);
+
+        // Cập nhật trạng thái đơn hàng trong hệ thống của seller
+        $order = OrderBuyer::where('OrderID', $validated['order_id'])->first();
+
+        if ($order) {
+            $order->OverallStatus = $validated['status'];
+            $order->UpdatedAt = $validated['updated_at']; // Nếu có cột riêng
+            $order->save();
+
+            return response()->json(['message' => 'Order updated'], 200);
+        } else {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+    }
 }

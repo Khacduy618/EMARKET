@@ -122,7 +122,7 @@ export default function ShopeeProductsPage() {
       return `${BACKEND_URL}/storage/${imagePath}`
     }
 
-    // return `https://via.placeholder.com/150/f0f0f0/999999?text=No+Image`
+    return "https://via.placeholder.com/150/f0f0f0/999999?text=No+Image"
   }
 
   const getDisplayPrice = (product: Product): string => {
@@ -211,17 +211,15 @@ export default function ShopeeProductsPage() {
                     setActiveTab(tab.id)
                     setCurrentPage(1)
                   }}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                       ? "border-orange-500 text-orange-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                   <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                      activeTab === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-600"
+                      }`}
                   >
                     {tab.count}
                   </span>
@@ -386,9 +384,9 @@ export default function ShopeeProductsPage() {
                                 src={getPrimaryImage(product)}
                                 alt={product.Name}
                                 className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                // onError={(e) => {
-                                //   e.currentTarget.src = "/placeholder.svg?height=64&width=64"
-                                // }}
+                              // onError={(e) => {
+                              //   e.currentTarget.src = "/placeholder.svg?height=64&width=64"
+                              // }}
                               />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -405,13 +403,12 @@ export default function ShopeeProductsPage() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span
-                            className={`text-sm font-medium ${
-                              product.StockQuantity > 10
+                            className={`text-sm font-medium ${product.StockQuantity > 10
                                 ? "text-green-600"
                                 : product.StockQuantity > 0
                                   ? "text-yellow-600"
                                   : "text-red-600"
-                            }`}
+                              }`}
                           >
                             {product.StockQuantity}
                           </span>
@@ -469,11 +466,10 @@ export default function ShopeeProductsPage() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md ${
-                        currentPage === page
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
                           ? "bg-orange-500 text-white"
                           : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>

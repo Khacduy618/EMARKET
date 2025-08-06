@@ -26,12 +26,12 @@
 <body>
     <h1>Phiếu Giao Hàng</h1>
     <div class="info">
-        <p><strong>Ma don hang:</strong> <?php echo e($order->OrderCode); ?></p>
-        <p><strong>Ngay dat hang:</strong> <?php echo e($order->OrderDate); ?></p>
-        <p><strong>Trang thai:</strong> <?php echo e($order->OverallStatus); ?></p>
-        <p><strong>Khach hang:</strong> <?php echo e($order->ShippingFullName); ?></p>
-        <p><strong>So dien thoai:</strong> <?php echo e($order->ShippingPhoneNumber); ?></p>
-        <p><strong>Đia chi:</strong>
+        <p><strong>Mã đơn hàng:</strong> <?php echo e($order->OrderCode); ?></p>
+        <p><strong>Ngày đặt hàng:</strong> <?php echo e($order->OrderDate); ?></p>
+        <p><strong>Trạng thái:</strong> <?php echo e($order->OverallStatus); ?></p>
+        <p><strong>Khách hàng</strong> <?php echo e($order->ShippingFullName); ?></p>
+        <p><strong>Số điện thoại:</strong> <?php echo e($order->ShippingPhoneNumber); ?></p>
+        <p><strong>Đia chỉ:</strong>
             <?php echo e($order->address ? $order->address->Street . ', ' . $order->address->Ward . ', ' . $order->address->District . ', ' . $order->address->City : 'Chưa có thông tin'); ?>
 
         </p>

@@ -128,8 +128,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
-        // Route::get('/seller/orders/{orderId}', [SellerOrderController::class, 'show']);
-        // Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+        
     
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
@@ -137,7 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-
+//shipping_requests 
+Route::post('/webhook', [SellerOrderController::class, 'handle']);
 
 
 
