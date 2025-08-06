@@ -464,7 +464,7 @@ export default function ShopeeAddProductPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Shopee Header */}
-            <div className="bg-white border-b shadow-sm">
+            {/* <div className="bg-white border-b shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <div className="text-2xl font-bold text-orange-500">Shopee</div>
@@ -493,7 +493,7 @@ export default function ShopeeAddProductPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 <div className="grid grid-cols-12 gap-6">

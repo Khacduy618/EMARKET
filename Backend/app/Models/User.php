@@ -167,10 +167,10 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the shops owned by the user.
      */
-    public function shops(): HasMany
-    {
-        return $this->hasMany(Shop::class, 'UserID', 'UserID');
-    }
+    public function shop(): HasOne
+{
+    return $this->hasOne(Shop::class, 'UserID', 'UserID');
+}
 
     /**
      * Get the orders placed by the user.

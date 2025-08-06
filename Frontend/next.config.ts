@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import type { Configuration as WebpackDevMiddlewareOptions } from 'webpack-dev-middleware';
 
 const nextConfig = {
   images: {
@@ -24,11 +23,16 @@ const nextConfig = {
       { protocol: 'https', hostname: 'picsum.photos' },
     ],
   },
-  webpackDevMiddleware: (config: WebpackDevMiddlewareOptions) => {
-    config.watchOptions = {
-      poll: 1000,
-      aggregateTimeout: 300,
-    };
+
+  webpack(config:any, { isServer }: { isServer: boolean }) {
+    // Không cần config.watchOptions nếu bạn dùng Turbopack
+    // nhưng nếu buộc phải dùng Webpack:
+    if (!isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
     return config;
   },
 };

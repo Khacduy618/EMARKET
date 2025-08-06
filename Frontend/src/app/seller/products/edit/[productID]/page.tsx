@@ -126,7 +126,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
           {/* Search Header */}
-          <div className="p-3 border-b border-gray-200">
+          {/* <div className="p-3 border-b border-gray-200">
             <div className="relative">
               <input
                 type="text"
@@ -149,7 +149,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                 />
               </svg>
             </div>
-          </div>
+          </div> */}
 
           {/* Categories List */}
           <div className="max-h-80 overflow-y-auto">
@@ -613,46 +613,7 @@ export default function EditProductPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Shopee Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold text-orange-500">Shopee</div>
-            <div className="text-gray-400">|</div>
-            <div className="text-lg text-gray-700">Kênh Người Bán</div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <svg
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-12h5v12z" />
-            </svg>
-            <svg
-              className="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <span className="text-sm text-gray-700">duynguykhc8</span>
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-12 gap-6">

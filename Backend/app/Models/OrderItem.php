@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -19,16 +18,18 @@ class OrderItem extends Model {
      * Khai báo khóa chính để Eloquent không nhầm lẫn.
      */
     protected $primaryKey = 'OrderItemID';
+    public $timestamps = false;
 
     protected $fillable = [
-        'OrderID', 'VariantID', 'Quantity', 'PriceAtPurchase', 
-        'Subtotal', 'IsFlashSaleItem', 'FlashSaleDealID', 'ReturnStatus'
+        'OrderID',
+        'VariantID',
+        'Quantity',
+        'PriceAtPurchase',
+        'Subtotal',
+        'IsFlashSaleItem',
+        'FlashSaleDealID',
+        'ReturnStatus'
     ];
-
-    public function order()
-    {
-        return $this->belongsTo(Order::class, 'OrderID', 'OrderID');
-    }
 
     public function variant()
     {

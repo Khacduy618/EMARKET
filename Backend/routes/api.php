@@ -29,6 +29,8 @@ use App\Http\Controllers\Seller\ShopCategoryController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\VNPayController;
 
+use App\Http\Controllers\SellerOrderController;
+
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
 
@@ -275,9 +277,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders
         Route::get('/seller/orders', [SellerOrderController::class, 'index']);
         // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
-        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
         Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
 
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+        Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
+        Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
+        Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
+        
+    
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
@@ -286,6 +293,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+//shipping_requests 
+Route::post('/webhook', [SellerOrderController::class, 'handle']);
+
+
+
+// ================= ADMIN ROUTES =================== //
 
 
 
@@ -359,3 +372,7 @@ Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
     ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
 Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
 Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);
+// Product route
+Route::get('/admin/products', [ProductControllers::class, "index"]);
+Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);

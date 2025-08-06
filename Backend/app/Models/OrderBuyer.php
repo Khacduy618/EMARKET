@@ -4,32 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property int $OrderID
- * @property string $OrderCode
- * @property int $UserID
- * @property string $OrderDate
- * @property int $TotalAmount
- * @property int $SubtotalAmount
- * @property int $ShippingFee
- * @property int $DiscountAmount
- * @property int $ShippingAddressID
- * @property string $ShippingFullName
- * @property string $ShippingPhoneNumber
- * @property string|null $Notes
- * @property string $PaymentMethod
- * @property string $PaymentStatus
- * @property string $OverallStatus
- * @property string|null $PlatformVoucherCode
- * @property float $PlatformDiscountAmount
- */
 class OrderBuyer extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'ordersbuyer';
 
@@ -37,6 +16,7 @@ class OrderBuyer extends Model
      * Tên của cột khóa chính.
      */
     protected $primaryKey = 'OrderID';
+    public $timestamps = false;
 
     /**
      * Tên của các cột timestamp.
@@ -65,30 +45,34 @@ class OrderBuyer extends Model
 
     protected $casts = [
         'OrderDate' => 'datetime',
-        'PlatformDiscountAmount' => 'float',
+        'CreatedAt' => 'datetime',
+        'UpdatedAt' => 'datetime',
+        'PaymentMethod' => 'string',
+        'PaymentStatus' => 'string',
+        'OverallStatus' => 'string',
     ];
 
-    /**
-     * Get the customer who placed the order.
-     */
-    public function user(): BelongsTo
+    // Mối quan hệ với bảng users
+    public function user()
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
-    /**
-     * Get the shipping address for the order.
-     */
-    public function shippingAddress(): BelongsTo
+    // Mối quan hệ với bảng addresses
+    public function address()
     {
         return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
     }
 
-    /**
-     * Get the items in the order.
-     */
-    public function items(): HasMany
+    // Mối quan hệ với bảng orderitems
+    public function orderItems()
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
+    }
+
+    // Mối quan hệ với bảng returnrequests
+    public function returnRequests()
+    {
+        return $this->hasMany(ReturnRequest::class, 'OrderID', 'OrderID');
     }
 }

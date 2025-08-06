@@ -4,55 +4,34 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { getProducts, deleteProduct } from "@/services/seller-category"
 import Swal from "sweetalert2"
-import { getPrimaryImage } from "@/services/api"
-import { Product, ProductVariant } from "@/types";
 
-// --- HELPER FUNCTIONS ---
-  const formatCurrency = (amount: number) => {
-    if (typeof amount !== "number") return "N/A"
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)
-  }
-
-  const PriceDisplay = ({ product }: { product: Product }) => {
-  if (!product.variants || product.variants.length === 0) {
-    return <span className="text-sm font-medium text-gray-900">Chưa có giá</span>
-  }
-
-  const prices = product.variants.map((v) => v.Price).filter((p): p is number => p !== null)
-  const comparePrices = product.variants.map((v) => v.CompareAtPrice).filter((p): p is number => p !== null)
-
-  if (prices.length === 0) {
-    return <span className="text-sm font-medium text-gray-900">N/A</span>
-  }
-
-  const minPrice = Math.min(...prices)
-  const maxPrice = Math.max(...prices)
-
-  const minComparePrice = comparePrices.length > 0 ? Math.min(...comparePrices) : 0;
-  const maxComparePrice = comparePrices.length > 0 ? Math.max(...comparePrices) : 0;
-
-  const isSinglePrice = minPrice === maxPrice
-  const isSingleComparePrice = minComparePrice === maxComparePrice
-  
-  // Hiển thị giá gốc chỉ khi nó tồn tại và lớn hơn giá bán
-  const showComparePrice = minComparePrice !== null && minComparePrice > minPrice
-
-  return (
-    <div className="flex flex-col items-center justify-center">
-      <span className="text-sm font-medium text-red-600">
-        {isSinglePrice ? formatCurrency(minPrice) : `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`}
-      </span>
-
-      {showComparePrice && (
-        <span className="text-xs text-gray-500 line-through">
-          {isSingleComparePrice
-            ? formatCurrency(minComparePrice)
-            : `${formatCurrency(minComparePrice)} - ${formatCurrency(maxComparePrice)}`}
-        </span>
-      )}
-    </div>
-  )
+// --- INTERFACES ---
+interface ProductImage {
+  ImageID: number
+  ProductID: number
+  ImageURL: string
+  IsPrimary: boolean
+  SortOrder: number
 }
+
+interface ProductVariant {
+  VariantID: number
+  ProductID: number
+  SKU: string | null
+  Price: number
+  StockQuantity: number
+}
+
+interface Product {
+  ProductID: number
+  Name: string
+  StockQuantity: number
+  SoldCount: number
+  images: ProductImage[]
+  variants: ProductVariant[]
+  AdminApprovalStatus: "Pending" | "Approved" | "Rejected"
+}
+
 export default function ShopeeProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +43,11 @@ export default function ShopeeProductsPage() {
   const router = useRouter()
 
   useEffect(() => {
-  
+    const token = localStorage.getItem("authToken")
+    if (!token) {
+      Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/login"))
+      return
+    }
     fetchData()
   }, [router])
 
@@ -124,43 +107,36 @@ export default function ShopeeProductsPage() {
     }
   }
 
-  
-
-  // const BACKEND_URL = "http://localhost"
-  // const getPrimaryImage = (product: Product): string => {
-  //   const primaryImg = product.images.find((img) => img.IsPrimary)
-  //   const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL
-
-  //   if (imagePath) {
-  //     return `${BACKEND_URL}/storage/${imagePath}`
-  //   }
-
-    
-  // }
-  
-
-//   const getDisplayPrice = (product: Product): string => {
-//     if (!product.productVariants || product.productVariants.length === 0) return "N/A"
-
-//     const prices = product.productVariants.map((v) => v.CompareAtPrice)
-//     const minPrice = Math.min(...prices)
-//     const maxPrice = Math.max(...prices)
-
-//     if (minPrice === maxPrice) {
-//       return formatCurrency(minPrice)
-//     }
-//     return `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`
-//   }
-
-  const getTotalStock = (product: Product): number => {
-    // Sử dụng 'variants'
-    if (!product.variants || product.variants.length === 0) {
-      // Nếu không có phiên bản, dùng StockQuantity ở cấp sản phẩm (nếu có)
-      return (product as any).StockQuantity || 0;
-    }
-    return product.variants.reduce((total, variant) => total + variant.StockQuantity, 0)
+  // --- HELPER FUNCTIONS ---
+  const formatCurrency = (amount: number) => {
+    if (typeof amount !== "number") return "N/A"
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)
   }
 
+  const BACKEND_URL = "http://localhost:8001"
+  const getPrimaryImage = (product: Product): string => {
+    const primaryImg = product.images.find((img) => img.IsPrimary)
+    const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL
+
+    if (imagePath) {
+      return `${BACKEND_URL}/storage/${imagePath}`
+    }
+
+    return "https://via.placeholder.com/150/f0f0f0/999999?text=No+Image"
+  }
+
+  const getDisplayPrice = (product: Product): string => {
+    if (!product.variants || product.variants.length === 0) return "N/A"
+
+    const prices = product.variants.map((v) => v.Price)
+    const minPrice = Math.min(...prices)
+    const maxPrice = Math.max(...prices)
+
+    if (minPrice === maxPrice) {
+      return formatCurrency(minPrice)
+    }
+    return `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -202,8 +178,6 @@ export default function ShopeeProductsPage() {
     { id: "rejected", label: "Từ chối", count: products.filter((p) => p.AdminApprovalStatus === "Rejected").length },
   ]
 
-  
-
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -237,17 +211,15 @@ export default function ShopeeProductsPage() {
                     setActiveTab(tab.id)
                     setCurrentPage(1)
                   }}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                       ? "border-orange-500 text-orange-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                   <span
-                    className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                      activeTab === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-600"
+                      }`}
                   >
                     {tab.count}
                   </span>
@@ -409,10 +381,12 @@ export default function ShopeeProductsPage() {
                           <div className="flex items-center space-x-4">
                             <div className="flex-shrink-0">
                               <img
-                                src={getPrimaryImage(product) || "/placeholder.svg"}
+                                src={getPrimaryImage(product)}
                                 alt={product.Name}
                                 className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                
+                              // onError={(e) => {
+                              //   e.currentTarget.src = "/placeholder.svg?height=64&width=64"
+                              // }}
                               />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -425,19 +399,18 @@ export default function ShopeeProductsPage() {
                           <span className="text-sm font-medium text-gray-900">{product.SoldCount || 0}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <PriceDisplay product={product} />
+                          <span className="text-sm font-medium text-gray-900">{getDisplayPrice(product)}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span
-                            className={`text-sm font-medium ${
-                              getTotalStock(product) > 10
+                            className={`text-sm font-medium ${product.StockQuantity > 10
                                 ? "text-green-600"
-                                : getTotalStock(product) > 0
+                                : product.StockQuantity > 0
                                   ? "text-yellow-600"
                                   : "text-red-600"
-                            }`}
+                              }`}
                           >
-                            {getTotalStock(product)}
+                            {product.StockQuantity}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -493,11 +466,10 @@ export default function ShopeeProductsPage() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md ${
-                        currentPage === page
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
                           ? "bg-orange-500 text-white"
                           : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>

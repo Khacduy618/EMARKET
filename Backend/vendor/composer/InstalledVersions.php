@@ -326,6 +326,7 @@ class InstalledVersions
         // so we have to assume it does not, and that may result in duplicate data being returned when listing
         // all installed packages for example
         self::$installedIsLocalDir = false;
+<<<<<<< HEAD
     }
 
     /**
@@ -338,6 +339,8 @@ class InstalledVersions
         }
 
         return self::$selfDir;
+=======
+>>>>>>> feature/sellerOrders
     }
 
     /**
@@ -354,7 +357,11 @@ class InstalledVersions
         $copiedLocalDir = false;
 
         if (self::$canGetVendors) {
+<<<<<<< HEAD
             $selfDir = self::getSelfDir();
+=======
+            $selfDir = strtr(__DIR__, '\\', '/');
+>>>>>>> feature/sellerOrders
             foreach (ClassLoader::getRegisteredLoaders() as $vendorDir => $loader) {
                 $vendorDir = strtr($vendorDir, '\\', '/');
                 if (isset(self::$installedByVendor[$vendorDir])) {
