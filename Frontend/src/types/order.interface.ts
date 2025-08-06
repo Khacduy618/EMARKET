@@ -35,9 +35,6 @@ export type ReturnItemStatus =
 export type PaymentMethodType = 'COD' | 'Paypal' | 'Stripe';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
-export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
-export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
-export const PAYPAL_APP_SECRET = process.env.PAYPAL_APP_SECRET || '';
 
 
 export interface StatusTab {
@@ -223,4 +220,10 @@ export interface ShippingTracking {
   location?: string; // Địa điểm (ví dụ: "kho phân loại tại Da Nang SOC")
   date: string; // Ngày (ví dụ: "17-06-2025")
   time: string; // Giờ (ví dụ: "02:02")
+}
+export interface PaginatedOrders {
+  data: Order[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
 }

@@ -9,19 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 use App\Models\Address;
 use App\Models\OrderItem;
-use App\Models\UserVoucher; // Assuming UserVoucher is UserUsedVoucher
+use App\Models\UserVoucher;
 
 class OrderBuyer extends Model
 {
     use HasFactory;
 
     protected $table = 'OrdersBuyer';
-
     protected $primaryKey = 'OrderID';
+    public $timestamps = false;
 
     protected $fillable = [
         'OrderCode',
-        'UserID', // Changed from UserID_Buyer
+        'UserID',
         'OrderDate',
         'TotalAmount',
         'SubtotalAmount',
@@ -40,26 +40,26 @@ class OrderBuyer extends Model
 
     protected $casts = [
         'OrderDate' => 'datetime',
-        'TotalAmount' => 'integer',
-        'SubtotalAmount' => 'integer',
-        'ShippingFee' => 'integer',
-        'DiscountAmount' => 'integer',
-        'PaymentMethod' => 'string', // Cast enums to string
+        'TotalAmount' => 'float',
+        'SubtotalAmount' => 'float',
+        'ShippingFee' => 'float',
+        'DiscountAmount' => 'float',
+        'PaymentMethod' => 'string',
         'PaymentStatus' => 'string',
         'OverallStatus' => 'string',
-        'PlatformDiscountAmount' => 'decimal:2',
+        'PlatformDiscountAmount' => 'float',
     ];
 
     /**
-     * Get the user that placed the order.
+     * Người dùng đã đặt đơn hàng.
      */
-    public function user(): BelongsTo // Renamed buyer to user
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
     /**
-     * Get the shipping address for the order.
+     * Địa chỉ giao hàng.
      */
     public function shippingAddress(): BelongsTo
     {
@@ -67,20 +67,18 @@ class OrderBuyer extends Model
     }
 
     /**
-     * Get the order items for the order.
+     * Danh sách sản phẩm trong đơn hàng.
      */
-    public function orderItems(): HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
     }
 
     /**
-     * Get the user vouchers used for the order.
+     * Danh sách voucher người dùng đã sử dụng.
      */
     public function usedVouchers(): HasMany
     {
         return $this->hasMany(UserVoucher::class, 'OrderID', 'OrderID');
     }
-
-    // Removed shopOrders relationship as it's not in the schema
 }

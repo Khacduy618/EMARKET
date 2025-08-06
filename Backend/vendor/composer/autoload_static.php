@@ -526,9 +526,13 @@ class ComposerStaticInit667172d2f9b171966ace461fea48975f
     );
 
     public static $classMap = array (
+        'App\\Exports\\ReviewsExport' => __DIR__ . '/../..' . '/app/Exports/ReviewsExport.php',
         'App\\Http\\Controllers\\AddressController' => __DIR__ . '/../..' . '/app/Http/Controllers/AddressController.php',
         'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
+        'App\\Http\\Controllers\\Admin\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/OrderController.php',
+        'App\\Http\\Controllers\\Admin\\OrderItemController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/OrderItemController.php',
         'App\\Http\\Controllers\\Admin\\ProductControllers' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductControllers.php',
+        'App\\Http\\Controllers\\Admin\\ProductReviewController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductReviewController.php',
         'App\\Http\\Controllers\\Admin\\ShopController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ShopController.php',
         'App\\Http\\Controllers\\Admin\\StatisticsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/StatisticsController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
