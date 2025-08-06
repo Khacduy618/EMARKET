@@ -1,5 +1,5 @@
 export * from './user.interface';
-export * from './product.interface'; 
+export * from './product.interface';
 export * from './cartItem.interface';
 export * from './cart.interface';
 export * from './address.interface';
@@ -8,6 +8,7 @@ export * from './attributeValue.interface';
 export * from './voucher.interface';
 export * from './auth.interface';
 export * from './order.interface';
+export * from './adminUser.interface';
 export function formatError(error: any): string {
     if (error.name === 'ZodError') {
         // Handle Zod validation errors 
@@ -38,3 +39,4 @@ export function formatError(error: any): string {
             : JSON.stringify(error);
     }
 }
+

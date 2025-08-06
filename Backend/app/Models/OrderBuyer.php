@@ -30,10 +30,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class OrderBuyer extends Model
 {
     use HasFactory, SoftDeletes;
-    use HasFactory;
 
     protected $table = 'ordersbuyer';
+
+    /**
+     * Tên của cột khóa chính.
+     */
     protected $primaryKey = 'OrderID';
+
+    /**
+     * Tên của các cột timestamp.
+     */
+    const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
 
     protected $fillable = [
         'OrderCode',

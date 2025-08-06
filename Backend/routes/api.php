@@ -12,7 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AddressController;
+<<<<<<< HEAD
 use App\Http\Controllers\OrderController;
+=======
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+>>>>>>> authnew
 use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Seller\ShopProductController;
@@ -38,6 +42,7 @@ Route::get('/test', function () {
     return response()->json(['message' => 'Laravel API is alive and working!']);
 });
 // Lấy API của Category Trả về dạng json theo CRUD
+<<<<<<< HEAD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
@@ -47,11 +52,16 @@ Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 
 Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
 Route::get('/categories/{category}/filters', [CategoryController::class, 'getCategoryFilters']);
 ///
+=======
+Route::get('/category', [CategoryController::class, 'index']);
+Route::get('/categorySubMenu', [CategoryController::class, 'category_cha_con']);
+
+>>>>>>> authnew
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
 // Lấy API của Products Trả về dạng json theo CRUD
-Route::get('/Products' ,[ProductController::class , 'index']);
+Route::get('/Products', [ProductController::class, 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
 Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
@@ -88,7 +98,9 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 
 
 
-Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware('throttle:6,1') // Chỉ cho phép 6 request mỗi phút từ 1 IP
+    ->name('verification.resend'); // Đặt tên cho route
 
 Route::get('/csrf-init', function () {
     return response()->json(['message' => 'CSRF cookie set.']);
@@ -103,7 +115,7 @@ Route::get('/user', function (Request $request) {
   return $request->user();
 })->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', function () {
+Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard', function () {
     $data = [
         'name' => 'Seller Test',
         'role' => 'Seller',
@@ -114,7 +126,7 @@ Route::middleware(['auth:sanctum', 'role:Seller'])->get('/seller/dashboard', fun
 
 
 Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-    Route::get('/admin/users', function() {
+    Route::get('/admin/users', function () {
         $users = [
             [
                 'id' => 1,
@@ -338,3 +350,21 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
   Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
 });
+
+Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+    // Route này sẽ tự tạo:
+    // GET    /api/admin/users             -> index()
+    // POST   /api/admin/users             -> store()
+    // GET    /api/admin/users/{user}      -> show()
+    // PUT    /api/admin/users/{user}      -> update()
+    // DELETE /api/admin/users/{user}      -> destroy()
+    Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
+
+    // Route cập nhật trạng thái vẫn giữ riêng
+    Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+});
+
+Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
+    ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
+Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
+Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);

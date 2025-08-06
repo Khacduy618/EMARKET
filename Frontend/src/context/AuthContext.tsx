@@ -197,15 +197,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (payload: RegisterPayload) => {
+        // Hàm này sẽ ném ra lỗi nếu thất bại, cho phép component cha bắt được.
         setError(null);
-        await toast.promise(
-            apiRegister(payload).finally(() => router.push('/register/success')),
-            {
-                pending: 'Đang tạo tài khoản...',
-                success: 'Đăng ký thành công! Vui lòng kiểm tra email.',
-                error: { render: ({ data }: any) => getErrorMessage(data, 'Đăng ký thất bại.') }
-            }
-        );
+        const toastId = toast.loading("Đang tạo tài khoản...");
+
+        try {
+            await getCsrfCookie();
+            await apiRegister(payload);
+
+            // Dọn dẹp session mà Fortify tự tạo
+            try { await apiLogout(); } catch (e) { }
+
+            // Chỉ chạy các hành động thành công khi không có lỗi
+            toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
+            router.push('/register/success');
+
+        } catch (error: any) {
+            // XỬ LÝ LỖI Ở ĐÂY
+            const message = getErrorMessage(error, 'Đăng ký thất bại.');
+            setError(message); // Đặt lỗi này để hiển thị trên form nếu cần
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+
+            // **NÉM LẠI LỖI** để handleSubmit trong trang Register có thể bắt được nó
+            // Đây là chìa khóa để ngăn việc chuyển trang
+            throw error;
+        }
     };
 
     const logout = async () => {
@@ -279,14 +295,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const resendVerificationEmail = async (email: string) => {
-        await toast.promise(
-            apiResend(email),
-            {
-                pending: 'Đang gửi lại email...',
-                success: 'Email xác thực mới đã được gửi!',
-                error: 'Gửi lại email thất bại.'
+        const toastId = toast.loading("Đang gửi lại email...");
+        try {
+            await apiResend(email);
+            toast.update(toastId, { render: "Email xác thực mới đã được gửi!", type: "success", isLoading: false, autoClose: 5000 });
+        } catch (error: any) {
+            // Bắt lỗi throttle (429) và hiển thị thông báo thân thiện
+            if (error.response?.status === 429) {
+                toast.update(toastId, { render: "Bạn gửi yêu cầu quá nhanh. Vui lòng thử lại sau 1 phút.", type: "warning", isLoading: false, autoClose: 5000 });
+            } else {
+                toast.update(toastId, { render: "Gửi lại email thất bại.", type: "error", isLoading: false, autoClose: 5000 });
             }
-        );
+            throw error;
+        }
     };
 
     return (
