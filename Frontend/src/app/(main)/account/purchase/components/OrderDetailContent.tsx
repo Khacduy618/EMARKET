@@ -559,11 +559,6 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
         order={order}
       />
 
-      <RefundRequestFormModal
-        isOpen={isRefundModalOpen}
-        onClose={handleCloseAllModals}
-        order={order}
-      />
 
       {/* Nút Chat cố định */}
       <Link href="https://shopee.vn/chat" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 right-4 bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors flex items-center justify-center z-30 w-16 h-16">
