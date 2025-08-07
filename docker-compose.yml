@@ -96,10 +96,6 @@ services:
       - /app/.next
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://nginx:8090/api
-      NEXT_PUBLIC_WEB_URL: http://nginx:8090
-      NEXT_PUBLIC_SOCKET_SERVER_URL: http://nginx:8090/socket.io
-      INTERNAL_API_URL: http://backend:8000/api
       TZ: Asia/Ho_Chi_Minh
     networks:
       - ecommerce_network
