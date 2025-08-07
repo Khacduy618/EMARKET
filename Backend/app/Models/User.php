@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $primaryKey = 'UserID';
     protected $keyType = 'int';
     public $incrementing = true;
+    public $timestamps = false;
+
 
     protected $appends = [
         'two_factor_enabled',
