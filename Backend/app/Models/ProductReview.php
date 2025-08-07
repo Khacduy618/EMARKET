@@ -4,54 +4,49 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Product;
-use App\Models\User;
-use App\Models\OrderBuyer;
 
-class ProductReview extends Model
+class Review extends Model
 {
     use HasFactory;
 
+    // Chỉ định tên bảng nếu nó không theo quy tắc của Laravel (reviews)
+    protected $table = 'reviews';
+
+    // Chỉ định khóa chính
     protected $primaryKey = 'ReviewID';
 
+    // Khai báo tên cột timestamp của bạn
+    const CREATED_AT = 'CreatedAt';
+    const UPDATED_AT = 'UpdatedAt';
+
+    // Các trường được phép gán hàng loạt
     protected $fillable = [
-        'ProductID',
+        'VariantID',
         'UserID',
         'OrderID',
         'Rating',
         'Comment',
         'ReviewImages',
-        'IsApproved',
+        'ReviewVideo',
+        'Status',
+        'HelpFul',
+        'ShopReply'
     ];
 
+    // Tự động chuyển đổi cột ReviewImages (kiểu TEXT chứa JSON) thành mảng
     protected $casts = [
-        'Rating' => 'integer',
         'ReviewImages' => 'array',
-        'IsApproved' => 'boolean',
+        'Rating' => 'integer',
     ];
 
-    /**
-     * Get the product that the review belongs to.
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
-    }
-
-    /**
-     * Get the user who created the review.
-     */
-    public function user(): BelongsTo
+    // Định nghĩa các mối quan hệ (giữ nguyên như trước)
+    public function user()
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
-    /**
-     * Get the order that the review is associated with.
-     */
-    public function order(): BelongsTo
+    public function variant()
     {
-        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
+        return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }
 }

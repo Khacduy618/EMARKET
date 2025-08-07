@@ -35,9 +35,6 @@ export type ReturnItemStatus =
 export type PaymentMethodType = 'COD' | 'Paypal' | 'VNPay';
 export type PaymentStatusType = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'PartiallyRefunded';
 
-export const PAYPAL_API_URL = process.env.NEXT_PUBLIC_PAYPAL_API_URL || 'https://api-m.sandbox.paypal.com';
-export const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '';
-export const PAYPAL_APP_SECRET = process.env.PAYPAL_APP_SECRET || '';
 
 
 export interface StatusTab {
@@ -283,3 +280,9 @@ export const formatDateTime = (dateString: Date) => {
         timeOnly: formattedTime,
     };
 };
+export interface PaginatedOrders {
+  data: Order[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}

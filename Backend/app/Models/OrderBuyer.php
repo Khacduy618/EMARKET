@@ -4,17 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
+use App\Models\Address;
+use App\Models\OrderItem;
+use App\Models\UserVoucher;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderBuyer extends Model
 {
     use HasFactory;
 
-    protected $table = 'ordersbuyer';
+    protected $table = 'OrdersBuyer';
 
-    /**
-     * Tên của cột khóa chính.
-     */
     protected $primaryKey = 'OrderID';
     public $timestamps = false;
 
@@ -48,8 +51,13 @@ class OrderBuyer extends Model
         'CreatedAt' => 'datetime',
         'UpdatedAt' => 'datetime',
         'PaymentMethod' => 'string',
+        'TotalAmount' => 'float',
+        'SubtotalAmount' => 'float',
+        'ShippingFee' => 'float',
+        'DiscountAmount' => 'float',
         'PaymentStatus' => 'string',
         'OverallStatus' => 'string',
+        'PlatformDiscountAmount' => 'float',
     ];
 
     // Mối quan hệ với bảng users
@@ -58,14 +66,18 @@ class OrderBuyer extends Model
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
-    // Mối quan hệ với bảng addresses
-    public function address()
+    /**
+     * Địa chỉ giao hàng.
+     */
+    public function shippingAddress(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
     }
 
-    // Mối quan hệ với bảng orderitems
-    public function orderItems()
+    /**
+     * Danh sách sản phẩm trong đơn hàng.
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
     }
@@ -75,4 +87,6 @@ class OrderBuyer extends Model
     {
         return $this->hasMany(ReturnRequest::class, 'OrderID', 'OrderID');
     }
+
+    // Removed shopOrders relationship as it's not in the schema
 }
