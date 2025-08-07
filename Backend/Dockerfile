@@ -2,7 +2,7 @@
 FROM docker.io/library/composer:latest AS composer
 
 # Sử dụng image PHP chính thức với FPM (ví dụ PHP 8.2)
-FROM php:8.2-fpm-alpine AS base
+FROM php:8.3-fpm-alpine AS base
 
 ENV TZ=Asia/Ho_Chi_Minh
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

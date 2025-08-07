@@ -33,7 +33,7 @@ COPY package.json pnpm-lock.yaml* ./
 # COPY package.json ./
 # COPY pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile # --frozen-lockfile để đảm bảo dùng đúng versions trong lock file
+RUN pnpm install --frozen-lockfile
 
 COPY . . 
 
