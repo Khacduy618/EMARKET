@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\SellerRegisterController;
 use App\Http\Controllers\ShopCategoryController ;
 use App\Http\Controllers\ShopProductController ;
+use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -187,44 +188,17 @@ Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
 // Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
 // Ví dụ: GET /api/order-items/45
 Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
+    Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+    Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
+    Route::get('export', [ProductReviewController::class, 'export'])->name('export');
 
-// End product route
-Route::prefix('admin/reviews')
-    ->middleware('auth:sanctum')
-    ->controller(ProductReviewController::class)
-    ->group(function () {
-
-    // Lấy danh sách tất cả review
-    // GET -> /api/admin/reviews
-    Route::get('/', 'index');
-
-    // Lấy số liệu thống kê
-    // GET -> /api/admin/reviews/stats
-    Route::get('/stats', 'stats');
-
-    // Xuất dữ liệu ra Excel
-    // GET -> /api/admin/reviews/export
-    Route::get('/export', 'export');
-
-    // Duyệt một review
-    // POST -> /api/admin/reviews/{review}/approve
-    Route::post('/{review}/approve', 'approve');
-
-    // Từ chối (hủy duyệt) một review
-    // POST -> /api/admin/reviews/{review}/reject
-    Route::post('/{review}/reject', 'reject');
-
-    // Trả lời một review
-    // POST -> /api/admin/reviews/{review}/reply
-    Route::post('/{review}/reply', 'reply');
-
-    // Xóa một review
-    // DELETE -> /api/admin/reviews/{review}
-    Route::delete('/{review}', 'destroy');
+    // Các hành động được hỗ trợ
+    Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
+    Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
+    Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
+    Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
 });
-
-
-
 /* ___________________________________________________________________
   |                            Seller route                           |
   |___________________________________________________________________| */

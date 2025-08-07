@@ -211,11 +211,11 @@ RUN apk add --no-cache \
     libxml2-dev \
     # Không cần .build-deps cho $PHPIZE_DEPS nếu không cài extension bằng pecl hoặc không cần compile phức tạp
     # Chỉ cần các thư viện runtime cho các extension cài bằng docker-php-ext-install
-    && apk add --virtual .phpize-deps $PHPIZE_DEPS \ 
+    && apk add --virtual .phpize-deps $PHPIZE_DEPS \
     # XÓA CÁC LỆNH LIÊN QUAN ĐẾN XDEBUG
     # && pecl install xdebug \
     # && docker-php-ext-enable xdebug \
-    && apk del .phpize-deps 
+    && apk del .phpize-deps
 
 # 2. Cài đặt các PHP extensions cần thiết cho Laravel
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \

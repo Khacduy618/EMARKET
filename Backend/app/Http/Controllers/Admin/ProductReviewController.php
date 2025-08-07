@@ -10,54 +10,37 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel; 
 use App\Exports\SimpleCollectionExport;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class ProductReviewController extends Controller
 {
-    /**
-     * Hàm helper private để kiểm tra quyền Admin một cách nhất quán.
-     */
+    // ... Các hàm khác không thay đổi ...
     private function checkAdminRole(): ?JsonResponse
     {
         $user = Auth::user();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
-
         if (trim((string) data_get($user, 'Role')) !== 'Admin') {
-            Log::warning('Authorization_Failed: Non-admin user attempted an admin action.', [
-                'user_id' => $user->UserID,
-                'user_role_received' => data_get($user, 'Role'),
-                'expected_role' => 'Admin',
-                'route' => request()->path(),
-            ]);
+            Log::warning('Authorization_Failed: Non-admin user attempted an admin action.', ['user_id' => $user->UserID, 'user_role_received' => data_get($user, 'Role'), 'expected_role' => 'Admin', 'route' => request()->path()]);
             return response()->json(['success' => false, 'message' => 'Không có quyền truy cập.'], 403);
         }
-
-        return null; // Trả về null nếu user là Admin
+        return null;
     }
 
-    /**
-     * Lấy danh sách review cho trang Admin, gom nhóm theo Shop.
-     */
     public function index(Request $request): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
-
         try {
             $query = ProductReview::with(['user', 'variant.product.shop']);
             $this->applyFilters($query, $request);
             $reviews = $query->orderBy('CreatedAt', 'desc')->get();
-
-            $groupedByShop = $reviews->groupBy(function ($review) {
-                return data_get($review, 'variant.product.shop.ShopID', 'data_error');
-            });
-
+            $groupedByShop = $reviews->groupBy(fn ($review) => data_get($review, 'variant.product.shop.ShopID', 'data_error'));
             $shopIds = $groupedByShop->keys()->filter(fn($id) => is_numeric($id));
             $shopsInfo = $shopIds->isNotEmpty() ? Shop::whereIn('ShopID', $shopIds)->get()->keyBy('ShopID') : collect();
-
             $formattedResult = $groupedByShop->map(function ($reviewsInGroup, $shopId) use ($shopsInfo) {
                 $shopData = ['ShopID' => null, 'ShopName' => 'Lỗi dữ liệu (Sản phẩm/Shop không tồn tại)', 'LogoURL' => null];
                 if (is_numeric($shopId)) {
@@ -70,32 +53,34 @@ class ProductReviewController extends Controller
                 }
                 return ['shop_info' => $shopData, 'reviews' => $this->formatReviewCollection($reviewsInGroup)];
             })->values();
-
             return response()->json(['success' => true, 'data' => $formattedResult], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
-
         } catch (Throwable $e) {
             Log::error('Admin Review Fetch Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'message' => 'Lỗi server khi lấy danh sách review.'], 500);
         }
     }
 
-    /**
-     * Lấy các số liệu thống kê về review.
-     */
-    public function stats(): JsonResponse
+    public function stats(Request $request): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
         try {
-            $statsRaw = ProductReview::query()
-                ->select(
+            $query = ProductReview::query();
+            $this->applyFilters($query, $request); // Áp dụng filter cho stats
+
+            $statsRaw = $query->select(
                     DB::raw('COUNT(*) as total'),
-                    DB::raw("SUM(CASE WHEN IsApproved = 1 THEN 1 ELSE 0 END) as approved"),
-                    DB::raw("SUM(CASE WHEN IsApproved = 0 THEN 1 ELSE 0 END) as rejected"),
-                    DB::raw("SUM(CASE WHEN IsApproved IS NULL THEN 1 ELSE 0 END) as pending")
+                    DB::raw("SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as approved"),
+                    DB::raw("SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as rejected"),
+                    DB::raw("SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as pending"),
+                    DB::raw("SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as needs_review")
                 )->first();
+
             return response()->json([
-                'total' => (int)($statsRaw->total ?? 0), 'approved' => (int)($statsRaw->approved ?? 0),
-                'rejected' => (int)($statsRaw->rejected ?? 0), 'pending' => (int)($statsRaw->pending ?? 0),
+                'total' => (int)($statsRaw->total ?? 0),
+                'approved' => (int)($statsRaw->approved ?? 0),
+                'rejected' => (int)($statsRaw->rejected ?? 0),
+                'pending' => (int)($statsRaw->pending ?? 0),
+                'needs_review' => (int)($statsRaw->needs_review ?? 0),
             ]);
         } catch (Throwable $e) {
             Log::error('Error calculating stats: ' . $e->getMessage());
@@ -103,14 +88,13 @@ class ProductReviewController extends Controller
         }
     }
 
-    /**
-     * Duyệt một review. (PHIÊN BẢN CUỐI CÙNG)
-     */
+
     public function approve(ProductReview $review): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
         try {
-            $review->update(['IsApproved' => true]);
+            $review->update(['status' => 1]);
+            $review->refresh();
             return $this->createSafeJsonResponse($review);
         } catch (Throwable $e) {
             Log::error('Error approving review: ' . $e->getMessage(), ['review_id' => $review->ReviewID, 'trace' => $e->getTraceAsString()]);
@@ -118,14 +102,12 @@ class ProductReviewController extends Controller
         }
     }
 
-    /**
-     * Từ chối một review. (PHIÊN BẢN CUỐI CÙNG)
-     */
     public function reject(ProductReview $review): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
         try {
-            $review->update(['IsApproved' => false]);
+            $review->update(['status' => 0]);
+            $review->refresh();
             return $this->createSafeJsonResponse($review);
         } catch (Throwable $e) {
             Log::error('Error rejecting review: ' . $e->getMessage(), ['review_id' => $review->ReviewID, 'trace' => $e->getTraceAsString()]);
@@ -133,25 +115,48 @@ class ProductReviewController extends Controller
         }
     }
 
-    /**
-     * Phản hồi một review. (PHIÊN BẢN CUỐI CÙNG)
-     */
-    public function reply(Request $request, ProductReview $review): JsonResponse
+    public function setPending(ProductReview $review): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
-        $validatedData = $request->validate(['replyText' => 'required|string|max:2000']);
         try {
-            $review->update(['AdminReply' => $validatedData['replyText']]);
+            $review->update(['status' => 2]);
+            $review->refresh();
             return $this->createSafeJsonResponse($review);
         } catch (Throwable $e) {
-            Log::error('Error replying to review: ' . $e->getMessage());
-            return response()->json(['message' => 'Lỗi khi phản hồi review.'], 500);
+            Log::error('Error setting review to pending: ' . $e->getMessage(), ['review_id' => $review->ReviewID]);
+            return response()->json(['message' => 'Lỗi server khi cập nhật trạng thái.'], 500);
         }
     }
 
-    /**
-     * Xóa một review.
-     */
+    public function setNeedsReview(ProductReview $review): JsonResponse
+    {
+        if ($error = $this->checkAdminRole()) return $error;
+        try {
+            $review->update(['status' => 3]);
+            $review->refresh();
+            return $this->createSafeJsonResponse($review);
+        } catch (Throwable $e) {
+            Log::error('Error setting review to needs review: ' . $e->getMessage(), ['review_id' => $review->ReviewID]);
+            return response()->json(['message' => 'Lỗi server khi cập nhật trạng thái.'], 500);
+        }
+    }
+
+    public function reply(Request $request, ProductReview $review): JsonResponse
+    {
+        if ($error = $this->checkAdminRole()) return $error;
+        try {
+            $validatedData = $request->validate(['replyText' => 'nullable|string|max:2000']);
+            $review->update(['AdminReply' => $validatedData['replyText']]);
+            $review->refresh();
+            return $this->createSafeJsonResponse($review);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Dữ liệu không hợp lệ.', 'errors' => $e->errors()], 422);
+        } catch (Throwable $e) {
+            Log::error('Error replying to review: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Lỗi server khi phản hồi review.'], 500);
+        }
+    }
+
     public function destroy(ProductReview $review): JsonResponse
     {
         if ($error = $this->checkAdminRole()) return $error;
@@ -164,9 +169,6 @@ class ProductReviewController extends Controller
         }
     }
 
-    /**
-     * Xuất danh sách review ra file Excel.
-     */
     public function export(Request $request)
     {
         if ($error = $this->checkAdminRole()) return $error;
@@ -174,32 +176,57 @@ class ProductReviewController extends Controller
             $query = ProductReview::with(['user', 'variant.product.shop']);
             $this->applyFilters($query, $request);
             $reviewsToExport = $query->orderByDesc('CreatedAt')->get();
+
             $dataForExport = $reviewsToExport->map(function ($review) {
+                $statusText = 'Không xác định';
+                switch ($review->status) {
+                    case 1: $statusText = 'Đã duyệt'; break;
+                    case 0: $statusText = 'Đã từ chối'; break;
+                    case 2: $statusText = 'Chờ duyệt'; break;
+                    case 3: $statusText = 'Cần xem xét'; break;
+                }
+
+                // --- SỬA LỖI QUAN TRỌNG: BIẾN ĐỔI DỮ LIỆU PHỨC TẠP SANG CHUỖI ---
+                // Thư viện Excel không thể xử lý kiểu dữ liệu mảng (array).
+                // Chúng ta cần chuyển mảng hình ảnh thành một chuỗi duy nhất.
+                $imagesString = !empty($review->ReviewImages) ? json_encode($review->ReviewImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : 'Không có';
+
                 return [
-                    'ID' => $review->ReviewID, 'Người đánh giá' => data_get($review, 'user.FullName', 'N/A'),
-                    'Email' => data_get($review, 'user.Email', 'N/A'), 'Cửa hàng' => data_get($review, 'variant.product.shop.ShopName', 'N/A'),
-                    'Sản phẩm' => data_get($review, 'variant.product.Name', 'Sản phẩm đã xóa'), 'SKU Biến thể' => data_get($review, 'variant.SKU', 'N/A'),
-                    'Rating' => $review->Rating, 'Bình luận' => $review->Comment,
-                    'Trạng thái' => $review->IsApproved ? 'Đã duyệt' : ($review->IsApproved === false ? 'Từ chối' : 'Chờ duyệt'),
-                    'Ngày tạo' => $review->CreatedAt->format('d-m-Y H:i:s'),
+                    'ID' => $review->ReviewID,
+                    'Người đánh giá' => data_get($review, 'user.FullName', 'N/A'),
+                    'Email' => data_get($review, 'user.Email', 'N/A'),
+                    'Cửa hàng' => data_get($review, 'variant.product.shop.ShopName', 'N/A'),
+                    'Sản phẩm' => data_get($review, 'variant.product.Name', 'Sản phẩm đã xóa'),
+                    'SKU Biến thể' => data_get($review, 'variant.SKU', 'N/A'),
+                    'Rating' => $review->Rating,
+                    'Bình luận' => $review->Comment,
+                    'Hình ảnh' => $imagesString, // Thêm cột hình ảnh đã được xử lý
+                    'Trạng thái' => $statusText,
+                    'Ngày tạo' => optional($review->CreatedAt)->format('d-m-Y H:i:s') ?? 'Không có',
                 ];
             });
-            return Excel::download(new SimpleCollectionExport($dataForExport), 'danh-sach-reviews-' . date('Y-m-d') . '.xlsx');
+
+            $fileName = 'danh-sach-reviews-' . date('Y-m-d') . '.xlsx';
+            return Excel::download(new SimpleCollectionExport($dataForExport), $fileName);
+
         } catch (Throwable $e) {
-            Log::error('Error exporting reviews to Excel: ' . $e->getMessage());
-            return response()->json(['message' => 'Không thể xuất file Excel do lỗi server.'], 500);
+            Log::error('Error exporting reviews to Excel: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Lỗi server khi tạo file Excel. Vui lòng kiểm tra logs.'], 500);
         }
     }
 
-    /**
-     * Hàm helper để áp dụng các bộ lọc.
-     */
     private function applyFilters($query, Request $request): void
     {
         if ($request->filled('status') && $request->status !== 'all') {
-            if ($request->status === 'approved') $query->where('IsApproved', 1);
-            if ($request->status === 'rejected') $query->where('IsApproved', 0);
-            if ($request->status === 'pending') $query->whereNull('IsApproved');
+            $statusMap = [
+                'approved' => 1,
+                'rejected' => 0,
+                'pending' => 2,
+                'needs_review' => 3
+            ];
+            if(isset($statusMap[$request->status])) {
+                $query->where('status', $statusMap[$request->status]);
+            }
         }
         if ($request->filled('rating') && $request->rating !== 'all') {
             $query->where('Rating', $request->rating);
@@ -220,9 +247,6 @@ class ProductReviewController extends Controller
         }
     }
 
-    /**
-     * Hàm helper để định dạng collection review.
-     */
     private function formatReviewCollection($reviews)
     {
         $variantIds = $reviews->pluck('variant.VariantID')->filter()->unique();
@@ -247,9 +271,6 @@ class ProductReviewController extends Controller
         });
     }
 
-    /**
-     * Hàm helper để định dạng một review đơn lẻ.
-     */
     private function formatSingleReview(ProductReview $review)
     {
         $variant = optional($review)->variant;
@@ -268,9 +289,6 @@ class ProductReviewController extends Controller
         return $review;
     }
 
-    /**
-     * Hàm helper mới để tạo JSON response an toàn, tránh lỗi mã hóa.
-     */
     private function createSafeJsonResponse(ProductReview $review): JsonResponse
     {
         $review->loadMissing(['user', 'variant.product.shop']);
