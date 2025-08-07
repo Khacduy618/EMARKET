@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'; // <--- Added useCallback here
 import axios from 'axios';
-import Image from 'next/image';
 import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap } from 'lucide-react';
 import RelatedItems from './RelatedItems';
 import { toast } from 'react-toastify';
@@ -10,6 +9,9 @@ import { getFullImageUrl } from '@/services/api';
 import { addCartItem } from '@/services/cart';
 import ConfirmModal from '@/app/components/ConfirmModal';
 import ShopInfo from './ShopInfo';
+import ProductReviewPage from './ProductReviewPage';
+import RelatedProductsSidebar from './FeaturedProductsSidebar';
+
 
 // --- INTERFACES ---
 // Define the Attribute interface first, as it's nested inside AttributeValue
@@ -76,8 +78,6 @@ interface Product {
 // Props of the Component
 interface ProductDetailProps {
     productId: number;
-    descriptionSlot: React.ReactNode;
-    sidebarSlot: React.ReactNode;
 }
 interface ShopStats {
     rating_count: string;
@@ -105,7 +105,7 @@ const formatPrice = (price: number) => {
 };
 
 // --- MAIN COMPONENT ---
-const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlot, sidebarSlot }) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -693,17 +693,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, descriptionSlo
             {/* Product Description and Sidebar */}
             <div className="mt-12 flex flex-col lg:flex-row lg:gap-x-8">
                 <div className="w-full lg:flex-1">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-800">Mô tả sản phẩm</h2>
-                        {descriptionSlot}
-                    </div>
+                    <ProductReviewPage productId={productId} />
                 </div>
-                <aside className="w-full lg:w-80 flex-shrink-0 mt-8 lg:mt-0">
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                        {sidebarSlot}
-                    </div>
-                </aside>
+                <aside className="w-full md:w-80 md:sticky md:top-24 h-fit bg-white border-l border-gray-200 p-4">
+            <RelatedProductsSidebar currentProductId={productId} />
+            </aside>
             </div>
+            
+            
         </div>
     );
 };

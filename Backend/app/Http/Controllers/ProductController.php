@@ -15,6 +15,24 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class ProductController extends Controller
 {
     /**
+     * Cập nhật helpful cho review
+     * Route: POST /api/review/{id}/helpful
+     */
+    public function updateReviewHelpful(Request $request, $id): JsonResponse
+    {
+        $value = $request->input('value');
+        if (!in_array($value, [1, -1])) {
+            return response()->json(['success' => false, 'message' => 'Giá trị không hợp lệ'], 400);
+        }
+        $review = DB::table('productreviews')->where('ReviewID', $id)->first();
+        if (!$review) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy review'], 404);
+        }
+        $newHelpful = max(0, ($review->HelpFul ?? 0) + $value);
+        DB::table('productreviews')->where('ReviewID', $id)->update(['HelpFul' => $newHelpful]);
+        return response()->json(['success' => true, 'helpful' => $newHelpful]);
+    }
+    /**
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
@@ -934,6 +952,92 @@ public function destroy($id)
                 'exact_matched_variant' => $exactMatchedVariant,
                 'available_attributes_options' => $availableAttributesOptions
             ]
+        ]);
+    }
+
+    /**
+     * Lấy danh sách review của một sản phẩm
+     * Route: GET /api/product/{productId}/reviews
+     */
+    public function getProductReviews($productId): JsonResponse
+    {
+        // Lấy tất cả review của sản phẩm
+
+        $reviewsRaw = DB::table('productreviews as r')
+            ->join('users as u', 'r.UserID', '=', 'u.UserID')
+            ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+            ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+            ->where('p.ProductID', $productId)
+            ->select(
+                'r.ReviewID as id',
+                'u.FullName as user',
+                'u.Avatar as avatar',
+                'r.Rating as rating',
+                'r.Comment as content',
+                'r.CreatedAt as date',
+                'v.SKU as variant',
+                'r.ReviewImages as images',
+                'r.HelpFul as helpful',
+                'r.ShopReply as shopReply'
+            )
+            ->orderByDesc('r.CreatedAt')
+            ->get();
+
+        $reviewsArr = [];
+        foreach ($reviewsRaw as $row) {
+            $images = [];
+            if ($row->images) {
+                $images = json_decode($row->images, true) ?? [];
+            }
+            $shopReply = null;
+            if ($row->shopReply) {
+                $shopReply = [
+                    'content' => $row->shopReply,
+                    'date' => $row->date // Nếu có trường riêng cho ngày reply thì thay thế
+                ];
+            }
+            $reviewsArr[] = [
+                'id' => $row->id,
+                'user' => $row->user,
+                'avatar' => $row->avatar,
+                'rating' => $row->rating,
+                'date' => $row->date,
+                'content' => $row->content,
+                'images' => $images,
+                'helpful' => $row->helpful ?? 0,
+                'variant' => $row->variant,
+                'shopReply' => $shopReply
+            ];
+        }
+
+        // Tính thống kê rating
+        $statsRaw = DB::table('productreviews as r')
+            ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+            ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+            ->where('p.ProductID', $productId)
+            ->selectRaw('AVG(r.Rating) as average, COUNT(*) as total')
+            ->first();
+
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = DB::table('productreviews as r')
+                ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+                ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+                ->where('p.ProductID', $productId)
+                ->where('r.Rating', $i)
+                ->count();
+            $distribution[$i] = $statsRaw->total ? round($count * 100 / $statsRaw->total) : 0;
+        }
+
+        $ratingStats = [
+            'average' => round($statsRaw->average ?? 0, 1),
+            'total' => $statsRaw->total,
+            'distribution' => $distribution,
+        ];
+
+        return response()->json([
+            'reviews' => $reviewsArr,
+            'ratingStats' => $ratingStats,
         ]);
     }
 }

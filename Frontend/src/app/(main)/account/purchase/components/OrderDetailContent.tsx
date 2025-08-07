@@ -435,9 +435,12 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
               </div>
               <div className="flex flex-col gap-2 ml-4 flex-shrink-0">
                 {isDeliveredOrCompleted && (
-                  <button className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors">
-                    Đánh Giá
-                  </button>
+  <Link 
+    href={`/account/review?orderId=${order.OrderID}`}
+    className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
+  >
+    Đánh Giá
+  </Link>
                 )}
                 {isDeliveredOrCompleted && (
                   <button

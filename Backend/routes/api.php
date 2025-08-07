@@ -181,7 +181,9 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
-    
+    Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
+    Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
+
 });
 Route::middleware('auth:sanctum')->group(function () {
     

@@ -104,10 +104,6 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
 
     return (
         <section className="max-w-screen-xl mx-auto px-4 py-12">
-            <div className="flex items-center mb-8">
-                <div className="w-5 h-10 bg-red-500 rounded-sm"></div>
-                <h2 className="ml-4 text-red-500 font-semibold text-base">Sản phẩm liên quan</h2>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map(product => (
                     <ProductCard key={product.id} product={product} />
