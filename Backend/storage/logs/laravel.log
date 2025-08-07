@@ -1952,3 +1952,49 @@
 [2025-08-07 10:05:09] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
 [2025-08-07 10:05:10] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2082 ---  
 [2025-08-07 10:05:10] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
+[2025-08-07 13:21:40] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-07 13:21:40] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-07 13:21:41] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 78 đơn hàng.  
+[2025-08-07 13:21:42] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-07 13:21:42] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-07 13:21:43] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 78 đơn hàng.  
+[2025-08-07 13:21:47] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2082 ---  
+[2025-08-07 13:21:48] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
+[2025-08-07 13:21:48] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2082 ---  
+[2025-08-07 13:21:49] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
+[2025-08-07 13:22:19] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2082 ---  
+[2025-08-07 13:22:20] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
+[2025-08-07 13:22:20] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2082 ---  
+[2025-08-07 13:22:20] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2082.  
+[2025-08-07 13:25:20] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:20] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:22] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:22] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:34] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:34] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:35] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:35] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:37] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:37] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:38] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:38] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:39] local.INFO: Cart data fetched from DB. Number of rows: 5  
+[2025-08-07 13:25:39] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-07 13:25:40] local.INFO: Cart data fetched from DB. Number of rows: 2  
+[2025-08-07 13:25:40] local.INFO: Cart data structured successfully. Number of items: 2  
+[2025-08-07 13:31:16] local.INFO: --- Received request for placeOrder --- {"shippingAddressId":1,"shippingFullName":"Nguyễn Văn An","shippingPhoneNumber":"0901234561","notes":null,"totalAmount":200739998,"subtotalAmount":200679998,"shippingFee":60000,"discountAmount":0,"paymentMethod":"VNPay","items":[{"variantId":3,"quantity":2,"priceAtPurchase":99999999,"subtotal":199999998},{"variantId":12,"quantity":1,"priceAtPurchase":680000,"subtotal":680000}],"platformVoucherData":{"codes":[],"discounts":[]},"totalShopVoucherDiscount":0,"shopVouchersApplied":[]} 
+[2025-08-07 13:31:17] local.INFO: placeOrder: Creating order with data: {"UserID":1,"PaymentMethod":"VNPay"} 
+[2025-08-07 13:31:17] local.INFO: placeOrder: Creating order with server-calculated data: {"OrderCode":"EMK20250807UTRHZT","UserID":1,"TotalAmount":200739998.0,"SubtotalAmount":200679998.0,"ShippingFee":60000,"DiscountAmount":22222224.0,"ShippingAddressID":1,"ShippingFullName":"Nguyễn Văn An","ShippingPhoneNumber":"0901234561","Notes":null,"PaymentMethod":"VNPay","PaymentStatus":"Pending","OverallStatus":"Pending","PlatformVoucherCode":"[]","PlatformDiscountAmount":"[]","shopvoucher":null,"shopdiscountamount":0,"CreatedAt":"2025-08-07 13:31:17","UpdatedAt":"2025-08-07 13:31:17"} 
+[2025-08-07 13:31:17] local.INFO: placeOrder: Successfully created OrderID: 2086  
+[2025-08-07 13:31:21] local.INFO: --- Received request for VnPay createPayment for OrderID: 2086 ---  
+[2025-08-07 13:31:21] local.INFO: [VNPay] Preparing to send data: {"vnp_Version":"2.1.0","vnp_TmnCode":"4NR1OFFG","vnp_Amount":20073999800,"vnp_Command":"pay","vnp_CreateDate":"20250807133121","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250807UTRHZT","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TxnRef":"EMK20250807UTRHZT"} 
+[2025-08-07 13:31:21] local.INFO: VnPay createPayment: Generated payment URL successfully. {"url":"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=20073999800&vnp_Command=pay&vnp_CreateDate=20250807133121&vnp_CurrCode=VND&vnp_IpAddr=172.18.0.9&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+don+hang+EMK20250807UTRHZT&vnp_OrderType=billpayment&vnp_ReturnUrl=http%3A%2F%2Flocalhost%2Fapi%2Fvnpay%2Freturn&vnp_TmnCode=4NR1OFFG&vnp_TxnRef=EMK20250807UTRHZT&vnp_Version=2.1.0&vnp_SecureHash=1136995e7d90048d79b421c6091d138f9fdb858b33c09bc472b57e9afd0a76e2d7f8e54840c215e414af162eaa12600f8d39f03e03769fe81b07095c0fb84dcc"} 
+[2025-08-07 13:31:21] local.INFO: VNPay Input Data: {"vnp_Amount":20073999800,"vnp_Command":"pay","vnp_CreateDate":"20250807133121","vnp_CurrCode":"VND","vnp_IpAddr":"172.18.0.9","vnp_Locale":"vn","vnp_OrderInfo":"Thanh toan don hang EMK20250807UTRHZT","vnp_OrderType":"billpayment","vnp_ReturnUrl":"http://localhost/api/vnpay/return","vnp_TmnCode":"4NR1OFFG","vnp_TxnRef":"EMK20250807UTRHZT","vnp_Version":"2.1.0"} 
+[2025-08-07 13:32:05] local.INFO: --- Received return callback from VNPay --- {"vnp_Amount":"20073999800","vnp_BankCode":"NCB","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan don hang EMK20250807UTRHZT","vnp_PayDate":"20250807203259","vnp_ResponseCode":"24","vnp_TmnCode":"4NR1OFFG","vnp_TransactionNo":"15121541","vnp_TransactionStatus":"02","vnp_TxnRef":"EMK20250807UTRHZT","vnp_SecureHash":"0e6b1bfdfde8e1d9355c329ea771afbe7bf0f920eba0f496419fd4ce4c4ffe13312e66631b1a362ae94b96bfdfa632d498c05e5af6a95dcaf02c9f3d1a0d61a7"} 
+[2025-08-07 13:32:05] local.WARNING: VNPay payment failed or was cancelled for order: EMK20250807UTRHZT {"vnp_Amount":"20073999800","vnp_BankCode":"NCB","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan don hang EMK20250807UTRHZT","vnp_PayDate":"20250807203259","vnp_ResponseCode":"24","vnp_TmnCode":"4NR1OFFG","vnp_TransactionNo":"15121541","vnp_TransactionStatus":"02","vnp_TxnRef":"EMK20250807UTRHZT"} 
+[2025-08-07 13:32:52] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-07 13:32:52] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-07 13:32:53] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-07 13:32:54] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-07 13:32:54] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-07 13:32:54] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
