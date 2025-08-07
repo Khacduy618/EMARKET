@@ -1,7 +1,6 @@
 <?php
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductController AS BuyerProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
 use App\Http\Controllers\BannerController;
@@ -17,7 +16,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Admin\CategoryController AS AdminCategory; //admin
 use App\Http\Controllers\Admin\ShopController AS ShopController;
-use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
+use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController; //admin
 use App\Http\Controllers\Admin\OrderItemController;
 use App\Http\Controllers\Admin\OrderController;
@@ -171,11 +170,11 @@ Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
 // End Shop route
 
 // Product route
-Route::get('/admin/products', [AdminProductController::class, "index"]);
+Route::get('/admin/products', [ProductControllers::class, "index"]);
 
-Route::put('/admin/products/{id}/approval-status', [AdminProductController::class, 'updateApprovalStatus']);
+Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
 
-Route::get('/admin/products/{id}', [AdminProductController::class, 'detailProduct']);
+Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
 //ORDER ADMIN
 Route::get('/orderadmin', [OrderController::class, 'index']);
 Route::get('/ordersadmin/{id}', [OrderController::class, 'show']);
