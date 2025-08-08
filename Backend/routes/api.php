@@ -194,6 +194,8 @@ Route::middleware('auth:sanctum')->group(function (){
     // API lưu đánh giá sản phẩm theo đơn hàng
     Route::post('/reviews/store', [ReviewController::class, 'store']);
 
+    Route::post('/reviews/{reviewId}/reply', [ReviewController::class, 'reply']);
+
 });
 Route::middleware('auth:sanctum')->group(function () {
     

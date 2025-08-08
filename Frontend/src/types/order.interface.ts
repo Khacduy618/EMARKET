@@ -284,3 +284,10 @@ export const formatDateTime = (dateString: Date) => {
         timeOnly: formattedTime,
     };
 };
+
+export interface PaginatedOrders {
+  data: Order[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}

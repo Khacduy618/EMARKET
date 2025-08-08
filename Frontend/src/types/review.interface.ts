@@ -9,6 +9,7 @@ export interface Review {
   images: string[];
   helpful: number;
   variant: string;
+  shopId?: number;
   shopReply?: {
     content: string;
     date: string;

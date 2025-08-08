@@ -2,9 +2,6 @@
 import { notFound } from 'next/navigation';
 import ProductDetail from '../components/Productdetail';
 import React from 'react';
-import ProductDescription from '../components/ProductDescription';
-import RelatedProductsSidebar from '../components/FeaturedProductsSidebar';
-
 // Bỏ interface ProductPageProps hoặc không dùng nó cho component chính
 
 // ===> SỬA LỖI Ở ĐÂY: Định nghĩa type trực tiếp trong signature <===
@@ -23,7 +20,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <main>
                 <ProductDetail
                     productId={productIdAsNumber}
-                    
                 />
             </main>
         </div>

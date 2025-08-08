@@ -5,6 +5,8 @@ namespace App\Actions\Fortify;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+
 
 class LoginCheckEmail
 {
@@ -31,6 +33,10 @@ class LoginCheckEmail
             throw ValidationException::withMessages([
                 'email' => ['Tài khoản của bạn đã bị vô hiệu hoá.'],
             ]);
+        }
+        if ($user->Role === 'Seller') {
+            $shop = DB::table('shops')->where('UserID', $user->UserID)->first();
+            $user->shopId = $shop ? $shop->ShopID : null;
         }
 
         return $user;

@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ReviewTabs } from "./ReviewTabs"
 import ProductDescription from "./ProductDescription"
 import axios from "axios"
 import { RatingStats, Review } from "@/types"
+import { useAuth } from "@/hooks/useAuth"
 
 interface ProductReviewPageProps {
   productId: number;
@@ -17,23 +18,47 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchReviews() {
-      setLoading(true)
-      setError(null)
-      try {
-        // Thay đổi endpoint cho phù hợp với API của bạn
-        const res = await axios.get(`/api/product/${productId}/reviews`)
-        setReviews(res.data.reviews)
-        setRatingStats(res.data.ratingStats)
-      } catch (err: any) {
-        setError("Không thể tải đánh giá sản phẩm.")
-      } finally {
-        setLoading(false)
-      }
+  // Lấy thông tin người dùng hiện tại để truyền xuống
+  const { user, isLoading: isUserLoading } = useAuth();
+
+  // useEffect(() => {
+  //   async function fetchReviews() {
+  //     setLoading(true)
+  //     setError(null)
+  //     try {
+  //       // Thay đổi endpoint cho phù hợp với API của bạn
+  //       const res = await axios.get(`/api/product/${productId}/reviews`)
+  //       setReviews(res.data.reviews)
+  //       setRatingStats(res.data.ratingStats)
+  //     } catch (err: any) {
+  //       setError("Không thể tải đánh giá sản phẩm.")
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
+  //   fetchReviews()
+  // }, [productId])
+
+  const fetchReviews = useCallback(async () => {
+    // Không set loading ở đây nữa để tránh giật màn hình khi fetch lại
+    setError(null);
+    try {
+      const res = await axios.get(`/api/product/${productId}/reviews`);
+      setReviews(res.data.reviews);
+      setRatingStats(res.data.ratingStats);
+    } catch (err: any) {
+      setError("Không thể tải đánh giá sản phẩm.");
+    } finally {
+      // Chỉ set loading false ở lần fetch đầu tiên
+      if (loading) setLoading(false);
     }
-    fetchReviews()
-  }, [productId])
+  }, [productId, loading]); // Thêm `loading` vào dependency
+
+  // Fetch dữ liệu lần đầu tiên
+  useEffect(() => {
+    setLoading(true); // Set loading khi productId thay đổi
+    fetchReviews();
+  }, [productId]); // Bỏ fetchReviews ra khỏi dependency để tránh loop
 
   const filteredReviews = reviews.filter(review => {
     if (selectedFilter === "all") return true
@@ -44,7 +69,7 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
   const [showAll, setShowAll] = useState(false)
   const reviewsLimited = showAll ? filteredReviews : filteredReviews.slice(0, 10)
 
-  if (loading) return <div className="p-8 text-center">Đang tải đánh giá...</div>
+  if (loading || isUserLoading) return <div className="p-8 text-center">Đang tải đánh giá...</div>
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>
 
   return (
@@ -58,6 +83,8 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
           descriptionSlot={<ProductDescription productId={productId} />}
           showMoreButton={!showAll && filteredReviews.length > 10}
           onShowMore={() => setShowAll(true)}
+          currentUser={user}
+          onReviewActionSuccess={fetchReviews}
         />
       </div>
     </div>

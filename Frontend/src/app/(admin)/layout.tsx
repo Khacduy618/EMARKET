@@ -25,6 +25,7 @@ import {
   MessageSquare,
   ChevronDown,
 } from 'lucide-react';
+import RoleGuard from '../components/auth/RoleGuard';
 
 // Định nghĩa kiểu dữ liệu cho menu item, hỗ trợ menu con
 interface MenuItem {
@@ -137,6 +138,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <RoleGuard allowedRoles = {['Admin']}>
       {isMobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -313,6 +315,7 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
+      </RoleGuard>
     </div>
   );
 }

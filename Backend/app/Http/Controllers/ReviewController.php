@@ -119,4 +119,56 @@ class ReviewController extends Controller
             return response()->json(['success' => false, 'error' => 'Đã có lỗi xảy ra phía máy chủ.'], 500);
         }
     }
+
+    /**
+     * Cho phép chủ shop trả lời một đánh giá.
+     */
+    public function reply(Request $request, $reviewId)
+    {
+        $validator = Validator::make($request->all(), [
+            'reply_content' => 'required|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'error' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+
+        // 1. Tìm đánh giá và sản phẩm liên quan
+        $review = DB::table('productreviews')
+            ->join('productvariants', 'productreviews.VariantID', '=', 'productvariants.VariantID')
+            ->join('products', 'productvariants.ProductID', '=', 'products.ProductID')
+            ->where('productreviews.ReviewID', $reviewId)
+            ->select('productreviews.*', 'products.ShopID')
+            ->first();
+
+        if (!$review) {
+            return response()->json(['success' => false, 'error' => 'Không tìm thấy đánh giá.'], 404);
+        }
+
+        // 2. Kiểm tra quyền: Người dùng hiện tại có phải là chủ của shop này không?
+        $shop = DB::table('shops')->where('UserID', $user->UserID)->first();
+
+        if (!$shop || $shop->ShopID !== $review->ShopID) {
+            return response()->json(['success' => false, 'error' => 'Bạn không có quyền trả lời đánh giá này.'], 403);
+        }
+
+        // 3. Cập nhật phản hồi vào CSDL
+        try {
+            DB::table('productreviews')
+                ->where('ReviewID', $reviewId)
+                ->update([
+                    'ShopReply' => $request->input('reply_content'),
+                    'UpdatedAt' => now(), // Cập nhật thời gian
+                    'ShopReplyAt' => now(), // Thêm thời gian phản hồi
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Phản hồi đã được gửi.']);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to save shop reply', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Đã có lỗi xảy ra.'], 500);
+        }
+    }
 }

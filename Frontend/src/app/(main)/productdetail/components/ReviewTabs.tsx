@@ -2,8 +2,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RatingOverview } from "./RatingOverview"
 import { ReviewFilters } from "./ReviewFilters"
 import { ReviewList } from "./ReviewList"
-import { QASection } from "./QASection"
-import { RatingStats, Review } from "@/types"
+import { CommentsSection } from "./CommentsSection"
+import { RatingStats, Review, User } from "@/types"
+
 
 
 interface ReviewTabsProps {
@@ -14,9 +15,11 @@ interface ReviewTabsProps {
   descriptionSlot?: React.ReactNode
   showMoreButton?: boolean
   onShowMore?: () => void
+  currentUser: User | null; 
+  onReviewActionSuccess: () => void; 
 }
 
-export function ReviewTabs({ ratingStats, reviews, selectedFilter, onFilterChange, descriptionSlot, showMoreButton, onShowMore }: ReviewTabsProps) {
+export function ReviewTabs({ ratingStats, reviews,currentUser, onReviewActionSuccess, selectedFilter, onFilterChange, descriptionSlot, showMoreButton, onShowMore }: ReviewTabsProps) {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
       <Tabs defaultValue="reviews" className="space-y-6">
@@ -28,7 +31,7 @@ export function ReviewTabs({ ratingStats, reviews, selectedFilter, onFilterChang
             Đánh Giá ({ratingStats.total})
           </TabsTrigger>
           <TabsTrigger value="qa" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-            Hỏi & Đáp
+            Bình luận
           </TabsTrigger>
         </TabsList>
 
@@ -42,11 +45,12 @@ export function ReviewTabs({ ratingStats, reviews, selectedFilter, onFilterChang
             selectedFilter={selectedFilter} 
             onFilterChange={onFilterChange} 
           />
-          <ReviewList reviews={reviews} showMoreButton={showMoreButton} onShowMore={onShowMore} />
+          <ReviewList reviews={reviews} showMoreButton={showMoreButton} onShowMore={onShowMore}  currentUser={currentUser} // <-- Truyền xuống
+        onReviewActionSuccess={onReviewActionSuccess}  />
         </TabsContent>
 
         <TabsContent value="qa">
-          <QASection />
+          <CommentsSection />
         </TabsContent>
       </Tabs>
     </div>
