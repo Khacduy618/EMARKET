@@ -10,7 +10,6 @@ class Review extends Model
     use HasFactory;
 
     // Chỉ định tên bảng nếu nó không theo quy tắc của Laravel (reviews)
-    protected $table = 'reviews';
 
     // Chỉ định khóa chính
     protected $primaryKey = 'ReviewID';

@@ -23,7 +23,7 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [currentReview, setCurrentReview] = useState(review);
-
+  
   // Logic kiểm tra chủ shop
   // Giả sử review object có shopId và currentUser (nếu là seller) cũng có shopId
   const isShopOwner = currentUser?.Role === 'Seller' && currentUser.shopId === review.shopId;
@@ -127,7 +127,7 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
 
           {/* Helpful Button */}
           <div className="flex items-center justify-between pt-2">
-            <Button 
+           {!!currentUser && ( <Button 
               variant={voted ? "default" : "ghost"} 
               size="sm" 
               className={voted ? "text-white-500 bg-orange-600" : "text-white-600 hover:text-orange-500"}
@@ -135,7 +135,7 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
             >
               <ThumbsUp className="w-3 h-3 md:w-4 md:h-4 mr-1" />
               <span className="text-xs md:text-sm">Hữu ích ({helpful})</span>
-            </Button>
+            </Button>) }
 
             {isShopOwner && !currentReview.shopReply && (
               <Button 

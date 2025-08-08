@@ -13,7 +13,6 @@ use App\Models\Shop;
 use App\Models\Category;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
-use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -290,7 +289,7 @@ class Product extends Model
      */
     public function reviews(): HasMany
     {
-        return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
+        return $this->hasMany(Review::class, 'ProductID', 'ProductID');
     }
     public function scopeActive($query)
     {
