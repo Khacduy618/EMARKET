@@ -3431,3 +3431,13 @@
 #56 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
 #57 {main}
 "} 
+[2025-08-08 15:31:58] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 15:31:58] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 15:31:59] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-08 15:31:59] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 15:31:59] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 15:32:00] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-08 15:32:11] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 1030 ---  
+[2025-08-08 15:32:12] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 1030.  
+[2025-08-08 15:32:12] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 1030 ---  
+[2025-08-08 15:32:13] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 1030.  
