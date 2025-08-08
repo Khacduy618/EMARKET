@@ -1,0 +1,22 @@
+[2025-08-08 05:34:51] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 05:34:51] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 05:34:51] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-08 05:34:52] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 05:34:52] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 05:34:52] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-08 05:35:31] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2079 ---  
+[2025-08-08 05:35:32] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2079.  
+[2025-08-08 05:35:32] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2079 ---  
+[2025-08-08 05:35:33] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2079.  
+[2025-08-08 05:48:30] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2079 ---  
+[2025-08-08 05:48:30] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2079.  
+[2025-08-08 05:48:31] local.INFO: --- [showForOrderDetail] Bắt đầu cho OrderID: 2079 ---  
+[2025-08-08 05:48:31] local.INFO: [showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: 2079.  
+[2025-08-08 05:49:10] local.INFO: All reviews saved successfully for OrderID: 2079 {"userId":1,"reviewsCount":1} 
+[2025-08-08 05:49:10] local.INFO: Order status updated to Reviewed for OrderID: 2079 {"userId":1} 
+[2025-08-08 05:49:12] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 05:49:12] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 05:49:13] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  
+[2025-08-08 05:49:13] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-08 05:49:13] local.INFO: [OrderController@index OPTIMIZED] UserID: 1  
+[2025-08-08 05:49:14] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 79 đơn hàng.  

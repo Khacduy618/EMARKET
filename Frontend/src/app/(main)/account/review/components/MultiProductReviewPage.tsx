@@ -37,6 +37,7 @@ export default function MultiProductReviewPage() {
   const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [productReviews, setProductReviews] = useState<Record<string, ProductReview>>({})
+  const [profanityStatus, setProfanityStatus] = useState<Record<string, boolean>>({});
   const [hoverRatings, setHoverRatings] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +107,13 @@ export default function MultiProductReviewPage() {
         setLoading(false);
       });
   }, [orderId]);
+
+  const updateProfanityStatus = (productId: string, isProfane: boolean) => {
+    setProfanityStatus(prev => ({
+      ...prev,
+      [productId]: isProfane
+    }));
+  };
 
   const updateProductReview = (productId: string, field: keyof ProductReview, value: any) => {
     setProductReviews(prev => ({
@@ -232,7 +240,8 @@ export default function MultiProductReviewPage() {
 
   const completedCount = getCompletedReviews()
   const progressPercentage = items.length > 0 ? (completedCount / items.length) * 100 : 0
-
+  const containsProfanity = Object.values(profanityStatus).some(isProfane => isProfane);
+  
   // Xử lý loading và error giống page order id
   if (loading) {
     return (
@@ -278,6 +287,7 @@ export default function MultiProductReviewPage() {
             isLast={index === items.length - 1}
             onUpdateReview={updateProductReview}
             onSetHoverRating={(rating) => setHoverRatings(prev => ({ ...prev, [item.OrderItemID]: rating }))}
+            onUpdateProfanityStatus={updateProfanityStatus}
           />
         ))}
         {!isRated && (
@@ -286,6 +296,7 @@ export default function MultiProductReviewPage() {
             totalCount={items.length}
             isSubmitting={isSubmitting}
             onSubmit={handleSubmitAll}
+            containsProfanity={containsProfanity}
           />
         )}
       </div>

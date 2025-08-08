@@ -27,6 +27,7 @@ import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
 import { Label } from "@/components/ui/label"
 import CategoryDropDow from "./components/category-selector"
+import { getAuthToken } from "@/services/api"
 
 interface Product {
   ProductID: number

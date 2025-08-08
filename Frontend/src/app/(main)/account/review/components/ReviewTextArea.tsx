@@ -7,9 +7,10 @@ interface ReviewTextAreaProps {
   value: string
   onChange: (value: string) => void
   productId: string
+  onProfanityChange: (isProfane: boolean) => void;
 }
 
-export function ReviewTextArea({ value, onChange, productId }: ReviewTextAreaProps) {
+export function ReviewTextArea({ value, onChange, productId, onProfanityChange }: ReviewTextAreaProps) {
   const [warning, setWarning] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -27,15 +28,22 @@ export function ReviewTextArea({ value, onChange, productId }: ReviewTextAreaPro
       // Cách đơn giản nhất là giữ nguyên vị trí cũ, nhưng có thể điều chỉnh nếu cần
       setCursorPosition(currentCursor - (rawText.length - cleanedText.length));
     }
-    if (isProfane(rawText)) {
-      setWarning("Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa.");
-    } else {
-      setWarning(null); // Xóa cảnh báo nếu không còn từ cấm
-    }
 
+    const hasProfanity = isProfane(rawText); // Kiểm tra trên text gốc
+    if (hasProfanity) {
+      setWarning("Nội dung chứa từ ngữ không phù hợp.");
+    } else {
+      setWarning(null);
+    }
+    onProfanityChange(hasProfanity);
     // Luôn gọi hàm onChange của component cha với text đã được làm sạch
     onChange(cleanedText);
   };
+
+  useEffect(() => {
+    onProfanityChange(isProfane(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sử dụng useEffect để đặt lại vị trí con trỏ sau khi component đã render xong
   useEffect(() => {
@@ -58,7 +66,9 @@ export function ReviewTextArea({ value, onChange, productId }: ReviewTextAreaPro
         value={value}
         // onChange={(e) => onChange(e.target.value)}
         onChange={handleTextChange} 
-        className="min-h-[100px] resize-none focus:ring-orange-500 focus:border-orange-500"
+        className={`min-h-[100px] resize-none focus:ring-orange-500 focus:border-orange-500 ${
+          warning ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '' // Thêm style cảnh báo
+        }`}
         maxLength={500}
       />
       {/* Hiển thị cảnh báo */}

@@ -6,10 +6,12 @@ interface SubmitSectionProps {
   totalCount: number
   isSubmitting: boolean
   onSubmit: () => void
+  containsProfanity: boolean;
 }
 
-export function SubmitSection({ completedCount, totalCount, isSubmitting, onSubmit }: SubmitSectionProps) {
+export function SubmitSection({ completedCount, totalCount, isSubmitting, onSubmit,containsProfanity }: SubmitSectionProps) {
   const isComplete = completedCount === totalCount
+   const isDisabled = isSubmitting || !isComplete || containsProfanity;
   
   return (
     <div className="sticky bottom-0 bg-white border-t shadow-lg rounded-t-lg p-4">
@@ -23,7 +25,7 @@ export function SubmitSection({ completedCount, totalCount, isSubmitting, onSubm
       </div>
       <Button
         onClick={onSubmit}
-        disabled={isSubmitting || !isComplete}
+        disabled={isDisabled}
         className="shopee-orange w-full disabled:bg-gray-300 disabled:text-gray-500"
         size="lg"
       >
@@ -39,11 +41,15 @@ export function SubmitSection({ completedCount, totalCount, isSubmitting, onSubm
           </>
         )}
       </Button>
-      {!isComplete && (
+      {containsProfanity ? (
+        <p className="text-xs text-red-600 font-semibold text-center mt-2">
+          Vui lòng loại bỏ các từ ngữ không phù hợp để tiếp tục
+        </p>
+      ) : !isComplete ? (
         <p className="text-xs text-gray-500 text-center mt-2">
           Vui lòng hoàn thành đánh giá cho tất cả sản phẩm
         </p>
-      )}
+      ) : null}
     </div>
   )
 }

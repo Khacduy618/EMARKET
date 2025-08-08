@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { da } from "date-fns/locale"
 import Link from "next/link";
 import { Calendar, Package } from "lucide-react"
+import { getAuthToken } from "@/services/api"
 
 
 type Order = {

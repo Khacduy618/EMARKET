@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getPlatformCategories, getShopCategories, registerCategory, deleteCategory } from "@/services/seller-category"
 import Swal from "sweetalert2"
+import { getAuthToken } from "@/services/api"
 
 interface PlatformCategory {
     CategoryID: number
@@ -32,7 +33,12 @@ export default function CategoriesPage() {
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
-       egories()
+        const token = getAuthToken();
+        if (!token) {
+            Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/login"))
+            return
+        }
+        fetchCategories()
     }, [router])
 
     const fetchCategories = async () => {

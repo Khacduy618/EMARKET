@@ -29,6 +29,7 @@ import { CalendarItem } from "./CalenderItem"
 import type { TimeRange } from "@/types/analytics"
 import { format } from "date-fns"
 import type { summaryDataChart } from "@/types/analytics"
+import { getAuthToken } from "@/services/api"
 
 const formatVND = (amount: number): string => new Intl.NumberFormat("vi-VN").format(amount)
 const formatVND2 = (amount: number): string =>

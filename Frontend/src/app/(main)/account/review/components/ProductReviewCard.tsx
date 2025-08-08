@@ -27,6 +27,7 @@ interface ProductReviewCardProps {
   isLast: boolean
   onUpdateReview: (productId: string, field: keyof ProductReview, value: any) => void
   onSetHoverRating: (rating: number) => void
+  onUpdateProfanityStatus: (productId: string, isProfane: boolean) => void
 }
 
 export function ProductReviewCard({
@@ -35,7 +36,8 @@ export function ProductReviewCard({
   hoverRating,
   isLast,
   onUpdateReview,
-  onSetHoverRating
+  onSetHoverRating,
+  onUpdateProfanityStatus
 }: ProductReviewCardProps) {
   const isCompleted = review.rating > 0 && (typeof review.reviewText === 'string' ? review.reviewText.trim().length : 0) > 0
 
@@ -82,6 +84,7 @@ export function ProductReviewCard({
           value={review.reviewText}
           onChange={(text) => onUpdateReview(product.id, 'reviewText', text)}
           productId={product.id}
+           onProfanityChange={(isProfane) => onUpdateProfanityStatus(product.id, isProfane)}
         />
 
         <MediaUpload
