@@ -173,7 +173,7 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
                   <Badge variant="secondary" className="text-xs">Phản Hồi Của Shop</Badge>
                   <span className="text-xs text-gray-500">{review.shopReply.date}</span>
                 </div>
-                <p className="text-gray-800 text-sm md:text-base">{review.shopReply.content}</p>
+                <p className="text-gray-800 text-sm ms-2 md:text-base">{review.shopReply.content}</p>
               </div>
             </>
           )}

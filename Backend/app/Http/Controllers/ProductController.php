@@ -505,6 +505,7 @@ public function destroy($id)
                 'Variants' => fn($query) => $query->where('IsActive', 1)->orderBy('Price', 'asc'),
                 'primaryImage'
             ])
+            ->whereHas('variants.attributeValues') // Chỉ lấy sản phẩm có biến thể với thuộc tính
             ->inRandomOrder()
             ->take(4)
             ->get();
@@ -963,40 +964,85 @@ public function destroy($id)
     {
         // Lấy tất cả review của sản phẩm
 
-        $reviewsRaw = DB::table('productreviews as r')
-            ->join('users as u', 'r.UserID', '=', 'u.UserID')
-            ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
-            ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
-            ->where('p.ProductID', $productId)
-            ->select(
-                'r.ReviewID as id',
-                'u.FullName as user',
-                'u.Avatar as avatar',
-                'r.Rating as rating',
-                'r.Comment as content',
-                'r.CreatedAt as date',
-                'v.SKU as variant',
-                'r.ReviewImages as images',
-                'r.HelpFul as helpful',
-                'r.ShopReply as shopReply'
-            )
-            ->orderByDesc('r.CreatedAt')
-            ->get();
+        // $reviewsRaw = DB::table('productreviews as r')
+        //     ->join('users as u', 'r.UserID', '=', 'u.UserID')
+        //     ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+        //     ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+        //     ->where('p.ProductID', $productId)
+        //     ->select(
+        //         'r.ReviewID as id',
+        //         'u.FullName as user',
+        //         'u.Avatar as avatar',
+        //         'r.Rating as rating',
+        //         'r.Comment as content',
+        //         'r.CreatedAt as date',
+        //         'v.SKU as variant',
+        //         'r.ReviewImages as images',
+        //         'r.HelpFul as helpful',
+        //         'r.ShopReply as shopReply'
+        //     )
+        //     ->orderByDesc('r.CreatedAt')
+        //     ->get();
 
-        $reviewsArr = [];
-        foreach ($reviewsRaw as $row) {
-            $images = [];
-            if ($row->images) {
-                $images = json_decode($row->images, true) ?? [];
-            }
+        // $reviewsArr = [];
+        // foreach ($reviewsRaw as $row) {
+        //     $images = [];
+        //     if ($row->images) {
+        //         $images = json_decode($row->images, true) ?? [];
+        //     }
+        //     $shopReply = null;
+        //     if ($row->shopReply) {
+        //         $shopReply = [
+        //             'content' => $row->shopReply,
+        //             'date' => $row->date // Nếu có trường riêng cho ngày reply thì thay thế
+        //         ];
+        //     }
+        //     $reviewsArr[] = [
+        //         'id' => $row->id,
+        //         'user' => $row->user,
+        //         'avatar' => $row->avatar,
+        //         'rating' => $row->rating,
+        //         'date' => $row->date,
+        //         'content' => $row->content,
+        //         'images' => $images,
+        //         'helpful' => $row->helpful ?? 0,
+        //         'variant' => $row->variant,
+        //         'shopReply' => $shopReply
+        //     ];
+        // }
+        $reviewsRaw = DB::table('productreviews as r')
+        ->join('users as u', 'r.UserID', '=', 'u.UserID')
+        ->join('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+        // Thêm join vào bảng products để đảm bảo chỉ lấy review của đúng sản phẩm
+        ->join('products as p', 'v.ProductID', '=', 'p.ProductID')
+        ->where('p.ProductID', $productId)
+        ->select(
+            'r.ReviewID as id',
+            'u.FullName as user',
+            'u.Avatar as avatar',
+            'r.Rating as rating',
+            'r.Comment as content',
+            'r.CreatedAt as date',
+            'v.SKU as variant', // Lấy SKU làm tên variant
+            'r.ReviewImages as images',
+            'r.HelpFul as helpful',
+            'r.ShopReply as shopReplyContent', // Đổi tên để tránh nhầm lẫn
+            'r.UpdatedAt as shopReplyDate', // Giả sử UpdatedAt là ngày shop trả lời
+            'p.ShopID as shopId' // <-- Lấy ShopID từ bảng products
+        )
+        ->orderByDesc('r.CreatedAt')
+        ->get();
+
+        $reviewsArr = $reviewsRaw->map(function ($row) {
+            $images = json_decode($row->images, true) ?? [];
             $shopReply = null;
-            if ($row->shopReply) {
+            if ($row->shopReplyContent) {
                 $shopReply = [
-                    'content' => $row->shopReply,
-                    'date' => $row->date // Nếu có trường riêng cho ngày reply thì thay thế
+                    'content' => $row->shopReplyContent,
+                    'date' => $row->shopReplyDate 
                 ];
             }
-            $reviewsArr[] = [
+            return [
                 'id' => $row->id,
                 'user' => $row->user,
                 'avatar' => $row->avatar,
@@ -1006,9 +1052,10 @@ public function destroy($id)
                 'images' => $images,
                 'helpful' => $row->helpful ?? 0,
                 'variant' => $row->variant,
-                'shopReply' => $shopReply
+                'shopReply' => $shopReply,
+                'shopId' => $row->shopId, // <-- Thêm shopId vào response
             ];
-        }
+        })->toArray();
 
         // Tính thống kê rating
         $statsRaw = DB::table('productreviews as r')
