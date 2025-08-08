@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Package, Calendar, Truck, DollarSign } from 'lucide-react'
+import Link from 'next/link';
 
 export interface OrderInfo {
   id: string
@@ -16,9 +17,9 @@ export function OrderHeader({ orderInfo }: OrderHeaderProps) {
     <div className="">
       <div className="max-w-6xl">
         <div className="flex items-center gap-4 mb-4">
-          <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+          <Link href="/account/purchase" className="p-2 rounded-sm hover:p-2 rounded-sm hover:bg-gray-100">
             <ArrowLeft className="w-5 h-5" />
-          </Button>
+          </Link>
           <h1 className="text-xl font-semibold text-gray-900">Đánh Giá Đơn Hàng</h1>
         </div>
         

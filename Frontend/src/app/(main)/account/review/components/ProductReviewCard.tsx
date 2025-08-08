@@ -7,8 +7,8 @@ import { MediaUpload } from "./MediaUpload"
 export interface ProductReview {
   rating: number
   reviewText: string
-  images: string[]
-  videos: string[]
+  images: (string | File)[]
+  videos: (string | File)[]
 }
 
 export interface Product {
@@ -37,7 +37,7 @@ export function ProductReviewCard({
   onUpdateReview,
   onSetHoverRating
 }: ProductReviewCardProps) {
-  const isCompleted = review.rating > 0 && review.reviewText.trim().length > 0
+  const isCompleted = review.rating > 0 && (typeof review.reviewText === 'string' ? review.reviewText.trim().length : 0) > 0
 
   return (
     <Card className={`transition-all duration-200 ${isCompleted ? 'review-card-completed' : 'hover:shadow-md'}`}>

@@ -45,6 +45,7 @@ services:
     volumes:
       - ./Backend:/var/www/html
       - /var/www/html/vendor
+      - ./Backend/php.ini:/usr/local/etc/php/conf.d/custom-php.ini:ro
     env_file:
       - ./Backend/.env
     environment:

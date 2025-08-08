@@ -2938,10 +2938,11 @@ namespace PHPSTORM_META {
 'logout','password.email','password.update','register.store','verification.verify',
 'verification.send','user-profile-information.update','user-password.update','password.confirmation','password.confirm.store',
 'two-factor.login.store','two-factor.enable','two-factor.confirm','two-factor.disable','two-factor.qr-code',
-'two-factor.secret-key','two-factor.recovery-codes','sanctum.csrf-cookie','verification.resend','users.index','vnpay.return','admin.reviews.index',
-'admin.reviews.stats','admin.reviews.export','admin.reviews.approve','admin.reviews.reject','admin.reviews.reply',
-'admin.reviews.delete','seller.orders.show','users.store','users.update','users.destroy',
-'storage.local',);
+'two-factor.secret-key','two-factor.recovery-codes','sanctum.csrf-cookie','verification.resend','users.index','vnpay.return',
+'admin.reviews.index','admin.reviews.stats','admin.reviews.export','admin.reviews.approve','admin.reviews.reject',
+'admin.reviews.reply','admin.reviews.delete',
+'seller.orders.show','users.store','users.update',
+'users.destroy','storage.local',);
         registerArgumentsSet('views', 
 'auth.login','emails.reset_password','emails.verify-email','pdf.shipping_label','vendor.mail.html.button',
 'vendor.mail.html.footer','vendor.mail.html.header','vendor.mail.html.layout','vendor.mail.html.message','vendor.mail.html.panel',

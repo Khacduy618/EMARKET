@@ -20,7 +20,8 @@ export type OrderStatus =
   'CancelledByBuyer' | // (từ SQL)
   'CancelledBySeller' |// (từ SQL)
   'Returned' |         // (từ SQL)
-  'ReturnInProgress'; // (từ SQL)
+  'ReturnInProgress' |// (từ SQL)
+  'Rated';
 
 // Trạng thái cho UI tab OrderHistory
 export type OrderTabStatus =

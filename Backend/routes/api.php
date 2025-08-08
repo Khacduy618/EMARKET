@@ -30,8 +30,9 @@ use App\Http\Controllers\Seller\ShopCategoryController;
 use App\Http\Controllers\VNPayController;
 use App\Http\Controllers\Admin\OrderItemController;
 use App\Http\Controllers\Admin\ProductReviewController;
-
 use App\Http\Controllers\Seller\SellerOrderController;
+
+use App\Http\Controllers\ReviewController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
@@ -96,6 +97,9 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
     ->middleware('throttle:6,1') // Chỉ cho phép 6 request mỗi phút từ 1 IP
     ->name('verification.resend'); // Đặt tên cho route
+
+
+
 
 Route::get('/csrf-init', function () {
     return response()->json(['message' => 'CSRF cookie set.']);
@@ -184,7 +188,11 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
     Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
+    
     Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
+    
+    // API lưu đánh giá sản phẩm theo đơn hàng
+    Route::post('/reviews/store', [ReviewController::class, 'store']);
 
 });
 Route::middleware('auth:sanctum')->group(function () {
