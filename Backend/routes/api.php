@@ -31,6 +31,7 @@ use App\Http\Controllers\VNPayController;
 use App\Http\Controllers\Admin\OrderItemController;
 use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\CommentController;
 
 use App\Http\Controllers\ReviewController;
 
@@ -187,7 +188,7 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
-    Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
+   
     
     Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
     
@@ -196,7 +197,15 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/reviews/{reviewId}/reply', [ReviewController::class, 'reply']);
 
+    
+
+    Route::middleware('auth:sanctum')->post('/products/{productId}/comments', [CommentController::class, 'store']);
+
 });
+
+Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
+Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
+
 Route::middleware('auth:sanctum')->group(function () {
     
     // API cho Người Mua (Buyer)

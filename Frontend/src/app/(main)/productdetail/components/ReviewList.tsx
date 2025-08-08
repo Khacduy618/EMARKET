@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button"
 import { ReviewCard } from "./ReviewCard"
 import { Review, User } from "@/types"
-import { useAuth } from "@/hooks/useAuth";
 
 
 interface ReviewListProps {

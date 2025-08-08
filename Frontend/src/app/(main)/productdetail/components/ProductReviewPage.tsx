@@ -84,6 +84,7 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
           showMoreButton={!showAll && filteredReviews.length > 10}
           onShowMore={() => setShowAll(true)}
           currentUser={user}
+          productId={productId}
           onReviewActionSuccess={fetchReviews}
         />
       </div>

@@ -16,10 +16,11 @@ interface ReviewTabsProps {
   showMoreButton?: boolean
   onShowMore?: () => void
   currentUser: User | null; 
+  productId: number; 
   onReviewActionSuccess: () => void; 
 }
 
-export function ReviewTabs({ ratingStats, reviews,currentUser, onReviewActionSuccess, selectedFilter, onFilterChange, descriptionSlot, showMoreButton, onShowMore }: ReviewTabsProps) {
+export function ReviewTabs({ ratingStats, reviews,currentUser, productId, onReviewActionSuccess, selectedFilter, onFilterChange, descriptionSlot, showMoreButton, onShowMore }: ReviewTabsProps) {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
       <Tabs defaultValue="reviews" className="space-y-6">
@@ -50,7 +51,7 @@ export function ReviewTabs({ ratingStats, reviews,currentUser, onReviewActionSuc
         </TabsContent>
 
         <TabsContent value="qa">
-          <CommentsSection />
+          <CommentsSection productId={productId} currentUser={currentUser} />
         </TabsContent>
       </Tabs>
     </div>
