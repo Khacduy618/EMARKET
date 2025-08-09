@@ -23,7 +23,7 @@ class AddressController extends Controller
         }
 
         // Sử dụng Query Builder để truy vấn bảng 'Addresses'
-        $addresses = DB::table('Addresses')
+        $addresses = DB::table('addresses')
             ->where('UserID', $user->UserID) // Lọc theo UserID của người dùng hiện tại
             ->whereNull('DeletedAt') // Chỉ lấy những địa chỉ chưa bị xóa mềm
             ->orderBy('IsDefault', 'desc') // Sắp xếp địa chỉ mặc định (IsDefault = 1) lên đầu
@@ -177,6 +177,35 @@ class AddressController extends Controller
             Log::error('Failed to set default address: ' . $e->getMessage());
             return response()->json(['message' => 'Có lỗi xảy ra, không thể cập nhật địa chỉ.'], 500);
         }
+    }
+
+    /**
+     * Xóa một địa chỉ.
+     */
+    public function destroy(Request $request, Address $address)
+    {
+        if ($request->user()->UserID !== $address->UserID) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        if ($address->IsDefault && $user->addresses()->count() <= 1) {
+            return response()->json(['message' => 'Không thể xóa địa chỉ mặc định duy nhất.'], 400);
+        }
+
+        $wasDefault = $address->IsDefault;
+        $address->delete();
+
+        if ($wasDefault) {
+            $newDefault = $user->addresses()->first();
+            if ($newDefault) {
+                $newDefault->update(['IsDefault' => true]);
+            }
+        }
+
+        return response()->noContent();
     }
 
     public function store(Request $request)

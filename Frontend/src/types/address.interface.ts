@@ -30,5 +30,12 @@ export interface Address {
     DeletedAt?: string | null;
 }
 
-
-
+export interface AddressPayload {
+    FullName: string;
+    PhoneNumber: string;
+    Street: string;
+    Ward?: string | null;
+    District: string;
+    City: string;
+    IsDefault?: boolean | number;
+}

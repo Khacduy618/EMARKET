@@ -7,6 +7,7 @@ import { Order, OrderStatus, OrderTabStatus, StatusTab } from '@/types';
 import { FaSearch, FaCalendarAlt } from 'react-icons/fa';
 import { Loader2 } from 'lucide-react';
 import { getAuthToken } from '@/services/api';
+import { getMyOrders } from '@/services/order';
 
 
 /**
@@ -44,30 +45,29 @@ export default function ProfileOrderHistory() {
     // Effect để lấy dữ liệu từ API
     useEffect(() => {
         const fetchOrders = async () => {
-            setLoading(true);
-            setError(null);
-            const token = getAuthToken();
+       try {
+    // Giả sử bạn đã tạo hàm getMyOrders() trong service
+        const responseData = await getMyOrders(); // Gọi hàm service
 
-            if (!token) {
-                setError("Vui lòng đăng nhập để xem lịch sử mua hàng.");
-                setLoading(false);
-                return;
-            }
+        // Kiểm tra xem responseData có phải là object và có thuộc tính 'data' là mảng không
+        if (responseData && Array.isArray(responseData)) {
+            setAllOrders(responseData); // CHỈ LẤY MẢNG NẰM TRONG THUỘC TÍNH `data`
+        } else if (Array.isArray(responseData)) {
+            // Trường hợp API trả về mảng trực tiếp (ít khả năng nếu có phân trang)
+            setAllOrders(responseData);
+        } else {
+            // Nếu API trả về cấu trúc không mong muốn, gán mảng rỗng để tránh lỗi
+            console.error("API did not return an array of orders:", responseData);
+            setAllOrders([]);
+    }
 
-            try {
-                const response = await fetch('/api/orders', {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Không thể tải lịch sử mua hàng.');
-                const data: Order[] = await response.json();
-                setAllOrders(data);
-                console.log("test:",response)
-            } catch (err: any) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+} catch (err: any) {
+    setError(err.message);
+    setAllOrders([]); // Khi có lỗi cũng nên reset về mảng rỗng
+} finally {
+    setLoading(false);
+}
+    };
         fetchOrders();
     }, []);
 

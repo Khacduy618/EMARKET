@@ -98,16 +98,20 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
         });
 
         try {
+            // Fetch CSRF cookie before making the POST request
+            // await axios.get('http://localhost:8001/sanctum/csrf-cookie', { withCredentials: true });
             const response = await axios.post(
                 'http://localhost:8001/api/buyer/return-requests',
                 formData,
                 {
                     headers: {
+                        'Accept': 'application/json',
                         'Authorization': `Bearer ${token}`,
+                        // Do NOT set Content-Type for FormData, browser will handle it
                     },
+                    withCredentials: true,
                 }
             );
-
             if (response.status === 201) {
                 onSuccess(response.data.message || 'Yêu cầu của bạn đã được gửi thành công!');
                 handleClose();
@@ -147,7 +151,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                                     checked={selectedItemId === item.OrderItemID}
                                     className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                                 />
-                                <Image src={getFullImageUrl(item.productImageURL)} alt={item.productName} width={64} height={64} className="h-16 w-16 object-cover rounded-md" />
+                                <img src={getFullImageUrl(item.productImageURL)} alt={item.productName} width={64} height={64} className="h-16 w-16 object-cover rounded-md" />
                                 <div className="text-sm">
                                     <p className="font-medium text-gray-900">{item.productName}</p>
                                     <p className="text-gray-500">Phân loại: {item.classification}</p>

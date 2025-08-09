@@ -46,15 +46,24 @@ class FeaturedProductController extends Controller
                 'p.Name as product_name',
                 'p.Discount as discount',
                 'p.viewCount as view_count',
-                // Subquery để lấy giá thấp nhất, giống code cũ của bạn
                 DB::raw('(SELECT MIN(pv.Price) FROM ProductVariants pv WHERE pv.ProductID = p.ProductID AND pv.IsActive = 1) as lowest_price'),
-                // Subquery để lấy ảnh chính, giống code cũ của bạn
                 DB::raw('(SELECT pi.ImageURL FROM ProductImages pi WHERE pi.ProductID = p.ProductID ORDER BY pi.IsPrimary DESC, pi.SortOrder ASC LIMIT 1) as image_url')
             )
-            ->where('p.CategoryID', $categoryId)      // Điều kiện 1: Phải cùng danh mục
-            ->where('p.ProductID', '!=', $id)         // Điều kiện 2: Phải là sản phẩm khác, không phải chính nó
-            ->where('p.IsActive', 1)                  // Các điều kiện về trạng thái sản phẩm
+            ->where('p.CategoryID', $categoryId)
+            ->where('p.ProductID', '!=', $id)
+            ->where('p.IsActive', 1)
             ->where('p.AdminApprovalStatus', 'Approved')
+
+            // <-- THAY THẾ CHO whereHas BẰNG whereExists -->
+            // Logic: Chỉ lấy sản phẩm (p) NẾU TỒN TẠI một biến thể (pv) của nó
+            // mà biến thể đó lại có một bản ghi trong bảng ProductVariantAttribute (pva)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                      ->from('ProductVariants as pv')
+                      ->join('ProductVariantAttribute as pva', 'pv.VariantID', '=', 'pva.VariantID')
+                      // Điều kiện join quan trọng: biến thể phải thuộc về sản phẩm đang xét ở truy vấn bên ngoài
+                      ->whereColumn('pv.ProductID', 'p.ProductID');
+            })
             ->orderBy('p.viewCount', 'DESC')          // Sắp xếp theo lượt xem để lấy sản phẩm hot nhất
             ->limit($limit)                           // Giới hạn số lượng kết quả
             ->get();

@@ -27,6 +27,7 @@ import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
 import { Label } from "@/components/ui/label"
 import CategoryDropDow from "./components/category-selector"
+import { getAuthToken } from "@/services/api"
 
 interface Product {
   ProductID: number
@@ -82,13 +83,13 @@ export default function ProductListPage() {
       if (filterApproval !== "all") params.set("approval_status", filterApproval)
       if (filterCategory) params.set("category_name", filterCategory)
 
-      const authToken = localStorage.getItem("authToken")
+      const authToken = getAuthToken()
       if (!authToken) {
         toast.error("Không tìm thấy token xác thực")
         return
       }
 
-      const res = await fetch(`http://localhost:8001/api/admin/products?${params.toString()}`, {
+      const res = await fetch(`http://localhost/api/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
@@ -145,13 +146,13 @@ export default function ProductListPage() {
       )
     ) {
       try {
-        const authToken = localStorage.getItem("authToken")
+        const authToken = getAuthToken()
         if (!authToken) {
           toast.error("Không tìm thấy token xác thực")
           return
         }
 
-        const res = await fetch(`http://localhost:8001/api/admin/products/${productId}/approval-status`, {
+        const res = await fetch(`http://localhost/api/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -169,7 +170,7 @@ export default function ProductListPage() {
           setProducts((prev) =>
             prev.map((p) => (p.ProductID === productId ? { ...p, AdminApprovalStatus: newStatus } : p)),
           )
-          toast.success("Cập nhật trạng thái thành công!")
+          toast.success("Cập nhật trạng thái thành công!") 
         } else {
           toast.error(json.message || "Có lỗi xảy ra")
         }
@@ -551,19 +552,6 @@ export default function ProductListPage() {
           <ProductDetailModal productId={selectedProductId} show={showModal} onHide={() => setShowModal(false)} />
         )}
       </div>
-
-      {/* Toast Container - Đã thêm phần này */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
     </>
   )
 }

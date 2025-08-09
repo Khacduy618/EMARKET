@@ -29,7 +29,7 @@
 //             setLoading(true);
 //             setError(null);
 //             try {
-//                 const response = await fetch('http://localhost:8001/api/flash-sales/active');
+//                 const response = await fetch('http://localhost/api/flash-sales/active');
 //                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 //                 const result: IHome.FlashSaleApiResponse = await response.json();
 //                 setApiData(result);
@@ -183,7 +183,7 @@
 //                                                 <div className="relative w-full aspect-square mb-2">
 //                                                     <Link href={`/products/${product.ProductID}`} passHref>
 //                                                         <p className="block w-full h-full">
-//                                                             <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost:8001/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
+//                                                             <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
 //                                                         </p>
 //                                                     </Link>
 //                                                     {/* --- BƯỚC 3.1: ẨN TAG GIẢM GIÁ NẾU DISCOUNT LÀ NULL --- */}
@@ -292,7 +292,7 @@ const FlashSaleSection: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch('http://localhost:8001/api/flash-sales/active');
+                const response = await fetch('http://localhost/api/flash-sales/active');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result: IHome.FlashSaleApiResponse = await response.json();
                 setApiData(result);
@@ -449,7 +449,7 @@ const FlashSaleSection: React.FC = () => {
                                                     <Link href={`/products/${product.ProductID}`} passHref>
                                                         {/* SỬA 3: Vô hiệu hóa click khi hết hàng */}
                                                         <div className={`block w-full h-full ${isSoldOut ? 'pointer-events-none' : ''}`}>
-                                                            <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost:8001/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
+                                                            <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
                                                         </div>
                                                     </Link>
                                                     {discountPercent > 0 && product.Discount !== null && (

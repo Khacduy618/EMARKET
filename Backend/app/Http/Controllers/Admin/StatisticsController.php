@@ -125,7 +125,8 @@ class StatisticsController extends Controller
     ]);
   }
 
-  public function getOrderByDate(Request $req) {
+  public function getOrderByDate(Request $req)
+  {
     $date = $req->input('date');
     $user = Auth::user();
 
@@ -166,7 +167,8 @@ class StatisticsController extends Controller
     return response()->json($orders);
   }
 
-  public function getOrdersByAction(Request $req) {
+  public function getOrdersByAction(Request $req)
+  {
     $user = Auth::user();
 
     $startDate = $req->startDate
@@ -228,6 +230,62 @@ class StatisticsController extends Controller
     ]);
   }
 
+  public function showOderDetail(Request $request, $id)
+  {
+    // Lấy đơn hàng
+    $order = DB::table('ordersbuyer as o')
+      ->join('users as u', 'o.UserID', '=', 'u.UserID')
+      ->join('addresses as a', 'o.ShippingAddressID', '=', 'a.AddressID')
+      ->select(
+        'o.OrderID',
+        'o.OrderCode',
+        'o.OrderDate',
+        'o.TotalAmount',
+        'o.SubtotalAmount',
+        'o.ShippingFee',
+        'o.DiscountAmount',
+        'o.PaymentMethod',
+        'o.paidAt',
+        'o.PaymentStatus',
+        'o.OverallStatus',
+        'o.ShippingFullName',
+        'o.ShippingPhoneNumber',
+        'o.Notes',
+        'u.FullName as BuyerName',
+        'u.Email as BuyerEmail',
+        DB::raw("CONCAT_WS(', ', a.Street, a.Ward, a.District, a.City) as ShippingAddress")
+      )
+      ->where('o.OrderID', $id)
+      ->first();
+
+
+    if (!$order) {
+      return response()->json(['message' => 'Order not found'], 404);
+    }
+
+    // Lấy các sản phẩm trong đơn hàng
+    $items = DB::table('orderitems as oi')
+      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+      ->select(
+        'oi.OrderItemID',
+        'p.Name as ProductName',
+        'pv.SKU',
+        'pv.ImageURL',
+        'oi.Quantity',
+        'oi.PriceAtPurchase',
+        'oi.Subtotal',
+        'oi.IsFlashSaleItem',
+        'oi.ReturnStatus'
+      )
+      ->where('oi.OrderID', $id)
+      ->get();
+
+    return response()->json([
+      'order' => $order,
+      'items' => $items
+    ]);
+  }
 
 
 }

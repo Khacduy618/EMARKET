@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import Link from "next/link";
+import { getAuthToken } from "@/services/api"
 
 type OrderAction = "orderCompleted" | "orderReturn" | "orderCancel"
 
@@ -86,11 +88,11 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
         limit: pageSize.toString(),
       })
 
-      const response = await fetch(`http://localhost:8001/api/seller/statistics/orders?${params}`, {
+      const response = await fetch(`http://localhost/api/seller/statistics/orders?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
       console.log(response);
@@ -187,7 +189,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                       <TableHead>Khách hàng</TableHead>
                       <TableHead>Số sản phẩm</TableHead>
                       <TableHead>Tổng tiền</TableHead>
-                      <TableHead>Trạng thái 88</TableHead>
+                      <TableHead>Trạng thái</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -205,7 +207,9 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                             {(currentPage - 1) * pageSize + index + 1}
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium text-blue-600">#{order.OrderID}</div>
+                            <Link href={`/seller/statistics/${order.OrderID}`} className="flex items-center space-x-2 text-sm text-blue-600 hover:underline">
+                              <span className="text-blue-600 font-bold">#{order.OrderID}</span>
+                            </Link>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -228,7 +232,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                             
+
                               <span className="font-bold text-green-600">{formatVND(order.TotalAmount)}</span>
                             </div>
                           </TableCell>

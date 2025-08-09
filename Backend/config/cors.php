@@ -1,37 +1,62 @@
 <?php
+//
+// return [
+//
+//     /*
+//     |--------------------------------------------------------------------------
+//     | Cross-Origin Resource Sharing (CORS) Configuration
+//     |--------------------------------------------------------------------------
+//     |
+//     | Here you may configure your settings for cross-origin resource sharing
+//     | or "CORS". This determines what cross-origin operations may execute
+//     | in web browsers. You are free to adjust these settings as needed.
+//     |
+//     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+//     |
+//     */
+//
+//     'paths' => ['api/*', 'sanctum/csrf-cookie'],
+//
+//     'allowed_methods' => ['*'],
+//
+//     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS')), // Đọc từ .env
+//
+//     'allowed_origins_patterns' => [],
+//
+//     'allowed_headers' => ['*'],
+//
+//     'exposed_headers' => [],
+//
+//     'max_age' => 0,
+//
+//     'supports_credentials' => true,
+//
+// ];
+
+
 
 return [
-
     /*
-    |--------------------------------------------------------------------------
-    | Cross-Origin Resource Sharing (CORS) Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Cross-Origin Resource Sharing (CORS) Configuration
+     |--------------------------------------------------------------------------
+     |
+     | Here you may configure your settings for cross-origin resource sharing
+     | or "CORS". This determines what cross-origin operations may execute
+     | in web browsers. You are free to adjust these settings as needed.
+     |
+     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+     |
+     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
-
+    // THAY ĐỔI DÒNG NÀY THÀNH ['*']
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'register', '*'],
     'allowed_methods' => ['*'],
-
-    'allowed_origins' => [
-        'http://localhost:3000', // <-- Địa chỉ frontend
-    ],
-    'allowed_origins' => ['*'],
-
+    'allowed_origins' => ['http://localhost:3000', 'http://localhost'],
     'allowed_origins_patterns' => [],
-
     'allowed_headers' => ['*'],
-
     'exposed_headers' => [],
-
     'max_age' => 0,
-
-    'supports_credentials' => true, // <-- Cho phép gửi cookie, cần nếu bạn dùng login Sanctum
+    'supports_credentials' => true,
 
 ];

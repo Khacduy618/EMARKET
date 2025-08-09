@@ -53,6 +53,13 @@
 // interface RelatedItemsProps {
 //     currentProductId: number;
 // }
+// 'use client';
+
+
+// import React, { useState, useEffect } from 'react';
+// import axios from 'axios';
+// import ProductCard, { type Product } from './ProductCard'; // Import cả Component và Type
+// import { Loader2 } from 'lucide-react';
 
 // const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
 //     const [products, setProducts] = useState<ProductForCard[]>([]); // <<<--- State dùng kiểu dữ liệu của Card
@@ -146,6 +153,7 @@ import axios from 'axios';
 import ProductCard, { type Product } from './ProductCard'; // Import cả Component và Type
 import { Loader2 } from 'lucide-react';
 
+
 /**
  * Hàm tiện ích để "dọn dẹp" URL ảnh bị lỗi từ API.
  * Nó sẽ cắt bỏ phần `http://localhost/storage/` thừa.
@@ -164,17 +172,20 @@ interface RelatedItemsProps {
     currentProductId: number;
 }
 
+
 const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
     // === SỬA ĐỔI 1: SỬ DỤNG TYPE PRODUCT ĐÃ IMPORT ===
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+
     useEffect(() => {
         if (!currentProductId) {
             setLoading(false);
             return;
         }
+
 
         const fetchRelatedProducts = async () => {
             setLoading(true);
@@ -193,7 +204,9 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
                     imageUrl: cleanImageUrl(product.imageUrl),
                 }));
 
+
                 setProducts(cleanedProducts);
+
 
             } catch (err) {
                 console.error("Lỗi khi gọi API sản phẩm liên quan:", err);
@@ -203,11 +216,9 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
             }
         };
 
+
         fetchRelatedProducts();
     }, [currentProductId]);
-
-    // --- Phần hiển thị JSX được giữ nguyên ---
-
     if (loading) {
         return (
             <section className="flex justify-center items-center py-20">
@@ -215,6 +226,7 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
             </section>
         );
     }
+
 
     if (error) {
         return (
@@ -224,9 +236,11 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
         );
     }
 
+
     if (products.length === 0) {
         return null;
     }
+
 
     return (
         <section className="max-w-screen-xl mx-auto px-4 py-12">
@@ -243,4 +257,6 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
     );
 };
 
+
 export default RelatedItems;
+

@@ -389,13 +389,14 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
       {/* Header trang chi tiết */}
       <div className="bg-white py-4 px-6 rounded-sm border-b border-gray-100 shadow-sm">
         <div className="container mx-auto max-w-6xl flex justify-between items-center">
-          <Link href="/purchase" className="flex items-center text-gray-600 hover:text-orange-500 text-sm">
+          <Link href="/account/purchase" className="flex items-center text-gray-600 hover:text-orange-500 text-sm">
             <FaChevronLeft className="mr-2" /> TRỞ LẠI
           </Link>
           <div className="flex items-center text-gray-800 text-sm font-semibold">
             <span className="mr-4">MÃ ĐƠN HÀNG. {order.OrderCode}</span>
             <span className="text-orange-500 uppercase">
-              {order.OverallStatus === 'Completed' ? 'ĐÃ HOÀN THÀNH' :
+              {order.OverallStatus === 'Rated' ? 'ĐÃ ĐÁNH GIÁ' :
+              order.OverallStatus === 'Completed' ? 'ĐÃ HOÀN THÀNH' :
                 order.OverallStatus === 'Shipped' ? 'ĐANG GIAO HÀNG' :
                   order.OverallStatus === 'Delivered' ? 'ĐÃ GIAO HÀNG' :
                     order.OverallStatus === 'Pending' ? 'CHỜ XÁC NHẬN' :
@@ -435,9 +436,12 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
               </div>
               <div className="flex flex-col gap-2 ml-4 flex-shrink-0">
                 {isDeliveredOrCompleted && (
-                  <button className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors">
+                  <Link 
+                    href={`/account/review?orderId=${order.OrderID}`}
+                    className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
+                  >
                     Đánh Giá
-                  </button>
+                  </Link>
                 )}
                 {isDeliveredOrCompleted && (
                   <button
@@ -559,11 +563,6 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
         order={order}
       />
 
-      <RefundRequestFormModal
-        isOpen={isRefundModalOpen}
-        onClose={handleCloseAllModals}
-        order={order}
-      />
 
       {/* Nút Chat cố định */}
       <Link href="https://shopee.vn/chat" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 right-4 bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors flex items-center justify-center z-30 w-16 h-16">

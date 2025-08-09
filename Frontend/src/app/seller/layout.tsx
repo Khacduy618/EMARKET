@@ -5,6 +5,7 @@ import  Sidebar  from "./components/Sidebar";
 import  Header  from "./components/Header";
 
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import RoleGuard from "../components/auth/RoleGuard";
 
 
 export default function SellerLayout({
@@ -16,7 +17,8 @@ export default function SellerLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Sidebar */}
+      <RoleGuard allowedRoles = {['Seller']}>
+        {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="p-0 w-64 h-350">
           <Sidebar />
@@ -36,6 +38,8 @@ export default function SellerLayout({
         {/* Main Content */}
         <main className="p-4">{children}</main>
       </div>
+      </RoleGuard>
+
     </div>
   )
 }

@@ -17,15 +17,83 @@ use App\Models\Voucher;
 use App\Models\UserVoucher;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use App\Notifications\ResetPasswordNotification;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable;
+
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
     protected $keyType = 'int';
     public $incrementing = true;
+    public $timestamps = false;
+
+
+    protected $appends = [
+        'two_factor_enabled',
+    ];
+
+    // Override timestamp names:
     const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
+
+    public const ROLES = ['Buyer', 'Seller', 'Admin'];
+    public const LEVELS = ['Đồng', 'Bạc', 'Vàng', 'Bạch kim', 'Kim cương'];
+
+    // Đảm bảo dùng đúng cột Password để auth
+    public function getAuthPassword()
+    {
+        return $this->Password;
+    }
+
+    // Laravel Fortify gửi email xác nhận đến cột Email
+    public function getEmailForVerification()
+    {
+        return $this->Email;
+    }
+
+    // public function sendEmailVerificationNotification()
+    // {
+    //     $this->notify(new VerifyEmail());
+    // }
+
+    public function routeNotificationForMail($notification)
+    {
+        return $this->Email;
+    }
+
+    public function getEmailForPasswordReset(): string
+    {
+        // Trả về giá trị từ cột 'Email' (chữ E viết hoa) của bạn
+        return $this->Email;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    // Normalize email: lowercase để login không bị sai
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['Email'] = strtolower($value);
+    }
+
+    public function getEmailAttribute($value)
+    {
+        return strtolower($value);
+    }
+
+    protected function twoFactorEnabled(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return new \Illuminate\Database\Eloquent\Casts\Attribute(
+            get: fn () => ! empty($this->two_factor_secret) && ! empty($this->two_factor_confirmed_at),
+        );
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -52,7 +120,9 @@ class User extends Authenticatable
     protected $hidden = [
         'Password',
         'remember_token',
-        'Token', // Hide the API token
+        'Token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -64,10 +134,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime', // Keep if email verification is used
-            'Password' => 'hashed',
+            // 'Password' => 'hashed',
             'IsActive' => 'boolean',
             'Level' => 'string', // Cast enums to string
             'Role' => 'string',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 
@@ -98,10 +169,10 @@ class User extends Authenticatable
     /**
      * Get the shops owned by the user.
      */
-    public function shops(): HasMany
-    {
-        return $this->hasMany(Shop::class, 'UserID', 'UserID');
-    }
+    public function shop(): HasOne
+{
+    return $this->hasOne(Shop::class, 'UserID', 'UserID');
+}
 
     /**
      * Get the orders placed by the user.
@@ -116,7 +187,7 @@ class User extends Authenticatable
      */
     public function productReviews(): HasMany
     {
-        return $this->hasMany(ProductReview::class, 'UserID', 'UserID');
+        return $this->hasMany(Review::class, 'UserID', 'UserID');
     }
 
     /**
@@ -148,13 +219,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(ConversationMeta::class, 'user_id', 'UserID');
     }
-    public function getAuthPassword()
-{
-    return $this->Password;
-}
-
-public function getAuthIdentifierName()
-{
-    return 'Email';
-}
 }

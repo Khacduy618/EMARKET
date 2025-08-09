@@ -20,7 +20,8 @@ export type OrderStatus =
   'CancelledByBuyer' | // (từ SQL)
   'CancelledBySeller' |// (từ SQL)
   'Returned' |         // (từ SQL)
-  'ReturnInProgress'; // (từ SQL)
+  'ReturnInProgress' |// (từ SQL)
+  'Rated';
 
 // Trạng thái cho UI tab OrderHistory
 export type OrderTabStatus =
@@ -283,3 +284,10 @@ export const formatDateTime = (dateString: Date) => {
         timeOnly: formattedTime,
     };
 };
+
+export interface PaginatedOrders {
+  data: Order[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}

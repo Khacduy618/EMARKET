@@ -29,6 +29,7 @@ import { CalendarItem } from "./CalenderItem"
 import type { TimeRange } from "@/types/analytics"
 import { format } from "date-fns"
 import type { summaryDataChart } from "@/types/analytics"
+import { getAuthToken } from "@/services/api"
 
 const formatVND = (amount: number): string => new Intl.NumberFormat("vi-VN").format(amount)
 const formatVND2 = (amount: number): string =>
@@ -125,11 +126,11 @@ export default function ComponentRevenue() {
     if (!startDate || !endDate) return
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:8001/api/seller/statistics?${params}`, {
+      const res = await fetch(`http://localhost/api/seller/statistics?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       })
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)

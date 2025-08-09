@@ -15,6 +15,24 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class ProductController extends Controller
 {
     /**
+     * Cập nhật helpful cho review
+     * Route: POST /api/review/{id}/helpful
+     */
+    public function updateReviewHelpful(Request $request, $id): JsonResponse
+    {
+        $value = $request->input('value');
+        if (!in_array($value, [1, -1])) {
+            return response()->json(['success' => false, 'message' => 'Giá trị không hợp lệ'], 400);
+        }
+        $review = DB::table('productreviews')->where('ReviewID', $id)->first();
+        if (!$review) {
+            return response()->json(['success' => false, 'message' => 'Không tìm thấy review'], 404);
+        }
+        $newHelpful = max(0, ($review->HelpFul ?? 0) + $value);
+        DB::table('productreviews')->where('ReviewID', $id)->update(['HelpFul' => $newHelpful]);
+        return response()->json(['success' => true, 'helpful' => $newHelpful]);
+    }
+    /**
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
@@ -487,6 +505,7 @@ public function destroy($id)
                 'Variants' => fn($query) => $query->where('IsActive', 1)->orderBy('Price', 'asc'),
                 'primaryImage'
             ])
+            ->whereHas('variants.attributeValues') // Chỉ lấy sản phẩm có biến thể với thuộc tính
             ->inRandomOrder()
             ->take(4)
             ->get();
@@ -810,5 +829,262 @@ public function destroy($id)
         }
 
         return $availableOptions;
+    }
+
+    /**
+     * Lấy danh sách các biến thể sản phẩm và các tùy chọn thuộc tính khả dụng dựa trên các lựa chọn hiện tại.
+     *
+     * @param Request $request
+     * @param int $productId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function filterVariants(Request $request, $productId)
+    {
+        $selectedAttributeValueIds = explode(',', $request->query('attribute_values', ''));
+        // Loại bỏ các giá trị rỗng và chuyển sang kiểu int
+        $selectedAttributeValueIds = array_filter(array_map('intval', $selectedAttributeValueIds));
+        $numSelectedAttributes = count($selectedAttributeValueIds);
+
+        // 1. Lấy tất cả các VariantID hợp lệ (active, in_stock) cho sản phẩm này
+        // Đây là base set để tìm kiếm
+        $baseValidVariantIds = ProductVariant::where('ProductID', $productId)
+            ->where('IsActive', 1)
+            ->where('StockQuantity', '>', 0)
+            ->pluck('VariantID')
+            ->toArray();
+
+        if (empty($baseValidVariantIds)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'No active or in-stock variants found for this product.',
+                'data' => [
+                    'selected_product_id' => $productId,
+                    'current_selected_attribute_value_ids' => $selectedAttributeValueIds,
+                    'matching_variants_count' => 0,
+                    'exact_matched_variant' => null,
+                    'available_attributes_options' => []
+                ]
+            ]);
+        }
+
+        // 2. Tìm các VariantID khớp với TẤT CẢ các AttributeValueID đã chọn
+        $query = DB::table('ProductVariants AS PV')
+            ->select('PV.VariantID')
+            ->join('ProductVariantAttribute AS PVA', 'PV.VariantID', '=', 'PVA.VariantID')
+            ->where('PV.ProductID', $productId)
+            ->where('PV.IsActive', 1)
+            ->where('PV.StockQuantity', '>', 0);
+
+        if ($numSelectedAttributes > 0) {
+            $query->whereIn('PVA.AttributeValueID', $selectedAttributeValueIds)
+                ->groupBy('PV.VariantID')
+                ->havingRaw('COUNT(DISTINCT PVA.AttributeValueID) = ?', [$numSelectedAttributes]);
+        } else {
+            // Nếu không có thuộc tính nào được chọn, tất cả baseValidVariantIds đều là "matching_variants"
+            $query->whereIn('PV.VariantID', $baseValidVariantIds);
+        }
+
+        $matchingVariantIds = $query->pluck('VariantID')->toArray();
+
+        // Chuẩn bị dữ liệu trả về
+        $exactMatchedVariant = null;
+
+        if (empty($matchingVariantIds)) {
+            // Không tìm thấy biến thể nào khớp với các lựa chọn hiện tại
+            $matchingVariantsCount = 0;
+            $availableAttributesOptions = $this->getAvailableAttributeOptions(
+                $productId,
+                $baseValidVariantIds, // Vẫn dựa vào các variant ban đầu để hiển thị các tùy chọn cơ bản
+                $selectedAttributeValueIds
+            );
+        } else {
+            // Lấy thông tin chi tiết của các biến thể khớp
+            $matchingVariants = ProductVariant::with(['attributeValues.attribute'])
+                ->whereIn('VariantID', $matchingVariantIds)
+                ->get();
+
+            $matchingVariantsCount = $matchingVariants->count();
+
+            // Nếu chỉ có một biến thể khớp duy nhất và tất cả thuộc tính của nó đã được chọn
+            if ($matchingVariantsCount === 1) {
+                $variant = $matchingVariants->first();
+                $variantAttributeValueIds = $variant->attributeValues->pluck('AttributeValueID')->toArray();
+
+                // Kiểm tra xem tất cả các thuộc tính của variant đó có nằm trong selectedAttributeValueIds không
+                // Điều này có nghĩa là người dùng đã chọn đầy đủ các thuộc tính để xác định một variant duy nhất
+                if (count($selectedAttributeValueIds) === count($variantAttributeValueIds) &&
+                    empty(array_diff($selectedAttributeValueIds, $variantAttributeValueIds)) &&
+                    empty(array_diff($variantAttributeValueIds, $selectedAttributeValueIds))) {
+                    $exactMatchedVariant = [
+                        'variant_id' => $variant->VariantID,
+                        'product_id' => $variant->ProductID,
+                        'sku' => $variant->SKU,
+                        'price' => $variant->Price,
+                        'compare_at_price' => $variant->CompareAtPrice,
+                        'stock_quantity' => $variant->StockQuantity,
+                        'image_url' => $variant->ImageURL,
+                        'attributes_display' => $variant->attributeValues->map(function($av) {
+                            return [
+                                'attribute_id' => $av->AttributeID,
+                                'name' => $av->attribute->Name,
+                                'value_id' => $av->AttributeValueID,
+                                'value' => $av->Value
+                            ];
+                        })
+                    ];
+                }
+            }
+
+            // Lấy các tùy chọn thuộc tính khả dụng dựa trên CÁC BIẾN THỂ CÒN LẠI SAU KHI LỌC
+            $availableAttributesOptions = $this->getAvailableAttributeOptions(
+                $productId,
+                $matchingVariantIds, // Giờ đây chỉ dựa vào các variant đã khớp
+                $selectedAttributeValueIds
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product variants and available options retrieved successfully.',
+            'data' => [
+                'selected_product_id' => $productId,
+                'current_selected_attribute_value_ids' => $selectedAttributeValueIds,
+                'matching_variants_count' => $matchingVariantsCount,
+                'exact_matched_variant' => $exactMatchedVariant,
+                'available_attributes_options' => $availableAttributesOptions
+            ]
+        ]);
+    }
+
+    /**
+     * Lấy danh sách review của một sản phẩm
+     * Route: GET /api/product/{productId}/reviews
+     */
+    public function getProductReviews($productId): JsonResponse
+    {
+        // Lấy tất cả review của sản phẩm
+
+        // $reviewsRaw = DB::table('productreviews as r')
+        //     ->join('users as u', 'r.UserID', '=', 'u.UserID')
+        //     ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+        //     ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+        //     ->where('p.ProductID', $productId)
+        //     ->select(
+        //         'r.ReviewID as id',
+        //         'u.FullName as user',
+        //         'u.Avatar as avatar',
+        //         'r.Rating as rating',
+        //         'r.Comment as content',
+        //         'r.CreatedAt as date',
+        //         'v.SKU as variant',
+        //         'r.ReviewImages as images',
+        //         'r.HelpFul as helpful',
+        //         'r.ShopReply as shopReply'
+        //     )
+        //     ->orderByDesc('r.CreatedAt')
+        //     ->get();
+
+        // $reviewsArr = [];
+        // foreach ($reviewsRaw as $row) {
+        //     $images = [];
+        //     if ($row->images) {
+        //         $images = json_decode($row->images, true) ?? [];
+        //     }
+        //     $shopReply = null;
+        //     if ($row->shopReply) {
+        //         $shopReply = [
+        //             'content' => $row->shopReply,
+        //             'date' => $row->date // Nếu có trường riêng cho ngày reply thì thay thế
+        //         ];
+        //     }
+        //     $reviewsArr[] = [
+        //         'id' => $row->id,
+        //         'user' => $row->user,
+        //         'avatar' => $row->avatar,
+        //         'rating' => $row->rating,
+        //         'date' => $row->date,
+        //         'content' => $row->content,
+        //         'images' => $images,
+        //         'helpful' => $row->helpful ?? 0,
+        //         'variant' => $row->variant,
+        //         'shopReply' => $shopReply
+        //     ];
+        // }
+        $reviewsRaw = DB::table('productreviews as r')
+        ->join('users as u', 'r.UserID', '=', 'u.UserID')
+        ->join('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+        // Thêm join vào bảng products để đảm bảo chỉ lấy review của đúng sản phẩm
+        ->join('products as p', 'v.ProductID', '=', 'p.ProductID')
+        ->where('p.ProductID', $productId)
+        ->select(
+            'r.ReviewID as id',
+            'u.FullName as user',
+            'u.Avatar as avatar',
+            'r.Rating as rating',
+            'r.Comment as content',
+            'r.CreatedAt as date',
+            'v.SKU as variant', // Lấy SKU làm tên variant
+            'r.ReviewImages as images',
+            'r.HelpFul as helpful',
+            'r.ShopReply as shopReplyContent', // Đổi tên để tránh nhầm lẫn
+            'r.UpdatedAt as shopReplyDate', // Giả sử UpdatedAt là ngày shop trả lời
+            'p.ShopID as shopId' // <-- Lấy ShopID từ bảng products
+        )
+        ->orderByDesc('r.CreatedAt')
+        ->get();
+
+        $reviewsArr = $reviewsRaw->map(function ($row) {
+            $images = json_decode($row->images, true) ?? [];
+            $shopReply = null;
+            if ($row->shopReplyContent) {
+                $shopReply = [
+                    'content' => $row->shopReplyContent,
+                    'date' => $row->shopReplyDate 
+                ];
+            }
+            return [
+                'id' => $row->id,
+                'user' => $row->user,
+                'avatar' => $row->avatar,
+                'rating' => $row->rating,
+                'date' => $row->date,
+                'content' => $row->content,
+                'images' => $images,
+                'helpful' => $row->helpful ?? 0,
+                'variant' => $row->variant,
+                'shopReply' => $shopReply,
+                'shopId' => $row->shopId, // <-- Thêm shopId vào response
+            ];
+        })->toArray();
+
+        // Tính thống kê rating
+        $statsRaw = DB::table('productreviews as r')
+            ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+            ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+            ->where('p.ProductID', $productId)
+            ->selectRaw('AVG(r.Rating) as average, COUNT(*) as total')
+            ->first();
+
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $count = DB::table('productreviews as r')
+                ->leftJoin('productvariants as v', 'r.VariantID', '=', 'v.VariantID')
+                ->leftJoin('products as p', 'v.ProductID', '=', 'p.ProductID')
+                ->where('p.ProductID', $productId)
+                ->where('r.Rating', $i)
+                ->count();
+            $distribution[$i] = $statsRaw->total ? round($count * 100 / $statsRaw->total) : 0;
+        }
+
+        $ratingStats = [
+            'average' => round($statsRaw->average ?? 0, 1),
+            'total' => $statsRaw->total,
+            'distribution' => $distribution,
+        ];
+
+        return response()->json([
+            'reviews' => $reviewsArr,
+            'ratingStats' => $ratingStats,
+        ]);
     }
 }

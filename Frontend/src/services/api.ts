@@ -1,14 +1,22 @@
-import { Product, ProductVariant,ProductImage } from "@/types";
+import { ProductVariant,ProductImage } from "@/types";
+import { getCookie } from "./auth";
 
-export const API_BASE_URL = 'http://localhost:8001/api';
-
+export const API_BASE_URL = 'http://localhost/api';
+export const BASE_URL = 'http://localhost';
 interface ProductWithImages {
     images?: ProductImage[] | null;
 }
 
 export const getAuthToken = (): string | null => {
-    // Get token from localStorage
-    return localStorage.getItem('authToken');
+    
+    const xsrfToken = getCookie('XSRF-TOKEN');
+
+        if (!xsrfToken) {
+            // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
+            console.warn('CSRF token not found in cookies.');
+            return '';
+        }
+        return decodeURIComponent(xsrfToken);
 };
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
@@ -110,7 +118,7 @@ export const getFullImageUrl = (relativePath: string | null | undefined): string
 
     // Xây dựng đường dẫn đúng mà server có thể hiểu
     const path = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
-    return `/storage/${path}`;
+    return `${BASE_URL}/storage/${path}`;
 };
 
 // export const getPrimaryImage = (product: ProductWithImages): string => {

@@ -636,7 +636,7 @@ import Link from 'next/link';
 import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
 
 import { Order, OrderStatus } from '@/types';
-import { getFullImageUrl } from '@/services/api';
+import { getAuthToken, getFullImageUrl } from '@/services/api';
 import ReturnRequestModal from './modals/ReturnRequestModal'; // 1. Import component modal trả hàng
 
 // --- Helper Functions ---
@@ -668,16 +668,25 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
   useEffect(() => {
     // 1. SỬA LẠI KEY TẠI ĐÂY
     // Dùng đúng key 'authToken' như trong Local Storage của bạn
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     setAuthToken(token);
   }, []);
 
   const handleReturnSuccess = (message: string) => {
     alert(message);
     setIsReturnModalOpen(false);
+    window.location.reload();
   };
   const renderDeliveryStatus = (status: OrderStatus) => {
     switch (status) {
+      case 'Rated':
+        return (
+          <div className="flex items-center text-green-600 font-semibold text-xs">
+            <FaTruckFast className="mr-1 text-sm" /> Đã đánh giá{' '}
+            <FaCircleQuestion className="ml-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết đánh giá" />
+            <span className="ml-2 pl-2 border-l border-gray-300 text-green-600 uppercase">ĐÃ ĐÁNH GIÁ</span>
+          </div>
+        );
       case 'Completed':
         return (
           <div className="flex items-center text-green-600 font-semibold text-xs">
@@ -730,40 +739,37 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
   };
 
   return (
-    <>
-      <Link href={`/purchase/${order.OrderID}`} passHref className="block">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 cursor-pointer hover:shadow-md transition-shadow duration-200">
-          {/* Shop Header */}
-          <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              {order.shopLevel === 'Mall' && (
-                <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>
-              )}
-              {order.shopLevel === 'Favorite' && (
-                <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>
-              )}
-              <h3 className="font-semibold text-gray-800 text-sm">{order.shopName}</h3>
-              <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors" onClick={(e) => e.preventDefault()}>
-                <FaCommentDots className="mr-1 text-sm" /> Chat
-              </button>
-              <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors" onClick={(e) => e.preventDefault()}>
-                <FaStore className="mr-1 text-sm" /> Xem Shop
-              </button>
-            </div>
-            {renderDeliveryStatus(order.OverallStatus)}
+    // Wrap the entire card in a Link component
+     <>
+      {/* GHI CHÚ: Thẻ bao ngoài cùng bây giờ là <div>, không phải <Link> nữa */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 transition-shadow duration-200">
+        {/* Shop Header */}
+        <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            {order.shopLevel === 'Mall' && (
+              <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>
+            )}
+            {order.shopLevel === 'Favorite' && (
+              <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>
+            )}
+            <h3 className="font-semibold text-gray-800 text-sm">{order.shopName}</h3>
+            {/* GHI CHÚ: Đã xóa onClick={(e) => e.preventDefault()} vì không còn cần thiết */}
+            <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
+              <FaCommentDots className="mr-1 text-sm" /> Chat
+            </button>
+            <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
+              <FaStore className="mr-1 text-sm" /> Xem Shop
+            </button>
           </div>
+          {renderDeliveryStatus(order.OverallStatus)}
+        </div>
 
-          {/* Product Details Section */}
+        {/* GHI CHÚ: Chỉ bọc phần danh sách sản phẩm bằng <Link> để điều hướng đến trang chi tiết */}
+        <Link href={`/account/purchase/${order.OrderID}`} className="block cursor-pointer hover:bg-gray-50/50">
           {order.items.map((item, index) => (
             <div key={item.OrderItemID} className={`flex items-start px-4 py-3 ${index < order.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
               <div className="flex-shrink-0 w-14 h-14 relative mr-3 border border-gray-200 rounded-md overflow-hidden">
-                <Image
-                  src={getFullImageUrl(item.productImageURL)}
-                  alt={item.productName}
-                  width={56}
-                  height={56}
-                  className="object-cover w-full h-full"
-                />
+                <img src={getFullImageUrl(item.productImageURL)} alt={item.productName} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 flex flex-col">
                 <p className="font-semibold text-gray-800 text-sm leading-tight mb-0.5">{item.productName}</p>
@@ -778,46 +784,47 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
               </div>
             </div>
           ))}
+        </Link>
 
-          {/* Total Amount */}
-          <div className="flex justify-end items-center px-4 pt-3 pb-3 border-t border-gray-100">
-            <span className="text-gray-700 text-sm mr-3">Thành tiền:</span>
-            <span className="text-xl font-bold text-orange-500">{formatVND(order.TotalAmount)}</span>
-          </div>
+        {/* Total Amount */}
+        <div className="flex justify-end items-center px-4 pt-3 pb-3 border-t border-gray-100">
+          <span className="text-gray-700 text-sm mr-3">Thành tiền:</span>
+          <span className="text-xl font-bold text-orange-500">{formatVND(order.TotalAmount)}</span>
+        </div>
 
-          {/* Action Buttons Section */}
-          <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col items-end">
-            {order.OverallStatus === 'Completed' && order.items.some(item => item.canReview) && (
+        {/* Action Buttons Section - Bây giờ các nút/link ở đây hoàn toàn hợp lệ */}
+        <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col items-end">
+          {order.OverallStatus === 'Completed' && order.items.some(item => item.canReview) && (
+            <div className="w-full text-right">
+              <p className="text-xs text-gray-500 mb-1">
+                Đánh giá sản phẩm trước{' '}
+                <span className="text-blue-500">{formatDate(order.items[0]?.reviewDeadline || '')}</span>
+              </p>
+              <p className="text-xs text-gray-500 mb-3">
+                Đánh giá ngay và nhận{' '}
+                <span className="text-orange-500">{order.items[0]?.reviewReward || 0} Xu</span>
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-end w-full">
+            {order.OverallStatus === 'Completed' && (
               <>
-                <p className="text-xs text-gray-500 mb-1">
-                  Đánh giá sản phẩm trước{' '}
-                  <span className="text-blue-500">{formatDate(order.items[0]?.reviewDeadline || '')}</span>
-                </p>
-                <p className="text-xs text-gray-500 mb-3">
-                  Đánh giá ngay và nhận{' '}
-                  <span className="text-orange-500">{order.items[0]?.reviewReward || 0} Xu</span>
-                </p>
-              </>
-            )}
-
-            <div className="flex gap-2 justify-end w-full">
-              {order.OverallStatus === 'Completed' && (
-                <>
-                  {order.items.some(item => item.canReview) && (
-                    <button className="bg-orange-500 text-white px-4 py-1.5 rounded-md font-semibold text-xs hover:bg-orange-600 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                      Đánh Giá
-                    </button>
-                  )}
-                  {/* 3. Cập nhật onClick cho nút Yêu Cầu Trả Hàng/Hoàn Tiền */}
-                  <button
-                    className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsReturnModalOpen(true);
-                    }}
+                {/* GHI CHÚ: Link này bây giờ hợp lệ vì không còn lồng trong link khác */}
+                {order.items.some(item => item.canReview) && (
+                  <Link
+                    href={`/account/review?orderId=${order.OrderID}`}
+                    className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
                   >
-                    Yêu Cầu Trả Hàng/Hoàn Tiền
-                  </button>
+                    Đánh Giá
+                  </Link>
+                )}
+                <button
+                  className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0"
+                  onClick={() => setIsReturnModalOpen(true)}
+                >
+                  Yêu Cầu Trả Hàng
+                </button>
                   <div className="relative">
                     <button
                       className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"
@@ -862,10 +869,9 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
             </div>
           </div>
         </div>
-      </Link>
-
-      {/* 4. Render Modal tại đây, nó sẽ chỉ hiển thị khi state isReturnModalOpen là true */}
-      {isReturnModalOpen && authToken && (
+       {/* 4. Render Modal tại đây, nó sẽ chỉ hiển thị khi state isReturnModalOpen là true */}
+      <div className="z-50">
+        {isReturnModalOpen && authToken && (
         <ReturnRequestModal
           isOpen={isReturnModalOpen}
           onClose={() => setIsReturnModalOpen(false)}
@@ -874,6 +880,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
           token={authToken}
         />
       )}
+      </div>
     </>
   );
 };

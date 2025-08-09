@@ -4,38 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
+use App\Models\Address;
+use App\Models\OrderItem;
+use App\Models\UserVoucher;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property int $OrderID
- * @property string $OrderCode
- * @property int $UserID
- * @property string $OrderDate
- * @property int $TotalAmount
- * @property int $SubtotalAmount
- * @property int $ShippingFee
- * @property int $DiscountAmount
- * @property int $ShippingAddressID
- * @property string $ShippingFullName
- * @property string $ShippingPhoneNumber
- * @property string|null $Notes
- * @property string $PaymentMethod
- * @property string $PaymentStatus
- * @property string $OverallStatus
- * @property string|null $PlatformVoucherCode
- * @property float $PlatformDiscountAmount
- */
 class OrderBuyer extends Model
 {
-    // use HasFactory, SoftDeletes;
     use HasFactory;
 
-    protected $table = 'ordersbuyer';
+    protected $table = 'OrdersBuyer';
+
     protected $primaryKey = 'OrderID';
-        const CREATED_AT = 'CreatedAt';
+    public $timestamps = false;
+
+    /**
+     * Tên của các cột timestamp.
+     */
+    const CREATED_AT = 'CreatedAt';
     const UPDATED_AT = 'UpdatedAt';
+
     protected $fillable = [
         'OrderCode',
         'UserID',
@@ -57,19 +48,26 @@ class OrderBuyer extends Model
 
     protected $casts = [
         'OrderDate' => 'datetime',
+        'CreatedAt' => 'datetime',
+        'UpdatedAt' => 'datetime',
+        'PaymentMethod' => 'string',
+        'TotalAmount' => 'float',
+        'SubtotalAmount' => 'float',
+        'ShippingFee' => 'float',
+        'DiscountAmount' => 'float',
+        'PaymentStatus' => 'string',
+        'OverallStatus' => 'string',
         'PlatformDiscountAmount' => 'float',
     ];
 
-    /**
-     * Get the customer who placed the order.
-     */
-    public function user(): BelongsTo
+    // Mối quan hệ với bảng users
+    public function user()
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
 
     /**
-     * Get the shipping address for the order.
+     * Địa chỉ giao hàng.
      */
     public function shippingAddress(): BelongsTo
     {
@@ -77,10 +75,18 @@ class OrderBuyer extends Model
     }
 
     /**
-     * Get the items in the order.
+     * Danh sách sản phẩm trong đơn hàng.
      */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID');
     }
+
+    // Mối quan hệ với bảng returnrequests
+    public function returnRequests()
+    {
+        return $this->hasMany(ReturnRequest::class, 'OrderID', 'OrderID');
+    }
+
+    // Removed shopOrders relationship as it's not in the schema
 }

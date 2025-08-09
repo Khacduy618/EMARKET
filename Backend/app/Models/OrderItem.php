@@ -2,16 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\OrderBuyer;
+use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\ReturnRequest;
 
 class OrderItem extends Model {
-    use HasFactory;
 
     protected $table = 'orderitems';
 
@@ -19,36 +15,60 @@ class OrderItem extends Model {
      * Khai báo khóa chính để Eloquent không nhầm lẫn.
      */
     protected $primaryKey = 'OrderItemID';
-     public $timestamps = false;
+    public $timestamps = false;
+
     protected $fillable = [
-        'OrderID', 'VariantID', 'Quantity', 'PriceAtPurchase', 
-        'Subtotal', 'IsFlashSaleItem', 'FlashSaleDealID', 'ReturnStatus'
+        'OrderID',
+        'VariantID',
+        'Quantity',
+        'PriceAtPurchase',
+        'Subtotal',
+        'IsFlashSaleItem',
+        'FlashSaleDealID',
+        'ReturnStatus'
     ];
 
-    public function order()
+    protected $casts = [
+        'IsFlashSaleItem' => 'boolean',
+        'Quantity' => 'integer',
+        'PriceAtPurchase' => 'float',
+        'Subtotal' => 'float',
+    ];
+
+    /**
+     * Fix lỗi cast decimal bằng accessor
+     */
+    public function getPriceAtPurchaseAttribute($value)
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
+    }
+
+    public function getSubtotalAttribute($value)
+    {
+        return is_numeric($value) ? (float) $value : 0.0;
+    }
+
+    /**
+     * Liên kết với đơn hàng.
+     */
+    public function order(): BelongsTo
     {
         return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
     }
 
-    public function variant()
+    /**
+     * Liên kết với biến thể sản phẩm.
+     */
+    public function variant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
     }
-    /**
-     * Get the flash sale deal associated with the order item.
-     */
-    public function flashSaleDeal(): BelongsTo
-    {
-        return $this->belongsTo(FlashSale::class, 'FlashSaleDealID', 'DealID');
-    }
 
     /**
-     * Get the return request for the order item.
+     * Lấy thông tin sản phẩm qua biến thể.
      */
-    public function returnRequest(): HasOne
+    public function product(): BelongsTo
     {
-        return $this->hasOne(ReturnRequest::class, 'OrderItemID', 'OrderItemID');
+        return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
     }
-
-    // Removed shopOrder relationship as it's not in the schema
 }

@@ -22,13 +22,13 @@ class SellerRegisterController extends Controller
     public function register(SellerRegisterRequest $request)
     {
         $user = Auth::user();
-        if ($user->Role === 'Người bán') {
+        if ($user->Role === 'Seller') {
             return response()->json([
                 'message' => 'Bạn đã đăng ký làm người bán',
             ], 400);
         }
 
-        $user = User::create(['Role' => 'Người bán']);
+        // $user->update(['Role' => 'Buyer']);
 
         $shop = Shop::create([
             'UserID' => $user->UserID,
@@ -36,10 +36,9 @@ class SellerRegisterController extends Controller
             'Description' => $request->description,
             'ShopAddress' => $request->shop_address,
             'ShopPhone' => $request->shop_phone,
-            'LogoURL' => $request->logo_url,
-            'CoverImageURL' => $request->cover_image_url,
             'Status' => 'PendingApproval',
         ]);
+
       
 
         return response()->json([

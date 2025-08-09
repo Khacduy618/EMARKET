@@ -71,6 +71,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidt
     return (
         <div
             className="fixed inset-0 bg-white bg-opacity-50 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ease-in-out"
+            // className="fixed inset-0 top-20 z-50 flex justify-center items-center p-4 transition-opacity duration-300 ease-in-out"
+
             onClick={onClose}
         >
             <div

@@ -95,6 +95,21 @@
 .user-dropdown-menu button:hover {
   background-color: #f0f0f0; /* Light gray background on hover */
 }
+
+@keyframes fade-in-up {
+  from {
+      opacity: 0;
+      transform: translateY(1rem); /* Bắt đầu từ vị trí thấp hơn 1rem (16px) */
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0); /* Kết thúc ở vị trí ban đầu */
+  }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out forwards;
+}
 .swiper-pagination-bullet {
   background-color: #fff; /* Màu trắng cho chấm không active */
   opacity: 0.6;

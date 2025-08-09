@@ -1,6 +1,8 @@
-#
+# Define composer stage
+FROM docker.io/library/composer:latest AS composer
+
 # Sử dụng image PHP chính thức với FPM (ví dụ PHP 8.2)
-FROM php:8.2-fpm-alpine AS base
+FROM php:8.3-fpm-alpine AS base
 
 ENV TZ=Asia/Ho_Chi_Minh
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -22,11 +24,11 @@ RUN apk add --no-cache \
     libxml2-dev \
     # Không cần .build-deps cho $PHPIZE_DEPS nếu không cài extension bằng pecl hoặc không cần compile phức tạp
     # Chỉ cần các thư viện runtime cho các extension cài bằng docker-php-ext-install
-    && apk add --virtual .phpize-deps $PHPIZE_DEPS \ 
+    && apk add --virtual .phpize-deps $PHPIZE_DEPS \
     # XÓA CÁC LỆNH LIÊN QUAN ĐẾN XDEBUG
     # && pecl install xdebug \
     # && docker-php-ext-enable xdebug \
-    && apk del .phpize-deps 
+    && apk del .phpize-deps
 
 # 2. Cài đặt các PHP extensions cần thiết cho Laravel
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -42,7 +44,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     soap
 
 # 3. Cài đặt Composer
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 # Thiết lập thư mục làm việc
 WORKDIR /var/www/html

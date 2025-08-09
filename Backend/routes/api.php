@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\FeaturedProductController;
 use App\Http\Controllers\NewArrivalController;
@@ -10,13 +11,12 @@ use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\HandleImage;
-use App\Http\Controllers\Admin\ProductControllers AS AdminProductController;
 use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
@@ -27,19 +27,30 @@ use App\Http\Controllers\Admin\ShopController as ShopController;
 use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Seller\ShopCategoryController; 
-use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\VNPayController;
+use App\Http\Controllers\Admin\OrderItemController;
+use App\Http\Controllers\Admin\ProductReviewController;
+use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+
+use App\Http\Controllers\ReviewController;
+
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
 
-/* ___________________________________________________________________
-  |                           Người dùng                              |
-  |___________________________________________________________________| */
-  // Lấy API của Category Trả về dạng json theo CRUD 
+Route::get('/test', function () {
+    // Ghi log để chắc chắn route này được chạy
+    \Illuminate\Support\Facades\Log::info('--- /api/test route was hit! ---'); 
+    
+    return response()->json(['message' => 'Laravel API is alive and working!']);
+});
+// Lấy API của Category Trả về dạng json theo CRUD
 Route::get('/category' ,[CategoryController::class , 'index']);
 Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
 Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
-//api router cho sản phẩm nổi bật cho category 
+//api router cho sản phẩm nổi bật cho category
 Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
 Route::get('/categories/{category}/products', [CategoryController::class, 'showProductsCategory']);
 Route::get('/categories/{category}/filters', [CategoryController::class, 'getCategoryFilters']);
@@ -47,7 +58,7 @@ Route::get('/categories/{category}/filters', [CategoryController::class, 'getCat
 Route::post('/CreateCategory', [CategoryController::class, 'store']);
 Route::put('/UpdateCategory/{id}', [CategoryController::class, 'update']);
 Route::delete('/DeleteCategory/{id}', [CategoryController::class, 'destroy']);
-// Lấy API của Products Trả về dạng json theo CRUD 
+// Lấy API của Products Trả về dạng json theo CRUD
 Route::get('/Products', [ProductController::class, 'index']);
 Route::post('/CreateProducts', [ProductController::class, 'store']);
 Route::put('/UpdateProducts/{id}', [ProductController::class, 'update']);
@@ -56,7 +67,7 @@ Route::delete('/DeleteProducts/{id}', [ProductController::class, 'destroy']);
 Route::get('/ProductFinalPrice', [ProductController::class, 'ProductFinalPrice']);
 // Laravel API – GET /api/products/best-selling
 Route::get('/products/best-selling', [ProductController::class, 'getFeaturedProducts']);
-//flash sale 
+//flash sale
 // Route::get('/flashSales', [ProductController::class, 'index']);
 /////////////////////////////
 Route::get('/flash-sales/active', [FlashSaleController::class, 'getFlashSalesGroupedBySlot']);
@@ -72,32 +83,80 @@ Route::get('/products/popular', [ProductController::class, 'getAllPopular']);
 //api cho itemproducst
 Route::get('/related-products', [ProductController::class, 'getRelatedProducts']);
 Route::get('/products/{currentProductId}/related', [ProductController::class, 'getRelatedProducts']);
-// router tìm kiếm lọc sản phẩm 
+// router tìm kiếm lọc sản phẩm
 Route::get('/search/suggest', [SearchController::class, 'suggest']);
 Route::get('/search', [SearchController::class, 'search']);
 Route::get('/searchAll', [SearchController::class, 'searchAll']);
-// API 1: Lấy các tùy chọn cho bộ lọc (danh mục, brand, khoảng giá...)
-// Frontend sẽ gọi API này để lấy dữ liệu xây dựng nên thanh sidebar.
-// Ví dụ cách gọi từ Frontend: /api/filters/available?base_category_id=1
 Route::get('/filters/available', [CategoryController::class, 'getAvailableFilters']);
 
-// API 2: Lấy danh sách sản phẩm đã được lọc theo các tiêu chí
-// Frontend sẽ gọi API này để hiển thị danh sách sản phẩm chính.
-// Ví dụ cách gọi từ Frontend: /api/products/filter?categories=5,8&sort=price_asc&page=1
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+
+
+Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware('throttle:6,1') // Chỉ cho phép 6 request mỗi phút từ 1 IP
+    ->name('verification.resend'); // Đặt tên cho route
+
+
+
+
+Route::get('/csrf-init', function () {
+    return response()->json(['message' => 'CSRF cookie set.']);
+});
+
+// Route me của bạn BẮT BUỘC phải CÓ middleware auth:sanctum
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    return $request->user();
+});
 
 Route::get('/user', function (Request $request) {
   return $request->user();
 })->middleware('auth:sanctum');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+
+Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard', function () {
+    $data = [
+        'name' => 'Seller Test',
+        'role' => 'Seller',
+        'status' => 'active'
+    ];
+    return response()->json($data);
+});
+
+
+// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+//     Route::get('/admin/users', function () {
+//         $users = [
+//             [
+//                 'id' => 1,
+//                 'name' => 'Admin Test',
+//                 'email' => 'admin@test.com',
+//                 'role' => 'Admin'
+//             ],
+//             [
+//                 'id' => 2,
+//                 'name' => 'Seller Test',
+//                 'email' => 'seller@test.com',
+//                 'role' => 'Seller'
+//             ]
+//         ];
+//         return response()->json($users);
+//     });
+// });
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     // Route để đặt làm mặc định
+//     Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault']);
+//     // Route Resource cho các hành động CRUD khác
+//     Route::apiResource('addresses', AddressController::class);
+// });
 
 Route::middleware('auth:sanctum')->group(function (){
-    // Auth routes already defined above, removing duplicates
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Cart routes - require authentication
-    
+
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::put('/cart/items/{cartItemId}/variant', [CartController::class, 'updateVariant']);
@@ -115,6 +174,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
+    Route::delete('addresses/{address}', [AddressController::class, 'destroy']);
      
 
     Route::get('/orders', [OrderController::class, 'index']);
@@ -129,8 +189,24 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
+   
     
+    Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
+    
+    // API lưu đánh giá sản phẩm theo đơn hàng
+    Route::post('/reviews/store', [ReviewController::class, 'store']);
+
+    Route::post('/reviews/{reviewId}/reply', [ReviewController::class, 'reply']);
+
+    
+
+    Route::middleware('auth:sanctum')->post('/products/{productId}/comments', [CommentController::class, 'store']);
+
 });
+
+Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
+Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
+
 Route::middleware('auth:sanctum')->group(function () {
     
     // API cho Người Mua (Buyer)
@@ -152,7 +228,7 @@ Route::get('/product-attributes/{productId}', [CartController::class, 'getProduc
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']); 
+    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
 });
 
 Route::middleware('auth:sanctum' )->group(function () {
@@ -178,33 +254,53 @@ Route::middleware('auth:sanctum' )->group(function () {
   |__________________________________________________________________| */
 
 // Category route
-Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
-Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
-Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
-Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
-Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+// Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+// Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
+// Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
+// Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+// Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
+// Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
-// Shop route
-Route::get('/admin/shops', [ShopController::class, "index"]);
-Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
-Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
+// // Shop route
+// Route::get('/admin/shops', [ShopController::class, "index"]);
+// Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+// Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
 
-// Product route
-Route::get('/admin/products', [ProductControllers::class, "index"]);
-Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
-Route::get('/admin/products', [AdminProductController::class, "index"]);
-
-Route::put('/admin/products/{id}/approval-status', [AdminProductController::class, 'updateApprovalStatus']);
-
-Route::get('/admin/products/{id}', [AdminProductController::class, 'detailProduct']);
-
-// End product route
+// // Product route
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
+// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
 
 
 
+// // End product route
 
+// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+//     //ORDER ADMIN
+// Route::get('/orderadmin', [AdminOrderController::class, 'index']);
+// Route::get('/ordersadmin/{id}', [AdminOrderController::class, 'show']);
+
+// //ORDER ADMIN
+//     // routes/api.php
+// Route::get('/ordersadmin/{orderBuyer}', [AdminOrderController::class, 'show']);
+// Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
+// });
+
+// // Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
+// // Ví dụ: GET /api/order-items/45
+// Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+// Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
+//     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+//     Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
+//     Route::get('export', [ProductReviewController::class, 'export'])->name('export');
+
+//     // Các hành động được hỗ trợ
+//     Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
+//     Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
+//     Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
+//     Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
+// });
 /* ___________________________________________________________________
   |                            Seller route                           |
   |___________________________________________________________________| */
@@ -236,15 +332,28 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders
         Route::get('/seller/orders', [SellerOrderController::class, 'index']);
         // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
-        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
         Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
 
+        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+        Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
+        Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
+        Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
+        
+    
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);
+
+        Route::get('/seller/statistics/orders/deaill/{id}', [StatisticsController::class, 'showOderDetail']);
     });
 });
 
+//shipping_requests 
+Route::post('/webhook', [SellerOrderController::class, 'handle']);
+
+
+
+// ================= ADMIN ROUTES =================== //
 
 
 
@@ -298,5 +407,68 @@ Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(fun
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
-  Route::get('/seller/orders', [StatisticsController::class, "getOrderByDate"]);
+  Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
 });
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+
+
+    // === USER MANAGEMENT ===
+    Route::apiResource('users', AdminUserController::class)->except(['show']);
+    Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+
+    // === CATEGORY MANAGEMENT ===
+    Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+    Route::get('/categories/list', [AdminCategory::class, "index"]);
+    Route::post('/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
+    Route::get('/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+    Route::patch('/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
+    Route::delete('/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+
+    // === SHOP MANAGEMENT ===
+    Route::get('/shops', [ShopController::class, "index"]);
+    Route::put('/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+    Route::get('/shops/{id}', [ShopController::class, 'shopDetail']);
+
+    // === PRODUCT MANAGEMENT ===
+    Route::get('/products', [ProductControllers::class, "index"]);
+    Route::put('/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+    Route::get('/products/{id}', [ProductControllers::class, 'detailProduct']);
+    
+    // === ORDER MANAGEMENT === 
+    // URL sẽ trở thành: /api/admin/orders
+    Route::get('/orders', [AdminOrderController::class, 'index']); 
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show']); 
+    Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
+
+    // === REVIEW MANAGEMENT === // 
+    Route::prefix('reviews')->name('admin.reviews.')->group(function () {
+        Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+        Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
+        Route::get('export', [ProductReviewController::class, 'export'])->name('export');
+        Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
+        Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
+        Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
+        Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
+    });
+
+    // Route này sẽ tự tạo:
+    // GET    /api/admin/users             -> index()
+    // POST   /api/admin/users             -> store()
+    // GET    /api/admin/users/{user}      -> show()
+    // PUT    /api/admin/users/{user}      -> update()
+    // DELETE /api/admin/users/{user}      -> destroy()
+    // Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
+
+    // // Route cập nhật trạng thái vẫn giữ riêng
+    // Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+});
+
+Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
+    ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
+Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
+Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);
+// Product route
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
+// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);

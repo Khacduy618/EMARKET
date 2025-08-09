@@ -3,6 +3,7 @@ export interface User {
     Username: string;
     Email: string;
     FullName?: string;
+    Avatar?:string;
     DefaultShippingAddressID?: number;
     Phone?: string;
     Level: 'Đồng' | 'Bạc' | 'Vàng' | 'Bạch kim' | 'Kim cương';
@@ -10,5 +11,8 @@ export interface User {
     IsActive: boolean;
     CreatedAt: string;
     UpdatedAt: string;
+    email_verified_at?: string;
+    two_factor_enabled?: boolean;
     Token?: string | null;
+    shopId?: number;
 }
