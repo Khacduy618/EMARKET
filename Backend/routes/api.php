@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\OrderItemController;
 use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 
 use App\Http\Controllers\ReviewController;
 
@@ -125,25 +126,25 @@ Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard
 });
 
 
-Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-    Route::get('/admin/users', function () {
-        $users = [
-            [
-                'id' => 1,
-                'name' => 'Admin Test',
-                'email' => 'admin@test.com',
-                'role' => 'Admin'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Seller Test',
-                'email' => 'seller@test.com',
-                'role' => 'Seller'
-            ]
-        ];
-        return response()->json($users);
-    });
-});
+// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+//     Route::get('/admin/users', function () {
+//         $users = [
+//             [
+//                 'id' => 1,
+//                 'name' => 'Admin Test',
+//                 'email' => 'admin@test.com',
+//                 'role' => 'Admin'
+//             ],
+//             [
+//                 'id' => 2,
+//                 'name' => 'Seller Test',
+//                 'email' => 'seller@test.com',
+//                 'role' => 'Seller'
+//             ]
+//         ];
+//         return response()->json($users);
+//     });
+// });
 
 // Route::middleware('auth:sanctum')->group(function () {
 //     // Route để đặt làm mặc định
@@ -253,51 +254,53 @@ Route::middleware('auth:sanctum' )->group(function () {
   |__________________________________________________________________| */
 
 // Category route
-Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
-Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
-Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
-Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
-Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+// Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+// Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
+// Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
+// Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+// Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
+// Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
-// Shop route
-Route::get('/admin/shops', [ShopController::class, "index"]);
-Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
-Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
+// // Shop route
+// Route::get('/admin/shops', [ShopController::class, "index"]);
+// Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+// Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
 
-// Product route
-Route::get('/admin/products', [ProductControllers::class, "index"]);
-Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
-Route::get('/admin/products', [ProductControllers::class, "index"]);
+// // Product route
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
+// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
 
 
 
-// End product route
+// // End product route
 
-//ORDER ADMIN
-Route::get('/orderadmin', [OrderController::class, 'index']);
-Route::get('/ordersadmin/{id}', [OrderController::class, 'show']);
+// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
+//     //ORDER ADMIN
+// Route::get('/orderadmin', [AdminOrderController::class, 'index']);
+// Route::get('/ordersadmin/{id}', [AdminOrderController::class, 'show']);
 
-//ORDER ADMIN
-    // routes/api.php
-Route::get('/ordersadmin/{orderBuyer}', [OrderController::class, 'show']);
-Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
+// //ORDER ADMIN
+//     // routes/api.php
+// Route::get('/ordersadmin/{orderBuyer}', [AdminOrderController::class, 'show']);
+// Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
+// });
 
-// Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
-// Ví dụ: GET /api/order-items/45
-Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
-Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
-    Route::get('/', [ProductReviewController::class, 'index'])->name('index');
-    Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
-    Route::get('export', [ProductReviewController::class, 'export'])->name('export');
+// // Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
+// // Ví dụ: GET /api/order-items/45
+// Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+// Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
+//     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+//     Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
+//     Route::get('export', [ProductReviewController::class, 'export'])->name('export');
 
-    // Các hành động được hỗ trợ
-    Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
-    Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
-    Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
-    Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
-});
+//     // Các hành động được hỗ trợ
+//     Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
+//     Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
+//     Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
+//     Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
+// });
 /* ___________________________________________________________________
   |                            Seller route                           |
   |___________________________________________________________________| */
@@ -407,17 +410,58 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
 });
 
-Route::middleware(['auth:sanctum', 'role:Admin'])->prefix('admin')->group(function () {
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+
+
+    // === USER MANAGEMENT ===
+    Route::apiResource('users', AdminUserController::class)->except(['show']);
+    Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+
+    // === CATEGORY MANAGEMENT ===
+    Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
+    Route::get('/categories/list', [AdminCategory::class, "index"]);
+    Route::post('/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
+    Route::get('/categories/edit/{id}', [AdminCategory::class, "editGet"]);
+    Route::patch('/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
+    Route::delete('/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
+
+    // === SHOP MANAGEMENT ===
+    Route::get('/shops', [ShopController::class, "index"]);
+    Route::put('/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
+    Route::get('/shops/{id}', [ShopController::class, 'shopDetail']);
+
+    // === PRODUCT MANAGEMENT ===
+    Route::get('/products', [ProductControllers::class, "index"]);
+    Route::put('/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+    Route::get('/products/{id}', [ProductControllers::class, 'detailProduct']);
+    
+    // === ORDER MANAGEMENT === 
+    // URL sẽ trở thành: /api/admin/orders
+    Route::get('/orders', [AdminOrderController::class, 'index']); 
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show']); 
+    Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
+
+    // === REVIEW MANAGEMENT === // 
+    Route::prefix('reviews')->name('admin.reviews.')->group(function () {
+        Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+        Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
+        Route::get('export', [ProductReviewController::class, 'export'])->name('export');
+        Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
+        Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
+        Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
+        Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
+    });
+
     // Route này sẽ tự tạo:
     // GET    /api/admin/users             -> index()
     // POST   /api/admin/users             -> store()
     // GET    /api/admin/users/{user}      -> show()
     // PUT    /api/admin/users/{user}      -> update()
     // DELETE /api/admin/users/{user}      -> destroy()
-    Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
+    // Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
 
-    // Route cập nhật trạng thái vẫn giữ riêng
-    Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+    // // Route cập nhật trạng thái vẫn giữ riêng
+    // Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
 });
 
 Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
@@ -425,6 +469,6 @@ Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
 Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
 Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);
 // Product route
-Route::get('/admin/products', [ProductControllers::class, "index"]);
-Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
+// Route::get('/admin/products', [ProductControllers::class, "index"]);
+// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
+// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
