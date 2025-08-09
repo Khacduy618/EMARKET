@@ -12,13 +12,14 @@ class CustomLoginResponse implements LoginResponseContract
     {
         // Fortify lưu trạng thái two-factor trong session nếu bật
         $twoFactorEnabled = Session::get('login.id') !== null;
-
+   
         return response()->json([
             'message' => 'Đăng nhập thành công',
             'user' => $request->user(),
             'two_factor' => $twoFactorEnabled,
+            
             // 'request' => $request, // WARN:Hiển thị toàn bộ dữ liệu yêu cầu gửi lên để test thôi
-            'sesstion' => Session::all(), // WARN: Hiển thị toàn bộ session để test thôi
+            'session' => Session::all(), // WARN: Hiển thị toàn bộ session để test thôi
         ]);
     }
 }

@@ -8,14 +8,19 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     /**
      * Lấy danh sách đơn hàng với các bộ lọc nâng cao.
      */
-    public function index(Request $request): JsonResponse
-    {
+    public function index(Request $request)
+    {   
+        // $user = $request->user();
+        // if (!$user || !$user->hasRole('Admin')) {
+        //     return response()->json(['message' => 'Unauthorized'], 403);
+        // }
         try {
             $sortableColumns = ['OrderDate', 'TotalAmount'];
             $sortBy = $request->input('sortBy', 'OrderDate');
@@ -66,14 +71,98 @@ class OrderController extends Controller
     /**
      * Lấy chi tiết một đơn hàng.
      */
-    public function show(OrderBuyer $orderBuyer): JsonResponse
+    public function show(string $id): JsonResponse
     {
+        
         try {
-            $orderBuyer->load(['user', 'items.product']);
-            return response()->json(['data' => $orderBuyer]);
+            // 1. Lấy thông tin chính của đơn hàng, user và địa chỉ
+            $order = DB::table('ordersbuyer as o')
+                ->join('users as u', 'o.UserID', '=', 'u.UserID')
+                ->leftJoin('addresses as a', 'o.ShippingAddressID', '=', 'a.AddressID') // Dùng leftJoin phòng trường hợp địa chỉ bị xóa
+                ->select(
+                    'o.*', // Lấy tất cả cột từ bảng ordersbuyer
+                    // Dữ liệu người dùng
+                    'u.UserID as user_UserID', 'u.FullName as user_FullName', 'u.Email as user_Email', 'u.Avatar as user_Avatar',
+                    // Ghép các phần địa chỉ thành một chuỗi fullAddress
+                    DB::raw("CONCAT_WS(', ', a.Street, a.Ward, a.District, a.City) as shippingAddress_fullAddress")
+                )
+                ->where('o.OrderID', $id)
+                ->first();
+
+            if (!$order) {
+                return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+            }
+
+            // 2. Lấy danh sách sản phẩm trong đơn hàng
+            $items = DB::table('orderitems as oi')
+                ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+                ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+                // Lấy ảnh Primary của sản phẩm, nếu không có thì lấy ảnh của variant
+                ->leftJoin('productimages as pimg', function($join) {
+                    $join->on('p.ProductID', '=', 'pimg.ProductID')
+                         ->where('pimg.IsPrimary', '=', 1);
+                })
+                ->select(
+                    'oi.OrderItemID', 'oi.VariantID', 'oi.Quantity', 'oi.PriceAtPurchase', 'oi.Subtotal',
+                    'p.Name as product_name',
+                    'pv.SKU as product_sku',
+                    // Sử dụng COALESCE để ưu tiên ảnh primary, nếu null thì lấy ảnh của variant
+                    DB::raw('COALESCE(pimg.ImageURL, pv.ImageURL) as product_image')
+                )
+                ->where('oi.OrderID', $id)
+                ->get();
+
+            // 3. Ghép dữ liệu lại theo cấu trúc mà Frontend mong muốn
+            $formattedOrder = [
+                // Các trường của đơn hàng
+                'OrderID' => $order->OrderID,
+                'OrderCode' => $order->OrderCode,
+                'UserID' => $order->UserID,
+                'OrderDate' => $order->OrderDate,
+                'TotalAmount' => $order->TotalAmount,
+                'SubtotalAmount' => $order->SubtotalAmount,
+                'ShippingFee' => $order->ShippingFee,
+                'DiscountAmount' => $order->DiscountAmount,
+                'ShippingAddressID' => $order->ShippingAddressID,
+                'ShippingFullName' => $order->ShippingFullName,
+                'ShippingPhoneNumber' => $order->ShippingPhoneNumber,
+                'Notes' => $order->Notes,
+                'PaymentMethod' => $order->PaymentMethod,
+                'PaymentStatus' => $order->PaymentStatus,
+                'OverallStatus' => $order->OverallStatus,
+                // Dữ liệu user lồng vào
+                'user' => [
+                    'UserID' => $order->user_UserID,
+                    'FullName' => $order->user_FullName,
+                    'Email' => $order->user_Email,
+                    'avatar' => $order->user_Avatar,
+                ],
+                // Dữ liệu địa chỉ lồng vào
+                'shippingAddress' => [
+                    'fullAddress' => $order->shippingAddress_fullAddress,
+                ],
+                // Dữ liệu sản phẩm lồng vào
+                'items' => $items->map(function ($item) {
+                    return [
+                        'OrderItemID' => $item->OrderItemID,
+                        'VariantID' => $item->VariantID,
+                        'Quantity' => $item->Quantity,
+                        'PriceAtPurchase' => $item->PriceAtPurchase,
+                        'Subtotal' => $item->Subtotal,
+                        'product' => [
+                            'name' => $item->product_name,
+                            'sku' => $item->product_sku,
+                            'image' => $item->product_image,
+                        ],
+                    ];
+                })
+            ];
+
+            return response()->json(['data' => $formattedOrder]);
+
         } catch (\Exception $e) {
-            Log::error('Lỗi khi lấy chi tiết đơn hàng ID ' . $orderBuyer->OrderID . ': ' . $e->getMessage());
-            return response()->json(['message' => 'Không thể tìm thấy đơn hàng.'], 404);
+            Log::error('Lỗi khi lấy chi tiết đơn hàng ID ' . $id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Lỗi server khi lấy chi tiết đơn hàng.'], 500);
         }
     }
 
