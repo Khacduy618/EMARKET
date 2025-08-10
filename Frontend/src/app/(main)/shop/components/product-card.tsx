@@ -1,33 +1,40 @@
-// /shop/components/product-card.tsx
+// // /shop/components/product-card.tsx
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
-import type { Product } from "../types/shop"
+import Link from "next/link"; 
+import type { ProductForUI as Product } from "@/types"
+import { getFullImageUrl } from "@/services/api"; 
 
 interface Props {
   product: Product
 }
 
 export function ProductCard({ product }: Props) {
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price
-  const discountPercent = hasDiscount
-    ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)
-    : 0
+  // Toàn bộ logic và JSX giữ nguyên vì tên trường đã khớp
+   const hasDiscount = !!product.discountPercent && product.discountPercent > 0;
 
-  return (
+   return (
+    <Link href={`/product/${product.id}`} className="block group"> 
     <Card className="hover:shadow-md transition-shadow border-gray-200">
       <CardContent className="p-0">
         <div className="relative">
           <img
-            src={product.image || "/placeholder.svg?height=300&width=300&query=product image"}
-            alt={product.name}
-            className="w-full aspect-square object-cover rounded-t"
-          />
-          {hasDiscount && (
-            <div className="absolute top-2 left-2">
-              <Badge className="bg-orange-500 text-white">-{discountPercent}%</Badge>
+              src={getFullImageUrl(product.image)} // Áp dụng hàm ở đây
+              alt={product.name}
+              className="w-full aspect-square object-cover rounded-t"
+            />
+          {/* Badge Yêu thích và Giảm giá có thể cùng tồn tại */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+             {/* Bạn có thể thêm logic cho badge Yêu thích ở đây nếu cần */}
+             {/* <Badge className="bg-red-500 text-white">Yêu thích</Badge> */}
+          </div>
+
+         {hasDiscount && (
+            <div className="absolute top-2 right-2">
+              <Badge className="bg-yellow-400 text-yellow-900 font-bold">-{product.discountPercent}%</Badge>
             </div>
           )}
           {product.badge && (
@@ -52,8 +59,9 @@ export function ProductCard({ product }: Props) {
 
           <div className="flex items-baseline gap-2">
             <div className="text-orange-500 font-bold text-base">₫{product.price.toLocaleString()}</div>
-            {hasDiscount && (
-              <div className="text-gray-400 line-through text-xs">₫{product.originalPrice!.toLocaleString()}</div>
+            {/* Vẫn hiển thị giá gốc nếu có */}
+            {product.originalPrice && product.originalPrice > product.price && (
+              <div className="text-gray-400 line-through text-xs">₫{product.originalPrice.toLocaleString()}</div>
             )}
           </div>
 
@@ -61,5 +69,6 @@ export function ProductCard({ product }: Props) {
         </div>
       </CardContent>
     </Card>
+    </Link>
   )
 }

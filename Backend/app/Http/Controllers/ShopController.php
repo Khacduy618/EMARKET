@@ -10,33 +10,28 @@ use Carbon\Carbon;
 
 class ShopController extends Controller
 {
-    public function show($shopId, Request $request)
+   /**
+     * API 1: Lấy thông tin chi tiết của shop và danh mục.
+     * Endpoint này rất nhẹ và được gọi đầu tiên.
+     */
+    public function getShopDetails($shopId)
     {
-        // --- 1. Lấy thông tin cơ bản của Shop ---
         $shop = DB::table('shops')->where('ShopID', $shopId)->first();
-
         if (!$shop) {
             return response()->json(['message' => 'Shop not found'], 404);
         }
 
-        // --- 2. Lấy các thông tin tổng hợp ---
         $followersCount = DB::table('shopfollows')->where('ShopID', $shopId)->count();
-        
         $productsCount = DB::table('products')
             ->where('ShopID', $shopId)
             ->where('IsActive', true)
             ->where('AdminApprovalStatus', 'Approved')
             ->count();
-        
-        $isFollowing = false;
-        if (Auth::guard('sanctum')->check()) {
-            $isFollowing = DB::table('shopfollows')
-                ->where('ShopID', $shopId)
-                ->where('UserID', Auth::guard('sanctum')->id())
-                ->exists();
-        }
+            
+        $isFollowing = Auth::guard('sanctum')->check()
+            ? DB::table('shopfollows')->where('ShopID', $shopId)->where('UserID', Auth::guard('sanctum')->id())->exists()
+            : false;
 
-        // Lấy rating trung bình và số lượng đánh giá của toàn shop
         $shopRatingStats = DB::table('productreviews as pr')
             ->join('productvariants as pv', 'pr.VariantID', '=', 'pv.VariantID')
             ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
@@ -49,94 +44,94 @@ class ShopController extends Controller
             'name' => $shop->ShopName,
             'avatar' => $shop->LogoURL,
             'banner' => $shop->CoverImageURL,
-            'rating' => (float) ($shopRatingStats->rating ?? 0),
-            'ratingCount' => (int) ($shopRatingStats->ratingCount ?? 0),
+            'rating' => (float)($shopRatingStats->rating ?? 0),
+            'ratingCount' => (int)($shopRatingStats->ratingCount ?? 0),
             'followers' => $followersCount,
             'productsCount' => $productsCount,
             'isFollowing' => $isFollowing,
             'isVerified' => $shop->Level === 'Mall',
             'joinedAt' => Carbon::parse($shop->updated_at)->locale('vi')->diffForHumans(),
-            'chatResponseRate' => 98,
-            'responseSpeed' => "trong vài giờ",
-            'onTimeDeliveryRate' => 99,
+            'chatResponseRate' => 98, 'responseSpeed' => "trong vài giờ", 'onTimeDeliveryRate' => 99,
         ];
-
-        // --- 3. Lấy danh mục sản phẩm của shop ---
+        
         $categoryCounts = DB::table('products')
             ->select('CategoryID', DB::raw('COUNT(ProductID) as product_count'))
-            ->where('ShopID', $shopId)
-            ->where('IsActive', true)
-            ->where('AdminApprovalStatus', 'Approved')
-            ->groupBy('CategoryID')
-            ->get();
-        
-        $categoryIds = $categoryCounts->pluck('CategoryID');
-        
-        $categoryDetails = DB::table('platformcategories')
-            ->whereIn('CategoryID', $categoryIds)
-            ->get()
-            ->keyBy('CategoryID');
+            ->where('ShopID', $shopId)->where('IsActive', true)->where('AdminApprovalStatus', 'Approved')
+            ->groupBy('CategoryID')->get();
+            
+        $categoryDetails = DB::table('platformcategories')->whereIn('CategoryID', $categoryCounts->pluck('CategoryID'))->get()->keyBy('CategoryID');
 
         $categories = $categoryCounts->map(function ($item) use ($categoryDetails) {
             $detail = $categoryDetails->get($item->CategoryID);
-            return [
-                'key' => (string)$item->CategoryID,
-                'label' => $detail ? $detail->Name : 'Không xác định',
-                'count' => $item->product_count,
-            ];
+            return ['key' => (string)$item->CategoryID, 'label' => $detail->Name ?? 'N/A', 'count' => $item->product_count];
         });
         $categories->prepend(['key' => 'all', 'label' => 'Tất cả', 'count' => $productsCount]);
 
-        // --- 4. Lấy danh sách sản phẩm ---
+        return response()->json([
+            'shopInfo' => $shopInfo,
+            'categories' => $categories,
+        ]);
+    }
+
+   /**
+     * API 2: Chỉ lấy danh sách sản phẩm.
+     * Endpoint này được gọi sau hoặc khi người dùng thay đổi bộ lọc.
+     */
+    public function getShopProducts($shopId, Request $request)
+    {
+        // Tạo một subquery để tính toán giá cho mỗi sản phẩm.
+        // Đây là phần phức tạp nhất.
+        $priceSubquery = DB::table('productvariants as pv')
+            ->select(
+                'pv.ProductID',
+                // Tính toán giá bán cuối cùng (finalPrice)
+                DB::raw('MIN(
+                    CASE 
+                        WHEN p.Discount > 0 THEN pv.Price * (1 - p.Discount / 100) 
+                        ELSE pv.Price 
+                    END
+                ) as finalPrice'),
+                // Xác định giá gốc (originalPrice)
+                DB::raw('MIN(
+                    CASE
+                        WHEN pv.CompareAtPrice > 0 THEN pv.CompareAtPrice
+                        WHEN p.Discount > 0 THEN pv.Price
+                        ELSE NULL
+                    END
+                ) as originalPrice')
+            )
+            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+            ->groupBy('pv.ProductID');
+
+
         $productQuery = DB::table('products as p')
-            ->select('p.ProductID', 'p.Name', 'p.SoldCount', 'p.CreatedAt', 'p.CategoryID')
-            // Subquery để lấy giá thấp nhất từ các biến thể
-            ->selectSub(function ($query) {
-                $query->from('productvariants')
-                    ->select('Price')
-                    ->whereColumn('ProductID', 'p.ProductID')
-                    ->orderBy('Price', 'asc')
-                    ->limit(1);
-            }, 'price')
-            // Subquery để lấy giá gốc tương ứng
-            ->selectSub(function ($query) {
-                $query->from('productvariants')
-                    ->select('CompareAtPrice')
-                    ->whereColumn('ProductID', 'p.ProductID')
-                    ->orderBy('Price', 'asc')
-                    ->limit(1);
-            }, 'originalPrice')
-            // Subquery để lấy ảnh chính
-            ->selectSub(function ($query) {
-                $query->from('productimages')
-                    ->select('ImageURL')
-                    ->whereColumn('ProductID', 'p.ProductID')
-                    ->where('IsPrimary', true)
-                    ->limit(1);
-            }, 'image')
+            // Join với subquery đã tính toán giá ở trên
+            ->joinSub($priceSubquery, 'prices', function ($join) {
+                $join->on('p.ProductID', '=', 'prices.ProductID');
+            })
+            ->select(
+                'p.ProductID', 'p.Name', 'p.SoldCount', 'p.CreatedAt', 'p.CategoryID',
+                'prices.finalPrice as price', // Lấy giá đã tính toán
+                'prices.originalPrice as originalPrice' // Lấy giá gốc đã tính toán
+            )
+            ->selectSub(fn($q) => $q->from('productimages')->select('ImageURL')->whereColumn('ProductID', 'p.ProductID')->where('IsPrimary', true)->limit(1), 'image')
+            ->selectSub(fn($q) => $q->from('productreviews as pr')->join('productvariants as pv', 'pr.VariantID', '=', 'pv.VariantID')->selectRaw('AVG(pr.Rating)')->whereColumn('pv.ProductID', 'p.ProductID'), 'averageRating')
+            ->selectSub(fn($q) => $q->from('productreviews as pr')->join('productvariants as pv', 'pr.VariantID', '=', 'pv.VariantID')->selectRaw('COUNT(pr.ReviewID)')->whereColumn('pv.ProductID', 'p.ProductID'), 'ratingCount')
             ->where('p.ShopID', $shopId)
             ->where('p.IsActive', true)
             ->where('p.AdminApprovalStatus', 'Approved');
 
-        // Áp dụng các bộ lọc
-        if ($request->filled('q')) {
-            $productQuery->where('p.Name', 'like', '%' . $request->input('q') . '%');
+        // --- LỌC KHOẢNG GIÁ TRÊN GIÁ CUỐI CÙNG ---
+        if ($request->filled('priceMin')) {
+            $productQuery->where('prices.finalPrice', '>=', $request->input('priceMin'));
         }
-        if ($request->filled('category') && $request->input('category') !== 'all') {
-            $productQuery->where('p.CategoryID', $request->input('category'));
+        if ($request->filled('priceMax')) {
+            $productQuery->where('prices.finalPrice', '<=', $request->input('priceMax'));
         }
-        if ($request->filled('priceMin') || $request->filled('priceMax')) {
-            $productQuery->whereExists(function ($query) use ($request) {
-                $query->from('productvariants as pv_filter')
-                      ->whereColumn('pv_filter.ProductID', 'p.ProductID');
-                if ($request->filled('priceMin')) {
-                    $query->where('pv_filter.Price', '>=', $request->input('priceMin'));
-                }
-                if ($request->filled('priceMax')) {
-                    $query->where('pv_filter.Price', '<=', $request->input('priceMax'));
-                }
-            });
-        }
+
+        // Filter khác
+        if ($request->filled('q')) $productQuery->where('p.Name', 'like', '%' . $request->input('q') . '%');
+        if ($request->filled('category') && $request->input('category') !== 'all') $productQuery->where('p.CategoryID', $request->input('category'));
         
         // Sắp xếp
         $sortBy = $request->input('sortBy', 'popular');
@@ -149,45 +144,26 @@ class ShopController extends Controller
 
         $paginatedProducts = $productQuery->paginate(20);
 
-        // Lấy rating cho các sản phẩm đã được phân trang
-        $productIds = $paginatedProducts->pluck('ProductID');
-        $productRatings = DB::table('productreviews as pr')
-            ->join('productvariants as pv', 'pr.VariantID', '=', 'pv.VariantID')
-            ->whereIn('pv.ProductID', $productIds)
-            ->select('pv.ProductID', DB::raw('AVG(pr.Rating) as rating, COUNT(pr.ReviewID) as ratingCount'))
-            ->groupBy('pv.ProductID')
-            ->get()
-            ->keyBy('ProductID');
-        
-        // Map rating vào kết quả cuối cùng
-        $products = $paginatedProducts->getCollection()->map(function ($p) use ($productRatings) {
-            $ratingData = $productRatings->get($p->ProductID);
-            return [
-                'id' => $p->ProductID,
-                'name' => $p->Name,
-                'image' => $p->image,
-                'price' => (int)$p->price,
-                'originalPrice' => $p->originalPrice ? (int)$p->originalPrice : null,
-                'sold' => $p->SoldCount ?? 0,
-                'rating' => $ratingData ? (float)$ratingData->rating : 0,
-                'ratingCount' => $ratingData ? (int)$ratingData->ratingCount : 0,
-                'category' => (string)$p->CategoryID,
-                'createdAt' => $p->CreatedAt,
-                'badge' => null,
-            ];
+        // Transform collection để tính % giảm giá và ép kiểu
+        $paginatedProducts->getCollection()->transform(function ($p) {
+            $finalPrice = (int)($p->price ?? 0);
+            $originalPrice = $p->originalPrice ? (int)$p->originalPrice : null;
+            $discountPercent = 0;
+
+            if ($originalPrice && $originalPrice > $finalPrice) {
+                $discountPercent = round((($originalPrice - $finalPrice) / $originalPrice) * 100);
+            }
+
+            $p->price = $finalPrice;
+            $p->originalPrice = $originalPrice;
+            $p->discountPercent = $discountPercent;
+            $p->averageRating = (float)($p->averageRating ?? 0);
+            $p->ratingCount = (int)($p->ratingCount ?? 0);
+
+            return $p;
         });
 
-        return response()->json([
-            'shopInfo' => $shopInfo,
-            'products' => $products,
-            'categories' => $categories,
-            'pagination' => [
-                'total' => $paginatedProducts->total(),
-                'per_page' => $paginatedProducts->perPage(),
-                'current_page' => $paginatedProducts->currentPage(),
-                'last_page' => $paginatedProducts->lastPage(),
-            ],
-        ]);
+        return $paginatedProducts;
     }
 
     public function toggleFollow($shopId, Request $request)

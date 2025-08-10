@@ -1,20 +1,22 @@
 // /shop/components/shop-sidebar.tsx
+
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ShopInfo } from "../types/shop"
+// Thay đổi import type ở đây
+import type { ShopInfoForUI as ShopInfo, ShopCategoryForUI as ShopCategory } from "@/types"
 
 interface Props {
   info: ShopInfo
-  categories: { key: string; label: string; count?: number }[]
+  categories: ShopCategory[]
   activeCategory?: string
   onSelectCategory?: (key: string) => void
 }
 
 export function ShopSidebar({ info, categories, activeCategory = "all", onSelectCategory }: Props) {
+  // Toàn bộ JSX giữ nguyên
   return (
     <div className="sticky top-35 space-y-4">
       <Card>

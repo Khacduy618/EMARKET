@@ -1,17 +1,17 @@
-// /shop/components/shop-content.tsx
 "use client"
 
+import React from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProductCard } from "./product-card"
-import type { Product } from "../types/shop"
 import { Search, Filter } from "lucide-react"
+import type { ProductForUI as Product, ShopCategoryForUI as ShopCategory } from "@/types"
 
 interface Props {
   products: Product[]
-  categories: { key: string; label: string }[]
+  categories: ShopCategory[]
   query: string
   onQueryChange: (v: string) => void
   category: string
@@ -22,6 +22,10 @@ interface Props {
   priceMax: string
   onPriceMinChange: (v: string) => void
   onPriceMaxChange: (v: string) => void
+  // THAY ĐỔI: Thêm prop isLoading để kiểm soát trạng thái tải sản phẩm
+  isLoading?: boolean;
+  // THAY ĐỔI: Sử dụng children để nhận skeleton component
+  children?: React.ReactNode; 
 }
 
 export function ShopContent({
@@ -37,10 +41,13 @@ export function ShopContent({
   priceMax,
   onPriceMinChange,
   onPriceMaxChange,
+  // Nhận các props mới
+  isLoading = false,
+  children
 }: Props) {
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
+      {/* Toolbar - Phần này luôn được hiển thị */}
       <Card>
         <CardContent className="p-4 space-y-3">
           <div className="flex flex-col md:flex-row gap-3 md:items-center">
@@ -125,12 +132,17 @@ export function ShopContent({
         </CardContent>
       </Card>
 
-      {/* Grid */}
-      {products.length === 0 ? (
+      {/* Grid - Logic hiển thị đã được cập nhật */}
+      {isLoading ? (
+        // Nếu đang tải, hiển thị children (chính là Skeleton component)
+        children
+      ) : products.length === 0 ? (
+        // Nếu không tải và không có sản phẩm, hiển thị thông báo
         <Card>
           <CardContent className="p-8 text-center text-gray-600">Không tìm thấy sản phẩm phù hợp.</CardContent>
         </Card>
       ) : (
+        // Nếu có sản phẩm, render grid
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />

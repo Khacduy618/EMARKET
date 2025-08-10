@@ -149,14 +149,14 @@ class SellerOrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
         }
-        if ($order->OverallStatus !== 'Pending') {
-            return response()->json(['message' => 'Chỉ có thể hủy đơn hàng ở trạng thái Pending.'], 400);
+        if (!in_array($order->OverallStatus, ['Pending', 'Processing'])) {
+            return response()->json(['message' => 'Chỉ có thể hủy đơn hàng ở trạng thái Pending hoặc Processing.'], 400);
         }
         $order->OverallStatus = 'CancelledBySeller';
         $order->save();
 
         return response()->json(['message' => 'Đơn hàng đã được hủy.', 'order' => $order], 200);
-    }
+    } 
 
     public function printShippingLabel($orderId)
 {
@@ -201,4 +201,19 @@ class SellerOrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
     }
+
+    public function shipOrder($orderId)
+{
+    $order = OrderBuyer::find($orderId);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    if ($order->OverallStatus !== 'Processing') {
+        return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
+    }
+    $order->OverallStatus = 'Shipped';
+    $order->save();
+
+    return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
+}
 }
