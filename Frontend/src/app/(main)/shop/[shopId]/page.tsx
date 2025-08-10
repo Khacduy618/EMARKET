@@ -1,158 +1,101 @@
-// // /shop/[shopId]/page.tsx
-// "use client"
-
-// import { useMemo, useState } from "react"
-// import { ShopHeader } from "../components/shop-header"
-// import { ShopSidebar } from "../components/shop-sidebar"
-// import { ShopContent } from "../components/shop-content"
-// import type { ShopInfo, Product } from "../types/shop"
-// import { shopInfo as defaultShopInfo, products as allProducts, categories as allCategories } from "../data/shop-data"
-
-// export default function ShopPage() {
-//   const [shopInfo, setShopInfo] = useState<ShopInfo>(defaultShopInfo)
-//   const [query, setQuery] = useState("")
-//   const [category, setCategory] = useState<string>("all")
-//   const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular")
-//   const [priceMin, setPriceMin] = useState<string>("")
-//   const [priceMax, setPriceMax] = useState<string>("")
-
-//   const filtered: Product[] = useMemo(() => {
-//     let list = [...allProducts]
-
-//     // Search
-//     if (query.trim()) {
-//       const q = query.toLowerCase()
-//       list = list.filter((p) => p.name.toLowerCase().includes(q))
-//     }
-
-//     // Category
-//     if (category !== "all") {
-//       list = list.filter((p) => p.category === category)
-//     }
-
-//     // Price
-//     const min = priceMin ? Number(priceMin) : undefined
-//     const max = priceMax ? Number(priceMax) : undefined
-//     if (min !== undefined) list = list.filter((p) => p.price >= min)
-//     if (max !== undefined) list = list.filter((p) => p.price <= max)
-
-//     // Sort
-//     switch (sortBy) {
-//       case "popular":
-//         list.sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
-//         break
-//       case "newest":
-//         list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-//         break
-//       case "price-asc":
-//         list.sort((a, b) => a.price - b.price)
-//         break
-//       case "price-desc":
-//         list.sort((a, b) => b.price - a.price)
-//         break
-//     }
-
-//     return list
-//   }, [query, category, sortBy, priceMin, priceMax])
-
-//   return (
-//     <main className="min-h-screen bg-gray-50">
-//       <ShopHeader
-//         info={shopInfo}
-//         onToggleFollow={() =>
-//           setShopInfo((prev) => ({
-//             ...prev,
-//             isFollowing: !prev.isFollowing,
-//             followers: prev.isFollowing ? prev.followers - 1 : prev.followers + 1,
-//           }))
-//         }
-//       />
-
-//       <div className="max-w-7xl mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-//         {/* Sidebar */}
-//         <aside className="lg:col-span-3">
-//           <ShopSidebar
-//             info={shopInfo}
-//             categories={allCategories}
-//             onSelectCategory={setCategory}
-//             activeCategory={category}
-//           />
-//         </aside>
-
-//         {/* Content */}
-//         <section className="lg:col-span-9">
-//           <ShopContent
-//             products={filtered}
-//             categories={allCategories}
-//             query={query}
-//             onQueryChange={setQuery}
-//             category={category}
-//             onCategoryChange={setCategory}
-//             sortBy={sortBy}
-//             onSortByChange={setSortBy}
-//             priceMin={priceMin}
-//             priceMax={priceMax}
-//             onPriceMinChange={setPriceMin}
-//             onPriceMaxChange={setPriceMax}
-//           />
-//         </section>
-//       </div>
-//     </main>
-//   )
-// }
-
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
 import { useParams } from "next/navigation"
+import { useRouter } from "next/navigation" // Thêm hook useRouter
+
+// Components
 import { ShopHeader } from "../components/shop-header"
 import { ShopSidebar } from "../components/shop-sidebar"
 import { ShopContent } from "../components/shop-content"
+import { ShopContentSkeleton } from "../components/shop-content-skeleton"
+import { toast } from "react-toastify"
 
-import { Shop, Product } from "@/types"
+// Types
+import type { ShopInfoForUI, ProductForUI, ShopCategoryForUI } from "@/types"
 
-// Helper để debounce (trì hoãn) việc gọi API khi người dùng gõ
+// === Định nghĩa các kiểu dữ liệu cho từng API Response ===
+interface ShopDetailsResponse {
+  shopInfo: ShopInfoForUI;
+  categories: ShopCategoryForUI[];
+}
+
+interface ShopProductsResponse {
+ data: ApiProductResponseItem[]; 
+   current_page: number;
+  last_page: number;
+  total: number;
+}
+interface ApiProductResponseItem {
+  ProductID: number;
+  Name: string;
+  SoldCount: number | null;
+  CreatedAt: string;
+  CategoryID: number | null;
+  price: number | null;
+  originalPrice: number | null;
+  image: string | null;
+  averageRating: number | null;
+  ratingCount: number | null;
+  discountPercent: number; // API giờ sẽ trả về trường này
+}
+
+// Helper debounce
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
   }, [value, delay]);
   return debouncedValue;
 }
 
+// === Hàm chuyển đổi dữ liệu ===
+const mapApiProductToUiProduct = (p: ApiProductResponseItem): ProductForUI => ({
+  id: p.ProductID,
+  name: p.Name,
+  image: p.image,
+  price: p.price ?? 0,
+  originalPrice: p.originalPrice,
+  sold: p.SoldCount ?? 0,
+  rating: p.averageRating ?? 0,
+  ratingCount: p.ratingCount ?? 0,
+  category: p.CategoryID?.toString() ?? 'unknown',
+  createdAt: p.CreatedAt,
+  discountPercent: p.discountPercent,
+  badge: null,
+});
 
 export default function ShopPage() {
   const params = useParams();
   const shopId = params.shopId as string;
-
-  // State để lưu dữ liệu từ API
-  const [data, setData] = useState<Shop | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
+  const router = useRouter(); 
+  // State tách biệt cho từng phần dữ liệu
+  const [details, setDetails] = useState<ShopDetailsResponse | null>(null);
+  const [products, setProducts] = useState<ProductForUI[]>([]);
+  
+  // State quản lý trạng thái loading
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State cho các bộ lọc
-  const [query, setQuery] = useState("")
-  const [category, setCategory] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular")
-  const [priceMin, setPriceMin] = useState<string>("")
-  const [priceMax, setPriceMax] = useState<string>("")
+  // State cho bộ lọc
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular");
+  const [priceMin, setPriceMin] = useState<string>("");
+  const [priceMax, setPriceMax] = useState<string>("");
 
-  // Sử dụng debounce cho các input text để tránh gọi API liên tục
   const debouncedQuery = useDebounce(query, 500);
   const debouncedPriceMin = useDebounce(priceMin, 500);
   const debouncedPriceMax = useDebounce(priceMax, 500);
 
-  // Hàm gọi API
-  const fetchShopData = useCallback(async () => {
+  // --- API Call Functions ---
+  const fetchProducts = useCallback(async () => {
     if (!shopId) return;
-    setIsLoading(true);
+    setIsLoadingProducts(true);
     
-    // Xây dựng URL với các tham số query
     const urlParams = new URLSearchParams();
     if (debouncedQuery) urlParams.append('q', debouncedQuery);
     if (category) urlParams.append('category', category);
@@ -161,134 +104,160 @@ export default function ShopPage() {
     if (debouncedPriceMax) urlParams.append('priceMax', debouncedPriceMax);
 
     try {
-      const response = await fetch(`/api/shop/${shopId}?${urlParams.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const result: Shop = await response.json();
-      
-      // Chuyển đổi dữ liệu API về dạng component cần
-      const shopInfoForComponent: Shop = {
-          ...result.shopInfo,
-          createdAt: result.shopInfo.joinedAt, // Ánh xạ trường
-      };
-
-      const productsForComponent: Product[] = result.products.map(p => ({
-          ...p,
-          // Đảm bảo các trường không có trong API nhưng có trong type được gán giá trị mặc định
-          originalPrice: p.originalPrice ?? undefined,
-          sold: p.sold ?? 0,
-          rating: p.rating ?? 0,
-          ratingCount: p.ratingCount ?? 0,
-          badge: p.badge ?? undefined,
-      }));
-      
-      setData({
-          shopInfo: shopInfoForComponent as any, // Dùng 'as any' nếu type không khớp 100%
-          products: productsForComponent,
-          categories: result.categories,
-      });
-
-      setError(null);
-    } catch (e: any) {
-      setError("Không thể tải dữ liệu của shop. Vui lòng thử lại.");
-      console.error(e);
+      const res = await fetch(`${API_URL}/shops/${shopId}/products?${urlParams.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data: ShopProductsResponse = await res.json();
+      setProducts(data.data.map(mapApiProductToUiProduct));
+    } catch (e) {
+      setError("Không thể tải danh sách sản phẩm.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingProducts(false);
     }
-  }, [shopId, debouncedQuery, category, sortBy, debouncedPriceMin, debouncedPriceMax]);
+  }, [shopId, API_URL, debouncedQuery, category, sortBy, debouncedPriceMin, debouncedPriceMax]);
 
-  // useEffect để gọi API khi các bộ lọc thay đổi
+  // Effect để gọi API chi tiết shop chỉ một lần
   useEffect(() => {
-    fetchShopData();
-  }, [fetchShopData]);
-  
-  // Hàm xử lý Follow/Unfollow
-  const handleToggleFollow = async () => {
-      if (!data) return;
-      
-      const originalFollowingState = data.shopInfo.isFollowing;
-      const originalFollowers = data.shopInfo.followers;
-      
-      // Cập nhật giao diện ngay lập tức (Optimistic Update)
-      setData(prev => prev ? ({
-          ...prev,
-          shopInfo: {
-              ...prev.shopInfo,
-              isFollowing: !originalFollowingState,
-              followers: originalFollowingState ? originalFollowers - 1 : originalFollowers + 1
-          }
-      }) : null);
-      
-      // Gọi API
+    const fetchDetails = async () => {
+      if (!shopId) return;
       try {
-          const response = await fetch(`/api/shop/${shopId}`, { method: 'POST' });
-          if (!response.ok) {
-              // Nếu API lỗi, hoàn tác lại thay đổi trên giao diện
-              throw new Error('API call failed');
-          }
-      } catch (error) {
-           // Hoàn tác
-           setData(prev => prev ? ({
-              ...prev,
-              shopInfo: {
-                  ...prev.shopInfo,
-                  isFollowing: originalFollowingState,
-                  followers: originalFollowers
-              }
-           }) : null);
-           alert('Không thể thay đổi trạng thái theo dõi. Vui lòng thử lại.');
+        const res = await fetch(`${API_URL}/shops/${shopId}/details`, { credentials: 'include' });
+        if (!res.ok) throw new Error("Shop not found");
+        const data: ShopDetailsResponse = await res.json();
+        setDetails(data);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setIsLoadingDetails(false);
       }
+    };
+    fetchDetails();
+  }, [shopId, API_URL]);
+
+  // Effect để gọi API sản phẩm khi bộ lọc thay đổi
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+  
+  const handleToggleFollow = async () => {
+    if (!details) return;
+    
+    const originalInfo = details.shopInfo;
+    const isCurrentlyFollowing = originalInfo.isFollowing;
+
+    // Optimistic Update
+    setDetails(prev => prev ? ({ 
+      ...prev, 
+      shopInfo: { 
+        ...prev.shopInfo, 
+        isFollowing: !isCurrentlyFollowing, 
+        followers: isCurrentlyFollowing ? originalInfo.followers - 1 : originalInfo.followers + 1 
+      } 
+    }) : null);
+
+    try {
+      const response = await fetch(`${API_URL}/shops/${shopId}/toggle-follow`, { 
+        method: 'POST',
+        credentials: 'include',
+        headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        // Hoàn tác lại UI trước khi hiển thị thông báo lỗi
+        setDetails(prev => prev ? ({ ...prev, shopInfo: originalInfo }) : null);
+
+        if (response.status === 401) {
+          // Hiển thị toast cảnh báo thay vì confirm
+          toast.warn("Bạn cần đăng nhập để theo dõi shop!", {
+            autoClose: 3000,
+            onClick: () => router.push('/login'), // Cho phép click vào toast để chuyển trang
+            style: { cursor: 'pointer' }
+          });
+        } else {
+          // Lỗi server khác
+          toast.error("Đã có lỗi xảy ra, vui lòng thử lại.", { autoClose: 3000 });
+        }
+        return; // Dừng hàm
+      }
+
+      // API thành công, hiển thị toast thành công
+      if (isCurrentlyFollowing) {
+        toast.success("Đã bỏ theo dõi shop.", { autoClose: 2000 });
+      } else {
+        toast.success("Đã theo dõi shop thành công!", { autoClose: 2000 });
+      }
+      
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+      // Hoàn tác lại UI nếu có lỗi mạng
+      setDetails(prev => prev ? ({ ...prev, shopInfo: originalInfo }) : null);
+      toast.error("Lỗi mạng, không thể kết nối đến máy chủ.", { autoClose: 3000 });
+    }
   }
 
-  if (isLoading && !data) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Đang tải trang shop...</div>;
+  // --- Render Logic ---
+  if (isLoadingDetails) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Đang tải thông tin shop...</div>;
   }
-
-  if (error) {
+  if (error && !details) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-red-500">{error}</div>;
   }
-
-  if (!data) {
+  if (!details) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Không tìm thấy shop.</div>;
   }
-  
+
   return (
     <main className="min-h-screen bg-gray-50">
       <ShopHeader
-        info={data.shopInfo}
+        info={details.shopInfo}
         onToggleFollow={handleToggleFollow}
       />
-
       <div className="max-w-7xl mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Sidebar */}
         <aside className="lg:col-span-3">
           <ShopSidebar
-            info={data.shopInfo}
-            categories={data.categories}
+            info={details.shopInfo}
+            categories={details.categories}
             onSelectCategory={setCategory}
             activeCategory={category}
           />
         </aside>
-
-        {/* Content */}
         <section className="lg:col-span-9">
+          {/* Toolbar luôn hiển thị */}
           <ShopContent
-            products={data.products}
-            categories={data.categories} // Truyền danh mục để hiển thị thanh lọc nhanh
-            query={query}
-            onQueryChange={setQuery}
-            category={category}
-            onCategoryChange={setCategory}
-            sortBy={sortBy}
-            onSortByChange={setSortBy}
-            priceMin={priceMin}
-            priceMax={priceMax}
-            onPriceMinChange={setPriceMin}
-            onPriceMaxChange={setPriceMax}
-          />
+                // Các props khác vẫn như cũ
+                products={products}
+                categories={details.categories}
+                query={query} onQueryChange={setQuery}
+                category={category} onCategoryChange={setCategory}
+                sortBy={sortBy} onSortByChange={setSortBy}
+                priceMin={priceMin} onPriceMinChange={setPriceMin}
+                priceMax={priceMax} onPriceMaxChange={setPriceMax}
+                // Truyền prop isLoading và component skeleton
+                isLoading={isLoadingProducts}
+            >
+            {/* Sử dụng children để truyền skeleton */}
+            {isLoadingProducts ? <ShopContentSkeleton /> : null}
+          </ShopContent>
         </section>
       </div>
     </main>
-  )
+  );
 }
+
+// Bạn cần sửa lại ShopContent để chấp nhận children
+// /shop/components/shop-content.tsx
+
+// ... interface Props { ... children?: React.ReactNode }
+// export function ShopContent({ ... children }) {
+//   ...
+//   {/* Grid */}
+//   {isLoadingProducts ? (
+//       children // Hiển thị skeleton
+//   ) : products.length === 0 ? (
+//       <Card>...</Card>
+//   ) : (
+//       <div className="grid ...">{products.map(...)}</div>
+//   )}
+// }

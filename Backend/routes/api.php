@@ -200,10 +200,19 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/shops/{shop}/toggle-follow', [BuyerShopController::class, 'toggleFollow']);
 
-    Route::middleware('auth:sanctum')->post('/products/{productId}/comments', [CommentController::class, 'store']);
+    Route::post('/products/{productId}/comments', [CommentController::class, 'store']);
     
+    Route::put('/comments/{comment}', [CommentController::class, 'update']);
+
+    // Xóa một bình luận
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Xử lý tương tác Like / Dislike
+    Route::post('/comments/{comment}/interaction', [CommentController::class, 'handleInteraction']);
 });
-Route::get('/shops/{shop}', [BuyerShopController::class, 'show']);
+
+Route::get('/shops/{shopId}/details', [BuyerShopController::class, 'getShopDetails']);
+Route::get('/shops/{shopId}/products', [BuyerShopController::class, 'getShopProducts']);
 Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
 Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
 
@@ -339,7 +348,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
         
-    
+        Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);

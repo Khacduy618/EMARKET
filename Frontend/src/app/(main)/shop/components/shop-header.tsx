@@ -1,11 +1,13 @@
-// /shop/components/shop-header.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Star, Check, MessageCircle, UserPlus } from "lucide-react"
-import type { ShopInfo } from "../types/shop"
+// Thay đổi import type ở đây
+import type { ShopInfoForUI as ShopInfo } from "@/types"
+import { getFullImageUrl } from "@/services/api"
+
 
 interface Props {
   info: ShopInfo
@@ -13,11 +15,15 @@ interface Props {
 }
 
 export function ShopHeader({ info, onToggleFollow }: Props) {
+  // Toàn bộ JSX giữ nguyên vì tên trường đã khớp
+  const bannerUrl = getFullImageUrl(info.banner);
+  const avatarUrl = getFullImageUrl(info.avatar);
   return (
     <div className="bg-white border-b">
       {/* Banner */}
       <div
-        className="h-44 md:h-55 w-full bg-[url('/placeholder.svg?height=200&width=1200')] bg-cover bg-center"
+        className="h-44 md:h-55 w-full bg-cover bg-center"
+        style={{ backgroundImage: `url(${bannerUrl})` }}
         aria-hidden="true"
       />
 
@@ -26,10 +32,10 @@ export function ShopHeader({ info, onToggleFollow }: Props) {
         <div className="flex items-start -mt-10 md:-mt-12 gap-4 md:gap-6">
           <Avatar className="w-20 h-20 md:w-24 md:h-24 ring-2 ring-white shadow-md">
             <AvatarImage
-              src={info.avatar || "/placeholder.svg?height=96&width=96&query=shop avatar"}
+              src={avatarUrl}
               alt={`Avatar ${info.name}`}
             />
-            <AvatarFallback>{info.name?.[0] || "S"}</AvatarFallback>
+            <AvatarFallback>{info.name?.[0]?.toUpperCase() || "S"}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
