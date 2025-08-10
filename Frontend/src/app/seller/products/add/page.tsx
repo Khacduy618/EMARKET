@@ -1,256 +1,240 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import type React from "react"
-import { useRouter } from "next/navigation"
-import { getShopCategories, createProduct, getAttributes } from "@/services/seller-category"
-import Swal from "sweetalert2"
+import { useState, useEffect, useRef, useCallback } from "react";
+import type React from "react";
+import { useRouter } from "next/navigation";
+import { getShopCategories, createProduct, getAttributes } from "@/services/seller-category";
+import Swal from "sweetalert2";
 
 // --- INTERFACES ---
 interface ShopCategory {
-    ShopCategoryID: number
-    CategoryID: number
-    CategoryName: string
+    ShopCategoryID: number;
+    CategoryID: number;
+    CategoryName: string;
 }
 
 interface ImageFile {
-    file: File
-    preview: string
-    isPrimary: boolean
-    sortOrder: number
+    file: File;
+    preview: string;
+    isPrimary: boolean;
+    sortOrder: number;
 }
 
 interface Attribute {
-    AttributeID: number
-    Name: string
-    CategoryID: number
+    AttributeID: number;
+    Name: string;
+    CategoryID: number;
 }
 
 interface Variant {
-    Images: ImageFile[]
-    Price: number
-    CompareAtPrice: number | null
-    StockQuantity: number
-    SKU: string
+    Images: ImageFile[];
+    Price: number;
+    CompareAtPrice: number | null;
+    StockQuantity: number;
+    SKU: string;
 }
 
 // --- COMPONENT ---
 export default function ShopeeAddProductPage() {
-    const router = useRouter()
-    const fileInputRef = useRef<HTMLInputElement>(null)
-    const variantFileInputs = useRef<(HTMLInputElement | null)[]>([])
+    const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const variantFileInputs = useRef<(HTMLInputElement | null)[]>([]);
 
     // --- STATES ---
-    const [loading, setLoading] = useState(true)
-    const [shopCategories, setShopCategories] = useState<ShopCategory[]>([])
-    const [attributes, setAttributes] = useState<Attribute[]>([])
-    const [attributeValues, setAttributeValues] = useState<{ [key: number]: string }>({})
-    const [categoryID, setCategoryID] = useState<number | null>(null)
-    const [name, setName] = useState("")
-    const [description, setDescription] = useState("")
-    const [images, setImages] = useState<ImageFile[]>([])
-    const [discount, setDiscount] = useState(0)
-    const [hasVariants, setHasVariants] = useState(false)
+    const [loading, setLoading] = useState(true);
+    const [shopCategories, setShopCategories] = useState<ShopCategory[]>([]);
+    const [attributes, setAttributes] = useState<Attribute[]>([]);
+    const [attributeValues, setAttributeValues] = useState<{ [key: number]: string }>({});
+    const [categoryID, setCategoryID] = useState<number | null>(null);
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [images, setImages] = useState<ImageFile[]>([]);
+    const [discount, setDiscount] = useState(0);
+    // Remove hasVariants state and always default to true
     const [variants, setVariants] = useState<Variant[]>([
         { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" },
-    ])
-    const [singleVariant, setSingleVariant] = useState({ Price: 0, StockQuantity: 0, SKU: "" })
-    const [activeTab, setActiveTab] = useState("basic")
+    ]);
+    const [singleVariant, setSingleVariant] = useState({ Price: 0, StockQuantity: 0, SKU: "" });
+    const [activeTab, setActiveTab] = useState("basic");
 
     // --- EFFECTS ---
     useEffect(() => {
-      
-        fetchShopCategories()
-    }, [router])
+        fetchShopCategories();
+    }, [router]);
 
     // Fix the useEffect cleanup and image handling
-    // Replace the existing useEffect with proper cleanup:
-
     useEffect(() => {
-        // Cleanup function sẽ chạy khi component unmount hoặc khi images/variants thay đổi
+        // Cleanup function will run when component unmounts or when images/variants change
         return () => {
             // Cleanup existing images
             images.forEach((image) => {
                 if (image.preview && image.preview.startsWith("blob:")) {
-                    URL.revokeObjectURL(image.preview)
+                    URL.revokeObjectURL(image.preview);
                 }
-            })
+            });
             // Cleanup variant images
             variants.forEach((variant) =>
                 variant.Images.forEach((img) => {
                     if (img.preview && img.preview.startsWith("blob:")) {
-                        URL.revokeObjectURL(img.preview)
+                        URL.revokeObjectURL(img.preview);
                     }
                 }),
-            )
-        }
-    }, [images, variants]) // Add dependencies to properly cleanup when state changes
+            );
+        };
+    }, [images, variants]); // Add dependencies to properly cleanup when state changes
 
     // --- DATA FETCHING ---
     const fetchShopCategories = async () => {
-        setLoading(true)
+        setLoading(true);
         try {
-            const categoriesData = await getShopCategories()
-            setShopCategories(categoriesData)
+            const categoriesData = await getShopCategories();
+            setShopCategories(categoriesData);
         } catch (err: any) {
-            Swal.fire("Error!", err.response?.data?.message || "Failed to fetch categories", "error")
+            Swal.fire("Error!", err.response?.data?.message || "Failed to fetch categories", "error");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     const fetchAttributesForCategory = async (catID: number) => {
-        setLoading(true)
+        setLoading(true);
         try {
-            // Lấy dữ liệu từ API (không có CategoryID)
-            const attributesDataFromApi = await getAttributes(catID)
-            // Bổ sung CategoryID cho đúng interface local
+            const attributesDataFromApi = await getAttributes(catID);
             const attributesData: Attribute[] = attributesDataFromApi.map((attr: any) => ({
                 ...attr,
                 CategoryID: catID,
-            }))
-            setAttributes(attributesData)
+            }));
+            setAttributes(attributesData);
             const initialValues = attributesData.reduce(
                 (acc, attr) => ({
                     ...acc,
                     [attr.AttributeID]: "",
                 }),
                 {},
-            )
-            setAttributeValues(initialValues)
+            );
+            setAttributeValues(initialValues);
         } catch (err: any) {
-            Swal.fire("Error!", err.response?.data?.message || "Failed to fetch attributes.", "error")
-            setAttributes([])
-            setAttributeValues({})
+            Swal.fire("Error!", err.response?.data?.message || "Failed to fetch attributes.", "error");
+            setAttributes([]);
+            setAttributeValues({});
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     // --- HANDLERS ---
     const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
-        setCategoryID(newCategoryID)
-        setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
+        setCategoryID(newCategoryID);
+        setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }]);
         if (newCategoryID) {
-            fetchAttributesForCategory(newCategoryID)
+            fetchAttributesForCategory(newCategoryID);
         } else {
-            setAttributes([])
-            setAttributeValues({})
+            setAttributes([]);
+            setAttributeValues({});
         }
-    }
+    };
 
-    // Update handleImageSelect to be more robust:
     const handleImageSelect = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
-            const files = event.target.files
-            if (!files) return
+            const files = event.target.files;
+            if (!files) return;
 
             if (images.length + files.length > 9) {
-                Swal.fire("Limit Reached!", "You can upload a maximum of 9 images.", "warning")
-                return
+                Swal.fire("Limit Reached!", "You can upload a maximum of 9 images.", "warning");
+                return;
             }
 
             const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => {
-                // Create blob URL
-                const preview = URL.createObjectURL(file)
+                const preview = URL.createObjectURL(file);
                 return {
                     file,
                     preview,
                     isPrimary: images.length === 0 && index === 0,
                     sortOrder: images.length + index,
-                }
-            })
+                };
+            });
 
-            setImages((prev) => [...prev, ...newImageFiles])
+            setImages((prev) => [...prev, ...newImageFiles]);
 
-            // Clear the input value
             if (event.target) {
-                event.target.value = ""
+                event.target.value = "";
             }
         },
         [images.length],
-    )
+    );
 
-    // Update handleRemoveImage to be more robust:
     const handleRemoveImage = useCallback((indexToRemove: number) => {
         setImages((prev) => {
-            const imageToRemove = prev[indexToRemove]
+            const imageToRemove = prev[indexToRemove];
 
-            // Safely revoke URL
             if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
                 try {
-                    URL.revokeObjectURL(imageToRemove.preview)
+                    URL.revokeObjectURL(imageToRemove.preview);
                 } catch (error) {
-                    console.warn("Failed to revoke object URL:", error)
+                    console.warn("Failed to revoke object URL:", error);
                 }
             }
 
-            const remainingImages = prev.filter((_, index) => index !== indexToRemove)
+            const remainingImages = prev.filter((_, index) => index !== indexToRemove);
 
-            // Set new primary if needed
             if (imageToRemove?.isPrimary && remainingImages.length > 0) {
-                remainingImages[0].isPrimary = true
+                remainingImages[0].isPrimary = true;
             }
 
-            // Update sort order
-            return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }))
-        })
-    }, [])
+            return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }));
+        });
+    }, []);
 
     const setPrimaryImage = useCallback((indexToSet: number) => {
-        setImages((prev) => prev.map((img, index) => ({ ...img, isPrimary: index === indexToSet })))
-    }, [])
+        setImages((prev) => prev.map((img, index) => ({ ...img, isPrimary: index === indexToSet })));
+    }, []);
 
-    // Update handleVariantImageSelect with better error handling:
     const handleVariantImageSelect = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
-            const files = event.target.files
-            if (!files) return
+            const files = event.target.files;
+            if (!files) return;
 
             if (variants[variantIndex].Images.length + files.length > 3) {
-                Swal.fire("Limit Reached!", "Each variant can have a maximum of 3 images.", "warning")
-                return
+                Swal.fire("Limit Reached!", "Each variant can have a maximum of 3 images.", "warning");
+                return;
             }
 
             const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => {
-                const preview = URL.createObjectURL(file)
+                const preview = URL.createObjectURL(file);
                 return {
                     file,
                     preview,
                     isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
                     sortOrder: variants[variantIndex].Images.length + index,
-                }
-            })
+                };
+            });
 
             setVariants((prev) =>
                 prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
-            )
+            );
 
-            // Clear input
             if (event.target) {
-                event.target.value = ""
+                event.target.value = "";
             }
         },
         [variants],
-    )
+    );
 
-    // Update handleRemoveVariantImage with proper cleanup:
     const handleRemoveVariantImage = useCallback((variantIndex: number, imageIndex: number) => {
         setVariants((prev) =>
             prev.map((v, i) => {
                 if (i === variantIndex) {
-                    const imageToRemove = v.Images[imageIndex]
+                    const imageToRemove = v.Images[imageIndex];
 
-                    // Safely revoke URL
                     if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
                         try {
-                            URL.revokeObjectURL(imageToRemove.preview)
+                            URL.revokeObjectURL(imageToRemove.preview);
                         } catch (error) {
-                            console.warn("Failed to revoke variant image URL:", error)
+                            console.warn("Failed to revoke variant image URL:", error);
                         }
                     }
 
-                    const remainingImages = v.Images.filter((_, idx) => idx !== imageIndex)
+                    const remainingImages = v.Images.filter((_, idx) => idx !== imageIndex);
 
                     return {
                         ...v,
@@ -259,12 +243,12 @@ export default function ShopeeAddProductPage() {
                             sortOrder: idx,
                             isPrimary: idx === 0 && imageToRemove?.isPrimary,
                         })),
-                    }
+                    };
                 }
-                return v
+                return v;
             }),
-        )
-    }, [])
+        );
+    }, []);
 
     const handleVariantChange = (index: number, field: keyof Omit<Variant, "Images">, value: string | number | null) => {
         setVariants((prev) =>
@@ -285,27 +269,27 @@ export default function ShopeeAddProductPage() {
                     }
                     : v,
             ),
-        )
-    }
+        );
+    };
 
     const handleSingleVariantChange = (field: keyof typeof singleVariant, value: string | number) => {
         setSingleVariant((prev) => ({
             ...prev,
             [field]: field === "Price" || field === "StockQuantity" ? Number(value) : value,
-        }))
-    }
+        }));
+    };
 
     const handleAttributeValueChange = (attributeID: number, value: string) => {
         setAttributeValues((prev) => ({
             ...prev,
             [attributeID]: value,
-        }))
-    }
+        }));
+    };
 
     const addVariant = () => {
-        setVariants((prev) => [...prev, { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
-        variantFileInputs.current = [...variantFileInputs.current, null]
-    }
+        setVariants((prev) => [...prev, { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }]);
+        variantFileInputs.current = [...variantFileInputs.current, null];
+    };
 
     const handleRemoveVariant = (index: number) => {
         Swal.fire({
@@ -317,184 +301,141 @@ export default function ShopeeAddProductPage() {
             cancelButtonText: "Hủy",
         }).then((result) => {
             if (result.isConfirmed) {
-                setVariants((prev) => prev.filter((_, i) => i !== index))
+                setVariants((prev) => prev.filter((_, i) => i !== index));
                 setVariants((prev) =>
                     prev.map((v, i) => ({
                         ...v,
                         Images: v.Images.map((img, idx) => ({ ...img, sortOrder: idx })),
                     })),
-                )
-                variantFileInputs.current = variantFileInputs.current.filter((_, i) => i !== index)
+                );
+                variantFileInputs.current = variantFileInputs.current.filter((_, i) => i !== index);
             }
-        })
-    }
+        });
+    };
 
     // Validation cho tab basic
     const validateBasicTab = () => {
         if (!categoryID) {
-            Swal.fire("Error!", "Vui lòng chọn ngành hàng.", "error")
-            return false
+            Swal.fire("Error!", "Vui lòng chọn ngành hàng.", "error");
+            return false;
         }
 
         if (!name.trim()) {
-            Swal.fire("Error!", "Vui lòng nhập tên sản phẩm.", "error")
-            return false
+            Swal.fire("Error!", "Vui lòng nhập tên sản phẩm.", "error");
+            return false;
         }
 
         if (images.length === 0) {
-            Swal.fire("Error!", "Vui lòng thêm ít nhất một hình ảnh sản phẩm.", "error")
-            return false
+            Swal.fire("Error!", "Vui lòng thêm ít nhất một hình ảnh sản phẩm.", "error");
+            return false;
         }
 
-        return true
-    }
+        return true;
+    };
 
     // Xử lý chuyển tab tiếp theo
     const handleNextTab = () => {
         if (activeTab === "basic") {
             if (validateBasicTab()) {
-                setActiveTab("sales")
+                setActiveTab("sales");
             }
         }
-    }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
         // Nếu đang ở tab basic, chuyển sang tab sales thay vì submit
         if (activeTab === "basic") {
-            handleNextTab()
-            return
+            handleNextTab();
+            return;
         }
 
         // Validation cho tab sales
         if (!categoryID) {
-            Swal.fire("Error!", "Please select a category.", "error")
-            return
+            Swal.fire("Error!", "Please select a category.", "error");
+            return;
         }
 
         if (images.length === 0 && variants.every((v) => v.Images.length === 0)) {
-            Swal.fire("Error!", "At least one image is required for the product or variants.", "error")
-            return
+            Swal.fire("Error!", "At least one image is required for the product or variants.", "error");
+            return;
         }
 
-        if (hasVariants && variants.length === 0) {
-            Swal.fire("Error!", "Please add at least one variant.", "error")
-            return
+        if (variants.length === 0) {
+            Swal.fire("Error!", "Please add at least one variant.", "error");
+            return;
         }
 
-        if (hasVariants && variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
-            Swal.fire("Error!", "Price and stock quantity must be valid for all variants.", "error")
-            return
-        }
-
-        if (!hasVariants && singleVariant.Price <= 0) {
-            Swal.fire("Error!", "Price must be greater than 0 for single variant.", "error")
-            return
+        if (variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
+            Swal.fire("Error!", "Price and stock quantity must be valid for all variants.", "error");
+            return;
         }
 
         if (discount < 0 || discount > 100) {
-            Swal.fire("Error!", "Discount must be between 0 and 100.", "error")
-            return
+            Swal.fire("Error!", "Discount must be between 0 and 100.", "error");
+            return;
         }
 
-        setLoading(true)
+        setLoading(true);
 
-        const productFormData = new FormData()
-        productFormData.append("CategoryID", String(categoryID))
-        productFormData.append("Name", name)
-        productFormData.append("Description", description)
-        productFormData.append("Discount", String(discount))
+        const productFormData = new FormData();
+        productFormData.append("CategoryID", String(categoryID));
+        productFormData.append("Name", name);
+        productFormData.append("Description", description);
+        productFormData.append("Discount", String(discount));
 
-        const imageData = images.map((img) => ({ IsPrimary: img.isPrimary, SortOrder: img.sortOrder }))
-        productFormData.append("ImageData", JSON.stringify(imageData))
-        images.forEach((img) => productFormData.append("Images[]", img.file))
+        const imageData = images.map((img) => ({ IsPrimary: img.isPrimary, SortOrder: img.sortOrder }));
+        productFormData.append("ImageData", JSON.stringify(imageData));
+        images.forEach((img) => productFormData.append("Images[]", img.file));
 
-        if (hasVariants) {
-            const variantData = variants.map((v) => ({
-                Price: v.Price,
-                CompareAtPrice: v.CompareAtPrice,
-                StockQuantity: v.StockQuantity,
-                SKU: v.SKU,
-            }))
-            productFormData.append("Variants", JSON.stringify(variantData))
-            variants.forEach((v, index) =>
-                v.Images.forEach((img) => productFormData.append(`VariantImages[${index}][]`, img.file)),
-            )
-        } else {
-            productFormData.append("Price", String(singleVariant.Price))
-            productFormData.append("StockQuantity", String(singleVariant.StockQuantity))
-            productFormData.append("SKU", singleVariant.SKU)
-        }
+        const variantData = variants.map((v) => ({
+            Price: v.Price,
+            CompareAtPrice: v.CompareAtPrice,
+            StockQuantity: v.StockQuantity,
+            SKU: v.SKU,
+        }));
+        productFormData.append("Variants", JSON.stringify(variantData));
+        variants.forEach((v, index) =>
+            v.Images.forEach((img) => productFormData.append(`VariantImages[${index}][]`, img.file)),
+        );
 
-        productFormData.append("AttributeValues", JSON.stringify(attributeValues))
+        productFormData.append("AttributeValues", JSON.stringify(attributeValues));
 
         try {
-            await createProduct(productFormData)
+            await createProduct(productFormData);
             Swal.fire("Success!", "Product created successfully and is pending approval.", "success").then(() =>
                 router.push("/seller/products"),
-            )
+            );
         } catch (err: any) {
-            console.error("API Error:", err.response?.data)
-            Swal.fire("Error!", err.response?.data?.message || "Failed to save product.", "error")
+            console.error("API Error:", err.response?.data);
+            Swal.fire("Error!", err.response?.data?.message || "Failed to save product.", "error");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     // Hàm để lấy text của nút dựa trên tab hiện tại
     const getSubmitButtonText = () => {
-        if (loading) return "Đang xử lý..."
-        if (activeTab === "basic") return "Tiếp theo"
-        return "Lưu & Hiển thị"
-    }
+        if (loading) return "Đang xử lý...";
+        if (activeTab === "basic") return "Tiếp theo";
+        return "Lưu & Hiển thị";
+    };
 
     // Helper function để lấy primary image
     const getPrimaryImage = () => {
-        return images.find((img) => img.isPrimary) || images[0] || null
-    }
+        return images.find((img) => img.isPrimary) || images[0] || null;
+    };
 
     // Get selected category name
     const getSelectedCategoryName = () => {
-        const selectedCategory = shopCategories.find((cat) => cat.CategoryID === categoryID)
-        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
-    }
+        const selectedCategory = shopCategories.find((cat) => cat.CategoryID === categoryID);
+        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng";
+    };
 
     // --- RENDER ---
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Shopee Header */}
-            {/* <div className="bg-white border-b shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                        <div className="text-2xl font-bold text-orange-500">Shopee</div>
-                        <div className="text-gray-400">|</div>
-                        <div className="text-lg text-gray-700">Kênh Người Bán</div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-12h5v12z" />
-                        </svg>
-                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                            />
-                        </svg>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <span className="text-sm text-gray-700">duynguykhc8</span>
-                        </div>
-                    </div>
-                </div>
-            </div> */}
-
             <div className="max-w-7xl mx-auto px-4 py-6">
                 <div className="grid grid-cols-12 gap-6">
                     {/* Left Sidebar - Tips */}
@@ -574,8 +515,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("basic")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "basic"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin cơ bản
@@ -583,8 +524,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("sales")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "sales"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin bán hàng
@@ -592,8 +533,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("shipping")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "shipping"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Vận chuyển
@@ -601,8 +542,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("other")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "other"
-                                            ? "border-orange-500 text-orange-600 bg-orange-50"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-orange-500 text-orange-600 bg-orange-50"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin khác
@@ -643,28 +584,24 @@ export default function ShopeeAddProductPage() {
                                                     key={image.preview}
                                                     className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden group"
                                                 >
-                                                    {/* Update the image rendering with better error handling:
-                          // In the image grid section, replace the img tag with: */}
                                                     <img
                                                         src={image.preview || "/placeholder.svg"}
                                                         alt={`preview ${index}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
-                                                            console.error("Image load error for:", image.preview)
-                                                            // Don't change src to placeholder immediately, let it retry
-                                                            const target = e.currentTarget
+                                                            console.error("Image load error for:", image.preview);
+                                                            const target = e.currentTarget;
                                                             if (!target.dataset.retried) {
-                                                                target.dataset.retried = "true"
-                                                                // Small delay before setting placeholder
+                                                                target.dataset.retried = "true";
                                                                 setTimeout(() => {
                                                                     if (target.src !== "/placeholder.svg?height=150&width=150") {
-                                                                        target.src = "/placeholder.svg?height=150&width=150"
+                                                                        target.src = "/placeholder.svg?height=150&width=150";
                                                                     }
-                                                                }, 100)
+                                                                }, 100);
                                                             }
                                                         }}
                                                         onLoad={() => {
-                                                            console.log("Image loaded successfully:", image.preview)
+                                                            console.log("Image loaded successfully:", image.preview);
                                                         }}
                                                     />
                                                     <div className="absolute top-1 right-1">
@@ -860,192 +797,135 @@ export default function ShopeeAddProductPage() {
                                 <div className="p-6 space-y-6">
                                     <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin bán hàng</h3>
 
-                                    {/* Variant Toggle */}
-                                    <div className="flex items-center mb-6">
-                                        <label className="mr-4 text-gray-700 font-medium">Phân loại hàng</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => setHasVariants(!hasVariants)}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${hasVariants ? "bg-orange-500" : "bg-gray-200"
-                                                }`}
-                                        >
-                                            <span
-                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${hasVariants ? "translate-x-6" : "translate-x-1"
-                                                    }`}
-                                            />
-                                        </button>
-                                    </div>
+                                    {/* Variant Section (Always enabled) */}
+                                    <div className="border-t pt-6 space-y-6">
+                                        {variants.map((variant, index) => (
+                                            <div key={index} className="border border-gray-200 p-4 rounded-lg">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h4 className="text-lg font-medium">Phân loại {index + 1}</h4>
+                                                    {variants.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveVariant(index)}
+                                                            className="text-red-500 hover:text-red-700 text-sm"
+                                                        >
+                                                            Xóa phân loại
+                                                        </button>
+                                                    )}
+                                                </div>
 
-                                    {!hasVariants ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-6">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    <span className="text-red-500">*</span> Giá
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={singleVariant.Price}
-                                                    onChange={(e) => handleSingleVariantChange("Price", e.target.value)}
-                                                    required
-                                                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    <span className="text-red-500">*</span> Kho hàng
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={singleVariant.StockQuantity}
-                                                    onChange={(e) => handleSingleVariantChange("StockQuantity", e.target.value)}
-                                                    required
-                                                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">SKU (Tùy chọn)</label>
-                                                <input
-                                                    type="text"
-                                                    value={singleVariant.SKU}
-                                                    onChange={(e) => handleSingleVariantChange("SKU", e.target.value)}
-                                                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="border-t pt-6 space-y-6">
-                                            {variants.map((variant, index) => (
-                                                <div key={index} className="border border-gray-200 p-4 rounded-lg">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <h4 className="text-lg font-medium">Phân loại {index + 1}</h4>
-                                                        {variants.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveVariant(index)}
-                                                                className="text-red-500 hover:text-red-700 text-sm"
-                                                            >
-                                                                Xóa phân loại
-                                                            </button>
-                                                        )}
+                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
+                                                        <input
+                                                            type="file"
+                                                            ref={(el) => {
+                                                                variantFileInputs.current[index] = el;
+                                                            }}
+                                                            onChange={(e) => handleVariantImageSelect(e, index)}
+                                                            multiple
+                                                            accept="image/*"
+                                                            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                                                        />
+                                                        <div className="mt-2 flex flex-wrap gap-2">
+                                                            {variant.Images.map((img, imgIndex) => (
+                                                                <div key={imgIndex} className="relative w-16 h-16 border rounded-md overflow-hidden">
+                                                                    <img
+                                                                        src={img.preview || "/placeholder.svg"}
+                                                                        alt={`variant ${index} preview ${imgIndex}`}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            console.error("Variant image load error:", img.preview);
+                                                                            const target = e.currentTarget;
+                                                                            if (!target.dataset.retried) {
+                                                                                target.dataset.retried = "true";
+                                                                                setTimeout(() => {
+                                                                                    if (target.src !== "/placeholder.svg?height=64&width=64") {
+                                                                                        target.src = "/placeholder.svg?height=64&width=64";
+                                                                                    }
+                                                                                }, 100);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveVariantImage(index, imgIndex)}
+                                                                        className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                    {img.isPrimary && (
+                                                                        <div className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-xs text-center">
+                                                                            Chính
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
-                                                            <input
-                                                                type="file"
-                                                                ref={(el) => {
-                                                                    variantFileInputs.current[index] = el
-                                                                }}
-                                                                onChange={(e) => handleVariantImageSelect(e, index)}
-                                                                multiple
-                                                                accept="image/*"
-                                                                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                                            />
-                                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                                {variant.Images.map((img, imgIndex) => (
-                                                                    <div key={imgIndex} className="relative w-16 h-16 border rounded-md overflow-hidden">
-                                                                        {/* Update the variant image rendering with better error handling:
-                                    // In the variant images section, replace the img tag with: */}
-                                                                        <img
-                                                                            src={img.preview || "/placeholder.svg"}
-                                                                            alt={`variant ${index} preview ${imgIndex}`}
-                                                                            className="w-full h-full object-cover"
-                                                                            onError={(e) => {
-                                                                                console.error("Variant image load error:", img.preview)
-                                                                                const target = e.currentTarget
-                                                                                if (!target.dataset.retried) {
-                                                                                    target.dataset.retried = "true"
-                                                                                    setTimeout(() => {
-                                                                                        if (target.src !== "/placeholder.svg?height=64&width=64") {
-                                                                                            target.src = "/placeholder.svg?height=64&width=64"
-                                                                                        }
-                                                                                    }, 100)
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleRemoveVariantImage(index, imgIndex)}
-                                                                            className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
-                                                                        >
-                                                                            ×
-                                                                        </button>
-                                                                        {img.isPrimary && (
-                                                                            <div className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-xs text-center">
-                                                                                Chính
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            <span className="text-red-500">*</span> Giá
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={variant.Price}
+                                                            onChange={(e) => handleVariantChange(index, "Price", e.target.value)}
+                                                            required
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                        />
+                                                    </div>
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                                <span className="text-red-500">*</span> Giá
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={variant.Price}
-                                                                onChange={(e) => handleVariantChange(index, "Price", e.target.value)}
-                                                                required
-                                                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                            />
-                                                        </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={variant.CompareAtPrice ?? ""}
+                                                            onChange={(e) => handleVariantChange(index, "CompareAtPrice", e.target.value || null)}
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                        />
+                                                    </div>
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={variant.CompareAtPrice ?? ""}
-                                                                onChange={(e) => handleVariantChange(index, "CompareAtPrice", e.target.value || null)}
-                                                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                            />
-                                                        </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            <span className="text-red-500">*</span> SKU
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={variant.SKU}
+                                                            onChange={(e) => handleVariantChange(index, "SKU", e.target.value)}
+                                                            required
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                        />
+                                                    </div>
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                                <span className="text-red-500">*</span> SKU
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={variant.SKU}
-                                                                onChange={(e) => handleVariantChange(index, "SKU", e.target.value)}
-                                                                required
-                                                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                                <span className="text-red-500">*</span> Số lượng
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={variant.StockQuantity}
-                                                                onChange={(e) => handleVariantChange(index, "StockQuantity", e.target.value)}
-                                                                required
-                                                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                            />
-                                                        </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            <span className="text-red-500">*</span> Số lượng
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={variant.StockQuantity}
+                                                            onChange={(e) => handleVariantChange(index, "StockQuantity", e.target.value)}
+                                                            required
+                                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                        />
                                                     </div>
                                                 </div>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                onClick={addVariant}
-                                                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
-                                            >
-                                                Thêm Phân loại
-                                            </button>
-                                        </div>
-                                    )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={addVariant}
+                                            className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
+                                        >
+                                            Thêm Phân loại
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
@@ -1105,18 +985,16 @@ export default function ShopeeAddProductPage() {
                             </div>
                             <div className="p-4">
                                 <div className="border-2 border-orange-200 rounded-lg p-4 mb-4 min-h-[200px] flex items-center justify-center bg-gray-50">
-                                    {/* Update the preview image with better error handling:
-                  // In the preview section, replace the preview img with: */}
                                     {images.length > 0 ? (
                                         <img
                                             src={getPrimaryImage()?.preview || "/placeholder.svg"}
                                             alt="Preview"
                                             className="max-w-full max-h-full object-contain"
                                             onError={(e) => {
-                                                console.error("Preview image load error")
-                                                const target = e.currentTarget
+                                                console.error("Preview image load error");
+                                                const target = e.currentTarget;
                                                 if (target.src !== "/placeholder.svg?height=200&width=200") {
-                                                    target.src = "/placeholder.svg?height=200&width=200"
+                                                    target.src = "/placeholder.svg?height=200&width=200";
                                                 }
                                             }}
                                         />
@@ -1137,11 +1015,9 @@ export default function ShopeeAddProductPage() {
 
                                 <div className="text-center text-gray-500 text-sm mb-4">
                                     ₫
-                                    {hasVariants
-                                        ? variants.length > 0
-                                            ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(...variants.map((v) => v.Price))}`
-                                            : "0 - ₫0"
-                                        : singleVariant.Price}
+                                    {variants.length > 0
+                                        ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(...variants.map((v) => v.Price))}`
+                                        : "0 - ₫0"}
                                 </div>
 
                                 <div className="flex items-center space-x-2 mb-4">
@@ -1185,50 +1061,50 @@ export default function ShopeeAddProductPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 // Category Dropdown Component
 interface CategoryDropdownProps {
-    categories: ShopCategory[]
-    selectedCategoryID: number | null
-    onCategorySelect: (categoryID: number, categoryName: string) => void
-    loading: boolean
+    categories: ShopCategory[];
+    selectedCategoryID: number | null;
+    onCategorySelect: (categoryID: number, categoryName: string) => void;
+    loading: boolean;
 }
 
 function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, loading }: CategoryDropdownProps) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [searchTerm, setSearchTerm] = useState("")
-    const dropdownRef = useRef<HTMLDivElement>(null)
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false)
+                setIsOpen(false);
             }
         }
 
-        document.addEventListener("mousedown", handleClickOutside)
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
-        }
-    }, [])
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const filteredCategories = categories.filter((category) =>
         category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
+    );
 
     const getSelectedCategoryName = () => {
-        const selectedCategory = categories.find((cat) => cat.CategoryID === selectedCategoryID)
-        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
-    }
+        const selectedCategory = categories.find((cat) => cat.CategoryID === selectedCategoryID);
+        return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng";
+    };
 
     const handleCategoryClick = (category: ShopCategory) => {
-        onCategorySelect(category.CategoryID, category.CategoryName)
-        setIsOpen(false)
-        setSearchTerm("")
-    }
+        onCategorySelect(category.CategoryID, category.CategoryName);
+        setIsOpen(false);
+        setSearchTerm("");
+    };
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -1290,8 +1166,8 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                                     type="button"
                                     onClick={() => handleCategoryClick(category)}
                                     className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
-                                            ? "bg-orange-50 text-orange-600 font-medium"
-                                            : "text-gray-700"
+                                        ? "bg-orange-50 text-orange-600 font-medium"
+                                        : "text-gray-700"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -1323,5 +1199,5 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                 </div>
             )}
         </div>
-    )
+    );
 }
