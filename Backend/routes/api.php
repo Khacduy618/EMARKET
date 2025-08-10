@@ -33,7 +33,7 @@ use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-
+use App\Http\Controllers\ShopController as BuyerShopController;
 use App\Http\Controllers\ReviewController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
@@ -198,12 +198,12 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/reviews/{reviewId}/reply', [ReviewController::class, 'reply']);
 
-    
+    Route::post('/shops/{shop}/toggle-follow', [BuyerShopController::class, 'toggleFollow']);
 
     Route::middleware('auth:sanctum')->post('/products/{productId}/comments', [CommentController::class, 'store']);
-
+    
 });
-
+Route::get('/shops/{shop}', [BuyerShopController::class, 'show']);
 Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
 Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
 
@@ -231,22 +231,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
 });
 
-Route::middleware('auth:sanctum' )->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::middleware('seller')->group(function () {
-        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-        Route::get('/products', [ShopProductController::class, 'index']);
-        Route::post('/shop/products', [ShopProductController::class, 'store']);
-        Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
-        Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
-        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
-        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
-        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
-    });
-});
+// Route::middleware('auth:sanctum' )->group(function () {
+//     Route::get('/user', [AuthController::class, 'user']);
+//     Route::middleware('seller')->group(function () {
+//         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+//         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+//         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+//         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+//         Route::get('/products', [ShopProductController::class, 'index']);
+//         Route::post('/shop/products', [ShopProductController::class, 'store']);
+//         Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
+//         Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
+//         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
+//         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+//         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+//     });
+// });
 
 
 /*____________________________________________________________________

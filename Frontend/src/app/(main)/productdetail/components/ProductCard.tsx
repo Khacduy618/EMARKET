@@ -46,11 +46,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                        
                     />
 
-                    {product.discountPercent && product.discountPercent > 0 && (
+                    {/* {product.discountPercent && product.discountPercent > 0 && (
                         <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2.5 py-1 rounded">
                             -{product.discountPercent}%
                         </div>
-                    )}
+                    )} */}
                     <div className="absolute top-3 right-3 flex flex-col gap-2">
                         <button className="bg-white p-2 rounded-full shadow-md hover:bg-gray-200 transition">
                             <Heart size={20} />

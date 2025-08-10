@@ -24,6 +24,7 @@ interface OrderProductListProps {
 }
 
 export default function OrderProductList({ orderItems, formatCurrency }: OrderProductListProps) {
+    
     return (
         <Card>
             <CardHeader>
@@ -34,7 +35,7 @@ export default function OrderProductList({ orderItems, formatCurrency }: OrderPr
             </CardHeader>
             <CardContent className="p-0">
                 <div className="divide-y divide-gray-200">
-                    {orderItems.map((item) => (
+                    {orderItems?.map((item) => (
                         <div key={item.orderItemId} className="p-6">
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-shrink-0">

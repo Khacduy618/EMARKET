@@ -1,216 +1,294 @@
-'use client';
+// // /shop/[shopId]/page.tsx
+// "use client"
 
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Header from '@/app/components/Header';
-import Footer from '@/app/components/Footer';
-import ShopHeader from '../components/ShopHeader';
-import BestSellingProducts from '../components/BestSellingProducts';
-import AllProducts from '../components/AllProducts';
-import ProductFilter from '../components/ProductFilter';
-import SortBar from '../components/SortBar';
-import { getShopDetails, getShopProducts, getShopBestSelling } from '@/services/shop';
+// import { useMemo, useState } from "react"
+// import { ShopHeader } from "../components/shop-header"
+// import { ShopSidebar } from "../components/shop-sidebar"
+// import { ShopContent } from "../components/shop-content"
+// import type { ShopInfo, Product } from "../types/shop"
+// import { shopInfo as defaultShopInfo, products as allProducts, categories as allCategories } from "../data/shop-data"
 
-interface Shop {
-    ShopID: number;
-    ShopName: string;
-    ShopDescription?: string;
-    ShopPhone?: string;
-    ShopEmail?: string;
-    ShopAddress?: string;
-    ShopLogo?: string;
-    ShopCoverImage?: string;
-    ShopLevel?: number;
-    FollowerCount?: number;
-    IsFollowing?: boolean;
+// export default function ShopPage() {
+//   const [shopInfo, setShopInfo] = useState<ShopInfo>(defaultShopInfo)
+//   const [query, setQuery] = useState("")
+//   const [category, setCategory] = useState<string>("all")
+//   const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular")
+//   const [priceMin, setPriceMin] = useState<string>("")
+//   const [priceMax, setPriceMax] = useState<string>("")
+
+//   const filtered: Product[] = useMemo(() => {
+//     let list = [...allProducts]
+
+//     // Search
+//     if (query.trim()) {
+//       const q = query.toLowerCase()
+//       list = list.filter((p) => p.name.toLowerCase().includes(q))
+//     }
+
+//     // Category
+//     if (category !== "all") {
+//       list = list.filter((p) => p.category === category)
+//     }
+
+//     // Price
+//     const min = priceMin ? Number(priceMin) : undefined
+//     const max = priceMax ? Number(priceMax) : undefined
+//     if (min !== undefined) list = list.filter((p) => p.price >= min)
+//     if (max !== undefined) list = list.filter((p) => p.price <= max)
+
+//     // Sort
+//     switch (sortBy) {
+//       case "popular":
+//         list.sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
+//         break
+//       case "newest":
+//         list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+//         break
+//       case "price-asc":
+//         list.sort((a, b) => a.price - b.price)
+//         break
+//       case "price-desc":
+//         list.sort((a, b) => b.price - a.price)
+//         break
+//     }
+
+//     return list
+//   }, [query, category, sortBy, priceMin, priceMax])
+
+//   return (
+//     <main className="min-h-screen bg-gray-50">
+//       <ShopHeader
+//         info={shopInfo}
+//         onToggleFollow={() =>
+//           setShopInfo((prev) => ({
+//             ...prev,
+//             isFollowing: !prev.isFollowing,
+//             followers: prev.isFollowing ? prev.followers - 1 : prev.followers + 1,
+//           }))
+//         }
+//       />
+
+//       <div className="max-w-7xl mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+//         {/* Sidebar */}
+//         <aside className="lg:col-span-3">
+//           <ShopSidebar
+//             info={shopInfo}
+//             categories={allCategories}
+//             onSelectCategory={setCategory}
+//             activeCategory={category}
+//           />
+//         </aside>
+
+//         {/* Content */}
+//         <section className="lg:col-span-9">
+//           <ShopContent
+//             products={filtered}
+//             categories={allCategories}
+//             query={query}
+//             onQueryChange={setQuery}
+//             category={category}
+//             onCategoryChange={setCategory}
+//             sortBy={sortBy}
+//             onSortByChange={setSortBy}
+//             priceMin={priceMin}
+//             priceMax={priceMax}
+//             onPriceMinChange={setPriceMin}
+//             onPriceMaxChange={setPriceMax}
+//           />
+//         </section>
+//       </div>
+//     </main>
+//   )
+// }
+
+"use client"
+
+import { useEffect, useState, useCallback } from "react"
+import { useParams } from "next/navigation"
+import { ShopHeader } from "../components/shop-header"
+import { ShopSidebar } from "../components/shop-sidebar"
+import { ShopContent } from "../components/shop-content"
+
+import { Shop, Product } from "@/types"
+
+// Helper để debounce (trì hoãn) việc gọi API khi người dùng gõ
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
 }
 
-interface Product {
-    ProductID: number;
-    Name: string;
-    Price: number;
-    CompareAtPrice?: number;
-    ImageURL?: string;
-    Discount?: number;
-    StockQuantity: number;
-}
-
-interface FilterOptions {
-    categories: string[];
-    priceRange: { min: number; max: number };
-    sortBy: 'newest' | 'price-asc' | 'price-desc' | 'best-selling' | 'rating';
-}
 
 export default function ShopPage() {
-    const params = useParams();
-    const shopId = params.shopId as string;
+  const params = useParams();
+  const shopId = params.shopId as string;
+
+  // State để lưu dữ liệu từ API
+  const [data, setData] = useState<Shop | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State cho các bộ lọc
+  const [query, setQuery] = useState("")
+  const [category, setCategory] = useState<string>("all")
+  const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular")
+  const [priceMin, setPriceMin] = useState<string>("")
+  const [priceMax, setPriceMax] = useState<string>("")
+
+  // Sử dụng debounce cho các input text để tránh gọi API liên tục
+  const debouncedQuery = useDebounce(query, 500);
+  const debouncedPriceMin = useDebounce(priceMin, 500);
+  const debouncedPriceMax = useDebounce(priceMax, 500);
+
+  // Hàm gọi API
+  const fetchShopData = useCallback(async () => {
+    if (!shopId) return;
+    setIsLoading(true);
     
-    const [shop, setShop] = useState<Shop | null>(null);
-    const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([]);
-    const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    
-    const [filters, setFilters] = useState<FilterOptions>({
-        categories: [],
-        priceRange: { min: 0, max: 10000000 },
-        sortBy: 'newest'
-    });
+    // Xây dựng URL với các tham số query
+    const urlParams = new URLSearchParams();
+    if (debouncedQuery) urlParams.append('q', debouncedQuery);
+    if (category) urlParams.append('category', category);
+    if (sortBy) urlParams.append('sortBy', sortBy);
+    if (debouncedPriceMin) urlParams.append('priceMin', debouncedPriceMin);
+    if (debouncedPriceMax) urlParams.append('priceMax', debouncedPriceMax);
 
-    useEffect(() => {
-        if (shopId) {
-            fetchShopData();
-        }
-    }, [shopId]);
+    try {
+      const response = await fetch(`/api/shop/${shopId}?${urlParams.toString()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result: Shop = await response.json();
+      
+      // Chuyển đổi dữ liệu API về dạng component cần
+      const shopInfoForComponent: Shop = {
+          ...result.shopInfo,
+          createdAt: result.shopInfo.joinedAt, // Ánh xạ trường
+      };
 
-    useEffect(() => {
-        applyFilters();
-    }, [allProducts, filters]);
+      const productsForComponent: Product[] = result.products.map(p => ({
+          ...p,
+          // Đảm bảo các trường không có trong API nhưng có trong type được gán giá trị mặc định
+          originalPrice: p.originalPrice ?? undefined,
+          sold: p.sold ?? 0,
+          rating: p.rating ?? 0,
+          ratingCount: p.ratingCount ?? 0,
+          badge: p.badge ?? undefined,
+      }));
+      
+      setData({
+          shopInfo: shopInfoForComponent as any, // Dùng 'as any' nếu type không khớp 100%
+          products: productsForComponent,
+          categories: result.categories,
+      });
 
-    const fetchShopData = async () => {
-        try {
-            setLoading(true);
-            const [shopData, bestSellingData, allProductsData] = await Promise.all([
-                getShopDetails(shopId),
-                getShopBestSelling(shopId),
-                getShopProducts(shopId)
-            ]);
-            
-            setShop(shopData);
-            setBestSellingProducts(bestSellingData);
-            setAllProducts(allProductsData);
-        } catch (err) {
-            setError('Không thể tải thông tin cửa hàng');
-            console.error('Error fetching shop data:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const applyFilters = () => {
-        let filtered = [...allProducts];
-
-        // Filter by categories
-        if (filters.categories.length > 0) {
-            // filtered = filtered.filter(product => 
-            //     filters.categories.includes(product.CategoryName)
-            // );
-        }
-
-        // Filter by price range
-        filtered = filtered.filter(product => 
-            product.Price >= filters.priceRange.min && 
-            product.Price <= filters.priceRange.max
-        );
-
-        // Sort products
-        switch (filters.sortBy) {
-            case 'price-asc':
-                filtered.sort((a, b) => a.Price - b.Price);
-                break;
-            case 'price-desc':
-                filtered.sort((a, b) => b.Price - a.Price);
-                break;
-            case 'best-selling':
-                // filtered.sort((a, b) => (b.SoldCount || 0) - (a.SoldCount || 0));
-                break;
-            case 'rating':
-                // filtered.sort((a, b) => (b.Rating || 0) - (a.Rating || 0));
-                break;
-            default: // newest
-                // filtered.sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime());
-                break;
-        }
-
-        setFilteredProducts(filtered);
-    };
-
-    const handleFilterChange = (newFilters: Partial<FilterOptions>) => {
-        setFilters(prev => ({ ...prev, ...newFilters }));
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <div className="container mx-auto px-4 py-8">
-                    <div className="animate-pulse">
-                        <div className="h-64 bg-gray-200 rounded-lg mb-6"></div>
-                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            {Array.from({ length: 8 }).map((_, index) => (
-                                <div key={index} className="h-64 bg-gray-200 rounded-lg"></div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-                <Footer />
-            </div>
-        );
+      setError(null);
+    } catch (e: any) {
+      setError("Không thể tải dữ liệu của shop. Vui lòng thử lại.");
+      console.error(e);
+    } finally {
+      setIsLoading(false);
     }
+  }, [shopId, debouncedQuery, category, sortBy, debouncedPriceMin, debouncedPriceMax]);
 
-    if (error || !shop) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <div className="container mx-auto px-4 py-8 text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                        {error || 'Cửa hàng không tồn tại'}
-                    </h1>
-                    <p className="text-gray-600">Vui lòng thử lại sau hoặc quay về trang chủ.</p>
-                </div>
-                <Footer />
-            </div>
-        );
-    }
+  // useEffect để gọi API khi các bộ lọc thay đổi
+  useEffect(() => {
+    fetchShopData();
+  }, [fetchShopData]);
+  
+  // Hàm xử lý Follow/Unfollow
+  const handleToggleFollow = async () => {
+      if (!data) return;
+      
+      const originalFollowingState = data.shopInfo.isFollowing;
+      const originalFollowers = data.shopInfo.followers;
+      
+      // Cập nhật giao diện ngay lập tức (Optimistic Update)
+      setData(prev => prev ? ({
+          ...prev,
+          shopInfo: {
+              ...prev.shopInfo,
+              isFollowing: !originalFollowingState,
+              followers: originalFollowingState ? originalFollowers - 1 : originalFollowers + 1
+          }
+      }) : null);
+      
+      // Gọi API
+      try {
+          const response = await fetch(`/api/shop/${shopId}`, { method: 'POST' });
+          if (!response.ok) {
+              // Nếu API lỗi, hoàn tác lại thay đổi trên giao diện
+              throw new Error('API call failed');
+          }
+      } catch (error) {
+           // Hoàn tác
+           setData(prev => prev ? ({
+              ...prev,
+              shopInfo: {
+                  ...prev.shopInfo,
+                  isFollowing: originalFollowingState,
+                  followers: originalFollowers
+              }
+           }) : null);
+           alert('Không thể thay đổi trạng thái theo dõi. Vui lòng thử lại.');
+      }
+  }
 
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
-            
-            <main className="container mx-auto px-4 py-6">
-                {/* Section 1: Shop Information */}
-                <ShopHeader shop={shop} />
-                
-                {/* Sort Bar */}
-                <SortBar 
-                    sortBy={filters.sortBy}
-                    onSortChange={(sortBy) => handleFilterChange({ sortBy })}
-                />
-                
-                {/* Section 2: Best Selling Products */}
-                <BestSellingProducts products={bestSellingProducts} />
-                
-                {/* Section 3: All Products with Filter */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-6 md:mt-8">
-                    {/* Mobile Filter Toggle */}
-                    <div className="lg:hidden">
-                        <button 
-                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            onClick={() => {/* TODO: Toggle mobile filter */}}
-                        >
-                            🔍 Bộ lọc & Sắp xếp
-                        </button>
-                    </div>
+  if (isLoading && !data) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Đang tải trang shop...</div>;
+  }
 
-                    {/* Sidebar Filter - Desktop */}
-                    <div className="hidden lg:block w-64 flex-shrink-0">
-                        <ProductFilter 
-                            filters={filters}
-                            onFilterChange={handleFilterChange}
-                        />
-                    </div>
-                    
-                    {/* All Products */}
-                    <div className="flex-1">
-                        <AllProducts products={filteredProducts} />
-                    </div>
-                </div>
-            </main>
-            
-            <Footer />
-        </div>
-    );
+  if (error) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-red-500">{error}</div>;
+  }
+
+  if (!data) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Không tìm thấy shop.</div>;
+  }
+  
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <ShopHeader
+        info={data.shopInfo}
+        onToggleFollow={handleToggleFollow}
+      />
+
+      <div className="max-w-7xl mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Sidebar */}
+        <aside className="lg:col-span-3">
+          <ShopSidebar
+            info={data.shopInfo}
+            categories={data.categories}
+            onSelectCategory={setCategory}
+            activeCategory={category}
+          />
+        </aside>
+
+        {/* Content */}
+        <section className="lg:col-span-9">
+          <ShopContent
+            products={data.products}
+            categories={data.categories} // Truyền danh mục để hiển thị thanh lọc nhanh
+            query={query}
+            onQueryChange={setQuery}
+            category={category}
+            onCategoryChange={setCategory}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            onPriceMinChange={setPriceMin}
+            onPriceMaxChange={setPriceMax}
+          />
+        </section>
+      </div>
+    </main>
+  )
 }

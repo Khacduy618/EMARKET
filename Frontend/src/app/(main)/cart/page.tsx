@@ -118,7 +118,7 @@ const CartPage: React.FC = () => {
             // const cartData = await fetchCart();
             const [cartData, voucherData] = await Promise.all([
                 fetchCart(),
-                fetchAvailableVouchers() // Gọi API lấy tất cả voucher
+                fetchAvailableVouchers()
             ]);
             setAllShopVouchers(voucherData.shopVouchers || []);
             const hardLimit = 10;
@@ -137,7 +137,7 @@ const CartPage: React.FC = () => {
                     }
                     currentQuantity = 0;
                 } else {
-                    currentQuantity = Math.max(1, currentQuantity); // Ensure minimum 1 if not out of stock
+                    currentQuantity = Math.max(1, currentQuantity); 
 
                     const ultimateMax = Math.min(hardLimit, maxStock);
                     
