@@ -24,11 +24,10 @@ interface GroupedReviewData {
 
 
 const getAuthConfig = (params?: URLSearchParams, responseType: 'json' | 'blob' = 'json') => ({
-    headers: {
-        'Accept': responseType === 'blob' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getAuthToken()}`
-    },
+     headers: {
+        "Accept": "application/json",
+        },
+        credentials: 'include', 
     params,
     responseType
 });

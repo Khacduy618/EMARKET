@@ -704,3 +704,9 @@
 #56 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
 #57 {main}
 "} 
+[2025-08-09 09:31:05] local.INFO: id user: 3  
+[2025-08-09 09:31:06] local.INFO: id user: 3  
+[2025-08-09 09:36:30] local.INFO: id user: 3  
+[2025-08-09 09:36:31] local.INFO: id user: 3  
+[2025-08-09 09:52:56] local.INFO: id user: 2  
+[2025-08-09 09:52:56] local.INFO: id user: 2  
