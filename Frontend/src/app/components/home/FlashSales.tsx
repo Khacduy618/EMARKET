@@ -277,6 +277,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/autoplay';
 import { Navigation, Autoplay } from 'swiper/modules';
 import type { IHome } from '@/types/Ihome';
+import { getFullImageUrl } from '@/services/api';
 
 const FlashSaleSection: React.FC = () => {
     // --- State và Logic (Không thay đổi) ---
@@ -446,10 +447,10 @@ const FlashSaleSection: React.FC = () => {
                                             {/* SỬA 2: Thêm class `relative` để định vị lớp phủ (overlay) */}
                                             <div className="relative bg-white rounded-lg p-2 h-full flex flex-col shadow hover:shadow-md transition-shadow duration-300">
                                                 <div className="relative w-full aspect-square mb-2">
-                                                    <Link href={`/products/${product.ProductID}`} passHref>
+                                                    <Link href={`/productdetail/${product.ProductID}`} passHref>
                                                         {/* SỬA 3: Vô hiệu hóa click khi hết hàng */}
                                                         <div className={`block w-full h-full ${isSoldOut ? 'pointer-events-none' : ''}`}>
-                                                            <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
+                                                            <img src={getFullImageUrl(product.ProductImage)} alt={product.ProductName} className="rounded-md" />
                                                         </div>
                                                     </Link>
                                                     {discountPercent > 0 && product.Discount !== null && (
@@ -500,7 +501,7 @@ const FlashSaleSection: React.FC = () => {
                                                             </button>
                                                         )}
                                                         {displaySlot.status === 'Sắp diễn ra' && (
-                                                            <Link href={`/products/${product.ProductID}`} passHref>
+                                                            <Link href={`/productdetail/${product.ProductID}`} passHref>
                                                                 <p className="block w-full text-center bg-white text-orange-600 border border-orange-500 py-2 rounded-md hover:bg-orange-50 transition-colors duration-200 font-semibold text-sm">XEM CHI TIẾT</p>
                                                             </Link>
                                                         )}

@@ -17,11 +17,11 @@ interface CheckoutProductSectionProps {
   shopOrder: CheckoutShopOrder;
 }
 // Hàm tính giá cuối cùng của một sản phẩm, đã tính discount
-const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
-    // Ưu tiên giá gốc nếu có để tính discount
-    const basePrice = originalPrice ?? price;
-    return Math.floor(basePrice * (1 - (discount ?? 0) / 100));
-}
+// const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
+//     // Ưu tiên giá gốc nếu có để tính discount
+//     const basePrice = originalPrice ?? price;
+//     return Math.floor(basePrice * (1 - (discount ?? 0) / 100));
+// }
 const priceColWidth = '180px'; // Ví dụ: đủ rộng cho 2.490.000 ₫
 const qtyColWidth = '200px';   // Ví dụ: đủ rộng cho số 1
 const subtotalColWidth = '180px'; // Ví dụ: đủ rộng cho 2.490.000 ₫
@@ -48,7 +48,7 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
 
       {/* Product Items */}
       {shopOrder.items.map(item =>
-      {const finalPrice = calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount); 
+      {
         return (
         
         <div key={item.variantId} className="flex items-start py-3 border-b border-gray-100 last:border-b-0">
@@ -65,13 +65,13 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
             </div>
             {/* Các cột giá trị - Sử dụng flex-shrink-0 và width cố định */}
             <div className="flex-shrink-0 flex items-center justify-end" style={{ width: priceColWidth }}>
-              <span className="text-gray-800 whitespace-nowrap">{formatPrice((item.originalPrice ?? item.price) * (1 - (item.product?.Discount ? item.product?.Discount : 0) / 100))}</span>
+              <span className="text-gray-800 whitespace-nowrap">{formatPrice(item.price)}</span>
             </div>
             <div className="flex-shrink-0 flex items-center justify-end" style={{ width: qtyColWidth }}>
               <span className="text-gray-800 whitespace-nowrap">{item.quantity}</span>
             </div>
             <div className="flex-shrink-0 flex items-center justify-end" style={{ width: subtotalColWidth }}>
-              <span className="font-semibold text-gray-800 whitespace-nowrap">{formatPrice(finalPrice * item.quantity)}</span>
+              <span className="font-semibold text-gray-800 whitespace-nowrap">{formatPrice(item.subtotal)}</span>
             </div>
           </div>
         </div>

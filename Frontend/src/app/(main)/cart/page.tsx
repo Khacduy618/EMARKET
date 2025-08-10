@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItemQuantity, removeCartItem, updateCartItemVariant, removeMultipleCartItems } from '@/services/cart';
-import { getAuthToken, getProductAttributes, getVariantImage } from '@/services/api';
+import { getAuthToken, getProductAttributes, getPublicImageUrl, getVariantImage } from '@/services/api';
 import { Cart, CartItem, AppliedVouchersCombined, AppliedShopVouchers, Voucher} from '@/types'; 
 import AttributeSelectionDropdown from '@/app/components/cart/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
@@ -505,7 +505,7 @@ const CartPage: React.FC = () => {
             const updatedCart = await updateCartItemQuantity(item.CartItemID, finalQuantity);
             setCart(updatedCart);
             setLocalError(null);
-            showNotification((updatedCart as any).message || 'Số lượng sản phẩm đã được cập nhật.', 'success');
+            // showNotification((updatedCart as any).message || 'Số lượng sản phẩm đã được cập nhật.', 'success');
         } catch (err: any) {
             console.error('Error updating quantity:', err);
             let errorMessage = 'Không thể cập nhật số lượng sản phẩm.';
@@ -838,7 +838,7 @@ const CartPage: React.FC = () => {
 
     if (!cart || !Array.isArray(cart.cartItems) || cart.cartItems.length === 0) {
         return  <div className="text-center py-8 text-gray-500 font-bold">
-                <img src={`http://localhost/public/uploads/shopping.png`} alt="" />
+                <img src={getPublicImageUrl('/')} alt="" />
                 <p>
                     Giỏ hàng của bạn đang trống.
                 </p>

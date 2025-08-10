@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // <--- Added useCallback here
+import React, { useState, useEffect, useMemo, useCallback } from 'react'; 
 import axios from 'axios';
 import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap } from 'lucide-react';
 import RelatedItems from './RelatedItems';
@@ -11,6 +11,10 @@ import ConfirmModal from '@/app/components/ConfirmModal';
 import ShopInfo from './ShopInfo';
 import ProductReviewPage from './ProductReviewPage';
 import RelatedProductsSidebar from './FeaturedProductsSidebar';
+import { StoredCheckoutData } from '@/types';
+import { useRouter } from 'next/navigation'; 
+import { API_URL } from '@/services/auth';
+
 
 
 // --- INTERFACES ---
@@ -95,10 +99,11 @@ export interface Shop {
     ShopName: string;
     Description: string;
     LogoURL: string;
-    // ... các trường khác của shop
+    ShopPhone?: string | null;
     UpdatedAt: string;
     stats: ShopStats; // <--- THÊM DÒNG NÀY
 }
+const ORDER_VALUE_LIMIT = 50000000;
 
 const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -106,6 +111,7 @@ const formatPrice = (price: number) => {
 
 // --- MAIN COMPONENT ---
 const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
+    const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -115,11 +121,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({}); // Starts empty
     const [quantity, setQuantity] = useState<number>(1);
+    const [isProcessingBuyNow, setIsProcessingBuyNow] = useState(false); 
 
     // Other states remain the same...
     const [showLargeQuantityConfirm, setShowLargeQuantityConfirm] = useState(false);
     const [largeQuantityPromptInfo, setLargeQuantityPromptInfo] = useState<{ productName: string; shopPhone: string } | null>(null);
-
+    const [isProcessingAddToCart, setIsProcessingAddToCart] = useState(false); 
 
     // showNotification is now wrapped in useCallback and imported
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
@@ -285,39 +292,84 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
         if (!selectedVariant || selectedVariant.StockQuantity <= 0) return 0; // If no variant or out of stock
         return Math.min(selectedVariant.StockQuantity, hardLimit);
     }, [selectedVariant]);
+    // const pricingInfo = useMemo(() => {
+    //     // Giá trị mặc định
+    //     if (!product) {
+    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
+    //     }
+
+    //     let basePrice: number | null = null;
+    //     let stockText = `${product.total_overall_stock_quantity} sản phẩm có sẵn`;
+
+    //     // Xác định giá bán gốc và tồn kho dựa trên việc đã chọn biến thể hay chưa
+    //     if (selectedVariant) {
+    //         basePrice = selectedVariant.CompareAtPrice;
+    //         stockText = `${selectedVariant.StockQuantity} sản phẩm có sẵn`;
+    //     } else {
+    //         basePrice = product.min_overall_compare_at_price;
+    //     }
+
+    //     // Nếu không có giá bán gốc (dữ liệu lỗi hoặc sản phẩm chưa có giá)
+    //     if (!basePrice || basePrice <= 0) {
+    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText };
+    //     }
+
+    //     // Áp dụng logic giảm giá
+    //     const discountPercent = product.Discount;
+    //     let finalPrice = basePrice;
+    //     let originalPrice: number | null = null;
+
+    //     if (discountPercent > 0) {
+    //         // Nếu có giảm giá, giá gốc chính là giá bán niêm yết
+    //         originalPrice = basePrice;
+    //         // Giá cuối cùng là giá sau khi đã trừ đi % giảm giá
+    //         finalPrice = basePrice * (1 - discountPercent / 100);
+    //     }
+
+    //     return { finalPrice, originalPrice, discountPercent, stockText };
+
+    // }, [product, selectedVariant]);
     const pricingInfo = useMemo(() => {
-        // Giá trị mặc định
         if (!product) {
             return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
         }
-
+        
         let basePrice: number | null = null;
         let stockText = `${product.total_overall_stock_quantity} sản phẩm có sẵn`;
 
-        // Xác định giá bán gốc và tồn kho dựa trên việc đã chọn biến thể hay chưa
         if (selectedVariant) {
-            basePrice = selectedVariant.CompareAtPrice;
+            // Sửa lỗi logic: basePrice phải là giá gốc (CompareAtPrice) nếu có
+            basePrice = selectedVariant.Price;
             stockText = `${selectedVariant.StockQuantity} sản phẩm có sẵn`;
         } else {
-            basePrice = product.min_overall_compare_at_price;
+            // Lấy giá bán thấp nhất của tất cả các variant
+            const allPrices = product.variants.map(v => v.Price).filter(p => p > 0);
+            basePrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
         }
 
-        // Nếu không có giá bán gốc (dữ liệu lỗi hoặc sản phẩm chưa có giá)
         if (!basePrice || basePrice <= 0) {
             return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText };
         }
 
-        // Áp dụng logic giảm giá
         const discountPercent = product.Discount;
         let finalPrice = basePrice;
         let originalPrice: number | null = null;
+        
+        // Logic giảm giá này có thể cần xem lại. Giả sử:
+        // CompareAtPrice là giá gốc, Price là giá niêm yết
+        // Discount là giảm giá thêm trên Price
+        if (selectedVariant?.CompareAtPrice && selectedVariant.CompareAtPrice > selectedVariant.Price) {
+            originalPrice = selectedVariant.CompareAtPrice;
+            basePrice = selectedVariant.Price; // Giá để tính discount % tiếp theo
+        }
 
         if (discountPercent > 0) {
-            // Nếu có giảm giá, giá gốc chính là giá bán niêm yết
-            originalPrice = basePrice;
-            // Giá cuối cùng là giá sau khi đã trừ đi % giảm giá
+            if (!originalPrice) originalPrice = basePrice;
             finalPrice = basePrice * (1 - discountPercent / 100);
+        } else {
+            finalPrice = basePrice;
         }
+
 
         return { finalPrice, originalPrice, discountPercent, stockText };
 
@@ -378,25 +430,39 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
 
     // Add to cart function
     const handleAddToCart = async () => {
-        if (!product || !selectedVariant) { // Check for selectedVariant now
-            showNotification("Vui lòng chọn đầy đủ các tùy chọn (màu sắc, kích thước, v.v.) của sản phẩm.", 'error');
+        setIsProcessingAddToCart(true); // Bắt đầu xử lý
+        // --- VALIDATION (bao gồm cả kiểm tra giá trị đơn hàng) ---
+        if (!product || !selectedVariant || !pricingInfo.finalPrice) {
+            toast.error("Vui lòng chọn đầy đủ các tùy chọn của sản phẩm.");
+            setIsProcessingAddToCart(false);
             return;
         }
         if (quantity <= 0) {
-            showNotification("Số lượng phải lớn hơn 0.", 'error');
+            toast.error("Số lượng phải lớn hơn 0.");
+            setIsProcessingAddToCart(false);
             return;
         }
-        if (selectedVariant.StockQuantity === 0) {
-            showNotification("Sản phẩm này hiện đã hết hàng.", 'error');
-            setQuantity(0); // Ensure UI reflects out of stock
-            return;
-        }
-        if (quantity > selectedVariant.StockQuantity) {
-            showNotification(`Số lượng yêu cầu vượt quá số lượng sản phẩm có sẵn trong kho. Chỉ còn ${selectedVariant.StockQuantity} sản phẩm.`, 'error');
-            setQuantity(selectedVariant.StockQuantity); // Adjust UI quantity to max available
+        if (selectedVariant.StockQuantity < quantity) {
+            toast.error(`Số lượng yêu cầu vượt quá tồn kho. Chỉ còn ${selectedVariant.StockQuantity} sản phẩm.`);
+            setQuantity(selectedVariant.StockQuantity);
+            setIsProcessingAddToCart(false);
             return;
         }
 
+        // --- KIỂM TRA GIÁ TRỊ ĐƠN HÀNG ---
+        const itemValue = pricingInfo.finalPrice * quantity;
+        if (itemValue > ORDER_VALUE_LIMIT) {
+            toast.warn(
+                <div>
+                    Giá trị sản phẩm vượt quá giới hạn ({formatPrice(ORDER_VALUE_LIMIT)}).
+                    <br />
+                    Vui lòng liên hệ shop: <b>{product.shop?.ShopPhone || 'Chưa có SĐT'}</b> để được hỗ trợ.
+                </div>,
+                { autoClose: 5000 }
+            );
+            setIsProcessingAddToCart(false);
+            return;
+        }
         try {
             const variantID = selectedVariant.VariantID;
             const shopID = product.ShopID;
@@ -441,6 +507,74 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             } else {
                 showNotification(errorMessage, 'error');
             }
+        }
+    };
+
+     const handleBuyNow = async () => {
+        // Validation cơ bản
+        if (!product || !selectedVariant || !pricingInfo.finalPrice) {
+            toast.error("Vui lòng chọn đầy đủ các tùy chọn của sản phẩm.");
+            return;
+        }
+        if (quantity <= 0) {
+            toast.error("Số lượng phải lớn hơn 0.");
+            return;
+        }
+        if (selectedVariant.StockQuantity < quantity) {
+            toast.error(`Chỉ còn ${selectedVariant.StockQuantity} sản phẩm có sẵn.`);
+            setQuantity(selectedVariant.StockQuantity);
+            return;
+        }
+        
+        // --- LOGIC KIỂM TRA GIÁ TRỊ ĐƠN HÀNG ĐÃ ĐƯỢC THÊM VÀO ĐÂY ---
+        const itemValue = pricingInfo.finalPrice * quantity;
+        if (itemValue > ORDER_VALUE_LIMIT) {
+            toast.warn(
+                <div>
+                    Giá trị sản phẩm vượt quá giới hạn ({formatPrice(ORDER_VALUE_LIMIT)}).
+                    <br />
+                    Vui lòng liên hệ shop: <b>{product.shop?.ShopPhone || 'Chưa có SĐT'}</b> để được hỗ trợ.
+                </div>,
+                { autoClose: 5000 }
+            );
+            return; // Dừng hàm tại đây
+        }
+
+        setIsProcessingBuyNow(true);
+        try {
+            const response = await fetch(`${API_URL}/orders/buy-now`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    variant_id: selectedVariant.VariantID,
+                    quantity: quantity,
+                }),
+            });
+
+            const result = await response.json(); // Luôn parse JSON để lấy message lỗi nếu có
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Lỗi xử lý Mua Ngay.');
+            }
+            
+            localStorage.setItem('checkoutData', JSON.stringify(result as StoredCheckoutData));
+            router.push('/checkout');
+
+        } catch (error: any) {
+            if (error.response?.status === 401) { // Kiểm tra lỗi 401 cụ thể hơn
+                toast.warn("Bạn cần đăng nhập để mua hàng.", {
+                    onClick: () => router.push('/login'),
+                    style: { cursor: 'pointer' }
+                });
+            } else {
+                toast.error(error.message || "Đã có lỗi xảy ra, vui lòng thử lại.");
+            }
+        } finally {
+            setIsProcessingBuyNow(false);
         }
     };
 
@@ -620,14 +754,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
                     <div className="flex gap-3 pt-4">
 
                         <button
-                            disabled={!canAddToCart}
+                            onClick={handleBuyNow} // Gắn hàm mới vào nút Mua Ngay
+                            disabled={!canAddToCart || isProcessingBuyNow || isProcessingAddToCart}
                             className={`flex-1 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center
-        ${!canAddToCart
+                                ${(!canAddToCart || isProcessingBuyNow || isProcessingAddToCart)
                                     ? 'bg-gray-400 text-white cursor-not-allowed'
                                     : 'bg-orange-500 text-white hover:bg-orange-600'
                                 }`}
                         >
-                            <Zap size={20} className="mr-2" />
+                            {isProcessingBuyNow ? (
+                                <Loader2 size={20} className="mr-2 animate-spin" />
+                            ) : (
+                                <Zap size={20} className="mr-2" />
+                            )}
                             Mua Ngay
                         </button>
 
@@ -636,15 +775,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
                         <button
                             onClick={handleAddToCart}
                             className={`w-1/2 rounded-lg py-3 font-bold transition flex items-center justify-center space-x-2
-                                ${!canAddToCart
+                                ${!canAddToCart || isProcessingAddToCart || isProcessingBuyNow
                                     ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                                 }`}
-                            disabled={!canAddToCart}
+                            disabled={!canAddToCart || isProcessingAddToCart || isProcessingBuyNow}
                         >
                             <ShoppingCart className="h-5 w-5" />
                             <span>{selectedVariant ? 'Thêm vào giỏ' : 'Chọn tùy chọn'}</span>
                         </button>
+
                     </div>
 
                     <div className="border-t border-gray-200 pt-4">

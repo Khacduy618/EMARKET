@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 
@@ -817,30 +818,55 @@ class OrderController extends Controller
                 elseif ($paymentMethod === 'COD') {
                     // Đối với COD, trạng thái thanh toán vẫn là 'Pending'
                     $updates['PaymentStatus'] = 'Pending';
-                    $updates['OverallStatus'] = 'Pending'; // Chuyển sang trạng thái xử lý để shop chuẩn bị hàng
-                    // Không cập nhật paidAt cho COD ở bước này
+                    $updates['OverallStatus'] = 'Processing'; // COD cũng chuyển sang Processing để shop chuẩn bị hàng
                 }
 
 
-                // 1. Cập nhật đơn hàng
-                if (!empty($updates)) {
-                    DB::table('ordersbuyer')
-                        ->where('OrderID', $orderId)
-                        ->update($updates);
-                }
-                // Lấy lại các items trong đơn hàng
-                $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
+                if (isset($updates['OverallStatus']) && $updates['OverallStatus'] === 'Processing') {
+                    // 1. Cập nhật đơn hàng
+                    DB::table('ordersbuyer')->where('OrderID', $orderId)->update($updates);
+                    Log::info("Order {$orderId} status updated to Processing.");
+                    
+                    // Lấy lại các items trong đơn hàng để cập nhật kho và sold count
+                    $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
 
-                // 2. Cập nhật tồn kho
-               if (isset($updates['OverallStatus']) && $updates['OverallStatus'] === 'Processing') {
-                    // Cập nhật tồn kho
+                    // 2. Cập nhật tồn kho (decrement)
                     foreach ($orderItems as $item) {
                         DB::table('productvariants')
                             ->where('VariantID', $item->VariantID)
                             ->decrement('StockQuantity', $item->Quantity);
                     }
+                    Log::info("Stock quantity updated for order {$orderId}.");
+                    
+                    // --- BƯỚC 3: CẬP NHẬT SOLDCOUNT CHO SẢN PHẨM ---
+                    // Lấy danh sách ProductID duy nhất từ các order items
+                    $productIdsToUpdate = DB::table('productvariants')
+                        ->whereIn('VariantID', $orderItems->pluck('VariantID'))
+                        ->distinct()
+                        ->pluck('ProductID', 'VariantID'); // Lấy mảng [VariantID => ProductID]
 
-                    // Xóa khỏi giỏ hàng
+                    // Tạo mảng để gom số lượng bán ra cho mỗi ProductID
+                    $productSoldCount = [];
+                    foreach ($orderItems as $item) {
+                        $productId = $productIdsToUpdate->get($item->VariantID);
+                        if ($productId) {
+                            if (!isset($productSoldCount[$productId])) {
+                                $productSoldCount[$productId] = 0;
+                            }
+                            $productSoldCount[$productId] += $item->Quantity;
+                        }
+                    }
+
+                    // Cập nhật SoldCount cho từng sản phẩm trong một vòng lặp
+                    foreach ($productSoldCount as $productId => $quantitySold) {
+                        DB::table('products')
+                            ->where('ProductID', $productId)
+                            ->increment('SoldCount', $quantitySold);
+                    }
+                    Log::info("SoldCount updated for products in order {$orderId}.", $productSoldCount);
+                    // --- KẾT THÚC BƯỚC 3 ---
+
+                    // 4. Xóa khỏi giỏ hàng
                     $cart = DB::table('carts')->where('UserID', $user->UserID)->first();
                     if ($cart) {
                         $variantIdsToRemove = $orderItems->pluck('VariantID')->all();
@@ -848,9 +874,12 @@ class OrderController extends Controller
                             ->where('CartID', $cart->CartID)
                             ->whereIn('VariantID', $variantIdsToRemove)
                             ->delete();
+                        Log::info("Items removed from cart for user {$user->UserID}.");
                     }
+                } else {
+                    // Trường hợp không có gì thay đổi (ví dụ: gọi API complete cho đơn COD nhiều lần)
+                    Log::info("No status change for order {$orderId}. No further action taken.");
                 }
-
                 // === SỬA LỖI: Trả về dữ liệu cần thiết từ closure ===
                 return [
                     'orderCode' => $order->OrderCode,
@@ -924,6 +953,131 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             Log::error('Draft order cancellation failed for OrderID ' . $orderId . ': ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred while cancelling the draft order.'], 500);
+        }
+    }
+
+    /**
+     * TÍCH HỢP CHỨC NĂNG "MUA NGAY"
+     * Tạo dữ liệu thanh toán tạm thời cho một sản phẩm và trả về cấu trúc
+     * để frontend lưu vào localStorage và chuyển đến trang checkout.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function buyNow(Request $request)
+    {
+        $validated = $request->validate([
+            'variant_id' => 'required|integer|exists:productvariants,VariantID',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $user = $request->user();
+        $variantId = $validated['variant_id'];
+        $quantity = $validated['quantity'];
+
+        try {
+            // Lấy thông tin chi tiết của variant, product, shop
+            $itemData = DB::table('productvariants as pv')
+                ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+                ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
+                ->where('pv.VariantID', $variantId)
+                ->select(
+                    'pv.VariantID', 'pv.Price', 'pv.CompareAtPrice', 'pv.StockQuantity', 'pv.ImageURL as VariantImageURL', 'pv.IsActive',
+                    'p.ProductID', 'p.Name as ProductName', 'p.Description as ProductDescription', 'p.Discount as ProductDiscount', 'p.AdminApprovalStatus',
+                    's.ShopID', 's.ShopName', 's.ShopPhone', 's.Level as ShopLevel'
+                )->first();
+
+            if (!$itemData || !$itemData->IsActive || $itemData->AdminApprovalStatus !== 'Approved') {
+                return response()->json(['message' => 'Sản phẩm không hợp lệ hoặc không còn kinh doanh.'], 404);
+            }
+
+            if ($quantity > $itemData->StockQuantity) {
+                return response()->json([
+                    'message' => 'Số lượng yêu cầu vượt quá số lượng sản phẩm có sẵn trong kho.',
+                    'available_stock' => $itemData->StockQuantity
+                ], 400);
+            }
+
+            // Lấy thông tin attributes của variant
+            $attributes = DB::table('productvariantattribute as pva')
+                ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
+                ->where('pva.VariantID', $variantId)
+                ->select('av.Value')
+                ->get();
+            
+            // Tạo một "mock CartItem" để frontend có thể tái sử dụng logic
+            // Cấu trúc này phải khớp với cấu trúc mà hàm CartController@index trả về
+            $mockCartItem = [
+                'CartItemID' => 'buynow-'.$variantId,
+                'VariantID' => $variantId,
+                'ShopID' => $itemData->ShopID,
+                'Quantity' => $quantity,
+                'productVariant' => [
+                    'VariantID' => $variantId,
+                    'ProductID' => $itemData->ProductID,
+                    'Price' => $itemData->Price,
+                    'CompareAtPrice' => $itemData->CompareAtPrice,
+                    'StockQuantity' => $itemData->StockQuantity,
+                    'ImageURL' => $itemData->VariantImageURL,
+                    'product' => [
+                        'ProductID' => $itemData->ProductID,
+                        'Name' => $itemData->ProductName,
+                        'Description' => $itemData->ProductDescription,
+                        'Discount' => $itemData->ProductDiscount,
+                    ],
+                    'attributeValues' => $attributes->map(fn($attr) => ['Value' => $attr->Value])->toArray()
+                ],
+                'shop' => [
+                    'ShopID' => $itemData->ShopID,
+                    'ShopName' => $itemData->ShopName,
+                    'ShopPhone' => $itemData->ShopPhone,
+                    'Level' => $itemData->ShopLevel,
+                ]
+            ];
+            
+            // Tính toán giá cuối cùng và giá gốc
+            $price = (float)$mockCartItem['productVariant']['Price'];
+            $originalPrice = $mockCartItem['productVariant']['CompareAtPrice'] ? (float)$mockCartItem['productVariant']['CompareAtPrice'] : null;
+            $discountPercent = (float)$mockCartItem['productVariant']['product']['Discount'];
+            
+            // Áp dụng % discount từ sản phẩm
+            if ($discountPercent > 0) {
+                 // Nếu chưa có giá gốc, thì giá bán hiện tại chính là giá gốc
+                if (!$originalPrice) {
+                    $originalPrice = $price;
+                }
+                // Giảm giá trên giá bán
+                $price = $price * (1 - $discountPercent / 100);
+            }
+            
+            $subtotal = round($price * $quantity);
+            $totalDiscount = $originalPrice ? round(($originalPrice - $price) * $quantity) : 0;
+            
+            // Tạo cấu trúc StoredCheckoutData để trả về cho frontend
+            $checkoutDataForStorage = [
+                'selectedItems' => [$mockCartItem],
+                'appliedShopVouchers' => (object)[], // Dùng object rỗng cho nhất quán
+                'appliedPlatformVouchers' => [
+                    'freeShipVoucher' => null,
+                    'saleOffVoucher' => null,
+                ],
+                'summary' => [
+                    'totalSubtotal' => $subtotal,
+                    'totalShopVoucherDiscount' => 0,
+                    'totalPlatformVoucherDiscount' => 0,
+                    'totalFreeship' => 0,
+                    'totalSaleoff' => 0,
+                    'totalDiscount' => $totalDiscount,
+                    'finalTotal' => $subtotal, // Phí ship sẽ được tính ở frontend
+                ],
+                'orderId' => null, // Chưa có orderId ở bước này
+            ];
+            
+            return response()->json($checkoutDataForStorage);
+
+        } catch (\Exception $e) {
+            Log::error('Buy Now Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Đã có lỗi xảy ra, vui lòng thử lại.'], 500);
         }
     }
 }
