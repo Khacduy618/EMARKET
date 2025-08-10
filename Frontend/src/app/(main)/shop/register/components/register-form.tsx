@@ -101,7 +101,7 @@ export default function SellerRegisterForm() {
 
         try {
             const token = getAuthToken()
-            const response = await axios.post("http://localhost/api/seller/register", formData, {
+            const response = await axios.post("http://localhost:8001/api/seller/register", formData, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,

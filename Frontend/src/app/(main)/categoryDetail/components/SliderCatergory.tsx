@@ -32,7 +32,7 @@ export default function CategorySlider() {
             try {
                 setIsLoading(true);
                 // Gọi API để lấy banner cho vị trí 'homepage_slider'
-                const response = await axios.get<Banner[]>('http://localhost/api/category_banner', {
+                const response = await axios.get<Banner[]>('http://localhost:8001/api/category_banner', {
                     params: { position: 'homepage_slider' }
                 });
                 setBanners(response.data);

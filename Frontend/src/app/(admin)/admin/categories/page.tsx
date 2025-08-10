@@ -46,7 +46,7 @@ export default function CategoryPage() {
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost/api/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
+        `http://localhost:8001/api/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -54,7 +54,7 @@ export default function CategoryPage() {
         },
       )
 
-      const res2 = await fetch("http://localhost/api/admin/categories/getAllCategory", {
+      const res2 = await fetch("http://localhost:8001/api/admin/categories/getAllCategory", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getAuthToken()}`,
@@ -101,7 +101,7 @@ export default function CategoryPage() {
 
     if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
       try {
-        const res = await fetch(`http://localhost/api/admin/categories/delete/${id}`, {
+        const res = await fetch(`http://localhost:8001/api/admin/categories/delete/${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

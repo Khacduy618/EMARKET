@@ -231,79 +231,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
 });
 
-Route::middleware('auth:sanctum' )->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::middleware('seller')->group(function () {
-        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-        Route::get('/products', [ShopProductController::class, 'index']);
-        Route::post('/shop/products', [ShopProductController::class, 'store']);
-        Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
-        Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
-        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
-        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
-        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
-    });
-});
-
-
-/*____________________________________________________________________
-  |                            Admin route                           |
-  |__________________________________________________________________| */
-
-// Category route
-// Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
-// Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
-// Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
-// Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-// Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
-// Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
-
-// // Shop route
-// Route::get('/admin/shops', [ShopController::class, "index"]);
-// Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
-// Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
-
-// // Product route
-// Route::get('/admin/products', [ProductControllers::class, "index"]);
-// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
-// Route::get('/admin/products', [ProductControllers::class, "index"]);
-
-
-
-// // End product route
-
-// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-//     //ORDER ADMIN
-// Route::get('/orderadmin', [AdminOrderController::class, 'index']);
-// Route::get('/ordersadmin/{id}', [AdminOrderController::class, 'show']);
-
-// //ORDER ADMIN
-//     // routes/api.php
-// Route::get('/ordersadmin/{orderBuyer}', [AdminOrderController::class, 'show']);
-// Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
+// Route::middleware('auth:sanctum' )->group(function () {
+//     Route::get('/user', [AuthController::class, 'user']);
+//     Route::middleware('seller')->group(function () {
+//         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+//         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+//         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+//         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+//         Route::get('/products', [ShopProductController::class, 'index']);
+//         Route::post('/shop/products', [ShopProductController::class, 'store']);
+//         Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
+//         Route::post('/shop/products/{productID}', [ShopProductController::class, 'update']);
+//         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
+//         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+//         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+//     });
 // });
 
-// // Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
-// // Ví dụ: GET /api/order-items/45
-// Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
-// Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
-//     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
-//     Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
-//     Route::get('export', [ProductReviewController::class, 'export'])->name('export');
 
-//     // Các hành động được hỗ trợ
-//     Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
-//     Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
-//     Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
-//     Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
-// });
-/* ___________________________________________________________________
-  |                            Seller route                           |
-  |___________________________________________________________________| */
 
 // Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
@@ -336,6 +281,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
         Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
+        Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
         

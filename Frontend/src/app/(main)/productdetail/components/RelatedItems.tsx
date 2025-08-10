@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 /**
  * Hàm tiện ích để "dọn dẹp" URL ảnh bị lỗi từ API.
- * Nó sẽ cắt bỏ phần `http://localhost/storage/` thừa.
+ * Nó sẽ cắt bỏ phần `http://localhost:8001/storage/` thừa.
  * @param corruptedUrl - URL bị lỗi từ API.
  * @returns URL đã được sửa hoặc ảnh placeholder.
  */
@@ -64,7 +64,8 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
                 setProducts(cleanedProducts);
 
 
-            } catch (err) {                console.error("Lỗi khi gọi API sản phẩm liên quan:", err);
+            } catch (err) {
+                console.error("Lỗi khi gọi API sản phẩm liên quan:", err);
                 setError("Không thể tải sản phẩm liên quan.");
             } finally {
                 setLoading(false);

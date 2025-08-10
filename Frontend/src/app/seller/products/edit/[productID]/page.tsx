@@ -162,8 +162,8 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                   type="button"
                   onClick={() => handleCategoryClick(category)}
                   className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
-                      ? "bg-orange-50 text-orange-600 font-medium"
-                      : "text-gray-700"
+                    ? "bg-orange-50 text-orange-600 font-medium"
+                    : "text-gray-700"
                     }`}
                 >
                   <div className="flex items-center justify-between">
@@ -261,7 +261,7 @@ export default function EditProductPage() {
       }
 
       const productData = await getProduct(productID)
-      
+
       setInitialProduct(productData)
       setName(productData.Name || "")
       setDescription(productData.Description || "")
@@ -270,7 +270,7 @@ export default function EditProductPage() {
 
       setImages(
         productData.images.map((img) => ({
-          preview: `http://localhost/storage/${img.ImageURL}`,
+          preview: `http://localhost:8001/storage/${img.ImageURL}`,
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
@@ -284,7 +284,7 @@ export default function EditProductPage() {
           productData.variants.map((v) => ({
             VariantID: v.VariantID,
             Images: v.ImageURL
-              ? [{ preview: `http://localhost/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
+              ? [{ preview: `http://localhost:8001/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
               : [],
             Price: v.Price || 0,
             CompareAtPrice: v.CompareAtPrice || null,
@@ -613,7 +613,7 @@ export default function EditProductPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Shopee Header */}
-     
+
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-12 gap-6">
@@ -710,8 +710,8 @@ export default function EditProductPage() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
-                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? "border-orange-500 text-orange-600 bg-orange-50"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                       }`}
                   >
                     {tab === "basic" && "Thông tin cơ bản"}
@@ -756,8 +756,8 @@ export default function EditProductPage() {
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
                         className={`grid grid-cols-5 gap-4 mb-4 ${dragActive
-                            ? "border-2 border-orange-500 bg-orange-50"
-                            : "border-2 border-dashed border-gray-300"
+                          ? "border-2 border-orange-500 bg-orange-50"
+                          : "border-2 border-dashed border-gray-300"
                           } p-4 rounded-lg transition-all duration-300`}
                       >
                         {images.map((image, index) => (

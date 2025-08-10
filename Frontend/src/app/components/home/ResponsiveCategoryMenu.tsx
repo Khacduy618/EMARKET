@@ -24,7 +24,7 @@ export default function ResponsiveCategoryMenu({ isOpen, onClose }: ResponsiveCa
 
     useEffect(() => {
         axios
-            .get('http://localhost/api/categorySubMenu')
+            .get('http://localhost:8001/api/categorySubMenu')
             .then((response) => {
                 const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
                 setCategories(activeCategories);
@@ -82,7 +82,7 @@ export default function ResponsiveCategoryMenu({ isOpen, onClose }: ResponsiveCa
                                 >
                                     {cat.ImageURL && (
                                         <img
-                                            src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost${cat.ImageURL}`}
+                                            src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost:8001${cat.ImageURL}`}
                                             alt={cat.Name}
                                             className="w-5 h-5 mr-3 object-contain"
                                         />

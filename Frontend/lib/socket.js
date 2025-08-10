@@ -9,9 +9,9 @@ const SOCKET_SERVER_URL = 'http://localhost:3002';
 export const getSocket = (authToken, userId) => {
   console.log(`[SocketLib] Attempting to get/create socket. URL: ${SOCKET_SERVER_URL}, Token: ${authToken ? 'Exists' : 'Missing'}, UserID: ${userId}`);
   if (!socketInstance) {
-    console.log('[SocketLib] AuthToken being sent to socket auth:', authToken ? authToken.substring(0,30) + "..." : "No Token");
+    console.log('[SocketLib] AuthToken being sent to socket auth:', authToken ? authToken.substring(0, 30) + "..." : "No Token");
     console.log('[SocketLib] UserID being sent to socket auth:', userId);
-    
+
     // socketInstance = io(SOCKET_SERVER_URL, {
     //   autoConnect: false, // Sẽ kết nối thủ công khi cần
     //   auth: { // Gửi token và userId để server xác thực
@@ -37,7 +37,7 @@ export const getSocket = (authToken, userId) => {
       console.error('Socket connection error:', err.message, err.data);
       // Xử lý lỗi kết nối, ví dụ: thông báo cho người dùng, thử kết nối lại sau
       // Có thể set một state lỗi ở đây để hiển thị trên UI
-       if (err.data) console.error('[SocketLib] Error data:', err.data);
+      if (err.data) console.error('[SocketLib] Error data:', err.data);
     });
 
     socketInstance.on('connect', () => {
@@ -56,8 +56,8 @@ export const getSocket = (authToken, userId) => {
     // Các event listener chung khác có thể đặt ở đây nếu cần
     // Ví dụ: lắng nghe lỗi chung từ server
     socketInstance.on('serverError', (errorData) => {
-        console.error('Server-side socket error:', errorData);
-        // Hiển thị thông báo lỗi cho người dùng
+      console.error('Server-side socket error:', errorData);
+      // Hiển thị thông báo lỗi cho người dùng
     });
 
   }
@@ -80,8 +80,8 @@ export const getSocket = (authToken, userId) => {
     // Nếu đã kết nối, đảm bảo auth object được cập nhật nếu token/userId thay đổi
     // Điều này ít khi xảy ra nếu socket được quản lý tốt theo session user
     if (socketInstance.auth.token !== authToken || socketInstance.auth.userId !== Number(userId)) {
-        console.warn("Auth token/userId changed while socket connected. Re-evaluating connection strategy.");
-        // Có thể cần disconnect và connect lại với auth mới, hoặc server có cơ chế cập nhật auth
+      console.warn("Auth token/userId changed while socket connected. Re-evaluating connection strategy.");
+      // Có thể cần disconnect và connect lại với auth mới, hoặc server có cơ chế cập nhật auth
     }
   }
 

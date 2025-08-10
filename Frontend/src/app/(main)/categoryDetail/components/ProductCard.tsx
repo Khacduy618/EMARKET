@@ -28,7 +28,7 @@ const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN', { styl
 const getImageUrl = (url: string | null | undefined) => {
     if (!url) return '/placeholder.svg';
     if (url.startsWith('http')) return url;
-    return `http://localhost${url}`;
+    return `http://localhost:8001${url}`;
 };
 
 export default function ProductCard({ product }: { product: Product }) {

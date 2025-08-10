@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Printer, X } from "lucide-react";
+import { Settings, Printer, X, Truck } from "lucide-react"; // Thêm Truck icon cho nút "Xác nhận đã gửi"
 import axios from "axios";
 import Swal from "sweetalert2";
 import { getAuthToken } from "@/services/api";
@@ -39,9 +39,12 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/confirm`,
+                    `http://localhost:8001/api/seller/orders/${orderId}/confirm`,
                     {},
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true,
+                    }
                 );
                 Swal.fire({
                     icon: "success",
@@ -87,9 +90,9 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 const response = await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/print`,
+                    `http://localhost:8001/api/seller/orders/${orderId}/print`,
                     {},
-                    { headers: { 'Authorization': `Bearer ${token}` }, responseType: "blob" } // Giả định trả về file PDF
+                    { headers: { Authorization: `Bearer ${token}` }, withCredentials: true, responseType: "blob" } // Giả định trả về file PDF
                 );
                 // Tạo URL cho file và mở trong tab mới
                 const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -144,10 +147,14 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/cancel`,
+                    `http://localhost:8001/api/seller/orders/${orderId}/cancel`,
                     {},
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true,
+                    }
                 );
+
                 Swal.fire({
                     icon: "success",
                     title: "Thành công!",
@@ -166,8 +173,61 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
         }
     };
 
+    const handleShipOrder = async () => {
+        if (!orderId) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi!",
+                text: "Không tìm thấy ID đơn hàng.",
+                confirmButtonText: "OK",
+            });
+            return;
+        }
+        const result = await Swal.fire({
+            title: "Xác nhận?",
+            text: "Bạn có chắc chắn muốn xác nhận đã gửi đơn hàng này?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Xác nhận",
+            cancelButtonText: "Hủy",
+        });
+        if (result.isConfirmed) {
+            try {
+                const token = getAuthToken();
+                if (!token) throw new Error("Authentication token not found.");
+
+                await axios.put(
+                    `http://localhost:8001/api/seller/orders/${orderId}/ship`,
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true,
+                    }
+                );
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Thành công!",
+                    text: "Đơn hàng đã được xác nhận là đã gửi.",
+                    confirmButtonText: "OK",
+                });
+                // Có thể làm mới trạng thái ở đây nếu cần
+            } catch (err: any) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi!",
+                    text: err.response?.data?.message || "Không thể xác nhận đã gửi đơn hàng.",
+                    confirmButtonText: "OK",
+                });
+            }
+        }
+    };
+
     const canConfirm = status === "Pending";
     const canCancel = ["Pending", "Processing"].includes(status);
+    const canShip = status === "Processing"; // Chỉ cho phép xác nhận đã gửi khi trạng thái là Preparing
 
     return (
         <Card>
@@ -196,6 +256,15 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                         >
                             <X className="mr-2 h-4 w-4" />
                             Hủy Đơn Hàng
+                        </Button>
+                    )}
+                    {canShip && (
+                        <Button
+                            onClick={handleShipOrder}
+                            className="w-full bg-green-500 text-white hover:bg-green-600"
+                        >
+                            <Truck className="mr-2 h-4 w-4" />
+                            Xác Nhận Đã Gửi
                         </Button>
                     )}
                 </div>

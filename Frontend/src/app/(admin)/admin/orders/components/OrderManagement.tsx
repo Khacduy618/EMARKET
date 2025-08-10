@@ -8,14 +8,14 @@ import Link from "next/link"
 import {
   ChevronDown, ChevronsUpDown, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw,
   ChevronUp,
-  
+
 } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TableBody, TableCell, TableHead, TableHeader, TableRow , Table} from "@/components/ui/table"
+import { TableBody, TableCell, TableHead, TableHeader, TableRow, Table } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { getAuthToken } from "@/services/api"
 
@@ -76,29 +76,29 @@ export default function OrderManagement() {
         page: currentPage.toString(),
         per_page: limitItem.toString(),
       });
-      
+
       if (filterStatus !== "all") {
         params.set("status", filterStatus);
       }
 
-     const authToken = getAuthToken()
-           if (!authToken) {
-             toast.error("Không tìm thấy token xác thực")
-             return
-           }
+      const authToken = getAuthToken()
+      if (!authToken) {
+        toast.error("Không tìm thấy token xác thực")
+        return
+      }
 
       const res = await fetch(`http://localhost:8001/api/admin/orders?${params.toString()}`, {
-         headers: {
-        "Accept": "application/json",
+        headers: {
+          "Accept": "application/json",
         },
-        credentials: 'include', 
+        credentials: 'include',
       });
 
       if (!res.ok) {
-        if(res.status === 401) {
-            toast.error("Phiên đăng nhập không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
+        if (res.status === 401) {
+          toast.error("Phiên đăng nhập không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
         } else {
-            toast.error(`Lỗi máy chủ: ${res.statusText}`);
+          toast.error(`Lỗi máy chủ: ${res.statusText}`);
         }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -131,14 +131,14 @@ export default function OrderManagement() {
       setSortColumn(col);
       setSortType("desc"); // Mặc định sort giảm dần khi đổi cột
     }
-     setCurrentPage(1); // Reset về trang 1 khi sort
+    setCurrentPage(1); // Reset về trang 1 khi sort
   };
-  
+
   const renderSortIcon = (col: string) => {
     if (sortColumn !== col) return <ChevronsUpDown className="w-4 h-4 text-gray-300" />;
     return sortType === "asc" ? <ChevronUp className="w-4 h-4 text-orange-600" /> : <ChevronDown className="w-4 h-4 text-orange-600" />;
   };
-  
+
   const orderStatuses: { value: Order["OverallStatus"] | 'all'; label: string }[] = [
     { value: "all", label: "Tất cả trạng thái" },
     { value: "Pending", label: "Chờ xử lý" },
@@ -158,54 +158,54 @@ export default function OrderManagement() {
             <h1 className="text-3xl font-bold text-gray-900">Quản lý đơn hàng</h1>
             <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
           </div>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Bộ lọc và tìm kiếm</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-grow">
-                    <label className="text-sm font-medium">Tìm kiếm</label>
-                    <Input
-                        placeholder="Mã đơn, tên khách hàng..."
-                        value={keyword}
-                        onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }}
-                    />
-                </div>
-                <div>
-                    <label className="text-sm font-medium">Trạng thái</label>
-                    <Select
-                        value={filterStatus}
-                        onValueChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
-                    >
-                        <SelectTrigger className="w-full md:w-[180px]">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {orderStatuses.map(status => (
-                                <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                    <label className="text-sm font-medium">Mục/Trang</label>
-                    <Select
-                        value={limitItem.toString()}
-                        onValueChange={(value) => { setLimitItem(Number(value)); setCurrentPage(1); }}
-                    >
-                        <SelectTrigger className="w-full md:w-[100px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {[10, 20, 50].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button onClick={() => fetchOrders()}>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Làm mới
-                </Button>
+              <div className="flex-grow">
+                <label className="text-sm font-medium">Tìm kiếm</label>
+                <Input
+                  placeholder="Mã đơn, tên khách hàng..."
+                  value={keyword}
+                  onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Trạng thái</label>
+                <Select
+                  value={filterStatus}
+                  onValueChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
+                >
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {orderStatuses.map(status => (
+                      <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Mục/Trang</label>
+                <Select
+                  value={limitItem.toString()}
+                  onValueChange={(value) => { setLimitItem(Number(value)); setCurrentPage(1); }}
+                >
+                  <SelectTrigger className="w-full md:w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 20, 50].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={() => fetchOrders()}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Làm mới
+              </Button>
             </CardContent>
           </Card>
 
@@ -225,7 +225,7 @@ export default function OrderManagement() {
                             <div className="flex items-center gap-2">Ngày đặt {renderSortIcon('OrderDate')}</div>
                           </TableHead>
                           <TableHead className="text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('TotalAmount')}>
-                             <div className="flex items-center gap-2 justify-end">Thành tiền {renderSortIcon('TotalAmount')}</div>
+                            <div className="flex items-center gap-2 justify-end">Thành tiền {renderSortIcon('TotalAmount')}</div>
                           </TableHead>
                           <TableHead className="text-center">Trạng thái</TableHead>
                           <TableHead className="text-center">Hành động</TableHead>
@@ -259,15 +259,15 @@ export default function OrderManagement() {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   {/* Pagination */}
                   <div className="flex items-center justify-between mt-4">
-                        <p className="text-sm text-gray-600">Hiển thị {orders.length} trên tổng số {totalOrders} đơn hàng</p>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Trước</Button>
-                            <span className="text-sm">Trang {currentPage} / {totalPage}</span>
-                            <Button variant="outline" size="sm" disabled={currentPage === totalPage} onClick={() => setCurrentPage(p => p + 1)}>Sau</Button>
-                        </div>
+                    <p className="text-sm text-gray-600">Hiển thị {orders.length} trên tổng số {totalOrders} đơn hàng</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Trước</Button>
+                      <span className="text-sm">Trang {currentPage} / {totalPage}</span>
+                      <Button variant="outline" size="sm" disabled={currentPage === totalPage} onClick={() => setCurrentPage(p => p + 1)}>Sau</Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

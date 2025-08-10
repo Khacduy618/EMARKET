@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { getAuthToken } from "./api";
 
 const api = axios.create({
-  baseURL: "http://localhost/api", // Ensure this matches your Laravel API base URL
+  baseURL: "http://localhost:8001/api", // Ensure this matches your Laravel API base URL
   headers: {
     Accept: "application/json",
   },
@@ -157,7 +157,7 @@ export async function getProduct(productID: number): Promise<ProductData> {
 
 export async function updateProduct(productID: number, productFormData: FormData): Promise<any> {
   console.log("Attempting to update product with ID:", productID);
-  
+
   // THÊM DÒNG NÀY ĐỂ GIẢ LẬP PUT
   productFormData.append('_method', 'POST');
 

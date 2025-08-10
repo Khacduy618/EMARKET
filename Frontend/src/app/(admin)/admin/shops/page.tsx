@@ -82,7 +82,7 @@ export default function ShopTable() {
         display_quantity: limitItem.toString(),
       });
 
-      const res = await fetch(`http://localhost/api/admin/shops?${params.toString()}`, {
+      const res = await fetch(`http://localhost:8001/api/admin/shops?${params.toString()}`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -131,7 +131,7 @@ export default function ShopTable() {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost/api/admin/shops/${shopId}/status`, {
+      const res = await fetch(`http://localhost:8001/api/admin/shops/${shopId}/status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

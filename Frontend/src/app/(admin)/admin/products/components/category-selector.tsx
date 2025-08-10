@@ -37,7 +37,7 @@ export default function CategorySelector({ value, onChange, onPageReset }: Categ
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const response = await fetch("http://localhost/api/admin/categories/getAllCategory")
+      const response = await fetch("http://localhost:8001/api/admin/categories/getAllCategory")
       const result = await response.json()
 
       if (result.status === "success") {

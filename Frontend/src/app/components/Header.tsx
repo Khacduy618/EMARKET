@@ -21,7 +21,7 @@ import { getActiveSeasonTheme, SeasonTheme } from '@/types/seasonalThemes';
 // const fetcher = (url: string) => axios.get(url).then(res => res.data);
 const fetcher = (url: string) => axios.get(url).then(res => {
     // Giả sử API của bạn trả về { success: true, data: [...] }
-    
+
     // Chúng ta chỉ trả về phần 'data' cho SWR
     if (res.data && res.data.data) {
         return res.data.data;
@@ -73,7 +73,7 @@ export default function Header() {
     const [isSuggestBoxOpen, setIsSuggestBoxOpen] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
 
-    const { data: navData, error: navError } = useSWR('http://localhost/api/category', fetcher);
+    const { data: navData, error: navError } = useSWR('http://localhost:8001/api/category', fetcher);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeTheme, setActiveTheme] = useState<SeasonTheme | null>(null);
 
@@ -82,7 +82,7 @@ export default function Header() {
         if (query.length < 2) { setSuggestions(null); setIsSuggestBoxOpen(false); return; }
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost/api/search/suggest?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`http://localhost:8001/api/search/suggest?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Lỗi mạng');
             const data: Suggestions = await response.json();
             setSuggestions(data);
@@ -113,9 +113,9 @@ export default function Header() {
 
     const flattenedCategories = useMemo(() => {
         if (!navData || !Array.isArray(navData)) { // <-- THÊM KIỂM TRA
-        // Nếu navData không tồn tại hoặc không phải là mảng, trả về mảng rỗng
-        return [];
-    }
+            // Nếu navData không tồn tại hoặc không phải là mảng, trả về mảng rỗng
+            return [];
+        }
         return navData.flatMap((parent: any) => [parent, ...(parent.children || [])]);
     }, [navData]);
 

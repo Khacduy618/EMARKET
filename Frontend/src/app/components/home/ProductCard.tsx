@@ -34,7 +34,7 @@
 // // //         async function fetchProducts() {
 // // //             setLoading(true);
 // // //             try {
-// // //                 const response = await axios.get<ApiProduct[]>('http://localhost/api/ProductFinalPrice');
+// // //                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/ProductFinalPrice');
 // // //                 const apiProducts: ApiProduct[] = response.data;
 
 // // //                 const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
@@ -214,7 +214,7 @@
 // //         async function fetchProducts() {
 // //             setLoading(true);
 // //             try {
-// //                 const response = await axios.get<ApiProduct[]>('http://localhost/api/ProductFinalPrice');
+// //                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/ProductFinalPrice');
 // //                 const apiProducts: ApiProduct[] = response.data;
 
 // //                 const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
@@ -396,7 +396,7 @@
 //             setLoading(true);
 //             try {
 //                 // --- CẬP NHẬT 2: Thay đổi URL API ---
-//                 const response = await axios.get<ApiProduct[]>('http://localhost/api/suggestions');
+//                 const response = await axios.get<ApiProduct[]>('http://localhost:8001/api/suggestions');
 //                 const apiProducts: ApiProduct[] = response.data;
 
 //                 // --- CẬP NHẬT 3: Viết lại logic xử lý dữ liệu ---
@@ -566,7 +566,7 @@ export default function TodaySuggestions() {
         async function fetchProducts() {
             setLoading(true)
             try {
-                const response = await axios.get<ApiProduct[]>("http://localhost/api/suggestions")
+                const response = await axios.get<ApiProduct[]>("http://localhost:8001/api/suggestions")
                 const apiProducts: ApiProduct[] = response.data
 
                 const processedData = apiProducts

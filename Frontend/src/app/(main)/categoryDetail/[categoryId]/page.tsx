@@ -65,8 +65,8 @@
 // //             setError(null);
 // //             try {
 // //                 const [treeResponse, productsResponse] = await Promise.all([
-// //                     axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`),
-// //                     axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
+// //                     axios.get<Category[]>(`http://localhost:8001/api/categorySubMenu/${categoryId}/products`),
+// //                     axios.get<PaginatedResponse<Product>>(`http://localhost:8001/api/categories/${categoryId}/products`, {
 // //                         params: { sort, page }
 // //                     })
 // //                 ]);
@@ -196,11 +196,11 @@
 //             try {
 //                 // Sửa: Gọi 3 API song song
 //                 const [treeResponse, productsResponse, filtersResponse] = await Promise.all([
-//                     axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`), // API lấy cây danh mục
-//                     axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
+//                     axios.get<Category[]>(`http://localhost:8001/api/categorySubMenu/${categoryId}/products`), // API lấy cây danh mục
+//                     axios.get<PaginatedResponse<Product>>(`http://localhost:8001/api/categories/${categoryId}/products`, {
 //                         params: { sort, page } // API lấy sản phẩm
 //                     }),
-//                     axios.get<CategoryFilter[]>(`http://localhost/api/categories/${categoryId}/filters`) // API LẤY BỘ LỌC
+//                     axios.get<CategoryFilter[]>(`http://localhost:8001/api/categories/${categoryId}/filters`) // API LẤY BỘ LỌC
 //                 ]);
 
 //                 setCategoryTree(treeResponse.data);
@@ -317,11 +317,11 @@ function PageContent() {
             try {
                 // Gọi đồng thời 3 API cần thiết cho trang
                 const [treeResponse, productsResponse, filtersResponse] = await Promise.all([
-                    axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`),
-                    axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
+                    axios.get<Category[]>(`http://localhost:8001/api/categorySubMenu/${categoryId}/products`),
+                    axios.get<PaginatedResponse<Product>>(`http://localhost:8001/api/categories/${categoryId}/products`, {
                         params: apiParams
                     }),
-                    axios.get<CategoryFilter[]>(`http://localhost/api/categories/${categoryId}/filters`)
+                    axios.get<CategoryFilter[]>(`http://localhost:8001/api/categories/${categoryId}/filters`)
                 ]);
 
                 setCategoryTree(treeResponse.data);

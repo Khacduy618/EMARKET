@@ -10,14 +10,14 @@ export interface AdminReview {
     Rating: number;
     Comment: string;
     // Đảm bảo kiểu dữ liệu là một mảng chuỗi hoặc null để hiển thị danh sách ảnh
-    ReviewImages: string[] | null; 
+    ReviewImages: string[] | null;
     status: number | null;
     CreatedAt: string;
     AdminReply: string | null;
     user: { UserID: number; FullName: string; Avatar: string | null; };
-    variant: { 
-        VariantID: number; 
-        ImageURL: string | null; 
+    variant: {
+        VariantID: number;
+        ImageURL: string | null;
         product: { ProductID: number; Name: string; };
         VariantAttributes?: string;
     };
@@ -84,7 +84,7 @@ export function AdminReviewCard({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-    
+
     useEffect(() => { setReplyText(review.AdminReply || ''); }, [review.AdminReply]);
 
     const handleReplyClick = () => { if (isUpdating) return; setReplyText(review.AdminReply || ''); setIsReplying(!isReplying); };
@@ -105,14 +105,14 @@ export function AdminReviewCard({
         <div className={`border bg-white rounded-lg p-4 transition-all hover:shadow-sm relative ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-shrink-0 w-full md:w-24 text-center">
-                    <Image src={getFullImageUrl(review.variant?.ImageURL)} alt={review.variant?.product.Name || 'Ảnh sản phẩm'} width={96} height={96} className="rounded-md object-cover mx-auto border" onError={(e) => { e.currentTarget.src = '/placeholder.png' }}/>
+                    <Image src={getFullImageUrl(review.variant?.ImageURL)} alt={review.variant?.product.Name || 'Ảnh sản phẩm'} width={96} height={96} className="rounded-md object-cover mx-auto border" onError={(e) => { e.currentTarget.src = '/placeholder.png' }} />
                     <p className="text-xs text-gray-600 mt-2 line-clamp-2" title={review.variant?.product.Name}>{review.variant?.product.Name || "Sản phẩm đã xóa"}</p>
                     {review.variant?.VariantAttributes && <p className="text-xs text-gray-500 mt-1 truncate" title={review.variant.VariantAttributes}>{review.variant.VariantAttributes}</p>}
                 </div>
                 <div className="flex-grow">
                     <div className="flex items-start justify-between">
-                       <div className="flex items-center gap-3">
-                            <Image src={getFullImageUrl(review.user?.Avatar)} alt={review.user?.FullName || 'Avatar'} width={40} height={40} className="rounded-full bg-gray-200 object-cover" onError={(e) => { e.currentTarget.src = '/placeholder-user.png' }}/>
+                        <div className="flex items-center gap-3">
+                            <Image src={getFullImageUrl(review.user?.Avatar)} alt={review.user?.FullName || 'Avatar'} width={40} height={40} className="rounded-full bg-gray-200 object-cover" onError={(e) => { e.currentTarget.src = '/placeholder-user.png' }} />
                             <div>
                                 <p className="font-semibold text-gray-800">{review.user?.FullName || 'Người dùng ẩn danh'}</p>
                                 <div className="flex items-center gap-2"><StarRating rating={review.Rating} /><span className="text-xs text-gray-500">({review.Rating}/5)</span></div>
@@ -121,12 +121,12 @@ export function AdminReviewCard({
                         <div className="flex items-center gap-2">
                             {getStatusChip()}
                             <div className="relative" ref={menuRef}>
-                                <button 
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                                <button
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     disabled={isUpdating}
                                     className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:bg-gray-200 disabled:cursor-not-allowed"
-                                > 
-                                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin"/> : <MoreVertical className="h-4 w-4 text-gray-600" />}
+                                >
+                                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4 text-gray-600" />}
                                 </button>
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20">
@@ -144,19 +144,19 @@ export function AdminReviewCard({
                             </div>
                         </div>
                     </div>
-                    
+
                     <p className="text-gray-700 mt-3 text-sm whitespace-pre-wrap">{review.Comment}</p>
-                    
+
                     {/* Phần hiển thị danh sách hình ảnh review của người dùng */}
                     {Array.isArray(review.ReviewImages) && review.ReviewImages.length > 0 && (
                         <div className="mt-3 flex gap-2 flex-wrap">
                             {review.ReviewImages.map((img, index) => (
-                                <Image 
-                                    key={index} 
-                                    src={getFullImageUrl(img)} 
-                                    alt={`Ảnh review ${index + 1}`} 
-                                    width={80} 
-                                    height={80} 
+                                <Image
+                                    key={index}
+                                    src={getFullImageUrl(img)}
+                                    alt={`Ảnh review ${index + 1}`}
+                                    width={80}
+                                    height={80}
                                     className="rounded-md object-cover border cursor-pointer hover:opacity-80 transition-opacity"
                                     onError={(e) => { e.currentTarget.src = '/placeholder.png' }}
                                 />
@@ -178,7 +178,7 @@ export function AdminReviewCard({
                             {review.AdminReply ? 'Sửa trả lời' : 'Trả lời'}
                         </button>
                     </div>
-                     
+
                     {isReplying && (
                         <div className="mt-3 relative">
                             <textarea

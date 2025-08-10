@@ -207,7 +207,7 @@
 //         window.scrollTo({ top: 0, behavior: "smooth" })
 //     }
 
-//     const apiUrl = isClient ? `http://localhost/api/searchAll?${searchParams.toString()}` : null
+//     const apiUrl = isClient ? `http://localhost:8001/api/searchAll?${searchParams.toString()}` : null
 //     const { data, error, isLoading } = useSWR(apiUrl, fetcher, {
 //         keepPreviousData: true,
 //     })
@@ -572,7 +572,7 @@ export default function SearchPage() {
         window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
-    const apiUrl = isClient ? `http://localhost/api/searchAll?${searchParams.toString()}` : null
+    const apiUrl = isClient ? `http://localhost:8001/api/searchAll?${searchParams.toString()}` : null
     const { data, error, isLoading } = useSWR(apiUrl, fetcher, {
         keepPreviousData: true,
     })

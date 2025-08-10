@@ -51,8 +51,8 @@ async function handleRequest(
 ) {
   try {
     const path = params.path.join('/');
-    const url = `http://localhost/api/${path}`;
-    
+    const url = `http://localhost:8001/api/${path}`;
+
     // Get search params
     const searchParams = request.nextUrl.searchParams;
     const queryString = searchParams.toString();
@@ -97,7 +97,7 @@ async function handleRequest(
 
     // Make request to Laravel backend
     const response = await fetch(fullUrl, requestOptions);
-    
+
     // Get response data
     let data;
     const contentType = response.headers.get('content-type');

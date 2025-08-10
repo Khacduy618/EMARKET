@@ -120,7 +120,7 @@ export default function RelatedProductsSidebar({ currentProductId }: RelatedProd
             setError(null);
             try {
                 // Gọi API sản phẩm liên quan với ID được truyền vào
-                const apiUrl = `http://localhost/api/featuredRelated-products/${currentProductId}`;
+                const apiUrl = `http://localhost:8001/api/featuredRelated-products/${currentProductId}`;
                 const response = await axios.get<Product[]>(apiUrl);
 
                 // Dữ liệu trả về đã là mảng sản phẩm, không cần .flatMap

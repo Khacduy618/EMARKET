@@ -89,7 +89,7 @@ export default function ProductListPage() {
         return
       }
 
-      const res = await fetch(`http://localhost/api/admin/products?${params.toString()}`, {
+      const res = await fetch(`http://localhost:8001/api/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
@@ -152,7 +152,7 @@ export default function ProductListPage() {
           return
         }
 
-        const res = await fetch(`http://localhost/api/admin/products/${productId}/approval-status`, {
+        const res = await fetch(`http://localhost:8001/api/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -170,7 +170,7 @@ export default function ProductListPage() {
           setProducts((prev) =>
             prev.map((p) => (p.ProductID === productId ? { ...p, AdminApprovalStatus: newStatus } : p)),
           )
-          toast.success("Cập nhật trạng thái thành công!") 
+          toast.success("Cập nhật trạng thái thành công!")
         } else {
           toast.error(json.message || "Có lỗi xảy ra")
         }

@@ -62,15 +62,15 @@ export default function SellerRegisterForm() {
             try {
                 console.log('Sending POST /api/seller/register');
                 const response = await axios.post(
-                    'http://localhost/api/seller/register',
+                    'http://localhost:8001/api/seller/register',
                     formData,
                     {
                         headers: {
-                            'Content-Type': 'multipart/form-data', 
+                            'Content-Type': 'multipart/form-data',
                             'Authorization': `Bearer ${token}`
                         }
                     }
-                  );
+                );
                 setSuccess(response.data.message || 'Đăng ký thành công!');
                 setTimeout(() => router.push('/'), 2000);
             } catch (err) {

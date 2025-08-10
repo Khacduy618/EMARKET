@@ -76,8 +76,8 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                     const token = getAuthToken();
                     if (!token) throw new Error("Authentication token not found.");
 
-                    const response = await axios.get(`http://localhost/api/seller/orders/${orderId}`, {
-                        headers: {"Content-Type": "application/json"},
+                    const response = await axios.get(`http://localhost:8001/api/seller/orders/${orderId}`, {
+                        headers: { "Content-Type": "application/json" }, withCredentials: true
                     });
                     setOrder(response.data);
                 } catch (err: any) {
@@ -105,9 +105,9 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost/api/seller/orders/${orderId}/confirm`,
+                `http://localhost:8001/api/seller/orders/${orderId}/confirm`,
                 {},
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { "Content-Type": "application/json" }, withCredentials: true }
             );
             setOrder((prev) => prev ? { ...prev, overallStatus: "Preparing" } : null);
             Swal.fire({
@@ -133,9 +133,9 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost/api/seller/orders/${orderId}/cancel`,
+                `http://localhost:8001/api/seller/orders/${orderId}/cancel`,
                 {},
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
             );
             setOrder((prev) => prev ? { ...prev, overallStatus: "Cancelled" } : null);
             Swal.fire({

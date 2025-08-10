@@ -46,12 +46,12 @@ function CommentItem({ comment, productId, currentUser, onCommentPosted }: Comme
   const [replyHasProfanity, setReplyHasProfanity] = useState(false);
 
   const handleReplySubmit = async () => {
-    if (!replyContent.trim() || !currentUser || replyHasProfanity) return; 
+    if (!replyContent.trim() || !currentUser || replyHasProfanity) return;
     setIsSubmitting(true);
     try {
       const token = getAuthToken(); // Lấy token từ hàm dịch vụ
       await axios.post(
-        `http://localhost/api/products/${productId}/comments`,
+        `http://localhost:8001/api/products/${productId}/comments`,
         {
           content: replyContent,
           parentId: comment.id,
@@ -89,7 +89,7 @@ function CommentItem({ comment, productId, currentUser, onCommentPosted }: Comme
             </Button>
           )}
         </div>
-        
+
         {isReplying && (
           <div className="flex gap-3 pt-2">
             <Avatar className="w-8 h-8">
@@ -97,24 +97,24 @@ function CommentItem({ comment, productId, currentUser, onCommentPosted }: Comme
               <AvatarFallback>{currentUser?.FullName?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                  <CommentTextArea
-                      id={`reply-to-${comment.id}`}
-                      placeholder={`Trả lời ${comment.name}...`}
-                      value={replyContent}
-                      onChange={setReplyContent}
-                      onProfanityChange={setReplyHasProfanity}
-                      maxLength={500}
-                  />
-                  <div className="flex justify-end mt-2">
-                      <Button 
-                          onClick={handleReplySubmit} 
-                          disabled={!replyContent.trim() || isSubmitting || replyHasProfanity} 
-                          size="sm"
-                      >
-                      {isSubmitting ? "Đang gửi..." : "Gửi"}
-                      </Button>
-                  </div>
+              <CommentTextArea
+                id={`reply-to-${comment.id}`}
+                placeholder={`Trả lời ${comment.name}...`}
+                value={replyContent}
+                onChange={setReplyContent}
+                onProfanityChange={setReplyHasProfanity}
+                maxLength={500}
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  onClick={handleReplySubmit}
+                  disabled={!replyContent.trim() || isSubmitting || replyHasProfanity}
+                  size="sm"
+                >
+                  {isSubmitting ? "Đang gửi..." : "Gửi"}
+                </Button>
               </div>
+            </div>
           </div>
         )}
 
@@ -122,10 +122,10 @@ function CommentItem({ comment, productId, currentUser, onCommentPosted }: Comme
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-200">
             {comment.replies.map(reply => (
-              <CommentItem 
-                key={reply.id} 
-                comment={reply} 
-                productId={productId} 
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                productId={productId}
                 currentUser={currentUser}
                 onCommentPosted={onCommentPosted}
               />
@@ -149,7 +149,7 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
   const fetchComments = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost/api/products/${productId}/comments`);
+      const response = await axios.get(`http://localhost:8001/api/products/${productId}/comments`);
       setComments(response.data);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -165,15 +165,15 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !currentUser || newCommentHasProfanity) {
-        if (!currentUser) toast.warn("Vui lòng đăng nhập để bình luận.");
-        if (newCommentHasProfanity) toast.error("Vui lòng loại bỏ từ ngữ không phù hợp.");
-        return;
+      if (!currentUser) toast.warn("Vui lòng đăng nhập để bình luận.");
+      if (newCommentHasProfanity) toast.error("Vui lòng loại bỏ từ ngữ không phù hợp.");
+      return;
     }
     setIsSubmitting(true);
     try {
-      const token = getAuthToken(); 
+      const token = getAuthToken();
       await axios.post(
-        `http://localhost/api/products/${productId}/comments`,
+        `http://localhost:8001/api/products/${productId}/comments`,
         { content: newComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -202,29 +202,29 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
               <AvatarImage src={currentUser.Avatar ? getFullImageUrl(currentUser.Avatar) : undefined} />
               <AvatarFallback>{currentUser.FullName?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
-             <div className="flex-1">
-                <CommentTextArea
-                    id="new-comment-input"
-                    placeholder="Viết bình luận của bạn..."
-                    value={newComment}
-                    onChange={setNewComment}
-                    onProfanityChange={setNewCommentHasProfanity}
-                    maxLength={1000}
-                />
-                <div className="flex justify-end mt-2">
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!newComment.trim() || isSubmitting || newCommentHasProfanity}
-                    >
-                        {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
-                    </Button>
-                </div>
+            <div className="flex-1">
+              <CommentTextArea
+                id="new-comment-input"
+                placeholder="Viết bình luận của bạn..."
+                value={newComment}
+                onChange={setNewComment}
+                onProfanityChange={setNewCommentHasProfanity}
+                maxLength={1000}
+              />
+              <div className="flex justify-end mt-2">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!newComment.trim() || isSubmitting || newCommentHasProfanity}
+                >
+                  {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
-            <div className="text-center p-4 border rounded-md bg-gray-50">
-                <p className="text-sm text-gray-600">Vui lòng <a href="/login" className="text-orange-500 font-semibold hover:underline">đăng nhập</a> để gửi bình luận.</p>
-            </div>
+          <div className="text-center p-4 border rounded-md bg-gray-50">
+            <p className="text-sm text-gray-600">Vui lòng <a href="/login" className="text-orange-500 font-semibold hover:underline">đăng nhập</a> để gửi bình luận.</p>
+          </div>
         )}
 
         <Separator />
@@ -234,10 +234,10 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
             <p className="text-sm text-gray-500">Đang tải bình luận...</p>
           ) : comments.length > 0 ? (
             comments.map((comment) => (
-              <CommentItem 
-                key={comment.id} 
-                comment={comment} 
-                productId={productId} 
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                productId={productId}
                 currentUser={currentUser}
                 onCommentPosted={fetchComments} // Truyền hàm fetchComments
               />

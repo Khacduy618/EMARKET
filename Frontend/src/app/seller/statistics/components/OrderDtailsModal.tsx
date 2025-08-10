@@ -88,7 +88,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
         limit: pageSize.toString(),
       })
 
-      const response = await fetch(`http://localhost/api/seller/statistics/orders?${params}`, {
+      const response = await fetch(`http://localhost:8001/api/seller/statistics/orders?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

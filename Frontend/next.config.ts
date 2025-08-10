@@ -6,7 +6,7 @@ const nextConfig = {
       // Cho phép ảnh từ backend local
       {
         protocol: 'http',
-        hostname: 'localhost',
+        hostname: 'localhost:8001',
         port: '8001',
         pathname: '/storage/**', // Cho phép tất cả các đường dẫn bên trong /storage
       },
@@ -24,7 +24,7 @@ const nextConfig = {
     ],
   },
 
-  webpack(config:any, { isServer }: { isServer: boolean }) {
+  webpack(config: any, { isServer }: { isServer: boolean }) {
     // Không cần config.watchOptions nếu bạn dùng Turbopack
     // nhưng nếu buộc phải dùng Webpack:
     if (!isServer) {

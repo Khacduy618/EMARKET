@@ -11,7 +11,7 @@
 //     const [products, setProducts] = useState<IHome.ProcessedProduct[]>([]);
 //     const [loading, setLoading] = useState(true);
 //     const [error, setError] = useState<string | null>(null);
-//     const IMAGE_BASE_URL = 'http://localhost';
+//     const IMAGE_BASE_URL = 'http://localhost:8001';
 //     useEffect(() => {
 //         // Sử dụng AbortController để xử lý cleanup trong StrictMode
 //         const controller = new AbortController();
@@ -20,7 +20,7 @@
 //             setLoading(true);
 //             setError(null);
 //             try {
-//                 const response = await axios.get<IHome.ApiProduct[]>('http://localhost/api/products/best-selling', {
+//                 const response = await axios.get<IHome.ApiProduct[]>('http://localhost:8001/api/products/best-selling', {
 //                     signal: controller.signal,
 //                 });
 //                 console.log("API :", response);
@@ -128,7 +128,7 @@
 //                                     product.ImageURL
 //                                         ? product.ImageURL.startsWith('http')
 //                                             ? product.ImageURL
-//                                             : `http://localhost${product.ImageURL.startsWith('/') ? '' : '/'}${product.ImageURL}`
+//                                             : `http://localhost:8001${product.ImageURL.startsWith('/') ? '' : '/'}${product.ImageURL}`
 //                                         : 'https://via.placeholder.com/300x300/F0F0F0/AAAAAA?text=No+Image'
 //                                 }
 //                                 alt={product.ProductName}
@@ -245,7 +245,7 @@ export default function ProductsCart() {
             try {
                 // SỬA 1: API trả về một object lớn, trong đó có key 'data' chứa object phân trang.
                 const response = await axios.get<{ data: PaginationResponse }>(
-                    'http://localhost/api/products/best-selling', {
+                    'http://localhost:8001/api/products/best-selling', {
                     signal: controller.signal,
                 });
 

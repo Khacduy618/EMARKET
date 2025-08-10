@@ -83,7 +83,7 @@
 
 
 // io.on('connection', (socket) => {
-    
+
 //     const currentMysqlUserId = socket.mysqlUserId;
 //     console.log(`User ${currentMysqlUserId} (${socket.mysqlUsername}) connected with socket ID: ${socket.id}`);
 //     onlineUsers.set(currentMysqlUserId, socket.id);
@@ -418,9 +418,9 @@ io.on('connection', (socket) => {
                 // Thông báo cho Laravel cập nhật metadata
                 try {
                     await axios.post(`${LARAVEL_API_URL}/internal-chat-api/mark-meta-as-read`, {
-                       user_id_to_mark_read: currentMysqlUserId,
-                       mongo_conversation_id: mongoConversationIdStr
-                    }, { headers: { 'X-Internal-Secret': INTERNAL_API_SECRET }});
+                        user_id_to_mark_read: currentMysqlUserId,
+                        mongo_conversation_id: mongoConversationIdStr
+                    }, { headers: { 'X-Internal-Secret': INTERNAL_API_SECRET } });
                 } catch (metaError) {
                     console.error("Server: Error marking meta as read in Laravel:", metaError.response ? metaError.response.data : metaError.message);
                 }
@@ -428,7 +428,7 @@ io.on('connection', (socket) => {
                 const otherParticipantId = conversation.participants.find(p => p !== currentMysqlUserId);
                 if (otherParticipantId) {
                     const otherParticipantSocketId = onlineUsers.get(otherParticipantId);
-                    if(otherParticipantSocketId) {
+                    if (otherParticipantSocketId) {
                         io.to(otherParticipantSocketId).emit('messagesSeen', { conversationId: mongoConversationIdStr, seenByUserId: currentMysqlUserId });
                     }
                 }
@@ -452,7 +452,7 @@ io.on('connection', (socket) => {
             return socket.emit('sendMessageError', { message: 'Missing required message data.' });
         }
         if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-             if (callback) callback({ error: 'Invalid conversationId format.' });
+            if (callback) callback({ error: 'Invalid conversationId format.' });
             return socket.emit('sendMessageError', { message: 'Invalid conversationId format.' });
         }
 
@@ -471,8 +471,8 @@ io.on('connection', (socket) => {
                 readBy: [currentMysqlUserId]
             });
             await newMessage.save();
-                        console.log(`sendMessage: New message saved with ID: ${newMessage._id}`);
-                        console.log(`sendMessage: Updating conversation ${conversationId} with last message and unread count for receiver ${receiverId}`);
+            console.log(`sendMessage: New message saved with ID: ${newMessage._id}`);
+            console.log(`sendMessage: Updating conversation ${conversationId} with last message and unread count for receiver ${receiverId}`);
             const updatedConversation = await Conversation.findByIdAndUpdate(
                 conversationId,
                 {
@@ -498,10 +498,10 @@ io.on('connection', (socket) => {
 
             // Thông báo cho Laravel cập nhật metadata
             if (updatedConversation && newMessage) { // Đảm bảo conversation được tìm thấy và cập nhật
-                
+
                 try {
-                     console.log(`Server: Attempting to update metadata in Laravel for convo: ${conversationId}`);
-                     const metaPayload = {
+                    console.log(`Server: Attempting to update metadata in Laravel for convo: ${conversationId}`);
+                    const metaPayload = {
                         user_id_1: currentMysqlUserId, // Người gửi
                         user_id_2: Number(receiverId),   // Người nhận
                         mongo_conversation_id: conversationId.toString(),
@@ -513,43 +513,43 @@ io.on('connection', (socket) => {
                         unread_counts: Object.fromEntries(updatedConversation.unreadCounts)
                     };
                     console.log("Server: Payload for Laravel meta update:", metaPayload);
-console.log(`Server: Attempting to update metadata in Laravel for convo: ${conversationId}. Secret Key to be used: ${INTERNAL_API_SECRET ? 'Exists and has a value' : 'MISSING or empty'}`);
-                     await axios.post(`${LARAVEL_API_URL}/internal-chat-api/update-conversation-meta`, metaPayload,
-                     {
-                        headers: {
-                            'X-Internal-Secret': INTERNAL_API_SECRET,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                    console.log(`Server: Attempting to update metadata in Laravel for convo: ${conversationId}. Secret Key to be used: ${INTERNAL_API_SECRET ? 'Exists and has a value' : 'MISSING or empty'}`);
+                    await axios.post(`${LARAVEL_API_URL}/internal-chat-api/update-conversation-meta`, metaPayload,
+                        {
+                            headers: {
+                                'X-Internal-Secret': INTERNAL_API_SECRET,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
                     console.log(`Server: Successfully updated conversation meta in Laravel for convo: ${conversationId}`);
                 } catch (metaError) {
-                     console.error("Server: Error updating conversation meta in Laravel:", metaError.response ? metaError.response.data : metaError.message);
-                      console.error(`Server: Error updating conversation meta in Laravel for convo ${conversationId}:`, errorDetail);
-                      if (metaError.config && metaError.config.headers) {
-                     console.error("Axios request headers ACTUALLY SENT to Laravel (for update-conversation-meta):", metaError.config.headers); // LOG HEADER THỰC SỰ GỬI ĐI KHI CÓ LỖI
-                     }
+                    console.error("Server: Error updating conversation meta in Laravel:", metaError.response ? metaError.response.data : metaError.message);
+                    console.error(`Server: Error updating conversation meta in Laravel for convo ${conversationId}:`, errorDetail);
+                    if (metaError.config && metaError.config.headers) {
+                        console.error("Axios request headers ACTUALLY SENT to Laravel (for update-conversation-meta):", metaError.config.headers); // LOG HEADER THỰC SỰ GỬI ĐI KHI CÓ LỖI
+                    }
 
-                     // ... trong catch (metaError) ...
-if (metaError.isAxiosError) {
-    console.error("Axios Error Details for meta update:");
-    if (metaError.response) {
-        // Request được thực hiện và server trả về status code không phải 2xx
-        console.error("Data:", metaError.response.data);
-        console.error("Status:", metaError.response.status);
-        console.error("Headers:", metaError.response.headers);
-    } else if (metaError.request) {
-        // Request đã được thực hiện nhưng không nhận được response
-        console.error("Request:", metaError.request);
-    } else {
-        // Lỗi xảy ra khi thiết lập request
-        console.error("Error Message:", metaError.message);
-    }
-    console.error("Config:", metaError.config);
-} else {
-    // Lỗi khác không phải của axios
-    console.error("Non-Axios Error during meta update:", metaError.message);
-}
+                    // ... trong catch (metaError) ...
+                    if (metaError.isAxiosError) {
+                        console.error("Axios Error Details for meta update:");
+                        if (metaError.response) {
+                            // Request được thực hiện và server trả về status code không phải 2xx
+                            console.error("Data:", metaError.response.data);
+                            console.error("Status:", metaError.response.status);
+                            console.error("Headers:", metaError.response.headers);
+                        } else if (metaError.request) {
+                            // Request đã được thực hiện nhưng không nhận được response
+                            console.error("Request:", metaError.request);
+                        } else {
+                            // Lỗi xảy ra khi thiết lập request
+                            console.error("Error Message:", metaError.message);
+                        }
+                        console.error("Config:", metaError.config);
+                    } else {
+                        // Lỗi khác không phải của axios
+                        console.error("Non-Axios Error during meta update:", metaError.message);
+                    }
                 }
             }
 
@@ -593,8 +593,8 @@ if (metaError.isAxiosError) {
                     try {
                         console.log(`Server: Attempting to mark meta as read in Laravel for convo: ${conversationId}. Secret Key to be used: ${INTERNAL_API_SECRET ? 'Exists and has a value' : 'MISSING or empty'}`); // THÊM LOG NÀY
                         await axios.post(`${LARAVEL_API_URL}/internal-chat-api/mark-meta-as-read`, {
-                           user_id_to_mark_read: currentMysqlUserId,
-                           mongo_conversation_id: conversationId.toString()
+                            user_id_to_mark_read: currentMysqlUserId,
+                            mongo_conversation_id: conversationId.toString()
                         }, {
                             headers: {
                                 'X-Internal-Secret': INTERNAL_API_SECRET, // <<< ĐẢM BẢO BIẾN NÀY CÓ GIÁ TRỊ
@@ -602,7 +602,7 @@ if (metaError.isAxiosError) {
                                 'Content-Type': 'application/json'
                             }
                         });
-                         console.log(`Server: Successfully marked meta as read in Laravel for convo: ${conversationId}`);
+                        console.log(`Server: Successfully marked meta as read in Laravel for convo: ${conversationId}`);
                     } catch (metaError) {
                         console.error("Server: Error marking meta as read in Laravel:", metaError.response ? metaError.response.data : metaError.message);
                     }
@@ -611,7 +611,7 @@ if (metaError.isAxiosError) {
                     const otherParticipantId = conversation.participants.find(p => p !== currentMysqlUserId);
                     if (otherParticipantId) {
                         const otherParticipantSocketId = onlineUsers.get(otherParticipantId);
-                        if(otherParticipantSocketId) {
+                        if (otherParticipantSocketId) {
                             io.to(otherParticipantSocketId).emit('messagesSeen', { conversationId: conversationId, seenByUserId: currentMysqlUserId });
                         }
                     }

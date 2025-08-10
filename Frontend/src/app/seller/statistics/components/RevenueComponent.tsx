@@ -126,7 +126,7 @@ export default function ComponentRevenue() {
     if (!startDate || !endDate) return
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost/api/seller/statistics?${params}`, {
+      const res = await fetch(`http://localhost:8001/api/seller/statistics?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

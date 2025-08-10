@@ -63,7 +63,7 @@ export default function PopularProducts() {
     const fetchProducts = useCallback(async (page: number, sort: string) => {
         setLoading(true)
         try {
-            const response = await axios.get<PaginatedApiResponse>("http://localhost/api/products/popular", {
+            const response = await axios.get<PaginatedApiResponse>("http://localhost:8001/api/products/popular", {
                 params: {
                     page: page,
                     limit: productsPerPage,

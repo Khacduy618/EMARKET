@@ -67,11 +67,11 @@ export default function SellerOrdersPage() {
                 search: searchTerm,
             })
 
-            const response = await axios.get(`http://localhost/api/seller/orders?${params.toString()}`, {
+            const response = await axios.get(`http://localhost:8001/api/seller/orders?${params.toString()}`, {
                 headers: {
-                    
                     'Accept': "application/json",
                 },
+                withCredentials: true,
             })
 
             setOrders(response.data.data ?? [])

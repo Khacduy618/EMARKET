@@ -70,7 +70,7 @@ export default function AdminReviewsList() {
     const fetchData = useCallback(async (showLoadingSpinner = true) => {
         if (showLoadingSpinner) setIsLoading(true);
         setError(null);
-        
+
         const params = new URLSearchParams(searchParams.toString());
         try {
             const [reviewsRes, statsRes] = await Promise.all([
@@ -92,7 +92,7 @@ export default function AdminReviewsList() {
         if (isMounted) {
             fetchData();
         }
-    }, [isMounted, fetchData]); 
+    }, [isMounted, fetchData]);
 
     const handleAction = async (action: 'approve' | 'reject' | 'reply' | 'delete' | 'set-pending' | 'set-needs-review', reviewId: number, payload?: object) => {
         if (updatingReviewId) return;
@@ -174,7 +174,7 @@ export default function AdminReviewsList() {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            
+
             setToast({ message: "Đang tải file Excel...", type: 'success' });
 
         } catch (err) {
@@ -223,7 +223,7 @@ export default function AdminReviewsList() {
     return (
         <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
             {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
-            
+
             <div className="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Quản lý Reviews</h1>
@@ -240,49 +240,49 @@ export default function AdminReviewsList() {
                     </button>
                 </div>
             </div>
-            
+
             <StatsHeader stats={stats} />
             <FilterControls />
-            
+
             <div className="mt-6">
-                {isLoading ? ( <div className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" /><p className="mt-2">Đang tải dữ liệu...</p></div> ) 
-                : error ? ( <div className="text-center py-20 bg-white rounded-lg border border-red-200 p-8"><AlertTriangle className="h-12 w-12 mx-auto text-red-400" /><p className="mt-4 font-semibold text-red-600">Lỗi: {error}</p><p className="text-gray-500 mt-2">Vui lòng thử làm mới trang hoặc kiểm tra lại bộ lọc.</p></div> ) 
-                : hasReviews ? (
-                    <div className="space-y-8">
-                        {groupedReviews.map((group) => (
-                           group?.reviews?.length > 0 && (
-                            <div key={group.shop_info.ShopID || 'shop-deleted'} className="bg-white rounded-xl shadow-sm border">
-                                <div className="p-4 border-b flex items-center space-x-3 bg-gray-50/70 rounded-t-xl">
-                                    <Image src={getFullImageUrl(group.shop_info.LogoURL)} alt={group.shop_info.ShopName || 'Shop Logo'} width={40} height={40} className="rounded-full object-cover border bg-white" onError={(e) => { e.currentTarget.src = '/placeholder.png'; }} />
-                                    <h2 className="text-lg font-bold text-gray-800">{group.shop_info.ShopName}</h2>
-                                </div>
-                                <div className="divide-y">
-                                    {group.reviews.map(review => (
-                                        <div className="p-4" key={review.ReviewID}>
-                                            <AdminReviewCard 
-                                                review={review} 
-                                                isUpdating={updatingReviewId === review.ReviewID}
-                                                onApprove={(id) => handleAction('approve', id)} 
-                                                onReject={(id) => handleAction('reject', id)} 
-                                                onDelete={(id) => handleAction('delete', id)} 
-                                                onReply={(id, text) => handleAction('reply', id, { replyText: text })}
-                                                onSetPending={(id) => handleAction('set-pending', id)}
-                                                onSetNeedsReview={(id) => handleAction('set-needs-review', id)}
-                                            />
+                {isLoading ? (<div className="text-center py-20"><Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" /><p className="mt-2">Đang tải dữ liệu...</p></div>)
+                    : error ? (<div className="text-center py-20 bg-white rounded-lg border border-red-200 p-8"><AlertTriangle className="h-12 w-12 mx-auto text-red-400" /><p className="mt-4 font-semibold text-red-600">Lỗi: {error}</p><p className="text-gray-500 mt-2">Vui lòng thử làm mới trang hoặc kiểm tra lại bộ lọc.</p></div>)
+                        : hasReviews ? (
+                            <div className="space-y-8">
+                                {groupedReviews.map((group) => (
+                                    group?.reviews?.length > 0 && (
+                                        <div key={group.shop_info.ShopID || 'shop-deleted'} className="bg-white rounded-xl shadow-sm border">
+                                            <div className="p-4 border-b flex items-center space-x-3 bg-gray-50/70 rounded-t-xl">
+                                                <Image src={getFullImageUrl(group.shop_info.LogoURL)} alt={group.shop_info.ShopName || 'Shop Logo'} width={40} height={40} className="rounded-full object-cover border bg-white" onError={(e) => { e.currentTarget.src = '/placeholder.png'; }} />
+                                                <h2 className="text-lg font-bold text-gray-800">{group.shop_info.ShopName}</h2>
+                                            </div>
+                                            <div className="divide-y">
+                                                {group.reviews.map(review => (
+                                                    <div className="p-4" key={review.ReviewID}>
+                                                        <AdminReviewCard
+                                                            review={review}
+                                                            isUpdating={updatingReviewId === review.ReviewID}
+                                                            onApprove={(id) => handleAction('approve', id)}
+                                                            onReject={(id) => handleAction('reject', id)}
+                                                            onDelete={(id) => handleAction('delete', id)}
+                                                            onReply={(id, text) => handleAction('reply', id, { replyText: text })}
+                                                            onSetPending={(id) => handleAction('set-pending', id)}
+                                                            onSetNeedsReview={(id) => handleAction('set-needs-review', id)}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+                                    )
+                                ))}
                             </div>
-                           )
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-20 bg-white rounded-lg border">
-                        <MessageSquare className="h-12 w-12 mx-auto text-gray-400" />
-                        <p className="mt-4 font-medium text-gray-700">Không tìm thấy review nào.</p>
-                        <p className="text-sm text-gray-500">Hãy thử thay đổi bộ lọc hoặc làm mới trang.</p>
-                    </div>
-                )}
+                        ) : (
+                            <div className="text-center py-20 bg-white rounded-lg border">
+                                <MessageSquare className="h-12 w-12 mx-auto text-gray-400" />
+                                <p className="mt-4 font-medium text-gray-700">Không tìm thấy review nào.</p>
+                                <p className="text-sm text-gray-500">Hãy thử thay đổi bộ lọc hoặc làm mới trang.</p>
+                            </div>
+                        )}
             </div>
         </div>
     );

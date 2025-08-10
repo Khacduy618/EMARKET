@@ -1,22 +1,22 @@
-import { ProductVariant,ProductImage } from "@/types";
+import { ProductVariant, ProductImage } from "@/types";
 import { getCookie } from "./auth";
 
-export const API_BASE_URL = 'http://localhost/api';
-export const BASE_URL = 'http://localhost';
+export const API_BASE_URL = 'http://localhost:8001/api';
+export const BASE_URL = 'http://localhost:8001';
 interface ProductWithImages {
     images?: ProductImage[] | null;
 }
 
 export const getAuthToken = (): string | null => {
-    
+
     const xsrfToken = getCookie('XSRF-TOKEN');
 
-        if (!xsrfToken) {
-            // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
-            console.warn('CSRF token not found in cookies.');
-            return '';
-        }
-        return decodeURIComponent(xsrfToken);
+    if (!xsrfToken) {
+        // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
+        console.warn('CSRF token not found in cookies.');
+        return '';
+    }
+    return decodeURIComponent(xsrfToken);
 };
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
@@ -63,7 +63,7 @@ export const handleResponse = async (response: Response) => {
         // Nếu không có body JSON (ví dụ: status 204 No Content, hoặc chỉ là text)
         // trả về một giá trị thành công mà không cần parse.
         // Bạn có thể trả về `true` hoặc một đối tượng cho biết thành công.
-        return { success: true, message: "Operation successful" }; 
+        return { success: true, message: "Operation successful" };
     }
 };
 

@@ -36,7 +36,7 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost/api/admin/shops/${shopId}`, {
+        const res = await fetch(`http://localhost:8001/api/admin/shops/${shopId}`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

@@ -1,7 +1,7 @@
 import { handleResponse } from './api';
 import { Address, AddressPayload } from '../types'; // Import Address interface
 
-const API_BASE_URL = 'http://localhost/api';
+const API_BASE_URL = 'http://localhost:8001/api';
 
 const getAuthToken = (): string | null => {
     return getAuthToken()
@@ -23,7 +23,7 @@ export interface UpdateAddressResponse {
 export const fetchUserAddresses = async (): Promise<FetchAddressesResponse> => {
     const response = await fetch(`${API_BASE_URL}/addresses`, {
         headers: {
-            
+
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },
@@ -33,13 +33,13 @@ export const fetchUserAddresses = async (): Promise<FetchAddressesResponse> => {
 
 export const fetchAddressDetails = async (addressId: number): Promise<Address> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/addresses/${addressId}`, { 
+    const response = await fetch(`${API_BASE_URL}/addresses/${addressId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },
-     });
+    });
     return handleResponse(response);
 };
 
@@ -54,7 +54,7 @@ export const fetchAddressDetails = async (addressId: number): Promise<Address> =
 //         },
 //         body: JSON.stringify(data),
 //     });
-    
+
 //     // handleResponse giờ sẽ xử lý đúng
 //     // và API của bạn đang trả về một JSON object, nên logic này vẫn hoạt động
 //     return handleResponse(response); 
@@ -70,7 +70,7 @@ export const updateAddress = async (addressId: number, data: AddressPayload): Pr
         },
         body: JSON.stringify(data),
     });
-    return handleResponse(response); 
+    return handleResponse(response);
 };
 
 // export const createAddress = async (data: Omit<Address, 'AddressID'>): Promise<{ message: string; address: Address }> => {
@@ -89,7 +89,7 @@ export const createAddress = async (data: AddressPayload): Promise<{ message: st
     const token = getAuthToken();
     const response = await fetch(`${API_BASE_URL}/addresses`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
