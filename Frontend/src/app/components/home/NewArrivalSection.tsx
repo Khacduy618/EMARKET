@@ -378,6 +378,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
+import { getFullImageUrl } from '@/services/api';
 
 // Interfaces (Đã được điều chỉnh để khớp với JSON mới)
 interface ApiVariant {
@@ -508,7 +509,7 @@ const NewArrivalsSection: React.FC = () => {
                         >
                             <div className="relative w-full aspect-square overflow-hidden">
                                 <img
-                                    src={product.ImageURL || 'https://via.placeholder.com/200x200/F0F0F0/AAAAAA?text=No+Image'}
+                                    src={getFullImageUrl(product.ImageURL)}
                                     alt={product.name}
                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                     loading="lazy"

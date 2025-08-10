@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { OverlayTrigger, Tooltip, Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import ShopDetailModal from './components/ShopDetailModal'; // Đảm bảo đúng đường dẫn
+import { getFullImageUrl } from '@/services/api';
 
 type Shop = {
   ShopID: number;
@@ -243,7 +244,7 @@ export default function ShopTable() {
               {shops.map(shop => (
                 <tr key={shop.ShopID}>
                   <td>
-                    <img src={shop.LogoURL} alt="Logo" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '50%' }} />
+                    <img src={getFullImageUrl(shop.LogoURL)} alt="Logo" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: '50%' }} />
                   </td>
                   <td>{shop.ShopName}</td>
                   <td className="text-muted">{shop.RepresentativeName}</td>

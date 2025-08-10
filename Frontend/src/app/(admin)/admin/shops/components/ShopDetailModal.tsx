@@ -1,6 +1,7 @@
 'use client';
 import { Modal, Button } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
+import { getFullImageUrl } from '@/services/api';
 
 type Shop = {
   ShopID: number;
@@ -72,7 +73,7 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
         ) : shop ? (
           <div>
             <img
-              src={shop.CoverImageURL}
+              src={getFullImageUrl(shop.CoverImageURL)}
               alt="Cover"
               className="img-fluid mb-3"
               style={{ maxHeight: 200, objectFit: 'cover', width: '100%' }}

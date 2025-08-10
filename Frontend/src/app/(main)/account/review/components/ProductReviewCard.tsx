@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator"
 import { StarRating } from "./StarRating"
 import { ReviewTextArea } from "./ReviewTextArea"
 import { MediaUpload } from "./MediaUpload"
+import { getFullImageUrl } from "@/services/api"
 export interface ProductReview {
   rating: number
   reviewText: string
@@ -46,7 +47,7 @@ export function ProductReviewCard({
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           <img
-            src={product.image || "/placeholder.svg"}
+            src={getFullImageUrl(product.image) || "/placeholder.svg"}
             alt={product.name}
             className="w-16 h-16 object-cover rounded-lg border flex-shrink-0"
           />

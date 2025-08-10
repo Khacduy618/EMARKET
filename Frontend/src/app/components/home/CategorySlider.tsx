@@ -67,7 +67,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // <-- BƯỚC 1: Import hook usePathname
 import type { IHome } from '@/types/Ihome';
-import { getFullImageUrl } from '@/services/api';
+import { getFullImageUrl, getPublicImageUrl } from '@/services/api';
 
 
 
@@ -112,7 +112,7 @@ export default function CategoryMenu() {
                             >
                                 {cat.ImageURL && (
                                     <img
-                                        src={getFullImageUrl(cat.ImageURL)}
+                                        src={getPublicImageUrl(cat.ImageURL)}
                                         alt={cat.Name}
                                         className="w-5 h-5 mr-3 object-contain"
                                     />

@@ -526,6 +526,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import Link from "next/link"
+import { getFullImageUrl } from "@/services/api"
 
 interface ApiProduct {
     ProductID: number
@@ -645,7 +646,7 @@ export default function TodaySuggestions() {
                                         {/* Product Image */}
                                         <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
                                             <img
-                                                src={product.ImageURL || "/placeholder.svg?height=200&width=200"}
+                                                src={getFullImageUrl(product.ImageURL)}
                                                 alt={product.name}
                                                 className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                                                 loading="lazy"

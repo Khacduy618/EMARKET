@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react"
 import axios from "axios"
 import Link from "next/link"
 import { Filter, Grid3X3, List, Star } from "lucide-react"
+import { getFullImageUrl } from "@/services/api"
 
 // Interface cho một sản phẩm từ API
 interface ApiProduct {
@@ -216,7 +217,7 @@ export default function PopularProducts() {
                                 >
                                     <div className="relative w-full aspect-square overflow-hidden bg-gray-50">
                                         <img
-                                            src={product.ImageURL || "/placeholder.svg"}
+                                            src={getFullImageUrl(product.ImageURL)}
                                             alt={product.name}
                                             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                                             loading="lazy"

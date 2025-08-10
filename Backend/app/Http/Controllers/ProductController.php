@@ -745,9 +745,9 @@ public function destroy($id)
             $product->Attributes = $attributesText;
 
             // Xử lý các trường khác như cũ
-            if ($product->PrimaryImage && !str_starts_with($product->PrimaryImage, 'http')) {
-                $product->PrimaryImage = asset($product->PrimaryImage);
-            }
+            // if ($product->PrimaryImage && !str_starts_with($product->PrimaryImage, 'http')) {
+            //     $product->PrimaryImage = asset($product->PrimaryImage);
+            // }
             if ($product->OriginalPrice !== null && $product->CurrentPrice !== null && $product->OriginalPrice <= $product->CurrentPrice) {
                 $product->OriginalPrice = null;
             }

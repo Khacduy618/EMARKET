@@ -38,6 +38,25 @@ use App\Http\Controllers\ReviewController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
+Route::get('/user/shop-status', function (Request $request) {
+    $user = $request->user();
+
+    // Tìm shop thuộc về user này
+    $shop = DB::table('shops')->where('UserID', $user->UserID)->where('Status', 'Approved')->first();
+
+    if ($shop) {
+        // Nếu tìm thấy shop, trả về trạng thái 'has_shop' và ShopID
+        return response()->json([
+            'status' => 'has_shop',
+            'shopId' => $shop->ShopID
+        ]);
+    } else {
+        // Nếu không tìm thấy, trả về 'no_shop'
+        return response()->json([
+            'status' => 'no_shop'
+        ]);
+    }
+})->middleware('auth:sanctum');
 
 Route::get('/test', function () {
     // Ghi log để chắc chắn route này được chạy
@@ -163,7 +182,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
     Route::delete('/cart/items', [CartController::class, 'removeMultipleItems']);
-
+    
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
@@ -189,7 +208,7 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
-   
+    Route::post('/orders/buy-now', [OrderController::class, 'buyNow']);
     
     Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
     
