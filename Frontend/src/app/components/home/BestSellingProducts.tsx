@@ -196,6 +196,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import { getFullImageUrl } from '@/services/api';
 
 // --- Interfaces: Định nghĩa lại để khớp với API và nhu cầu của component ---
 
@@ -351,7 +352,7 @@ export default function ProductsCart() {
                                 </div>
                             )}
                             <img
-                                src={product.ImageURL ?? 'https://via.placeholder.com/300x300/F0F0F0/AAAAAA?text=No+Image'}
+                                src={getFullImageUrl(product.ImageURL)}
                                 alt={product.ProductName}
                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 loading="lazy"

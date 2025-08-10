@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { getFullImageUrl, getPublicImageUrl } from '@/services/api';
 
 type Category = {
     CategoryID: number;
@@ -82,7 +83,7 @@ export default function ResponsiveCategoryMenu({ isOpen, onClose }: ResponsiveCa
                                 >
                                     {cat.ImageURL && (
                                         <img
-                                            src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost${cat.ImageURL}`}
+                                            src={getPublicImageUrl(cat.ImageURL)}
                                             alt={cat.Name}
                                             className="w-5 h-5 mr-3 object-contain"
                                         />

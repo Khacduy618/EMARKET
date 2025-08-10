@@ -231,6 +231,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, User, Phone, MapPin, Printer, Package, Truck, CheckCircle, Clock, XCircle, AlertCircle, FileText, ShoppingCart, CreditCard, Home, Loader2
 } from 'lucide-react';
+import { getFullImageUrl } from '@/services/api';
 
 // --- BẠN CÓ THỂ ĐẶT CÁC INTERFACE NÀY VÀO MỘT FILE CHUNG (VÍ DỤ: src/types/order.ts) ---
 interface User { UserID: number; FullName: string; Email: string; avatar?: string; }
@@ -377,7 +378,7 @@ export default function OrderDetailPage() {
                       <div className="divide-y divide-gray-200">
                         {order.items.map(item => (
                           <div key={item.OrderItemID} className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6">
-                            <img src={item.product?.image || `https://via.placeholder.com/80x80.png?text=IMG`} alt={item.product?.name} className="w-20 h-20 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
+                            <img src={getFullImageUrl(item.product?.image) } alt={item.product?.name} className="w-20 h-20 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
                             <div className="flex-1">
                               <p className="font-semibold text-gray-800 leading-tight">{item.product?.name || `Sản phẩm (Variant ID: ${item.VariantID})`}</p>
                               <p className="text-sm text-gray-500 mt-1">SKU: {item.product?.sku || 'N/A'}</p>
@@ -427,7 +428,7 @@ export default function OrderDetailPage() {
                  <h3 className="text-lg font-semibold text-gray-800">Thông tin người mua</h3>
               </div>
               <div className="flex items-center gap-4">
-                  <img className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" src={order.user.avatar || `https://i.pravatar.cc/56?u=${order.user.Email}`} alt="Avatar"/>
+                  <img className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" src={getFullImageUrl(order.user.avatar)} alt="Avatar"/>
                   <div>
                     <p className="font-semibold text-gray-900">{order.user.FullName}</p>
                     <p className="text-sm text-gray-500">{order.user.Email}</p>

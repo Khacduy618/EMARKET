@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
-import { getAuthToken } from "@/services/api"
+import { getAuthToken, getFullImageUrl } from "@/services/api"
 
 interface Variant {
   VariantID: number
@@ -213,7 +213,7 @@ export default function ProductDetailModal({
                     {product.images.map((img, idx) => (
                       <div key={idx} className="aspect-square rounded-lg overflow-hidden border">
                         <img
-                          src={img.ImageURL || "/placeholder.svg?height=120&width=120"}
+                          src={getFullImageUrl(img.ImageURL)}
                           alt={`Ảnh sản phẩm ${idx + 1}`}
                           className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
                         />
@@ -259,7 +259,7 @@ export default function ProductDetailModal({
                               <TableCell>
                                 <Avatar className="h-12 w-12 rounded-lg">
                                   <AvatarImage
-                                    src={variant.ImageURL || "/placeholder.svg?height=48&width=48"}
+                                    src={getFullImageUrl(variant.ImageURL)|| "/placeholder.svg?height=48&width=48"}
                                     alt="Ảnh biến thể"
                                     className="object-cover"
                                   />

@@ -1,216 +1,263 @@
-'use client';
+"use client"
 
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Header from '@/app/components/Header';
-import Footer from '@/app/components/Footer';
-import ShopHeader from '../components/ShopHeader';
-import BestSellingProducts from '../components/BestSellingProducts';
-import AllProducts from '../components/AllProducts';
-import ProductFilter from '../components/ProductFilter';
-import SortBar from '../components/SortBar';
-import { getShopDetails, getShopProducts, getShopBestSelling } from '@/services/shop';
+import { useEffect, useState, useCallback } from "react"
+import { useParams } from "next/navigation"
+import { useRouter } from "next/navigation" // Thêm hook useRouter
 
-interface Shop {
-    ShopID: number;
-    ShopName: string;
-    ShopDescription?: string;
-    ShopPhone?: string;
-    ShopEmail?: string;
-    ShopAddress?: string;
-    ShopLogo?: string;
-    ShopCoverImage?: string;
-    ShopLevel?: number;
-    FollowerCount?: number;
-    IsFollowing?: boolean;
+// Components
+import { ShopHeader } from "../components/shop-header"
+import { ShopSidebar } from "../components/shop-sidebar"
+import { ShopContent } from "../components/shop-content"
+import { ShopContentSkeleton } from "../components/shop-content-skeleton"
+import { toast } from "react-toastify"
+
+// Types
+import type { ShopInfoForUI, ProductForUI, ShopCategoryForUI } from "@/types"
+
+// === Định nghĩa các kiểu dữ liệu cho từng API Response ===
+interface ShopDetailsResponse {
+  shopInfo: ShopInfoForUI;
+  categories: ShopCategoryForUI[];
 }
 
-interface Product {
-    ProductID: number;
-    Name: string;
-    Price: number;
-    CompareAtPrice?: number;
-    ImageURL?: string;
-    Discount?: number;
-    StockQuantity: number;
+interface ShopProductsResponse {
+ data: ApiProductResponseItem[]; 
+   current_page: number;
+  last_page: number;
+  total: number;
+}
+interface ApiProductResponseItem {
+  ProductID: number;
+  Name: string;
+  SoldCount: number | null;
+  CreatedAt: string;
+  CategoryID: number | null;
+  price: number | null;
+  originalPrice: number | null;
+  image: string | null;
+  averageRating: number | null;
+  ratingCount: number | null;
+  discountPercent: number; // API giờ sẽ trả về trường này
 }
 
-interface FilterOptions {
-    categories: string[];
-    priceRange: { min: number; max: number };
-    sortBy: 'newest' | 'price-asc' | 'price-desc' | 'best-selling' | 'rating';
+// Helper debounce
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 }
+
+// === Hàm chuyển đổi dữ liệu ===
+const mapApiProductToUiProduct = (p: ApiProductResponseItem): ProductForUI => ({
+  id: p.ProductID,
+  name: p.Name,
+  image: p.image,
+  price: p.price ?? 0,
+  originalPrice: p.originalPrice,
+  sold: p.SoldCount ?? 0,
+  rating: p.averageRating ?? 0,
+  ratingCount: p.ratingCount ?? 0,
+  category: p.CategoryID?.toString() ?? 'unknown',
+  createdAt: p.CreatedAt,
+  discountPercent: p.discountPercent,
+  badge: null,
+});
 
 export default function ShopPage() {
-    const params = useParams();
-    const shopId = params.shopId as string;
+  const params = useParams();
+  const shopId = params.shopId as string;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
+  const router = useRouter(); 
+  // State tách biệt cho từng phần dữ liệu
+  const [details, setDetails] = useState<ShopDetailsResponse | null>(null);
+  const [products, setProducts] = useState<ProductForUI[]>([]);
+  
+  // State quản lý trạng thái loading
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State cho bộ lọc
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"popular" | "newest" | "price-asc" | "price-desc">("popular");
+  const [priceMin, setPriceMin] = useState<string>("");
+  const [priceMax, setPriceMax] = useState<string>("");
+
+  const debouncedQuery = useDebounce(query, 500);
+  const debouncedPriceMin = useDebounce(priceMin, 500);
+  const debouncedPriceMax = useDebounce(priceMax, 500);
+
+  // --- API Call Functions ---
+  const fetchProducts = useCallback(async () => {
+    if (!shopId) return;
+    setIsLoadingProducts(true);
     
-    const [shop, setShop] = useState<Shop | null>(null);
-    const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([]);
-    const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const urlParams = new URLSearchParams();
+    if (debouncedQuery) urlParams.append('q', debouncedQuery);
+    if (category) urlParams.append('category', category);
+    if (sortBy) urlParams.append('sortBy', sortBy);
+    if (debouncedPriceMin) urlParams.append('priceMin', debouncedPriceMin);
+    if (debouncedPriceMax) urlParams.append('priceMax', debouncedPriceMax);
+
+    try {
+      const res = await fetch(`${API_URL}/shops/${shopId}/products?${urlParams.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data: ShopProductsResponse = await res.json();
+      setProducts(data.data.map(mapApiProductToUiProduct));
+    } catch (e) {
+      setError("Không thể tải danh sách sản phẩm.");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, [shopId, API_URL, debouncedQuery, category, sortBy, debouncedPriceMin, debouncedPriceMax]);
+
+  // Effect để gọi API chi tiết shop chỉ một lần
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!shopId) return;
+      try {
+        const res = await fetch(`${API_URL}/shops/${shopId}/details`, { credentials: 'include' });
+        if (!res.ok) throw new Error("Shop not found");
+        const data: ShopDetailsResponse = await res.json();
+        setDetails(data);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setIsLoadingDetails(false);
+      }
+    };
+    fetchDetails();
+  }, [shopId, API_URL]);
+
+  // Effect để gọi API sản phẩm khi bộ lọc thay đổi
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+  
+  const handleToggleFollow = async () => {
+    if (!details) return;
     
-    const [filters, setFilters] = useState<FilterOptions>({
-        categories: [],
-        priceRange: { min: 0, max: 10000000 },
-        sortBy: 'newest'
-    });
+    const originalInfo = details.shopInfo;
+    const isCurrentlyFollowing = originalInfo.isFollowing;
 
-    useEffect(() => {
-        if (shopId) {
-            fetchShopData();
+    // Optimistic Update
+    setDetails(prev => prev ? ({ 
+      ...prev, 
+      shopInfo: { 
+        ...prev.shopInfo, 
+        isFollowing: !isCurrentlyFollowing, 
+        followers: isCurrentlyFollowing ? originalInfo.followers - 1 : originalInfo.followers + 1 
+      } 
+    }) : null);
+
+    try {
+      const response = await fetch(`${API_URL}/shops/${shopId}/toggle-follow`, { 
+        method: 'POST',
+        credentials: 'include',
+        headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
-    }, [shopId]);
+      });
+      
+      if (!response.ok) {
+        // Hoàn tác lại UI trước khi hiển thị thông báo lỗi
+        setDetails(prev => prev ? ({ ...prev, shopInfo: originalInfo }) : null);
 
-    useEffect(() => {
-        applyFilters();
-    }, [allProducts, filters]);
-
-    const fetchShopData = async () => {
-        try {
-            setLoading(true);
-            const [shopData, bestSellingData, allProductsData] = await Promise.all([
-                getShopDetails(shopId),
-                getShopBestSelling(shopId),
-                getShopProducts(shopId)
-            ]);
-            
-            setShop(shopData);
-            setBestSellingProducts(bestSellingData);
-            setAllProducts(allProductsData);
-        } catch (err) {
-            setError('Không thể tải thông tin cửa hàng');
-            console.error('Error fetching shop data:', err);
-        } finally {
-            setLoading(false);
+        if (response.status === 401) {
+          // Hiển thị toast cảnh báo thay vì confirm
+          toast.warn("Bạn cần đăng nhập để theo dõi shop!", {
+            autoClose: 3000,
+            onClick: () => router.push('/login'), // Cho phép click vào toast để chuyển trang
+            style: { cursor: 'pointer' }
+          });
+        } else {
+          // Lỗi server khác
+          toast.error("Đã có lỗi xảy ra, vui lòng thử lại.", { autoClose: 3000 });
         }
-    };
+        return; // Dừng hàm
+      }
 
-    const applyFilters = () => {
-        let filtered = [...allProducts];
-
-        // Filter by categories
-        if (filters.categories.length > 0) {
-            // filtered = filtered.filter(product => 
-            //     filters.categories.includes(product.CategoryName)
-            // );
-        }
-
-        // Filter by price range
-        filtered = filtered.filter(product => 
-            product.Price >= filters.priceRange.min && 
-            product.Price <= filters.priceRange.max
-        );
-
-        // Sort products
-        switch (filters.sortBy) {
-            case 'price-asc':
-                filtered.sort((a, b) => a.Price - b.Price);
-                break;
-            case 'price-desc':
-                filtered.sort((a, b) => b.Price - a.Price);
-                break;
-            case 'best-selling':
-                // filtered.sort((a, b) => (b.SoldCount || 0) - (a.SoldCount || 0));
-                break;
-            case 'rating':
-                // filtered.sort((a, b) => (b.Rating || 0) - (a.Rating || 0));
-                break;
-            default: // newest
-                // filtered.sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime());
-                break;
-        }
-
-        setFilteredProducts(filtered);
-    };
-
-    const handleFilterChange = (newFilters: Partial<FilterOptions>) => {
-        setFilters(prev => ({ ...prev, ...newFilters }));
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <div className="container mx-auto px-4 py-8">
-                    <div className="animate-pulse">
-                        <div className="h-64 bg-gray-200 rounded-lg mb-6"></div>
-                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            {Array.from({ length: 8 }).map((_, index) => (
-                                <div key={index} className="h-64 bg-gray-200 rounded-lg"></div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-                <Footer />
-            </div>
-        );
+      // API thành công, hiển thị toast thành công
+      if (isCurrentlyFollowing) {
+        toast.success("Đã bỏ theo dõi shop.", { autoClose: 2000 });
+      } else {
+        toast.success("Đã theo dõi shop thành công!", { autoClose: 2000 });
+      }
+      
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+      // Hoàn tác lại UI nếu có lỗi mạng
+      setDetails(prev => prev ? ({ ...prev, shopInfo: originalInfo }) : null);
+      toast.error("Lỗi mạng, không thể kết nối đến máy chủ.", { autoClose: 3000 });
     }
+  }
 
-    if (error || !shop) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <div className="container mx-auto px-4 py-8 text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                        {error || 'Cửa hàng không tồn tại'}
-                    </h1>
-                    <p className="text-gray-600">Vui lòng thử lại sau hoặc quay về trang chủ.</p>
-                </div>
-                <Footer />
-            </div>
-        );
-    }
+  // --- Render Logic ---
+  if (isLoadingDetails) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Đang tải thông tin shop...</div>;
+  }
+  if (error && !details) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-red-500">{error}</div>;
+  }
+  if (!details) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Không tìm thấy shop.</div>;
+  }
 
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
-            
-            <main className="container mx-auto px-4 py-6">
-                {/* Section 1: Shop Information */}
-                <ShopHeader shop={shop} />
-                
-                {/* Sort Bar */}
-                <SortBar 
-                    sortBy={filters.sortBy}
-                    onSortChange={(sortBy) => handleFilterChange({ sortBy })}
-                />
-                
-                {/* Section 2: Best Selling Products */}
-                <BestSellingProducts products={bestSellingProducts} />
-                
-                {/* Section 3: All Products with Filter */}
-                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mt-6 md:mt-8">
-                    {/* Mobile Filter Toggle */}
-                    <div className="lg:hidden">
-                        <button 
-                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                            onClick={() => {/* TODO: Toggle mobile filter */}}
-                        >
-                            🔍 Bộ lọc & Sắp xếp
-                        </button>
-                    </div>
-
-                    {/* Sidebar Filter - Desktop */}
-                    <div className="hidden lg:block w-64 flex-shrink-0">
-                        <ProductFilter 
-                            filters={filters}
-                            onFilterChange={handleFilterChange}
-                        />
-                    </div>
-                    
-                    {/* All Products */}
-                    <div className="flex-1">
-                        <AllProducts products={filteredProducts} />
-                    </div>
-                </div>
-            </main>
-            
-            <Footer />
-        </div>
-    );
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <ShopHeader
+        info={details.shopInfo}
+        onToggleFollow={handleToggleFollow}
+      />
+      <div className="max-w-7xl mx-auto p-2 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <aside className="lg:col-span-3">
+          <ShopSidebar
+            info={details.shopInfo}
+            categories={details.categories}
+            onSelectCategory={setCategory}
+            activeCategory={category}
+          />
+        </aside>
+        <section className="lg:col-span-9">
+          {/* Toolbar luôn hiển thị */}
+          <ShopContent
+                // Các props khác vẫn như cũ
+                products={products}
+                categories={details.categories}
+                query={query} onQueryChange={setQuery}
+                category={category} onCategoryChange={setCategory}
+                sortBy={sortBy} onSortByChange={setSortBy}
+                priceMin={priceMin} onPriceMinChange={setPriceMin}
+                priceMax={priceMax} onPriceMaxChange={setPriceMax}
+                // Truyền prop isLoading và component skeleton
+                isLoading={isLoadingProducts}
+            >
+            {/* Sử dụng children để truyền skeleton */}
+            {isLoadingProducts ? <ShopContentSkeleton /> : null}
+          </ShopContent>
+        </section>
+      </div>
+    </main>
+  );
 }
+
+// Bạn cần sửa lại ShopContent để chấp nhận children
+// /shop/components/shop-content.tsx
+
+// ... interface Props { ... children?: React.ReactNode }
+// export function ShopContent({ ... children }) {
+//   ...
+//   {/* Grid */}
+//   {isLoadingProducts ? (
+//       children // Hiển thị skeleton
+//   ) : products.length === 0 ? (
+//       <Card>...</Card>
+//   ) : (
+//       <div className="grid ...">{products.map(...)}</div>
+//   )}
+// }

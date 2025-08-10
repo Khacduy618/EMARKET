@@ -303,6 +303,13 @@ class FlashSaleController extends Controller
                      ->where('pi.IsPrimary', '=', 1);
             })
             ->leftJoin('ProductVariants as oki', 'p.ProductID', '=', 'oki.ProductID')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                      ->from('ProductVariantAttribute as pva')
+                      // Điều kiện join là variant của sản phẩm trong flash sale
+                      ->whereColumn('pva.VariantID', 'oki.VariantID');
+            })
+            
             ->select(
                 'fs.FlashSaleID', 'fs.UserID', 'u.UserName', 'p.ProductID',
                 'p.Name as ProductName',

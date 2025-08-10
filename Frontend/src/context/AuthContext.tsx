@@ -33,6 +33,7 @@ import {
     UpdateProfilePayload,
     LoginResponse
 } from '@/types';
+import { getAuthToken } from '@/services/api';
 
 
 // --- Hàm Helper để xử lý và trích xuất thông điệp lỗi ---
@@ -54,6 +55,7 @@ interface AuthContextType {
     isLoading: boolean;
     error: string | null;
     fetchUser: () => Promise<void>;
+    token: string | null;
     login: (credentials: LoginPayload) => Promise<void>;
     register: (payload: RegisterPayload) => Promise<void>;
     logout: () => Promise<void>;
@@ -77,6 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
+    const [token, setToken] = useState<string | null>(null);
 
     // const fetchUser = async () => {
     //     try {
@@ -91,15 +94,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // };
     const fetchUser = async () => {
     try {
-        const userData = await apiGetMe();
-        // THÊM KIỂM TRA NÀY
-        if (userData && userData.UserID) { // Kiểm tra một trường chắc chắn có trong user data
-            console.log("1. Got VALID user data from API:", userData);
-            setUser(userData);
+        const authToken = getAuthToken(); // Giả sử hàm này lấy token từ localStorage
+        if (authToken) {
+            setToken(authToken); // Cập nhật state token
+            try {
+                const userData = await apiGetMe();
+                if (userData && userData.UserID) {
+                    setUser(userData);
+                } else {
+                    setUser(null);
+                    setToken(null); // Xóa token nếu user không hợp lệ
+                }
+            } catch (err) {
+                setUser(null);
+                setToken(null); // Xóa token khi có lỗi
+            }
         } else {
-            // Nếu apiGetMe trả về một object lỗi, chúng ta coi như không có user
-            console.log("1. apiGetMe returned an invalid user object:", userData);
             setUser(null);
+            setToken(null);
         }
     } catch (err) {
         console.log("Error during fetchUser, setting user to null:", err);
@@ -110,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Khởi tạo Auth ban đầu
     useEffect(() => {
         const initializeAuth = async () => {
-            await getCsrfCookie();
+            // await getCsrfCookie();
             await fetchUser();
             setIsLoading(false);
         };
@@ -118,22 +130,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     // useEffect mới để bảo vệ Route phía Client
-    useEffect(() => {
-        if (!isLoading) {
-            console.log('3. useEffect is running. Current user state is:', user);
-            const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
-            console.log('Redirect useEffect is running. User is:', user); // << Thêm log này để xem
-            console.log('is auth page ' , isAuthPage, user);
-            const isProtectedPage = pathname.startsWith('/account');
+    // useEffect(() => {
+    //     if (!isLoading) {
+    //         console.log('3. useEffect is running. Current user state is:', user);
+    //         const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+    //         console.log('Redirect useEffect is running. User is:', user); // << Thêm log này để xem
+    //         console.log('is auth page ' , isAuthPage, user);
+    //         const isProtectedPage = pathname.startsWith('/account');
 
-            if (user && isAuthPage) {
-                 console.log('User exists and is on auth page, redirecting to /');
-                router.push('/');
-            } else if (!user && isProtectedPage) {
+    //         if (user && isAuthPage) {
+    //              console.log('User exists and is on auth page, redirecting to /');
+    //             router.push('/');
+    //         } else if (!user && isProtectedPage) {
                 
-                router.push('/login');
-            }
+    //             router.push('/login');
+    //         }
+    //     }
+    // }, [user, isLoading, pathname, router]);
+    useEffect(() => {
+    // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
+        if (isLoading) return;
+
+        const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/forgot-password');
+        const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
+
+        // Kịch bản 1: Đã đăng nhập nhưng lại vào trang login/register -> Đá về trang chủ
+        if (user && isAuthPage) {
+            console.log("Auth Guard: User is logged in, redirecting from auth page to /");
+            router.push('/');
         }
+
+        // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
+        if (!user && isProtectedPage) {
+            console.log("Auth Guard: User is not logged in, redirecting from protected page to /login");
+            router.push('/login');
+        }
+
     }, [user, isLoading, pathname, router]);
 
 
@@ -313,7 +345,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return (
         <AuthContext.Provider
             value={{
-                user, isLoading, error, fetchUser, login, register, logout,
+                user, isLoading,  error, fetchUser, token , login, register, logout,
                 forgotPassword, resetPassword, updatePassword, updateProfile,
                 resendVerificationEmail, requiresTwoFactor, twoFactorChallenge
             }}

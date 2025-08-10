@@ -33,11 +33,30 @@ use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-
+use App\Http\Controllers\ShopController as BuyerShopController;
 use App\Http\Controllers\ReviewController;
 
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
+Route::get('/user/shop-status', function (Request $request) {
+    $user = $request->user();
+
+    // Tìm shop thuộc về user này
+    $shop = DB::table('shops')->where('UserID', $user->UserID)->where('Status', 'Approved')->first();
+
+    if ($shop) {
+        // Nếu tìm thấy shop, trả về trạng thái 'has_shop' và ShopID
+        return response()->json([
+            'status' => 'has_shop',
+            'shopId' => $shop->ShopID
+        ]);
+    } else {
+        // Nếu không tìm thấy, trả về 'no_shop'
+        return response()->json([
+            'status' => 'no_shop'
+        ]);
+    }
+})->middleware('auth:sanctum');
 
 Route::get('/test', function () {
     // Ghi log để chắc chắn route này được chạy
@@ -163,7 +182,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
     Route::delete('/cart/items', [CartController::class, 'removeMultipleItems']);
-
+    
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
@@ -189,7 +208,7 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
     
-   
+    Route::post('/orders/buy-now', [OrderController::class, 'buyNow']);
     
     Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
     
@@ -198,12 +217,21 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('/reviews/{reviewId}/reply', [ReviewController::class, 'reply']);
 
+    Route::post('/shops/{shop}/toggle-follow', [BuyerShopController::class, 'toggleFollow']);
+
+    Route::post('/products/{productId}/comments', [CommentController::class, 'store']);
     
+    Route::put('/comments/{comment}', [CommentController::class, 'update']);
 
-    Route::middleware('auth:sanctum')->post('/products/{productId}/comments', [CommentController::class, 'store']);
+    // Xóa một bình luận
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
+    // Xử lý tương tác Like / Dislike
+    Route::post('/comments/{comment}/interaction', [CommentController::class, 'handleInteraction']);
 });
 
+Route::get('/shops/{shopId}/details', [BuyerShopController::class, 'getShopDetails']);
+Route::get('/shops/{shopId}/products', [BuyerShopController::class, 'getShopProducts']);
 Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
 Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
 
@@ -231,22 +259,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
 });
 
-Route::middleware('auth:sanctum' )->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::middleware('seller')->group(function () {
-        Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-        Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-        Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-        Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-        Route::get('/products', [ShopProductController::class, 'index']);
-        Route::post('/shop/products', [ShopProductController::class, 'store']);
-        Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
-        Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
-        Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
-        Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
-        Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
-    });
-});
+// Route::middleware('auth:sanctum' )->group(function () {
+//     Route::get('/user', [AuthController::class, 'user']);
+//     Route::middleware('seller')->group(function () {
+//         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
+//         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
+//         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
+//         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+//         Route::get('/products', [ShopProductController::class, 'index']);
+//         Route::post('/shop/products', [ShopProductController::class, 'store']);
+//         Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
+//         Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
+//         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
+//         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
+//         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
+//     });
+// });
 
 
 /*____________________________________________________________________
@@ -339,7 +367,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
         
-    
+        Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
         Route::get('/seller/statistics/orders', [StatisticsController::class, 'getOrdersByAction']);

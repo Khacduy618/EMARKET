@@ -23,7 +23,7 @@ class SellerOrderController extends Controller
     $shopId = $shop->ShopID;
     $status = $request->query('status'); // lấy status từ query
 
-    $ordersQuery = OrderBuyer::whereHas('orderItems.variant.product', function ($query) use ($shopId) {
+    $ordersQuery = OrderBuyer::whereHas('items.variant.product', function ($query) use ($shopId) {
         $query->where('ShopID', $shopId);
     });
 
@@ -33,7 +33,7 @@ class SellerOrderController extends Controller
 
     $orders = $ordersQuery
         ->with([
-            'orderItems' => function ($query) use ($shopId) {
+            'items' => function ($query) use ($shopId) {
                 $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
                     $subQuery->where('ShopID', $shopId);
                 })->with('variant.product:ProductID,Name');
@@ -44,7 +44,7 @@ class SellerOrderController extends Controller
         ->paginate(15);
 
     $orders->getCollection()->transform(function ($order) {
-        $shopSubtotal = $order->orderItems->sum('Subtotal');
+        $shopSubtotal = $order->items->sum('Subtotal');
         $order->shop_subtotal = $shopSubtotal;
         return $order;
     });
@@ -64,19 +64,19 @@ class SellerOrderController extends Controller
         $shopId = $shop->ShopID;
 
         $order = OrderBuyer::where('OrderID', $orderId)
-            ->whereHas('orderItems.variant.product', function ($query) use ($shopId) {
+            ->whereHas('items.variant.product', function ($query) use ($shopId) {
                 $query->where('ShopID', $shopId);
             })
             ->with([
                 'user:UserID,Username,Email',
-                'address',
-                'orderItems' => function ($query) use ($shopId) {
+                'shippingAddress',
+                'items' => function ($query) use ($shopId) {
                     $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
                         $subQuery->where('ShopID', $shopId);
                     });
                 },
-                'orderItems.variant:VariantID,SKU,ImageURL,ProductID',
-                'orderItems.variant.product:ProductID,Name'
+                'items.variant:VariantID,SKU,ImageURL,ProductID',
+                'items.variant.product:ProductID,Name'
             ])
             ->firstOrFail();
 
@@ -92,20 +92,20 @@ class SellerOrderController extends Controller
             'subtotalAmount'    => $order->SubtotalAmount,
             'shippingFee'       => $order->ShippingFee,
             'discountAmount'    => $order->DiscountAmount,
-            'shopSubtotal'      => $order->orderItems->sum('Subtotal'),
+            'shopSubtotal'      => $order->items->sum('Subtotal'),
             'paymentMethod'     => $order->PaymentMethod,
             'paymentStatus'     => $order->PaymentStatus,
             'user' => $order->user ? [
                 'username' => $order->user->Username,
                 'email'    => $order->user->Email,
             ] : null,
-            'address' => $order->address ? [
-                'street'   => $order->address->Street,
-                'ward'     => $order->address->Ward,
-                'district' => $order->address->District,
-                'city'     => $order->address->City,
+            'shippingAddress' => $order->shippingAddress ? [
+                'street'   => $order->shippingAddress->Street,
+                'ward'     => $order->shippingAddress->Ward,
+                'district' => $order->shippingAddress->District,
+                'city'     => $order->shippingAddress->City,
             ] : null,
-            'orderItems' => $order->orderItems->map(function ($item) {
+            'items' => $order->items->map(function ($item) {
                 return [
                     'orderItemId'     => $item->OrderItemID,
                     'quantity'        => $item->Quantity,
@@ -149,14 +149,14 @@ class SellerOrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
         }
-        if ($order->OverallStatus !== 'Pending') {
-            return response()->json(['message' => 'Chỉ có thể hủy đơn hàng ở trạng thái Pending.'], 400);
+        if (!in_array($order->OverallStatus, ['Pending', 'Processing'])) {
+            return response()->json(['message' => 'Chỉ có thể hủy đơn hàng ở trạng thái Pending hoặc Processing.'], 400);
         }
         $order->OverallStatus = 'CancelledBySeller';
         $order->save();
 
         return response()->json(['message' => 'Đơn hàng đã được hủy.', 'order' => $order], 200);
-    }
+    } 
 
     public function printShippingLabel($orderId)
 {
@@ -201,4 +201,19 @@ class SellerOrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
     }
+
+    public function shipOrder($orderId)
+{
+    $order = OrderBuyer::find($orderId);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    if ($order->OverallStatus !== 'Processing') {
+        return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
+    }
+    $order->OverallStatus = 'Shipped';
+    $order->save();
+
+    return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
+}
 }
