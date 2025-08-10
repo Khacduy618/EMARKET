@@ -68,6 +68,16 @@ interface AuthContextType {
     requiresTwoFactor: boolean;
     twoFactorChallenge: (payload: { code?: string; recovery_code?: string }) => Promise<void>;
 }
+const getRedirectPathByRole = (role: string): string => {
+    switch (role.toLowerCase()) {
+        case 'admin':
+            return '/admin/dashboard';
+        case 'seller':
+            return '/seller'; // Hoặc /seller/dashboard
+        default:
+            return '/'; // Mặc định cho Buyer và các vai trò khác
+    }
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -155,10 +165,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
 
         // Kịch bản 1: Đã đăng nhập nhưng lại vào trang login/register -> Đá về trang chủ
+        // if (user && isAuthPage) {
+        //     console.log("Auth Guard: User is logged in, redirecting from auth page to /");
+        //     router.push('/');
+        // }
         if (user && isAuthPage) {
-            console.log("Auth Guard: User is logged in, redirecting from auth page to /");
-            router.push('/');
-        }
+        const redirectPath = getRedirectPathByRole(user.Role);
+        console.log(`Auth Guard: User is logged in, redirecting from auth page to ${redirectPath}`);
+        router.push(redirectPath);
+    }
 
         // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
         if (!user && isProtectedPage) {
