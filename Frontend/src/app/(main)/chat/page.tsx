@@ -1,206 +1,131 @@
-// Frontend/app/(main)/(account)/chat/page.tsx
-'use client';
+// // app/chats/page.tsx
+// import { getServerSession } from "next-auth/next";
+// import { authOptions } from "../../api/chat/auth/[...nextauth]/route";
+// import { redirect } from "next/navigation";
+// import ChatLayout from "../../components/chat/ChatLayout";
+// import { headers } from "next/headers"; // Dùng để lấy cookie
 
-import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
+// interface ApiConversation {
+//   id: string;
+//   name: string;
+//   avatar?: string;
+//   lastMessage: {
+//     text: string;
+//   };
+// }
+// // app/chats/page.tsx
 
-import { getSocket, disconnectSocket } from '../../../../lib/socket';
-import type { Socket } from 'socket.io-client';
-import ConversationList, { ConversationMeta } from '@/app/components/chat/ConversationList';
+// // ... (phần import và interface giữ nguyên)
 
-import ChatWindow from '@/app/components/chat/ChatWindow';
-import { redirect } from 'next/dist/server/api-utils';
-import { useRouter } from 'next/navigation';
+// async function getConversations(): Promise<ApiConversation[]> {
+//   // Lấy đối tượng headers thực sự bằng cách dùng AWAIT
+//   const headerList = headers();
 
-// --- START: Phần Giả Định Xác Thực - BẠN CẦN THAY THẾ BẰNG LOGIC CỦA MÌNH ---
-interface UserSession {
-  userId: number | null;
-  token: string | null;
-  userInfo: {
-    username: string;
-    avatarUrl?: string | null;
-  } | null;
-  isLoading: boolean;
-}
+//   // Lấy URL của chính server Next.js
+//   const host = headerList.get("host");
+//   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
 
-// Tạo một AuthContext đơn giản để minh họa
-const AuthContext = createContext<UserSession | undefined>(undefined);
+//   try {
+//     // Gọi API route nội bộ, cần truyền cookie để xác thực session
+//     const res = await fetch(`${protocol}://${host}/api/chat/conversations`, {
+//       method: 'GET',
+//       headers: {
+//         // Sử dụng headerList để lấy cookie
+//         'Cookie': headerList.get('cookie') || '',
+//       },
+//       cache: 'no-store',
+//     });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<UserSession>({
-    userId: null,
-    token: null,
-    userInfo: null,
-    isLoading: true,
-  });
-  const router = useRouter();
-  useEffect(() => {
-    // Giả lập việc lấy session sau khi component mount
-    const timer = setTimeout(() => {
-      // Trong thực tế, bạn sẽ gọi API hoặc đọc từ localStorage/cookie
-      const storedToken = getAuthToken()
-      const storedUser = localStorage.getItem('user');
+//     if (!res.ok) {
+//       console.error("Failed to fetch conversations:", await res.text());
+//       return [];
+//     }
 
-      if (storedToken && storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setSession({
-            userId: parsedUser.UserID, // Giả sử user object có id, username, avatarUrl
-            token: storedToken,
-            userInfo: { username: parsedUser.Username, avatarUrl: parsedUser.Avatar },
-            isLoading: false,
-          });
-        } catch (e) {
-          console.error("Failed to parse stored user session", e);
-          // Xử lý lỗi, có thể clear localStorage
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          setSession({ userId: null, token: null, userInfo: null, isLoading: false });
-        }
-      } else {
-        router.push('/login');
-      }
-    }, 500); // Giả lập thời gian chờ
-    return () => clearTimeout(timer);
-  }, []);
+//     return await res.json();
+//   } catch (error) {
+//     console.error("Error fetching conversations:", error);
+//     return [];
+//   }
+// }
 
-  return <AuthContext.Provider value={session}>{children}</AuthContext.Provider>;
-};
+// // ... (phần component ChatsPage giữ nguyên)
 
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-// --- END: Phần Giả Định Xác Thực ---
+// export default async function ChatsPage() {
+//   const session = await getServerSession(authOptions);
 
+//   if (!session?.user) {
+//     redirect('/login?callbackUrl=/chats');
+//   }
 
-const ChatPageContent = () => {
-  const { userId: currentUserId, token: authToken, userInfo: currentUserInfo, isLoading: authLoading } = useAuth();
+//   // Lấy dữ liệu thật từ API Route của Next.js
+//   const conversationsData = await getConversations();
 
-  const [selectedConversation, setSelectedConversation] = useState<ConversationMeta | null>(null);
-  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+//   // Định dạng lại dữ liệu để phù hợp với component ChatLayout
+//   const formattedForLayout = conversationsData.map(convo => ({
+//     id: convo.id,
+//     name: convo.name,
+//     lastMessage: convo.lastMessage.text,
+//   }));
 
-  // Khởi tạo và quản lý socket instance
-  useEffect(() => {
-    if (authToken && currentUserId && !socketInstance) {
-      console.log("ChatPage: Attempting to initialize and connect socket...");
-      const newSocket = getSocket(authToken, currentUserId);
-      if (!newSocket.connected) { // getSocket có thể trả về instance cũ chưa connect
-        newSocket.connect();
-      }
-      setSocketInstance(newSocket);
-    }
+//   return (
+//     <div className="h-screen bg-gray-100">
+//       <ChatLayout
+//         currentUser={session.user}
+//         conversations={formattedForLayout}
+//       />
+//     </div>
+//   );
+// }
+// app/chats/page.tsx
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../api/chat/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import ChatLayout from "../../components/chat/ChatLayout"; // Sửa lại đường dẫn này cho đúng
+import { getConversationsForUser } from "../../../lib/chatService"; // Import hàm service
+type ConversationData = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  lastMessage: {
+    text: string;
+  };
+} | null; // Thêm null vì hàm map có thể trả về null trước khi filter
 
-    // Cleanup socket connection on component unmount or when auth changes
-    return () => {
-      if (socketInstance && socketInstance.connected) {
-        console.log("ChatPage: Disconnecting socket on unmount/auth change.");
-        // Quyết định xem có nên disconnect hoàn toàn hay chỉ leave rooms
-        // disconnectSocket(); // Điều này sẽ reset socketInstance về null
-        socketInstance.disconnect(); // Chỉ disconnect, instance vẫn còn nếu getSocket trả về cái cũ
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authToken, currentUserId]); // Chỉ chạy lại khi auth thay đổi
+export default async function ChatsPage() {
+  const session = await getServerSession(authOptions);
 
-  const handleSelectConversation = useCallback((
-    otherUserId: number,
-    mongoConversationId: string,
-    otherUserName: string,
-    otherUserAvatar?: string | null
-  ) => {
-    setSelectedConversation({
-      mongo_conversation_id: mongoConversationId,
-      other_user_id: otherUserId,
-      other_user_username: otherUserName,
-      other_user_avatar: otherUserAvatar,
-      unread_count_mysql: 0, // Giả định khi chọn là đã đọc
-      // last_message_preview, last_message_at_mysql nên được cập nhật từ ConversationList nếu cần
-    });
-
-    if (socketInstance && mongoConversationId) {
-      socketInstance.emit('markConversationAsRead', { conversationId: mongoConversationId });
-    }
-  }, [socketInstance]);
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-600 text-lg">Đang tải thông tin người dùng...</p>
-      </div>
-    );
+  if (!session?.user) {
+    redirect('/login?callbackUrl=/chats');
   }
 
-  if (!authToken || !currentUserId || !currentUserInfo) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-600 text-lg">Vui lòng <a href="/login" className="text-indigo-600 hover:underline">đăng nhập</a> để sử dụng tính năng chat.</p>
-      </div>
-    );
+  // Bước 2: Sử dụng kiểu đã định nghĩa để khai báo biến
+  let conversationsData: NonNullable<ConversationData>[] = [];
+
+  try {
+    // getConversationsForUser trả về (ConversationData | null)[]
+    // nhưng sau khi filter, nó sẽ là NonNullable<ConversationData>[]
+    const result = await getConversationsForUser(session.user.id);
+    conversationsData = result as NonNullable<ConversationData>[];
+
+  } catch (error) {
+    console.error("Lỗi khi tải trang Chat:", error);
   }
+
+  // Bước 3: Đoạn map bây giờ sẽ an toàn về kiểu, không cần dấu `!`
+  const formattedForLayout = conversationsData.map(convo => ({
+    id: convo.id,
+    name: convo.name,
+    lastMessage: convo.lastMessage.text,
+  }));
 
   return (
-    <div className="flex h-[calc(100vh-var(--header-height,64px))] antialiased text-gray-800 bg-gray-100">
-      <div className="flex flex-row h-full w-full overflow-x-hidden">
-        {/* Sidebar danh sách cuộc trò chuyện */}
-        <div className="flex flex-col py-4 sm:py-8 pl-2 sm:pl-6 pr-2 w-full sm:w-64 md:w-72 lg:w-80 bg-white flex-shrink-0 border-r border-gray-200">
-          <div className="flex flex-row items-center justify-center h-12 w-full px-2">
-            <div className="flex items-center justify-center rounded-2xl text-indigo-700 bg-indigo-100 h-10 w-10">
-              {/* SVG Icon */}
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-            </div>
-            <div className="ml-2 font-bold text-xl sm:text-2xl text-gray-800">Tin nhắn</div>
-          </div>
-          <div className="flex flex-col mt-4 -mx-2 overflow-y-auto">
-            {socketInstance && (
-              <ConversationList
-                authToken={authToken}
-                currentUserId={currentUserId}
-                onSelectConversation={handleSelectConversation}
-                socket={socketInstance}
-                activeConversationId={selectedConversation?.mongo_conversation_id || null}
-              />
-            )}
-            {!socketInstance && <p className="p-4 text-gray-400 text-sm">Đang kết nối server chat...</p>}
-          </div>
-        </div>
-
-        {/* Khung chat chính */}
-        <div className="flex flex-col flex-auto h-full p-2 sm:p-6">
-          {selectedConversation && socketInstance ? (
-            <ChatWindow
-              key={selectedConversation.mongo_conversation_id}
-              socket={socketInstance}
-              conversationId={selectedConversation.mongo_conversation_id}
-              otherUserId={selectedConversation.other_user_id}
-              otherUsername={selectedConversation.other_user_username}
-              otherUserAvatar={selectedConversation.other_user_avatar}
-              currentUserId={currentUserId}
-              currentUserInfo={currentUserInfo}
-              authToken={authToken}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-              <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-              <p className="text-gray-500 text-lg">Chọn một cuộc trò chuyện để bắt đầu.</p>
-              <p className="text-sm text-gray-400 mt-2">Hoặc tìm kiếm người dùng để bắt đầu cuộc trò chuyện mới.</p>
-            </div>
-          )}
-        </div>
+    <div className="h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl h-[calc(100vh-2rem)]">
+        <ChatLayout
+          currentUser={session.user}
+          conversations={formattedForLayout}
+        />
       </div>
     </div>
   );
-};
-
-// Wrapper component để cung cấp AuthContext cho ChatPageContent
-const ChatPageWithAuthProvider = () => (
-  <AuthProvider>
-    <ChatPageContent />
-  </AuthProvider>
-);
-
-export default ChatPageWithAuthProvider;
-// Hoặc nếu bạn đã có AuthProvider ở cấp cao hơn (ví dụ trong layout),
-// thì chỉ cần export default ChatPageContent; và đổi tên file cho phù hợp.
+}

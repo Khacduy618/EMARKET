@@ -1,4 +1,4 @@
-import { ProductVariant,ProductImage } from "@/types";
+import { ProductVariant, ProductImage } from "@/types";
 import { getCookie } from "./auth";
 
 export const API_BASE_URL = 'http://localhost/api';
@@ -8,15 +8,15 @@ interface ProductWithImages {
 }
 
 export const getAuthToken = (): string | null => {
-    
+
     const xsrfToken = getCookie('XSRF-TOKEN');
 
-        if (!xsrfToken) {
-            // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
-            console.warn('CSRF token not found in cookies.');
-            return '';
-        }
-        return decodeURIComponent(xsrfToken);
+    if (!xsrfToken) {
+        // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
+        console.warn('CSRF token not found in cookies.');
+        return '';
+    }
+    return decodeURIComponent(xsrfToken);
 };
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
@@ -63,7 +63,7 @@ export const handleResponse = async (response: Response) => {
         // Nếu không có body JSON (ví dụ: status 204 No Content, hoặc chỉ là text)
         // trả về một giá trị thành công mà không cần parse.
         // Bạn có thể trả về `true` hoặc một đối tượng cho biết thành công.
-        return { success: true, message: "Operation successful" }; 
+        return { success: true, message: "Operation successful" };
     }
 };
 
@@ -100,40 +100,57 @@ export const api = {
         return handleResponse(response);
     },
 };
+
 /**
- * HÀM MỚI ĐA DỤNG: Chuyển đổi một đường dẫn ảnh tương đối từ API thành một URL hoàn chỉnh.
- * Xử lý các trường hợp: URL tuyệt đối, URL tương đối, và URL null/undefined.
- * @param relativePath - Đường dẫn ảnh từ API (ví dụ: 'product_images/abc.png')
- * @returns - Đường dẫn ảnh hợp lệ cho thẻ <Image> (ví dụ: '/storage/product_images/abc.png')
+ * HÀM 1: Lấy URL đầy đủ cho các ảnh do người dùng UPLOAD (trong thư mục storage).
+ * Ví dụ: ảnh đại diện, ảnh sản phẩm.
+ * @param storagePath - Đường dẫn tương đối trong thư mục storage (ví dụ: 'avatars/user1.png')
+ * @returns URL đầy đủ (ví dụ: 'http://localhost/storage/avatars/user1.png')
  */
-export const getFullImageUrl = (relativePath: string | null | undefined): string => {
-    if (!relativePath) {
-        return '/placeholder.png'; // Trả về ảnh mặc định
+export const getStorageImageUrl = (storagePath: string | null | undefined): string => {
+    if (!storagePath) {
+        return '/placeholder.png'; // Trả về ảnh placeholder của Next.js
     }
 
-    // Nếu đã là URL đầy đủ, trả về luôn
-    if (relativePath.startsWith('http')) {
-        return relativePath;
+    if (storagePath.startsWith('http')) {
+        return storagePath;
     }
 
-    // Xây dựng đường dẫn đúng mà server có thể hiểu
-    const path = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    const path = storagePath.startsWith('/') ? storagePath.substring(1) : storagePath;
     return `${BASE_URL}/storage/${path}`;
 };
+/**
+ * HÀM 2 (MỚI): Lấy URL đầy đủ cho các ảnh TĨNH (trong thư mục public).
+ * Ví dụ: ảnh banner, ảnh category mặc định.
+ * @param publicPath - Đường dẫn tương đối trong thư mục public (ví dụ: 'images/categories/category_amthanh.png')
+ * @returns URL đầy đủ (ví dụ: 'http://localhost/images/categories/category_amthanh.png')
+ */
+export const getPublicImageUrl = (publicPath: string | null | undefined): string => {
+    if (!publicPath) {
+        return '/placeholder.png';
+    }
 
-// export const getPrimaryImage = (product: ProductWithImages): string => {
-//     const primaryImg = product.images?.find((img) => img.IsPrimary);
-//     const imagePath = primaryImg?.ImageURL || product.images?.[0]?.ImageURL;
+    if (publicPath.startsWith('http')) {
+        return publicPath;
+    }
 
-//     if (imagePath) {
-//       return `/storage/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
-//     }
-//     return "/placeholder.svg";
-// }
+    // File trong public được truy cập trực tiếp từ URL gốc
+    const path = publicPath.startsWith('/') ? publicPath.substring(1) : publicPath;
+    return `${BASE_URL}:8001/${path}`;
+};
+
+
+/**
+ * HÀM ĐA DỤNG (CŨ): Giờ được đổi tên thành getStorageImageUrl để rõ ràng hơn.
+ * Tôi vẫn giữ lại hàm cũ getFullImageUrl để tương thích ngược, nó sẽ gọi đến hàm mới.
+ */
+export const getFullImageUrl = getStorageImageUrl;
+
 export const getPrimaryImage = (product: ProductWithImages): string => {
     const primaryImg = product.images?.find((img) => img.IsPrimary);
     const imagePath = primaryImg?.ImageURL || product.images?.[0]?.ImageURL;
-    return getFullImageUrl(imagePath); // Gọi hàm mới
+    // Ảnh sản phẩm do người dùng tải lên, nên dùng getStorageImageUrl
+    return getStorageImageUrl(imagePath);
 }
 
 export const getVariantImage = (variant: ProductVariant, product: ProductWithImages): string => {
@@ -141,5 +158,6 @@ export const getVariantImage = (variant: ProductVariant, product: ProductWithIma
     if (!imagePath) {
         return getPrimaryImage(product);
     }
-    return getFullImageUrl(imagePath); // Gọi hàm mới
+    // Ảnh variant cũng do người dùng tải lên
+    return getStorageImageUrl(imagePath);
 }

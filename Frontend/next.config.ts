@@ -8,7 +8,14 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '8001',
-        pathname: '/storage/**', // Cho phép tất cả các đường dẫn bên trong /storage
+        pathname: '/**',
+
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8001',
+        pathname: '/images/**', // Cho phép tất cả các đường dẫn bên trong /images
       },
       // Cho phép ảnh từ các nguồn bên ngoài khác
       { protocol: 'https', hostname: 'store.sony.com.vn' },
@@ -26,7 +33,7 @@ const nextConfig = {
     ],
   },
 
-  webpack(config:any, { isServer }: { isServer: boolean }) {
+  webpack(config: any, { isServer }: { isServer: boolean }) {
     // Không cần config.watchOptions nếu bạn dùng Turbopack
     // nhưng nếu buộc phải dùng Webpack:
     if (!isServer) {

@@ -704,3 +704,13 @@
 #56 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('/var/www/html/p...')
 #57 {main}
 "} 
+[2025-08-09 17:14:28] local.INFO: Cart data fetched from DB. Number of rows: 0  
+[2025-08-09 17:14:28] local.INFO: Cart data structured successfully. Number of items: 0  
+[2025-08-09 17:14:31] local.INFO: Cart data fetched from DB. Number of rows: 0  
+[2025-08-09 17:14:31] local.INFO: Cart data structured successfully. Number of items: 0  
+[2025-08-09 17:22:17] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-09 17:22:17] local.INFO: [OrderController@index OPTIMIZED] UserID: 16  
+[2025-08-09 17:22:17] local.INFO: [OrderController@index OPTIMIZED] Không tìm thấy OrderID nào cho UserID: 16  
+[2025-08-09 17:22:20] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-09 17:22:20] local.INFO: [OrderController@index OPTIMIZED] UserID: 16  
+[2025-08-09 17:22:20] local.INFO: [OrderController@index OPTIMIZED] Không tìm thấy OrderID nào cho UserID: 16  

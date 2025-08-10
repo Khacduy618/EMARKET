@@ -85,6 +85,7 @@ export default function CategoryMenu() {
             .catch((error) => console.error('Lỗi khi tải danh mục:', error));
     }, []);
 
+
     // Không cần state activeCategory và hàm handleCategoryClick nữa
 
     return (
@@ -112,7 +113,7 @@ export default function CategoryMenu() {
                             >
                                 {cat.ImageURL && (
                                     <img
-                                        src={getFullImageUrl(cat.ImageURL)}
+                                        src={`http://localhost:8001${cat.ImageURL}`}
                                         alt={cat.Name}
                                         className="w-5 h-5 mr-3 object-contain"
                                     />
