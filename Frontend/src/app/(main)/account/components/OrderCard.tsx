@@ -666,10 +666,19 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
   const [authToken, setAuthToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. SỬA LẠI KEY TẠI ĐÂY
-    // Dùng đúng key 'authToken' như trong Local Storage của bạn
-    const token = getAuthToken();
-    setAuthToken(token);
+
+    let tokenFromStorage: string | null = null;
+
+    // Đảm bảo code chỉ chạy trên trình duyệt
+    if (typeof window !== 'undefined') {
+      tokenFromStorage = localStorage.getItem('authToken');
+    }
+
+    console.log("OrderCard: Đã đọc token từ localStorage:", tokenFromStorage);
+
+    // Cập nhật state với token đã đọc được
+    setAuthToken(tokenFromStorage);
+    // =================================================================
   }, []);
 
   const handleReturnSuccess = (message: string) => {
@@ -740,7 +749,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 
   return (
     // Wrap the entire card in a Link component
-     <>
+    <>
       {/* GHI CHÚ: Thẻ bao ngoài cùng bây giờ là <div>, không phải <Link> nữa */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 transition-shadow duration-200">
         {/* Shop Header */}
@@ -825,61 +834,61 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
                 >
                   Yêu Cầu Trả Hàng
                 </button>
-                  <div className="relative">
-                    <button
-                      className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"
-                      onClick={(e) => { e.preventDefault(); setIsDropdownOpen(!isDropdownOpen); }}
-                    >
-                      Thêm <FaChevronDown className={`ml-1 text-xs transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isDropdownOpen && (
-                      <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-0.5 z-10">
-                        <button className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100" onClick={(e) => e.preventDefault()}>
-                          Liên Hệ Người Bán
-                        </button>
-                        <button className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100" onClick={(e) => e.preventDefault()}>
-                          Mua Lại
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+                <div className="relative">
+                  <button
+                    className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"
+                    onClick={(e) => { e.preventDefault(); setIsDropdownOpen(!isDropdownOpen); }}
+                  >
+                    Thêm <FaChevronDown className={`ml-1 text-xs transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-0.5 z-10">
+                      <button className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100" onClick={(e) => e.preventDefault()}>
+                        Liên Hệ Người Bán
+                      </button>
+                      <button className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100" onClick={(e) => e.preventDefault()}>
+                        Mua Lại
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
-              {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'Pending') && (
-                <div className="flex gap-2">
-                  <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                    Liên Hệ Người Bán
-                  </button>
-                  <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                    Hủy Đơn
-                  </button>
-                </div>
-              )}
-              {(order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' || order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress') && (
-                <div className="flex gap-2">
-                  <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                    Mua Lại
-                  </button>
-                  <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
-                    Liên Hệ Người Bán
-                  </button>
-                </div>
-              )}
-            </div>
+            {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'Pending') && (
+              <div className="flex gap-2">
+                <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
+                  Liên Hệ Người Bán
+                </button>
+                <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
+                  Hủy Đơn
+                </button>
+              </div>
+            )}
+            {(order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' || order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress') && (
+              <div className="flex gap-2">
+                <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
+                  Mua Lại
+                </button>
+                <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0" onClick={(e) => e.preventDefault()}>
+                  Liên Hệ Người Bán
+                </button>
+              </div>
+            )}
           </div>
         </div>
-       {/* 4. Render Modal tại đây, nó sẽ chỉ hiển thị khi state isReturnModalOpen là true */}
+      </div>
+      {/* 4. Render Modal tại đây, nó sẽ chỉ hiển thị khi state isReturnModalOpen là true */}
       <div className="z-50">
         {isReturnModalOpen && authToken && (
-        <ReturnRequestModal
-          isOpen={isReturnModalOpen}
-          onClose={() => setIsReturnModalOpen(false)}
-          onSuccess={handleReturnSuccess}
-          order={order}
-          token={authToken}
-        />
-      )}
+          <ReturnRequestModal
+            isOpen={isReturnModalOpen}
+            onClose={() => setIsReturnModalOpen(false)}
+            onSuccess={handleReturnSuccess}
+            order={order}
+            token={authToken}
+          />
+        )}
       </div>
     </>
   );

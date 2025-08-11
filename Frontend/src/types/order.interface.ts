@@ -16,7 +16,7 @@ export type OrderStatus =
   'Shipped' |          // (từ SQL)
   'Delivered' |        // (từ SQL)
   'Completed' |
-  'Cancelled'  |      // (từ SQL)
+  'Cancelled' |      // (từ SQL)
   'CancelledByBuyer' | // (từ SQL)
   'CancelledBySeller' |// (từ SQL)
   'Returned' |         // (từ SQL)
@@ -63,7 +63,7 @@ export interface OrderItem {
   ReturnStatus: ReturnItemStatus;
   CreatedAt: string;
   productVariant: ProductVariant & {
-      product: Product;
+    product: Product;
   };
   productName: string;
   productImageURL: string;
@@ -106,14 +106,14 @@ export interface CheckoutProductItem {
 }
 
 export interface OrderDetailShopOrder {
-    shopId: number;
-    shopName: string;
-    shopLevel: ShopLevel;
-    isFavoriteShop: boolean;
-    items: OrderItem[];
-    // Thêm các trường voucher cho shop
-    appliedShopVoucherCode?: string | null;
-    shopVoucherDiscountAmount?: number ;
+  shopId: number;
+  shopName: string;
+  shopLevel: ShopLevel;
+  isFavoriteShop: boolean;
+  items: OrderItem[];
+  // Thêm các trường voucher cho shop
+  appliedShopVoucherCode?: string | null;
+  shopVoucherDiscountAmount?: number;
 }
 
 // --- INTERFACE Order (LỊCH SỬ ĐƠN HÀNG) ---
@@ -133,10 +133,10 @@ export interface Order {
   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-  
+
   shopvoucher: string | null;
   shopdiscountamount: number;
-  
+
   PlatformVoucherCode: string | null;
   PlatformDiscountAmount: number;
   CreatedAt: string;
@@ -150,7 +150,6 @@ export interface Order {
   shopName: string;
   shopLevel: ShopLevel;
   isFavoriteShop: boolean;
-
   ReasonForRejection?: string;
   shippingProvider?: string; // Tên nhà vận chuyển (ví dụ?: SPX Express)
   trackingNumber?: string; // Mã vận đơn (ví dụ?: SPXVN037324157726)
@@ -159,6 +158,7 @@ export interface Order {
   totalShopVoucherDiscount?: number; // Tổng giảm giá từ voucher shop (để hiển thị ở cuối)
   totalPlatformVoucherDiscount?: number; // Tổng giảm giá từ voucher toàn sàn (để hiển thị ở cuối)
   totalShopeeCoinsDiscount?: number;
+  is_return_eligible: boolean;
 }
 
 // --- INTERFACE CheckoutData (CHO TRANG THANH TOÁN) ---
@@ -176,58 +176,58 @@ export interface Order {
 // }
 
 export interface CheckoutShopOrder {
-    shopId: number;
-    shopName: string;
-    shopLevel: ShopLevel;
-    items: CheckoutProductItem[];
-    shippingMethod: string;
-    shippingFee: number;
-    deliveryEstimate: string;
-    appliedVoucher: Voucher | null; // Voucher của shop đã áp dụng
-    messageToSeller: string;
+  shopId: number;
+  shopName: string;
+  shopLevel: ShopLevel;
+  items: CheckoutProductItem[];
+  shippingMethod: string;
+  shippingFee: number;
+  deliveryEstimate: string;
+  appliedVoucher: Voucher | null; // Voucher của shop đã áp dụng
+  messageToSeller: string;
 }
 
 export interface StoredCheckoutData {
-    orderId?: number;
-    selectedItems: CartItem[];
-    appliedShopVouchers: AppliedShopVouchers;
-    appliedPlatformVouchers: AppliedVouchersCombined;
-    summary: { // Đảm bảo cấu trúc summary khớp
-        totalSubtotal: number;
-        totalDiscount: number;
-        finalTotal: number;
-        totalSaleoff: number;
-        totalFreeship: number;
-        totalShopVoucherDiscount: number;
-        totalPlatformVoucherDiscount: number;
-    };
+  orderId?: number;
+  selectedItems: CartItem[];
+  appliedShopVouchers: AppliedShopVouchers;
+  appliedPlatformVouchers: AppliedVouchersCombined;
+  summary: { // Đảm bảo cấu trúc summary khớp
+    totalSubtotal: number;
+    totalDiscount: number;
+    finalTotal: number;
+    totalSaleoff: number;
+    totalFreeship: number;
+    totalShopVoucherDiscount: number;
+    totalPlatformVoucherDiscount: number;
+  };
 }
 
 export interface CheckoutSummaryDetails {
-    totalProductsPrice: number;
-    totalShippingFee: number;
-    totalSaleoff: number;
-    totalFreeship: number;
-    totalShopVoucherDiscount: number; // Giảm giá từ voucher của các shop
-    totalPlatformVoucherDiscount: number; // Giảm giá từ voucher toàn sàn
-    totalDiscount: number; // Tổng giảm giá (shop + platform)
-    finalTotal: number;     // Tổng thanh toán
-    address : Address | null;
+  totalProductsPrice: number;
+  totalShippingFee: number;
+  totalSaleoff: number;
+  totalFreeship: number;
+  totalShopVoucherDiscount: number; // Giảm giá từ voucher của các shop
+  totalPlatformVoucherDiscount: number; // Giảm giá từ voucher toàn sàn
+  totalDiscount: number; // Tổng giảm giá (shop + platform)
+  finalTotal: number;     // Tổng thanh toán
+  address: Address | null;
 }
 
 export interface CheckoutData {
-    orderId?: number; 
-    address: Address | null;
-    shopOrders: CheckoutShopOrder[];
-    appliedPlatformVouchers: AppliedVouchersCombined;
-    summary: CheckoutSummaryDetails;
-    // Thêm các thông tin khác nếu cần
-    paymentMethod: {
-        method: string;
-        type: PaymentMethodType;
-        canChange: boolean;
-    };
-    paidAt?: any;
+  orderId?: number;
+  address: Address | null;
+  shopOrders: CheckoutShopOrder[];
+  appliedPlatformVouchers: AppliedVouchersCombined;
+  summary: CheckoutSummaryDetails;
+  // Thêm các thông tin khác nếu cần
+  paymentMethod: {
+    method: string;
+    type: PaymentMethodType;
+    canChange: boolean;
+  };
+  paidAt?: any;
 }
 
 export interface OrderStatusHistory {
@@ -247,42 +247,42 @@ export interface ShippingTracking {
 }
 
 export const formatDateTime = (dateString: Date) => {
-    const dateTimeOptions: Intl.DateTimeFormatOptions = {
-        month: 'short', // abbreviated month name (e.g., 'Oct')
-        year: 'numeric', // abbreviated month name (e.g., 'Oct')
-        day: 'numeric', // numeric day of the month (e.g., '25')
-        hour: 'numeric', // numeric hour (e.g., '8')
-        minute: 'numeric', // numeric minute (e.g., '30')
-        hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-    };
-    const dateOptions: Intl.DateTimeFormatOptions = {
-        weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
-        month: 'short', // abbreviated month name (e.g., 'Oct')
-        year: 'numeric', // numeric year (e.g., '2023')
-        day: 'numeric', // numeric day of the month (e.g., '25')
-    };
-    const timeOptions: Intl.DateTimeFormatOptions = {
-        hour: 'numeric', // numeric hour (e.g., '8')
-        minute: 'numeric', // numeric minute (e.g., '30')
-        hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-    };
-    const formattedDateTime: string = new Date(dateString).toLocaleString(
-        'en-US',
-        dateTimeOptions
-    );
-    const formattedDate: string = new Date(dateString).toLocaleString(
-        'en-US',
-        dateOptions
-    );
-    const formattedTime: string = new Date(dateString).toLocaleString(
-        'en-US',
-        timeOptions
-    );
-    return {
-        dateTime: formattedDateTime,
-        dateOnly: formattedDate,
-        timeOnly: formattedTime,
-    };
+  const dateTimeOptions: Intl.DateTimeFormatOptions = {
+    month: 'short', // abbreviated month name (e.g., 'Oct')
+    year: 'numeric', // abbreviated month name (e.g., 'Oct')
+    day: 'numeric', // numeric day of the month (e.g., '25')
+    hour: 'numeric', // numeric hour (e.g., '8')
+    minute: 'numeric', // numeric minute (e.g., '30')
+    hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+  };
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'short', // abbreviated weekday name (e.g., 'Mon')
+    month: 'short', // abbreviated month name (e.g., 'Oct')
+    year: 'numeric', // numeric year (e.g., '2023')
+    day: 'numeric', // numeric day of the month (e.g., '25')
+  };
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric', // numeric hour (e.g., '8')
+    minute: 'numeric', // numeric minute (e.g., '30')
+    hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
+  };
+  const formattedDateTime: string = new Date(dateString).toLocaleString(
+    'en-US',
+    dateTimeOptions
+  );
+  const formattedDate: string = new Date(dateString).toLocaleString(
+    'en-US',
+    dateOptions
+  );
+  const formattedTime: string = new Date(dateString).toLocaleString(
+    'en-US',
+    timeOptions
+  );
+  return {
+    dateTime: formattedDateTime,
+    dateOnly: formattedDate,
+    timeOnly: formattedTime,
+  };
 };
 
 export interface PaginatedOrders {

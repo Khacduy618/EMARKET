@@ -11,7 +11,7 @@ class Order extends Model
 
     protected $table = 'ordersbuyer';
     protected $primaryKey = 'OrderID';
-
+    protected $appends = ['is_return_eligible'];
     protected $fillable = [
         'OrderCode', 'UserID', 'TotalAmount', 'SubtotalAmount', 'ShippingFee', 
         'DiscountAmount', 'ShippingAddressID', 'ShippingFullName', 
@@ -33,4 +33,13 @@ class Order extends Model
     {
         return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
     }
+    public function getIsReturnEligibleAttribute()
+{
+    // Chỉ những đơn hàng đã giao mới có thể được xét
+    if ($this->OverallStatus !== 'Delivered' && $this->OverallStatus !== 'Completed') {
+        return false;
+    }
+    // Trả về true nếu CÒN HẠN, false nếu HẾT HẠN.
+    return ! \Carbon\Carbon::parse($this->UpdatedAt)->addDays(3)->isPast();
+}
 }

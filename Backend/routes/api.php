@@ -60,7 +60,7 @@ Route::get('/user/shop-status', function (Request $request) {
 
 Route::get('/test', function () {
     // Ghi log để chắc chắn route này được chạy
-    \Illuminate\Support\Facades\Log::info('--- /api/test route was hit! ---'); 
+    Illuminate\Support\Facades\Log::info('--- /api/test route was hit! ---'); 
     
     return response()->json(['message' => 'Laravel API is alive and working!']);
 });
@@ -234,13 +234,37 @@ Route::get('/shops/{shopId}/details', [BuyerShopController::class, 'getShopDetai
 Route::get('/shops/{shopId}/products', [BuyerShopController::class, 'getShopProducts']);
 Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
 Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
+ Route::post('/login-token', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required', // Tên của thiết bị, ví dụ: "Postman Test"
+    ]);
 
+    // Kiểm tra thông tin đăng nhập
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    $user = Auth::user();
+    // Xóa các token cũ nếu muốn
+    // $user->tokens()->delete();
+    
+    // Tạo token mới
+    $token = $user->createToken($request->device_name)->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user' => $user
+    ]);
+});
 Route::middleware('auth:sanctum')->group(function () {
     
     // API cho Người Mua (Buyer)
     Route::post('/buyer/return-requests', [ReturnRequestController::class, 'createRequest']);
+    Route::patch('/buyer/return-requests/{id}/cancel', [ReturnRequestController::class, 'cancelRequest']);
     Route::get('/buyer/return-requests', [ReturnRequestController::class, 'listMyRequests']);
-    
+     Route::get('/addresses-return/{address}', [AddressController::class, 'showReturn']);
     // API cho Người Bán (Seller)
     Route::get('/seller/return-requests', [ReturnRequestController::class, 'listShopRequests']);
     Route::put('/seller/return-requests/{id}/respond', [ReturnRequestController::class, 'sellerRespond']);
