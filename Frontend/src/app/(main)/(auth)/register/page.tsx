@@ -153,7 +153,7 @@ export default function RegisterPage() {
                 <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
                     id="fullName"
-                    name="fullName"
+                    name="FullName"
                     placeholder="Nguyễn Văn A"
                     className="pl-9"
                     value={formData.FullName} onChange={handleChange} onBlur={handleBlur}
@@ -174,7 +174,7 @@ export default function RegisterPage() {
                 <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
                     id="email"
-                    name="email"
+                    name="Email"
                     type="email"
                     placeholder="you@example.com"
                     className="pl-9"
@@ -199,7 +199,7 @@ export default function RegisterPage() {
                 <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
                     id="password"
-                    name="password"
+                    name="Password"
                     type={showPw ? "text" : "password"}
                     placeholder="••••••••"
                     className="pl-9 pr-10"
@@ -231,7 +231,7 @@ export default function RegisterPage() {
                 <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
                     id="confirmPassword"
-                    name="confirmPassword"
+                    name="Password_confirmation"
                     type={showPw2 ? "text" : "password"}
                     placeholder="••••••••"
                     className="pl-9 pr-10"

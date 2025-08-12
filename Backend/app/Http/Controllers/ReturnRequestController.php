@@ -103,10 +103,7 @@ class ReturnRequestController extends Controller
     {
         $user = Auth::user();
 
-        // Kiểm tra quyền của người dùng
-        if ($user->Role !== 'Buyer') {
-            return response()->json(['message' => 'Chức năng này chỉ dành cho người mua.'], 403);
-        }
+        
 
         // 1. Kiểm tra dữ liệu đầu vào
         $validator = Validator::make($request->all(), [

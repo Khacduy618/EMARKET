@@ -16,6 +16,7 @@ import {
   Bell,
   Search,
   LogOut,
+  Brain,
   Menu,
   X,
   Tag,
@@ -73,9 +74,9 @@ const menuItems: MenuItem[] = [
     badge: 12, // Ví dụ badge
   },
   { 
-    href: '/admin/customers', 
-    label: 'Khách hàng', 
-    icon: Users,
+    href: '/admin/reviews', 
+    label: 'Đánh giá', 
+    icon: Brain,
     description: 'Quản lý khách hàng'
   },
   { 

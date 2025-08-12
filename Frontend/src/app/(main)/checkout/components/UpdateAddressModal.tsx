@@ -13,8 +13,9 @@ import axios from 'axios';
 interface UpdateAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
-  addressId: number | null; // Nếu là null, có nghĩa là chế độ "Thêm mới"
-  onSuccess: () => void; /// Callback để báo cho trang cha tải lại danh sách địa chỉ
+  addressId: number | null;
+  onSuccess: () => void; 
+  shouldBeDefaultOnCreate?: boolean; 
 }
 
 const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
@@ -22,6 +23,7 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
   onClose,
   addressId,
   onSuccess,
+  shouldBeDefaultOnCreate = false,
 }) => {
     const [address, setAddress] = useState<Partial<Address>>({});
     const [loading, setLoading] = useState(false);
@@ -37,11 +39,19 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
             .then(data => setAddress(data))
             .catch(() => toast.error('Không thể tải thông tin địa chỉ.'))
             .finally(() => setLoading(false));
-        } else {
-        // Nếu là chế độ thêm mới hoặc đóng, reset form
-        setAddress({ IsDefault: 0 }); // Mặc định không phải là địa chỉ mặc định
-        }
-    }, [isOpen, addressId, isCreateMode]);
+        } else if (isOpen && isCreateMode) {
+        // Chế độ THÊM MỚI (chỉ reset khi mở)
+        setAddress({
+            FullName: '',
+            PhoneNumber: '',
+            City: null, // Dùng null để AddressPicker nhận đúng
+            District: null,
+            Ward: null,
+            Street: '',
+            IsDefault: shouldBeDefaultOnCreate, 
+        });
+    }
+    }, [isOpen, addressId, isCreateMode,shouldBeDefaultOnCreate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -56,47 +66,113 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
             ...prev,
             City: newAddress.province || '',
             District: newAddress.district || '',
-            Ward: newAddress.ward || '',
+            Ward: newAddress.ward || null, 
         }));
     };
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitting(true);
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setSubmitting(true);
         
-       const payload: AddressPayload = {
+    //    const payload: AddressPayload = {
+    //         FullName: address.FullName || '',
+    //         PhoneNumber: address.PhoneNumber || '',
+    //         City: address.City || '',
+    //         District: address.District || '',
+    //         Ward: address.Ward ? address.Ward : null, 
+    //         Street: address.Street || '',
+    //         IsDefault: !!address.IsDefault, // Đảm bảo luôn là boolean
+    //     };
+
+    //     // Kiểm tra validation đơn giản
+    //     if (!payload.FullName || !payload.PhoneNumber || !payload.City || !payload.District || !payload.Street) {
+    //         toast.error("Vui lòng điền đầy đủ các trường bắt buộc.");
+    //         return;
+    //     }
+    //      setSubmitting(true);
+    //     try {
+    //       console.log("Dữ liệu gửi lên server:", payload); 
+
+    //         if (isCreateMode) {
+    //             // Gọi API tạo mới với payload đã được chuẩn hóa
+    //             await createAddress(payload);
+    //             toast.success('Thêm địa chỉ mới thành công!');
+    //         } else {
+    //             // Gọi API cập nhật với payload đã được chuẩn hóa
+    //             await updateAddress(addressId!, payload);
+    //             toast.success('Cập nhật địa chỉ thành công!');
+    //         }
+    //     onSuccess(); // Báo cho component cha biết đã thành công
+    //     onClose();   // Đóng modal
+    //     } catch (error: any) {
+    //         const message = error.response?.data?.message || 'Đã xảy ra lỗi khi lưu địa chỉ.';
+    //     toast.error(message);
+    //     } finally {
+    //     setSubmitting(false);
+    //     }
+    // };
+     const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log("--- [SUBMIT] Bắt đầu quá trình submit ---");
+
+        const payload: AddressPayload = {
             FullName: address.FullName || '',
             PhoneNumber: address.PhoneNumber || '',
             City: address.City || '',
             District: address.District || '',
-            Ward: address.Ward || undefined, // Ward có thể là null/undefined
+            Ward: address.Ward ? address.Ward : null, 
             Street: address.Street || '',
-            IsDefault: !!address.IsDefault, // Đảm bảo luôn là boolean
+            IsDefault: !!address.IsDefault,
         };
+        console.log("[SUBMIT] Payload đã được tạo:", payload);
 
-        // Kiểm tra validation đơn giản
+        // Kiểm tra validation phía client
         if (!payload.FullName || !payload.PhoneNumber || !payload.City || !payload.District || !payload.Street) {
+            console.error("[SUBMIT] LỖI VALIDATION: Một hoặc nhiều trường bắt buộc bị rỗng.");
             toast.error("Vui lòng điền đầy đủ các trường bắt buộc.");
-            setSubmitting(false);
-            return;
+            return; // Thoát hàm
         }
+        
+        console.log("[SUBMIT] Validation phía client đã THÀNH CÔNG. Bắt đầu gọi API...");
+        setSubmitting(true);
 
         try {
             if (isCreateMode) {
-                // Gọi API tạo mới với payload đã được chuẩn hóa
+                console.log("[SUBMIT] Gọi API createAddress...");
                 await createAddress(payload);
                 toast.success('Thêm địa chỉ mới thành công!');
             } else {
-                // Gọi API cập nhật với payload đã được chuẩn hóa
+                console.log(`[SUBMIT] Gọi API updateAddress cho addressId: ${addressId}...`);
                 await updateAddress(addressId!, payload);
                 toast.success('Cập nhật địa chỉ thành công!');
             }
-        onSuccess(); // Báo cho component cha biết đã thành công
-        onClose();   // Đóng modal
+            console.log("[SUBMIT] Lời gọi API đã thành công!");
+            onSuccess();
+            onClose();
         } catch (error: any) {
-        const message = error.response?.data?.message || (isCreateMode ? 'Thêm mới thất bại.' : 'Cập nhật thất bại.');
-        toast.error(message);
+            console.error("--- [SUBMIT] LỖI TRONG KHỐI CATCH ---");
+            
+            // Log toàn bộ đối tượng lỗi để xem chi tiết
+            console.error("Đối tượng lỗi chi tiết:", error);
+
+            // Kiểm tra xem có `error.response` không (đây là lỗi từ Axios)
+            if (error.response) {
+                console.error("Lỗi từ server (Axios):");
+                console.error("  - Status:", error.response.status);
+                console.error("  - Data (Response Body):", error.response.data);
+                console.error("  - Headers:", error.response.headers);
+            } else if (error.request) {
+                // Lỗi request được gửi đi nhưng không nhận được phản hồi
+                console.error("Lỗi mạng: Không nhận được phản hồi từ server. Request:", error.request);
+            } else {
+                // Lỗi xảy ra trong quá trình thiết lập request
+                console.error("Lỗi thiết lập request:", error.message);
+            }
+            
+            const message = error.response?.data?.message || (isCreateMode ? 'Thêm mới thất bại.' : 'Cập nhật thất bại.');
+            toast.error(message);
         } finally {
-        setSubmitting(false);
+            console.log("--- [SUBMIT] Kết thúc quá trình, chạy khối finally ---");
+            setSubmitting(false);
         }
     };
     const handleLocationSelect = async (location: { lat: number; lng: number }) => {

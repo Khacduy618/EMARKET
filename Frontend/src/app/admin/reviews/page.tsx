@@ -1,6 +1,6 @@
 // /reviews/page.tsx
 import { Suspense } from 'react';
-import AdminReviewsList from './components/admin-reviews-list';
+import AdminReviewsList from './admin-reviews-list';
 
 export default function AdminReviewsPage() {
   return (

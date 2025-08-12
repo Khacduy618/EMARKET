@@ -45,7 +45,7 @@ import React, { useEffect, useRef } from 'react'; // Import useRef
 interface ConfirmModalProps {
   isOpen: boolean;
   message: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>; 
   onCancel: () => void;
 }
 

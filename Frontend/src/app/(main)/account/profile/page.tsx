@@ -5,6 +5,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UpdateProfilePayload } from '@/types';
+import { Input } from '@/components/ui/input';
 
 export default function ProfileDetailsPage() {
     const { user, updateProfile } = useAuth();
@@ -23,10 +24,10 @@ export default function ProfileDetailsPage() {
     useEffect(() => {
         if (user) {
             setFormData({
-                FullName: user.FullName,
-                Username: user.Username,
-                Email: user.Email,
-                Phone: user.Phone,
+                FullName: user.FullName ?? '', 
+                Username: user.Username ?? '',
+                Email: user.Email ?? '',
+                Phone: user.Phone ?? '',
             });
         }
     }, [user]); // Chạy lại khi user thay đổi
@@ -59,7 +60,7 @@ export default function ProfileDetailsPage() {
             <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
                 <div>
                     <label className="text-sm font-medium text-gray-700" htmlFor="FullName">Họ và Tên</label>
-                    <input
+                    <Input
                         id="FullName"
                         name="FullName"
                         type="text"
@@ -72,7 +73,7 @@ export default function ProfileDetailsPage() {
 
                 <div>
                     <label className="text-sm font-medium text-gray-700" htmlFor="Username">Tên đăng nhập</label>
-                    <input
+                    <Input
                         id="Username"
                         name="Username"
                         type="text"
@@ -85,7 +86,7 @@ export default function ProfileDetailsPage() {
 
                 <div>
                     <label className="text-sm font-medium text-gray-700" htmlFor="Email">Email</label>
-                    <input
+                    <Input
                         id="Email"
                         name="Email"
                         type="email"

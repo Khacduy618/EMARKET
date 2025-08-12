@@ -395,64 +395,6 @@ useEffect(() => {
   };
   const handleShippingMethodChange = (shopId: number) => alert(`Thay đổi phương thức vận chuyển cho shop ${shopId} đang được phát triển!`);
   const handleSelectPlatformVoucher = () => alert('Chọn Shopee Voucher đang được phát triển!');
-//   const handlePaymentMethodChange = () => {
-//     setCheckoutData(prev => {
-//       if (!prev) return null;
-//       const newType: PaymentMethodType = prev.paymentMethod.type === 'COD' ? 'Paypal' : 'COD';
-//       const newMethod = newType === 'COD' ? 'Thanh toán khi nhận hàng' : 'Paypal';
-//       return {
-//         ...prev,
-//         paymentMethod: { ...prev.paymentMethod, type: newType, method: newMethod },
-//       };
-//     });
-//   };
-// const handlePaymentMethodChange = () => {
-//         if (!checkoutData) return;
-
-//         // Nếu đã có đơn hàng nháp, không cho thay đổi trực tiếp
-//         // (Luồng hủy và tạo lại sẽ được xử lý ở CheckoutPaymentSection)
-//         if (checkoutData.orderId) {
-//             toast.info("Để thay đổi phương thức thanh toán, vui lòng hủy đơn hàng nháp và đặt lại.");
-//             // Ở đây có thể kích hoạt hàm onCancelAndChange nếu muốn
-//             return;
-//         }
-
-//         // Tạo một modal hoặc một UI đơn giản để người dùng chọn
-//         // Dưới đây là cách dùng `window.prompt` đơn giản để minh họa
-//         const newMethod = window.prompt("Chọn phương thức thanh toán mới: COD, PAYPAL, hoặc VNPAY", checkoutData.paymentMethod.type);
-
-//         if (newMethod && ['COD', 'PAYPAL', 'VNPAY'].includes(newMethod.toUpperCase())) {
-//             const newType = newMethod.toUpperCase() as PaymentMethodType;
-//             let methodName = '';
-
-//             switch (newType) {
-//                 case 'Paypal':
-//                     methodName = 'PayPal';
-//                     break;
-//                 case 'VNPay':
-//                     methodName = 'Cổng thanh toán VNPay';
-//                     break;
-//                 case 'COD':
-//                 default:
-//                     methodName = 'Thanh toán khi nhận hàng';
-//                     break;
-//             }
-
-//             setCheckoutData(prev => {
-//                 if (!prev) return null;
-//                 return {
-//                     ...prev,
-//                     paymentMethod: {
-//                         ...prev.paymentMethod,
-//                         type: newType,
-//                         method: methodName,
-//                     },
-//                 };
-//             });
-//         } else if (newMethod !== null) {
-//             toast.error("Phương thức thanh toán không hợp lệ.");
-//         }
-//     };
 
 const handlePaymentMethodChange = () => {
         // Nếu đã có đơn hàng nháp, dùng luồng hủy
@@ -747,29 +689,30 @@ return (
                 )}
             <div className="container mx-auto max-w-6xl px-4">
                 <UpdateAddressModal
-                isOpen={isUpdateAddressModalOpen}
-                onClose={() => {
-                    setIsUpdateAddressModalOpen(false);
-                    setIsAddressModalOpen(true);
-                }}
-                addressId={editingAddressId} // Truyền ID hoặc null
-                onSuccess={handleAddressSuccess} // Callback khi thành công
-            />
-<PaymentMethodSelectionModal
-                isOpen={isPaymentModalOpen}
-                onClose={() => setIsPaymentModalOpen(false)}
-                currentMethod={checkoutData.paymentMethod.type}
-                onConfirm={handleConfirmPaymentMethod}
-            />
+                    isOpen={isUpdateAddressModalOpen}
+                    onClose={() => {
+                        setIsUpdateAddressModalOpen(false);
+                        setIsAddressModalOpen(true);
+                    }}
+                    addressId={editingAddressId} // Truyền ID hoặc null
+                    onSuccess={handleAddressSuccess} // Callback khi thành công
+                    shouldBeDefaultOnCreate={allUserAddresses.length === 0}
+                />
+                <PaymentMethodSelectionModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setIsPaymentModalOpen(false)}
+                    currentMethod={checkoutData.paymentMethod.type}
+                    onConfirm={handleConfirmPaymentMethod} 
+                />
                  <AddressSelectionModal
-                isOpen={isAddressModalOpen}
-                onClose={() => setIsAddressModalOpen(false)}
-                addresses={allUserAddresses}
-                currentSelectedAddressId={checkoutData.address?.AddressID || null}
-                onConfirm={handleConfirmNewAddress}
-                onAddNewAddress={handleOpenCreateAddressModal} // Gắn hàm mở modal tạo mới
-                onUpdateAddress={handleOpenUpdateAddressModal} // Gắn hàm mở modal cập nhật
-            />
+                    isOpen={isAddressModalOpen}
+                    onClose={() => setIsAddressModalOpen(false)}
+                    addresses={allUserAddresses}
+                    currentSelectedAddressId={checkoutData.address?.AddressID || null}
+                    onConfirm={handleConfirmNewAddress}
+                    onAddNewAddress={handleOpenCreateAddressModal} // Gắn hàm mở modal tạo mới
+                    onUpdateAddress={handleOpenUpdateAddressModal} // Gắn hàm mở modal cập nhật
+                />
                 <CheckoutAddressSection
                     address={checkoutData.address}
                     onAddressChange={() => setIsAddressModalOpen(true)}
