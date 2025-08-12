@@ -22,14 +22,11 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        Log::info('--- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---');
         $user = $request->user();
 
         if (!$user) {
-            Log::warning('[OrderController@index OPTIMIZED] Unauthenticated.');
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-        Log::info('[OrderController@index OPTIMIZED] UserID: ' . $user->UserID);
 
         // 1. Lấy tất cả các OrderID của người dùng.
         $orderIds = DB::table('ordersbuyer')
@@ -37,15 +34,12 @@ class OrderController extends Controller
             ->pluck('OrderID');
 
         if ($orderIds->isEmpty()) {
-            Log::info('[OrderController@index OPTIMIZED] Không tìm thấy OrderID nào cho UserID: ' . $user->UserID);
             return response()->json([]);
         }
 
         // 2. Lấy toàn bộ thông tin đơn hàng và thông tin shop trong MỘT câu query
         $ordersData = DB::table('ordersbuyer as ob')
             ->join('addresses as addr', 'ob.ShippingAddressID', '=', 'addr.AddressID')
-            // Lấy shop info thông qua order_items -> products -> shops
-            // Điều này đảm bảo mỗi đơn hàng có ít nhất 1 sản phẩm sẽ có thông tin shop
             ->join('orderitems as oi_main', 'ob.OrderID', '=', 'oi_main.OrderID')
             ->join('productvariants as pv_main', 'oi_main.VariantID', '=', 'pv_main.VariantID')
             ->join('products as p_main', 'pv_main.ProductID', '=', 'p_main.ProductID')
@@ -622,83 +616,6 @@ class OrderController extends Controller
                $shopVoucherCodes = !empty($validatedData['shopVouchersApplied']) 
                     ? implode(', ', array_column($validatedData['shopVouchersApplied'], 'code')) 
                     : null;
-
-                // Mặc định tất cả đều là Pending
-                // $paymentStatus = 'Pending';
-                // $overallStatus = 'Pending';
-                // // Chuyển đổi paymentMethod từ 'Paypal' -> 'Paypal' để lưu vào DB
-                // $paymentMethodEnum = 'COD'; // Mặc định
-                // if ($validatedData['paymentMethod'] === 'Paypal') {
-                //     $paymentMethodEnum = 'Paypal';
-                // } elseif ($validatedData['paymentMethod'] === 'VNPay') {
-                //     $paymentMethodEnum = 'VNPay';
-                // }
- Log::info('placeOrder: Creating order with data:', [
-                    'UserID' => $user->UserID, 
-                    'PaymentMethod' => $paymentMethodEnum
-                ]);
-            //     // Insert vào bảng `ordersbuyer`
-            //     $orderId = DB::table('ordersbuyer')->insertGetId([
-            //         'OrderCode'           => $orderCode,
-            //         'UserID'              => $user->UserID,
-            //         'TotalAmount'         => $validatedData['totalAmount'],
-            //         'SubtotalAmount'      => $validatedData['subtotalAmount'],
-            //         'ShippingFee'         => $validatedData['shippingFee'],
-            //         'DiscountAmount'      => $validatedData['discountAmount'],
-            //         'ShippingAddressID'   => $validatedData['shippingAddressId'],
-            //         'ShippingFullName'    => $validatedData['shippingFullName'],
-            //         'ShippingPhoneNumber' => $validatedData['shippingPhoneNumber'],
-            //         'Notes'               => $validatedData['notes'],
-            //         'PaymentMethod'       => $paymentMethodEnum,
-            //         'PaymentStatus'       => $paymentStatus,
-            //         'OverallStatus'       => $overallStatus,
-            //         // Bỏ qua các cột voucher, có thể thêm sau nếu cần
-            //         'CreatedAt'          => now(),
-            //         'UpdatedAt'          => now(),
-            //     ]);
-
-            //     // Insert hàng loạt vào `orderitems`
-            //     $orderItems = [];
-            //     foreach ($validatedData['items'] as $item) {
-            //         $orderItems[] = [
-            //             'OrderID'         => $orderId,
-            //             'VariantID'       => $item['variantId'],
-            //             'Quantity'        => $item['quantity'],
-            //             'PriceAtPurchase' => $item['priceAtPurchase'],
-            //             'Subtotal'        => $item['subtotal'],
-            //             'CreatedAt'      => now(),
-            //         ];
-            //     }
-            //     DB::table('orderitems')->insert($orderItems);
-            //     Log::info("placeOrder: Successfully created OrderID: {$orderId}");
-            //     // Cập nhật tồn kho
-            //     // foreach ($validatedData['items'] as $item) {
-            //     //     DB::table('productvariants')
-            //     //         ->where('VariantID', $item['variantId'])
-            //     //         ->decrement('StockQuantity', $item['quantity']);
-            //     // }
-
-            //     // // Xóa khỏi giỏ hàng
-            //     // $cart = DB::table('carts')->where('UserID', $user->UserID)->first();
-            //     // if ($cart) {
-            //     //     $variantIdsToRemove = array_column($validatedData['items'], 'variantId');
-            //     //     DB::table('cartitems')
-            //     //         ->where('CartID', $cart->CartID)
-            //     //         ->whereIn('VariantID', $variantIdsToRemove)
-            //     //         ->delete();
-            //     // }
-
-            //     return [
-            //         'orderId' => $orderId,
-            //         'orderCode' => $orderCode,
-            //     ];
-            // });
-
-            // return response()->json([
-            //     'message'   => 'Order placed successfully in pending state!',
-            //     'orderId'   => $order['orderId'],
-            //     'orderCode' => $order['orderCode'],
-            // ], 201);
              // Dữ liệu cho bảng `ordersbuyer`
                 $orderData = [
                     'OrderCode'           => $orderCode,

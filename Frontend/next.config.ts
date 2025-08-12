@@ -23,6 +23,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'picsum.photos' },
     ],
   },
+  
 
   webpack(config:any, { isServer }: { isServer: boolean }) {
     // Không cần config.watchOptions nếu bạn dùng Turbopack
@@ -35,6 +36,18 @@ const nextConfig = {
     }
     return config;
   },
+
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/seller', // Route người dùng truy cập
+  //       destination: '/seller/statistics', // Route bạn muốn họ được chuyển đến
+  //       permanent: true, // Đặt là true để trình duyệt và công cụ tìm kiếm biết đây là chuyển hướng vĩnh viễn
+  //     },
+  //   ]
+  // },
 };
+
+
 
 export default nextConfig;

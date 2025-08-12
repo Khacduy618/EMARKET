@@ -235,6 +235,31 @@ Route::get('/shops/{shopId}/products', [BuyerShopController::class, 'getShopProd
 Route::get('/product/{productId}/reviews', [ProductController::class, 'getProductReviews']);
 Route::get('/products/{productId}/comments', [CommentController::class, 'index']);
 
+Route::post('/login-token', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required', // Tên của thiết bị, ví dụ: "Postman Test"
+    ]);
+
+    // Kiểm tra thông tin đăng nhập
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    $user = Auth::user();
+    // Xóa các token cũ nếu muốn
+    // $user->tokens()->delete();
+    
+    // Tạo token mới
+    $token = $user->createToken($request->device_name)->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user' => $user
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     
     // API cho Người Mua (Buyer)
@@ -472,12 +497,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // === REVIEW MANAGEMENT === // 
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
         Route::get('/', [ProductReviewController::class, 'index'])->name('index');
-        Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
-        Route::get('export', [ProductReviewController::class, 'export'])->name('export');
-        Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
-        Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
-        Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
-        Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
+        
+        Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     });
 
     // Route này sẽ tự tạo:
