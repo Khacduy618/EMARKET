@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Loader2, X } from 'lucide-react';
 import { District, Province, Ward } from '@/types';
 
 
@@ -22,7 +22,7 @@ interface AddressPickerProps {
   onChange: (newValue: { province: string | null; district: string | null; ward: string | null; }) => void;
 }
 
-const API_HOST = "https://provinces.open-api.vn/api/";
+const API_HOST = "https://provinces.open-api.vn/api/v1/";
 
 const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -31,36 +31,40 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
     const [isSearching, setIsSearching] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     
+    // State để lưu trữ dữ liệu tỉnh, quận, huyện và phường xã
+    const [allProvinces, setAllProvinces] = useState<Province[]>([]);
+
+
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [districts, setDistricts] = useState<District[]>([]);
     const [wards, setWards] = useState<Ward[]>([]);
 
-    const [allDataForSearch, setAllDataForSearch] = useState<Province[]>([]);
+    // const [allDataForSearch, setAllDataForSearch] = useState<Province[]>([]);
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const pickerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
 
   // --- Fetch Provinces ---
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
+    const fetchAllData = async () => {
+      // Không cần setLoading(true) vì đã đặt mặc định
       try {
-        // Tải danh sách tỉnh/thành phố ban đầu
-        const provinceRes = await axios.get(`${API_HOST}`);
-        setProvinces(provinceRes.data || []);
-        // Tải toàn bộ dữ liệu nền cho việc tìm kiếm
-        const allDataRes = await axios.get(`${API_HOST}?depth=3`);
-        setAllDataForSearch(allDataRes.data || []);
+        // Chỉ cần gọi 1 API duy nhất để lấy tất cả dữ liệu
+        const response = await axios.get(`${API_HOST}?depth=3`);
+        console.log("Fetched all provinces and districts:", response.data);
+        setAllProvinces(response.data || []);
       } catch (error) {
         console.error("Failed to fetch administrative data:", error);
+        // Có thể thêm state để hiển thị lỗi cho người dùng
       } finally {
-        setLoading(false);
+        setLoading(false); // Dừng loading sau khi tải xong (thành công hoặc thất bại)
       }
     };
-    fetchInitialData();
-  }, []);
+    fetchAllData();
+  }, []); // Mảng rỗng đảm bảo chỉ chạy 1 lần
+
 
 
   // --- Click outside handler ---
@@ -75,19 +79,43 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // const searchResults = useMemo((): SearchResult[] => {
+  //   if (!searchTerm) return [];
+    
+  //   const lowerCaseSearchTerm = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  //   const results: SearchResult[] = [];
+
+  //   for (const province of allDataForSearch) {
+  //     // Bây giờ province.districts là hợp lệ
+  //     if (province.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(lowerCaseSearchTerm)) {
+  //       results.push({ type: 'province', province });
+  //     }
+  //     for (const district of province.districts) {
+  //       // Bây giờ district.wards là hợp lệ
+  //       if (district.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(lowerCaseSearchTerm)) {
+  //         results.push({ type: 'district', province, district });
+  //       }
+  //       for (const ward of district.wards) {
+  //         if (ward.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(lowerCaseSearchTerm)) {
+  //           results.push({ type: 'ward', province, district, ward });
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return results.slice(0, 50); 
+  // }, [searchTerm, allDataForSearch]);
   const searchResults = useMemo((): SearchResult[] => {
     if (!searchTerm) return [];
     
     const lowerCaseSearchTerm = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const results: SearchResult[] = [];
 
-    for (const province of allDataForSearch) {
-      // Bây giờ province.districts là hợp lệ
+    // Bây giờ tìm kiếm trên state `allProvinces`
+    for (const province of allProvinces) {
       if (province.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(lowerCaseSearchTerm)) {
         results.push({ type: 'province', province });
       }
       for (const district of province.districts) {
-        // Bây giờ district.wards là hợp lệ
         if (district.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(lowerCaseSearchTerm)) {
           results.push({ type: 'district', province, district });
         }
@@ -99,7 +127,8 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
       }
     }
     return results.slice(0, 50); 
-  }, [searchTerm, allDataForSearch]);
+  }, [searchTerm, allProvinces]);
+
 
   const handleSelectResult = (result: SearchResult) => {
     onChange({
@@ -115,33 +144,53 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
 
 
   // --- Handlers for selecting items ---
-  const handleSelectProvince = async (province: Province) => {
+  // const handleSelectProvince = async (province: Province) => {
+  //   onChange({ province: province.name, district: null, ward: null });
+  //   setActiveTab('district');
+  //   setWards([]);
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(`${API_HOST}p/${province.code}?depth=2`);
+  //     setDistricts(response.data.districts || []);
+  //   } catch (error) {
+  //     console.error("Failed to fetch districts:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const handleSelectProvince = (province: Province) => {
     onChange({ province: province.name, district: null, ward: null });
     setActiveTab('district');
-    setWards([]);
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_HOST}p/${province.code}?depth=2`);
-      setDistricts(response.data.districts || []);
-    } catch (error) {
-      console.error("Failed to fetch districts:", error);
-    } finally {
-      setLoading(false);
-    }
+    setWards([]); // Xóa danh sách xã cũ
+
+    // KHÔNG GỌI API NỮA! Lấy quận/huyện từ dữ liệu đã tải sẵn
+    const selectedProvinceData = allProvinces.find(p => p.code === province.code);
+    setDistricts(selectedProvinceData?.districts || []);
   };
 
-  const handleSelectDistrict = async (district: District) => {
+  // const handleSelectDistrict = async (district: District) => {
+  //   onChange({ ...value, district: district.name, ward: null });
+  //   setActiveTab('ward');
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(`${API_HOST}d/${district.code}?depth=2`);
+  //     setWards(response.data.wards || []);
+  //   } catch (error) {
+  //     console.error("Failed to fetch wards:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const handleSelectDistrict = (district: District) => {
     onChange({ ...value, district: district.name, ward: null });
     setActiveTab('ward');
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_HOST}d/${district.code}?depth=2`);
-      setWards(response.data.wards || []);
-    } catch (error) {
-      console.error("Failed to fetch wards:", error);
-    } finally {
-      setLoading(false);
-    }
+    
+    // KHÔNG GỌI API NỮA!
+    // Tìm tỉnh đang được chọn...
+    const currentProvince = allProvinces.find(p => p.name === value.province);
+    // ... rồi tìm quận/huyện trong tỉnh đó để lấy danh sách xã/phường
+    const selectedDistrictData = currentProvince?.districts.find(d => d.code === district.code);
+    setWards(selectedDistrictData?.wards || []);
   };
 
   const handleSelectWard = (ward: Ward) => {
@@ -217,7 +266,14 @@ const startSearch = () => {
       {isOpen && (
         <div className="absolute top-full z-50 mt-1 w-full bg-white border ...">
           {/* --- HIỂN THỊ CÓ ĐIỀU KIỆN: Giao diện Tab hoặc Giao diện Tìm kiếm --- */}
-          {isSearching ? (
+          {loading ? (
+                <div className="flex items-center justify-center h-72">
+                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                    <span className="ml-2 text-gray-500">Đang tải dữ liệu địa chỉ...</span>
+                </div>
+            ) : (
+                <>
+                 {isSearching ? (
             // Giao diện tìm kiếm
             <div className="max-h-72 overflow-y-auto">
                 <div className="p-2 border-b">
@@ -230,7 +286,7 @@ const startSearch = () => {
           ) : (
             // Giao diện Tab
             <>
-              <div className="flex border-b">
+              {/* <div className="flex border-b">
                 <TabButton name="Tỉnh/Thành phố" isActive={activeTab === 'province'} onClick={() => setActiveTab('province')} />
                 <TabButton name="Quận/Huyện" isActive={activeTab === 'district'} onClick={() => setActiveTab('district')} disabled={!value.province}/>
                 <TabButton name="Phường/Xã" isActive={activeTab === 'ward'} onClick={() => setActiveTab('ward')} disabled={!value.district}/>
@@ -240,9 +296,22 @@ const startSearch = () => {
                 {!loading && activeTab === 'province' && <AddressList items={provinces} onSelect={handleSelectProvince} />}
                 {!loading && activeTab === 'district' && <AddressList items={districts} onSelect={handleSelectDistrict} />}
                 {!loading && activeTab === 'ward' && <AddressList items={wards} onSelect={handleSelectWard} />}
-              </div>
+              </div> */}
+              <div className="flex border-b">
+                      <TabButton name="Tỉnh/Thành phố" isActive={activeTab === 'province'} onClick={() => setActiveTab('province')} />
+                      <TabButton name="Quận/Huyện" isActive={activeTab === 'district'} onClick={() => setActiveTab('district')} disabled={!value.province}/>
+                      <TabButton name="Phường/Xã" isActive={activeTab === 'ward'} onClick={() => setActiveTab('ward')} disabled={!value.district}/>
+                    </div>
+                    <div className="h-64 overflow-y-auto">
+                      {/* Dùng allProvinces cho tab đầu tiên */}
+                      {activeTab === 'province' && <AddressList items={allProvinces} onSelect={handleSelectProvince} />}
+                      {activeTab === 'district' && <AddressList items={districts} onSelect={handleSelectDistrict} />}
+                      {activeTab === 'ward' && <AddressList items={wards} onSelect={handleSelectWard} />}
+                </div>
             </>
           )}
+                </>
+            )}
         </div>
       )}
     </div>

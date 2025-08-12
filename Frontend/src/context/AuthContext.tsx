@@ -68,6 +68,16 @@ interface AuthContextType {
     requiresTwoFactor: boolean;
     twoFactorChallenge: (payload: { code?: string; recovery_code?: string }) => Promise<void>;
 }
+const getRedirectPathByRole = (role: string): string => {
+    switch (role.toLowerCase()) {
+        case 'admin':
+            return '/admin/dashboard';
+        case 'seller':
+            return '/seller'; // Hoặc /seller/dashboard
+        default:
+            return '/'; // Mặc định cho Buyer và các vai trò khác
+    }
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -128,25 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
         initializeAuth();
     }, []);
-
-    // useEffect mới để bảo vệ Route phía Client
-    // useEffect(() => {
-    //     if (!isLoading) {
-    //         console.log('3. useEffect is running. Current user state is:', user);
-    //         const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
-    //         console.log('Redirect useEffect is running. User is:', user); // << Thêm log này để xem
-    //         console.log('is auth page ' , isAuthPage, user);
-    //         const isProtectedPage = pathname.startsWith('/account');
-
-    //         if (user && isAuthPage) {
-    //              console.log('User exists and is on auth page, redirecting to /');
-    //             router.push('/');
-    //         } else if (!user && isProtectedPage) {
-                
-    //             router.push('/login');
-    //         }
-    //     }
-    // }, [user, isLoading, pathname, router]);
+    
     useEffect(() => {
     // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
         if (isLoading) return;
@@ -154,11 +146,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/forgot-password');
         const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
 
-        // Kịch bản 1: Đã đăng nhập nhưng lại vào trang login/register -> Đá về trang chủ
         if (user && isAuthPage) {
-            console.log("Auth Guard: User is logged in, redirecting from auth page to /");
-            router.push('/');
-        }
+        const redirectPath = getRedirectPathByRole(user.Role);
+        console.log(`Auth Guard: User is logged in, redirecting from auth page to ${redirectPath}`);
+        router.push(redirectPath);
+    }
 
         // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
         if (!user && isProtectedPage) {
@@ -206,25 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
         throw error;
     }
-        // try {
-        //     await getCsrfCookie();
-        //     const response: LoginResponse = await apiLogin(credentials);
-
-        //     if (response && response.two_factor === true) {
-        //         setRequiresTwoFactor(true);
-        //         toast.dismiss(toastId);
-        //         router.push('/two-factor-challenge');
-        //     } else {
-        //         await fetchUser();
-        //         toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
-        //         // useEffect ở trên sẽ lo việc chuyển hướng
-        //     }
-        // } catch (error: any) {
-        //     const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
-        //     setError(message);
-        //     toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-        //     throw error;
-        // }
+      
 
     };
 

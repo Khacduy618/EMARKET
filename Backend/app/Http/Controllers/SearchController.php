@@ -31,6 +31,7 @@ class SearchController extends Controller
             ->addSelect('ProductImages.ImageURL')
             ->where('Products.Name', 'LIKE', "%{$keyword}%")
             ->where('Products.IsActive', 1)
+            ->whereHas('variants.attributeValues')
             ->where('Products.AdminApprovalStatus', 'Approved')
             ->limit(5)
             ->get();
@@ -96,6 +97,7 @@ public function search(Request $request)
         ->where('Products.IsActive', 1)
         ->where('Products.AdminApprovalStatus', 'Approved')
         ->where('variants.IsActive', 1)
+        ->whereHas('variants.attributeValues')
         ->where('variants.StockQuantity', '>', 0)
         ->groupBy(
             'Products.ProductID', 'Products.ShopID', 'Products.CategoryID', 'Products.Name', 

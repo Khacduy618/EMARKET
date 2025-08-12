@@ -106,8 +106,6 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                 {
                     headers: {
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        // Do NOT set Content-Type for FormData, browser will handle it
                     },
                     withCredentials: true,
                 }

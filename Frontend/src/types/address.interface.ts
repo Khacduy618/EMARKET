@@ -20,10 +20,10 @@ export interface Address {
     UserID: number;
     FullName: string;
     PhoneNumber: string;
-    Street: string;
-    Ward: string;
-    District: string;
-    City: string;
+    Street: string | null;
+    Ward: string | null; // Ward có thể là null nếu không có
+    District: string | null;
+    City: string | null;
     IsDefault: boolean | number;
     CreatedAt: string;
     UpdatedAt: string;
