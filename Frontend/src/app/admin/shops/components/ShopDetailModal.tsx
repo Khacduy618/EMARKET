@@ -1,7 +1,10 @@
 'use client';
-import { Modal, Button } from 'react-bootstrap';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from 'react';
-import { getFullImageUrl } from '@/services/api';
+import Image from 'next/image';
+import { API_BASE_URL, getAuthToken } from '@/services/api';
 
 type Shop = {
   ShopID: number;
@@ -37,13 +40,13 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost/api/admin/shops/${shopId}`, {
+        const authToken = getAuthToken();
+        const res = await fetch(API_BASE_URL + `/admin/shops/${shopId}`, {
           headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            "Content-Type": "application/json",
           },
+          credentials: 'include',
         });
-
         const json = await res.json();
         if (json.status) {
           setShop(json.data);
@@ -63,48 +66,97 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
   }, [shopId, show]);
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Thông tin chi tiết shop</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {loading ? (
-          <p>Đang tải dữ liệu...</p>
-        ) : shop ? (
-          <div>
-            <img
-              src={getFullImageUrl(shop.CoverImageURL)}
-              alt="Cover"
-              className="img-fluid mb-3"
-              style={{ maxHeight: 200, objectFit: 'cover', width: '100%' }}
-            />
-            <div className="d-flex align-items-center mb-3">
-              <img
-                src={shop.LogoURL}
-                alt="Logo"
-                style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', marginRight: 15 }}
-              />
-              <div>
-                <h5 className="mb-0">{shop.ShopName}</h5>
-                <small className="text-muted">Đại diện: {shop.RepresentativeName}</small>
+    <Dialog open={show} onOpenChange={onHide}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Thông tin chi tiết shop</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {loading ? (
+            <p className="text-center py-8">Đang tải dữ liệu...</p>
+          ) : shop ? (
+            <div className="space-y-4">
+              {/* Cover Image */}
+              <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                <Image
+                  src={shop.CoverImageURL || "/placeholder.svg?height=200&width=400&query=shop cover image"}
+                  alt="Cover"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
+              {/* Shop Info Header */}
+              <div className="flex items-center space-x-4">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                  <Image
+                    src={shop.LogoURL || "/placeholder.svg?height=64&width=64&query=shop logo"}
+                    alt="Logo"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{shop.ShopName}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Đại diện: {shop.RepresentativeName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Shop Details */}
+              <div className="space-y-3">
+                <div>
+                  <span className="font-medium">Mô tả:</span>
+                  <p className="text-muted-foreground mt-1">
+                    {shop.Description || '(Không có mô tả)'}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="font-medium">SĐT:</span>
+                  <span className="ml-2">{shop.ShopPhone}</span>
+                </div>
+
+                <div>
+                  <span className="font-medium">Địa chỉ:</span>
+                  <p className="text-muted-foreground mt-1">
+                    {shop.AddressStreet}, {shop.AddressWard}, {shop.AddressDistrict}, {shop.AddressCity}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium">Level:</span>
+                    <span className="ml-2">{shop.Level}</span>
+                  </div>
+
+                  <div>
+                    <span className="font-medium">Trạng thái:</span>
+                    <span className="ml-2">{shop.Status}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="font-medium">Ngày đăng ký:</span>
+                  <span className="ml-2">
+                    {new Date(shop.CreatedAt).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
               </div>
             </div>
-            <p><strong>Mô tả:</strong> {shop.Description || '(Không có mô tả)'}</p>
-            <p><strong>SĐT:</strong> {shop.ShopPhone}</p>
-            <p><strong>Địa chỉ:</strong> {shop.AddressStreet}, {shop.AddressWard}, {shop.AddressDistrict}, {shop.AddressCity}</p>
-            <p><strong>Level:</strong> {shop.Level}</p>
-            <p><strong>Trạng thái:</strong> {shop.Status}</p>
-            <p><strong>Ngày đăng ký:</strong> {new Date(shop.CreatedAt).toLocaleDateString('vi-VN')}</p>
-          </div>
-        ) : (
-          <p>Không có dữ liệu</p>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Đóng
-        </Button>
-      </Modal.Footer>
-    </Modal>
+          ) : (
+            <p className="text-center py-8 text-muted-foreground">Không có dữ liệu</p>
+          )}
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <Button variant="secondary" onClick={onHide}>
+            Đóng
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

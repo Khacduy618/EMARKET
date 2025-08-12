@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
-import { getAuthToken, getFullImageUrl } from "@/services/api"
+import { API_BASE_URL, getAuthToken, getFullImageUrl } from "@/services/api"
 
 interface Variant {
   VariantID: number
@@ -61,7 +61,7 @@ export default function ProductDetailModal({
     const fetchDetail = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`http://localhost/api/admin/products/${productId}`,{
+        const res = await fetch(`${API_BASE_URL}/admin/products/${productId}`,{
           headers: {
             "Content-Type": "application/json", 
           },
