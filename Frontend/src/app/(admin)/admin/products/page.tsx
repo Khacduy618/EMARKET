@@ -91,6 +91,7 @@ export default function ProductListPage() {
 
       const res = await fetch(`http://localhost/api/admin/products?${params.toString()}`, {
         headers: {
+          'Accept': 'application/json',
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },

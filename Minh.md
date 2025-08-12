@@ -14,3 +14,10 @@ pnpm dlx shadcn@latest add alert
 
 pnpm dlx shadcn@latest add calendar popover
 
+rm -rf public/storage
+
+php artisan storage:link
+
+
+Bỏ theo dõi 
+docker-compose.yml

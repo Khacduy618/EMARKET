@@ -10,8 +10,7 @@ use App\utils\CategoryUtil;
 
 class StatisticsController extends Controller
 {
-  public function getRevenueByDate(Request $req)
-  {
+  public function getRevenueByDate(Request $req) {
     $user = Auth::user();
     $startDate = $req->startDate
       ? $req->startDate . ' 00:00:00'
@@ -125,8 +124,7 @@ class StatisticsController extends Controller
     ]);
   }
 
-  public function getOrderByDate(Request $req)
-  {
+  public function getOrderByDate(Request $req) {
     $date = $req->input('date');
     $user = Auth::user();
 
