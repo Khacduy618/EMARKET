@@ -296,7 +296,7 @@ class ShopProductController extends Controller
             ]);
 
             $this->syncProductImages($request, $product);
-            $this->syncProductVariantsAndAttributes($request, $product, $variantsData);
+            $this->syncProductVariantsAndAttribute($request, $product, $variantsData);
 
             DB::commit();
             return response()->json([
@@ -366,79 +366,79 @@ class ShopProductController extends Controller
         }
     }
 
-//    private function syncProductVariantsAndAttributes(Request $request, Product $product, array $variantsData)
-// {
-// $currentVariantIds = $product->variants()->pluck('VariantID')->toArray();
-// $newVariantIds = [];
-// $variantFiles = $request->file('VariantImages', []);
+   private function syncProductVariantsAndAttribute(Request $request, Product $product, array $variantsData)
+{
+$currentVariantIds = $product->variants()->pluck('VariantID')->toArray();
+$newVariantIds = [];
+$variantFiles = $request->file('VariantImages', []);
 
-// foreach ($variantsData as $index => $variantInfo) {
-//     // Kiểm tra SKU trùng
-//     if (!empty($variantInfo['SKU'])) {
-//         $existingVariant = ProductVariant::where('ProductID', $product->ProductID)
-//             ->where('SKU', $variantInfo['SKU'])
-//             ->where('VariantID', '!=', $variantInfo['VariantID'] ?? null)
-//             ->first();
-//         if ($existingVariant) {
-//             throw new \Exception("SKU '{$variantInfo['SKU']}' is already used for another variant in this product.");
-//         }
-//     }
+foreach ($variantsData as $index => $variantInfo) {
+    // Kiểm tra SKU trùng
+    if (!empty($variantInfo['SKU'])) {
+        $existingVariant = ProductVariant::where('ProductID', $product->ProductID)
+            ->where('SKU', $variantInfo['SKU'])
+            ->where('VariantID', '!=', $variantInfo['VariantID'] ?? null)
+            ->first();
+        if ($existingVariant) {
+            throw new \Exception("SKU '{$variantInfo['SKU']}' is already used for another variant in this product.");
+        }
+    }
 
-//     // Xử lý ảnh variant
-//     $imagePath = null;
-//     if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
-//         $file = $variantFiles[$index];
-//         if (is_array($file)) {
-//             $file = $file[0]; // chỉ lấy ảnh đầu tiên
-//         }
-//         if ($file instanceof \Illuminate\Http\UploadedFile) {
-//             $imagePath = $file->store('variant_images', 'public');
-//         }
-//     }
+    // Xử lý ảnh variant
+    $imagePath = null;
+    if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
+        $file = $variantFiles[$index];
+        if (is_array($file)) {
+            $file = $file[0]; // chỉ lấy ảnh đầu tiên
+        }
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            $imagePath = $file->store('variant_images', 'public');
+        }
+    }
 
-//     $variant = ProductVariant::updateOrCreate(
-//         [
-//             'ProductID' => $product->ProductID,
-//             'VariantID' => $variantInfo['VariantID'] ?? null,
-//         ],
-//         [
-//             'Price' => $variantInfo['Price'],
-//             'StockQuantity' => $variantInfo['StockQuantity'],
-//             'SKU' => $variantInfo['SKU'] ?? null,
-//             'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
-//             'ImageURL' => $imagePath ?? ($variantInfo['ImageURL'] ?? null),
-//             'IsActive' => 1,
-//         ]
-//     );
+    $variant = ProductVariant::updateOrCreate(
+        [
+            'ProductID' => $product->ProductID,
+            'VariantID' => $variantInfo['VariantID'] ?? null,
+        ],
+        [
+            'Price' => $variantInfo['Price'],
+            'StockQuantity' => $variantInfo['StockQuantity'],
+            'SKU' => $variantInfo['SKU'] ?? null,
+            'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
+            'ImageURL' => $imagePath ?? ($variantInfo['ImageURL'] ?? null),
+            'IsActive' => 1,
+        ]
+    );
 
-//     $newVariantIds[] = $variant->VariantID;
+    $newVariantIds[] = $variant->VariantID;
 
-//     // Đồng bộ Attribute Values
-//     $attributeValueIdsToSync = [];
-//     foreach ($variantInfo['AttributeValues'] as $attrID => $attrValue) {
-//         if (!empty($attrValue)) {
-//             $attributeValueRecord = AttributeValue::firstOrCreate(
-//                 ['AttributeID' => $attrID, 'Value' => $attrValue]
-//             );
-//             $attributeValueIdsToSync[] = $attributeValueRecord->AttributeValueID;
-//         }
-//     }
-//     $variant->attributeValues()->sync($attributeValueIdsToSync);
-// }
+    // Đồng bộ Attribute Values
+    $attributeValueIdsToSync = [];
+    foreach ($variantInfo['AttributeValues'] as $attrID => $attrValue) {
+        if (!empty($attrValue)) {
+            $attributeValueRecord = AttributeValue::firstOrCreate(
+                ['AttributeID' => $attrID, 'Value' => $attrValue]
+            );
+            $attributeValueIdsToSync[] = $attributeValueRecord->AttributeValueID;
+        }
+    }
+    $variant->attributeValues()->sync($attributeValueIdsToSync);
+}
 
-// // Xóa variant không còn
-// $variantsToDelete = array_diff($currentVariantIds, $newVariantIds);
-// if (!empty($variantsToDelete)) {
-//     $variants = ProductVariant::whereIn('VariantID', $variantsToDelete)->get();
-//     foreach ($variants as $variant) {
-//         if ($variant->ImageURL) {
-//             Storage::disk('public')->delete($variant->ImageURL);
-//         }
-//         $variant->attributeValues()->detach();
-//         $variant->delete();
-//     }
-// }
-// }
+// Xóa variant không còn
+$variantsToDelete = array_diff($currentVariantIds, $newVariantIds);
+if (!empty($variantsToDelete)) {
+    $variants = ProductVariant::whereIn('VariantID', $variantsToDelete)->get();
+    foreach ($variants as $variant) {
+        if ($variant->ImageURL) {
+            Storage::disk('public')->delete($variant->ImageURL);
+        }
+        $variant->attributeValues()->detach();
+        $variant->delete();
+    }
+}
+}
 
 private function syncProductVariantsAndAttributes(Request $request, Product $product, array $variantsData)
 {
