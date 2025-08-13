@@ -23,10 +23,10 @@ interface ImageFile {
 interface Attribute {
     AttributeID: number;
     Name: string;
-    CategoryID: number;
 }
 
 interface Variant {
+    attributeValues: { [key: number]: string };
     Images: ImageFile[];
     Price: number;
     CompareAtPrice: number | null;
@@ -44,17 +44,14 @@ export default function ShopeeAddProductPage() {
     const [loading, setLoading] = useState(true);
     const [shopCategories, setShopCategories] = useState<ShopCategory[]>([]);
     const [attributes, setAttributes] = useState<Attribute[]>([]);
-    const [attributeValues, setAttributeValues] = useState<{ [key: number]: string }>({});
     const [categoryID, setCategoryID] = useState<number | null>(null);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [images, setImages] = useState<ImageFile[]>([]);
     const [discount, setDiscount] = useState(0);
-    // Remove hasVariants state and always default to true
     const [variants, setVariants] = useState<Variant[]>([
-        { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" },
+        { attributeValues: {}, Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" },
     ]);
-    const [singleVariant, setSingleVariant] = useState({ Price: 0, StockQuantity: 0, SKU: "" });
     const [activeTab, setActiveTab] = useState("basic");
 
     // --- EFFECTS ---
@@ -62,17 +59,13 @@ export default function ShopeeAddProductPage() {
         fetchShopCategories();
     }, [router]);
 
-    // Fix the useEffect cleanup and image handling
     useEffect(() => {
-        // Cleanup function will run when component unmounts or when images/variants change
         return () => {
-            // Cleanup existing images
             images.forEach((image) => {
                 if (image.preview && image.preview.startsWith("blob:")) {
                     URL.revokeObjectURL(image.preview);
                 }
             });
-            // Cleanup variant images
             variants.forEach((variant) =>
                 variant.Images.forEach((img) => {
                     if (img.preview && img.preview.startsWith("blob:")) {
@@ -81,7 +74,7 @@ export default function ShopeeAddProductPage() {
                 }),
             );
         };
-    }, [images, variants]); // Add dependencies to properly cleanup when state changes
+    }, [images, variants]);
 
     // --- DATA FETCHING ---
     const fetchShopCategories = async () => {
@@ -99,24 +92,21 @@ export default function ShopeeAddProductPage() {
     const fetchAttributesForCategory = async (catID: number) => {
         setLoading(true);
         try {
-            const attributesDataFromApi = await getAttributes(catID);
-            const attributesData: Attribute[] = attributesDataFromApi.map((attr: any) => ({
-                ...attr,
-                CategoryID: catID,
-            }));
+            const attributesData: Attribute[] = await getAttributes(catID);
             setAttributes(attributesData);
-            const initialValues = attributesData.reduce(
-                (acc, attr) => ({
-                    ...acc,
-                    [attr.AttributeID]: "",
-                }),
-                {},
-            );
-            setAttributeValues(initialValues);
+            // Reset attributeValues for all variants when category changes
+            setVariants((prev) =>
+                prev.map((v) => ({
+                    ...v,
+                    attributeValues: attributesData.reduce((acc, attr) => ({ ...acc, [attr.AttributeID]: "" }), {}),
+                }))
+            ); // Removed erroneous semicolon inside the expression
         } catch (err: any) {
             Swal.fire("Error!", err.response?.data?.message || "Failed to fetch attributes.", "error");
             setAttributes([]);
-            setAttributeValues({});
+            setVariants((prev) =>
+                prev.map((v) => ({ ...v, attributeValues: {} }))
+            );
         } finally {
             setLoading(false);
         }
@@ -125,12 +115,11 @@ export default function ShopeeAddProductPage() {
     // --- HANDLERS ---
     const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
         setCategoryID(newCategoryID);
-        setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }]);
+        setVariants([{ attributeValues: {}, Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }]);
         if (newCategoryID) {
             fetchAttributesForCategory(newCategoryID);
         } else {
             setAttributes([]);
-            setAttributeValues({});
         }
     };
 
@@ -160,27 +149,19 @@ export default function ShopeeAddProductPage() {
                 event.target.value = "";
             }
         },
-        [images.length],
+        [images.length]
     );
 
     const handleRemoveImage = useCallback((indexToRemove: number) => {
         setImages((prev) => {
             const imageToRemove = prev[indexToRemove];
-
             if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
-                try {
-                    URL.revokeObjectURL(imageToRemove.preview);
-                } catch (error) {
-                    console.warn("Failed to revoke object URL:", error);
-                }
+                URL.revokeObjectURL(imageToRemove.preview);
             }
-
             const remainingImages = prev.filter((_, index) => index !== indexToRemove);
-
             if (imageToRemove?.isPrimary && remainingImages.length > 0) {
                 remainingImages[0].isPrimary = true;
             }
-
             return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }));
         });
     }, []);
@@ -210,14 +191,14 @@ export default function ShopeeAddProductPage() {
             });
 
             setVariants((prev) =>
-                prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
+                prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v))
             );
 
             if (event.target) {
                 event.target.value = "";
             }
         },
-        [variants],
+        [variants]
     );
 
     const handleRemoveVariantImage = useCallback((variantIndex: number, imageIndex: number) => {
@@ -225,17 +206,10 @@ export default function ShopeeAddProductPage() {
             prev.map((v, i) => {
                 if (i === variantIndex) {
                     const imageToRemove = v.Images[imageIndex];
-
                     if (imageToRemove?.preview && imageToRemove.preview.startsWith("blob:")) {
-                        try {
-                            URL.revokeObjectURL(imageToRemove.preview);
-                        } catch (error) {
-                            console.warn("Failed to revoke variant image URL:", error);
-                        }
+                        URL.revokeObjectURL(imageToRemove.preview);
                     }
-
                     const remainingImages = v.Images.filter((_, idx) => idx !== imageIndex);
-
                     return {
                         ...v,
                         Images: remainingImages.map((img, idx) => ({
@@ -246,11 +220,11 @@ export default function ShopeeAddProductPage() {
                     };
                 }
                 return v;
-            }),
+            })
         );
     }, []);
 
-    const handleVariantChange = (index: number, field: keyof Omit<Variant, "Images">, value: string | number | null) => {
+    const handleVariantChange = (index: number, field: keyof Omit<Variant, "Images" | "attributeValues">, value: string | number | null) => {
         setVariants((prev) =>
             prev.map((v, i) =>
                 i === index
@@ -258,36 +232,36 @@ export default function ShopeeAddProductPage() {
                         ...v,
                         [field]:
                             field === "Price" || field === "StockQuantity"
-                                ? value === ""
-                                    ? 0
-                                    : Number(value)
+                                ? value === "" ? 0 : Number(value)
                                 : field === "CompareAtPrice"
-                                    ? value === "" || value === null
-                                        ? null
-                                        : Number(value)
+                                    ? value === "" || value === null ? null : Number(value)
                                     : value,
                     }
-                    : v,
-            ),
+                    : v
+            )
         );
     };
 
-    const handleSingleVariantChange = (field: keyof typeof singleVariant, value: string | number) => {
-        setSingleVariant((prev) => ({
-            ...prev,
-            [field]: field === "Price" || field === "StockQuantity" ? Number(value) : value,
-        }));
-    };
-
-    const handleAttributeValueChange = (attributeID: number, value: string) => {
-        setAttributeValues((prev) => ({
-            ...prev,
-            [attributeID]: value,
-        }));
+    const handleVariantAttributeChange = (variantIndex: number, attributeID: number, value: string) => {
+        setVariants((prev) => {
+            const newVariants = [...prev];
+            newVariants[variantIndex].attributeValues[attributeID] = value;
+            return newVariants;
+        });
     };
 
     const addVariant = () => {
-        setVariants((prev) => [...prev, { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }]);
+        setVariants((prev) => [
+            ...prev,
+            {
+                attributeValues: attributes.reduce((acc, attr) => ({ ...acc, [attr.AttributeID]: "" }), {}),
+                Images: [],
+                Price: 0,
+                CompareAtPrice: null,
+                StockQuantity: 0,
+                SKU: "",
+            },
+        ]);
         variantFileInputs.current = [...variantFileInputs.current, null];
     };
 
@@ -302,38 +276,27 @@ export default function ShopeeAddProductPage() {
         }).then((result) => {
             if (result.isConfirmed) {
                 setVariants((prev) => prev.filter((_, i) => i !== index));
-                setVariants((prev) =>
-                    prev.map((v, i) => ({
-                        ...v,
-                        Images: v.Images.map((img, idx) => ({ ...img, sortOrder: idx })),
-                    })),
-                );
                 variantFileInputs.current = variantFileInputs.current.filter((_, i) => i !== index);
             }
         });
     };
 
-    // Validation cho tab basic
     const validateBasicTab = () => {
         if (!categoryID) {
             Swal.fire("Error!", "Vui lòng chọn ngành hàng.", "error");
             return false;
         }
-
         if (!name.trim()) {
             Swal.fire("Error!", "Vui lòng nhập tên sản phẩm.", "error");
             return false;
         }
-
         if (images.length === 0) {
             Swal.fire("Error!", "Vui lòng thêm ít nhất một hình ảnh sản phẩm.", "error");
             return false;
         }
-
         return true;
     };
 
-    // Xử lý chuyển tab tiếp theo
     const handleNextTab = () => {
         if (activeTab === "basic") {
             if (validateBasicTab()) {
@@ -345,40 +308,31 @@ export default function ShopeeAddProductPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Nếu đang ở tab basic, chuyển sang tab sales thay vì submit
         if (activeTab === "basic") {
             handleNextTab();
             return;
         }
 
-        // Validation cho tab sales
-        if (!categoryID) {
-            Swal.fire("Error!", "Please select a category.", "error");
+        if (!categoryID || variants.length === 0 || images.length === 0) {
+            Swal.fire("Error!", "Vui lòng hoàn thành tất cả các trường bắt buộc.", "error");
             return;
         }
 
-        if (images.length === 0 && variants.every((v) => v.Images.length === 0)) {
-            Swal.fire("Error!", "At least one image is required for the product or variants.", "error");
+        if (variants.some((v) => v.Price <= 0 || v.StockQuantity < 0 || !v.SKU.trim())) {
+            Swal.fire("Error!", "Giá, số lượng và SKU là bắt buộc cho tất cả các phân loại.", "error");
             return;
         }
 
-        if (variants.length === 0) {
-            Swal.fire("Error!", "Please add at least one variant.", "error");
-            return;
-        }
-
-        if (variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
-            Swal.fire("Error!", "Price and stock quantity must be valid for all variants.", "error");
-            return;
-        }
-
-        if (discount < 0 || discount > 100) {
-            Swal.fire("Error!", "Discount must be between 0 and 100.", "error");
+        if (
+            variants.some((v) =>
+                attributes.some((attr) => !v.attributeValues[attr.AttributeID]?.trim())
+            )
+        ) {
+            Swal.fire("Error!", "Vui lòng nhập đầy đủ giá trị thuộc tính cho tất cả các phân loại.", "error");
             return;
         }
 
         setLoading(true);
-
         const productFormData = new FormData();
         productFormData.append("CategoryID", String(categoryID));
         productFormData.append("Name", name);
@@ -394,18 +348,18 @@ export default function ShopeeAddProductPage() {
             CompareAtPrice: v.CompareAtPrice,
             StockQuantity: v.StockQuantity,
             SKU: v.SKU,
+            AttributeValues: v.attributeValues,
         }));
         productFormData.append("Variants", JSON.stringify(variantData));
-        variants.forEach((v, index) =>
-            v.Images.forEach((img) => productFormData.append(`VariantImages[${index}][]`, img.file)),
-        );
 
-        productFormData.append("AttributeValues", JSON.stringify(attributeValues));
+        variants.forEach((v, index) =>
+            v.Images.forEach((img) => productFormData.append(`VariantImages[${index}][]`, img.file))
+        );
 
         try {
             await createProduct(productFormData);
             Swal.fire("Success!", "Product created successfully and is pending approval.", "success").then(() =>
-                router.push("/seller/products"),
+                router.push("/seller/products")
             );
         } catch (err: any) {
             console.error("API Error:", err.response?.data);
@@ -415,19 +369,16 @@ export default function ShopeeAddProductPage() {
         }
     };
 
-    // Hàm để lấy text của nút dựa trên tab hiện tại
     const getSubmitButtonText = () => {
         if (loading) return "Đang xử lý...";
         if (activeTab === "basic") return "Tiếp theo";
         return "Lưu & Hiển thị";
     };
 
-    // Helper function để lấy primary image
     const getPrimaryImage = () => {
         return images.find((img) => img.isPrimary) || images[0] || null;
     };
 
-    // Get selected category name
     const getSelectedCategoryName = () => {
         const selectedCategory = shopCategories.find((cat) => cat.CategoryID === categoryID);
         return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng";
@@ -447,10 +398,15 @@ export default function ShopeeAddProductPage() {
                             <div className="p-4 space-y-3">
                                 <div className="flex items-start space-x-3">
                                     <div
-                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${images.length >= 3 ? "bg-green-500" : "bg-gray-200"}`}
+                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${images.length >= 3 ? "bg-green-500" : "bg-gray-200"
+                                            }`}
                                     >
                                         {images.length >= 3 && (
-                                            <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg
+                                                className="w-3 h-3 text-white m-1"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20"
+                                            >
                                                 <path
                                                     fillRule="evenodd"
                                                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -467,10 +423,15 @@ export default function ShopeeAddProductPage() {
                                 </div>
                                 <div className="flex items-start space-x-3">
                                     <div
-                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${name.length >= 25 && name.length <= 100 ? "bg-green-500" : "bg-gray-200"}`}
+                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${name.length >= 25 && name.length <= 100 ? "bg-green-500" : "bg-gray-200"
+                                            }`}
                                     >
                                         {name.length >= 25 && name.length <= 100 && (
-                                            <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg
+                                                className="w-3 h-3 text-white m-1"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20"
+                                            >
                                                 <path
                                                     fillRule="evenodd"
                                                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -483,10 +444,15 @@ export default function ShopeeAddProductPage() {
                                 </div>
                                 <div className="flex items-start space-x-3">
                                     <div
-                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${description.length >= 100 ? "bg-green-500" : "bg-gray-200"}`}
+                                        className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${description.length >= 100 ? "bg-green-500" : "bg-gray-200"
+                                            }`}
                                     >
                                         {description.length >= 100 && (
-                                            <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg
+                                                className="w-3 h-3 text-white m-1"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20"
+                                            >
                                                 <path
                                                     fillRule="evenodd"
                                                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -499,24 +465,19 @@ export default function ShopeeAddProductPage() {
                                         Thêm ít nhất 100 ký tự hoặc 1 hình ảnh trong mô tả sản phẩm
                                     </span>
                                 </div>
-                                <div className="flex items-start space-x-3">
-                                    <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0 mt-0.5"></div>
-                                    <span className="text-sm text-gray-600">Thêm thương hiệu</span>
-                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Main Content */}
                     <div className="col-span-6">
-                        {/* Tab Navigation */}
                         <div className="bg-white rounded-t-lg shadow-sm">
                             <div className="flex border-b">
                                 <button
                                     onClick={() => setActiveTab("basic")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "basic"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin cơ bản
@@ -524,8 +485,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("sales")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "sales"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin bán hàng
@@ -533,8 +494,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("shipping")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "shipping"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Vận chuyển
@@ -542,8 +503,8 @@ export default function ShopeeAddProductPage() {
                                 <button
                                     onClick={() => setActiveTab("other")}
                                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "other"
-                                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                            ? "border-orange-500 text-orange-600 bg-orange-50"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     Thông tin khác
@@ -552,7 +513,6 @@ export default function ShopeeAddProductPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="bg-white rounded-b-lg shadow-sm">
-                            {/* Basic Information Tab */}
                             {activeTab === "basic" && (
                                 <div className="p-6 space-y-6">
                                     <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin cơ bản</h3>
@@ -564,7 +524,13 @@ export default function ShopeeAddProductPage() {
                                         </label>
                                         <div className="flex items-center space-x-4 mb-4">
                                             <div className="flex items-center space-x-2">
-                                                <input type="radio" id="ratio-1-1" name="ratio" defaultChecked className="text-orange-500" />
+                                                <input
+                                                    type="radio"
+                                                    id="ratio-1-1"
+                                                    name="ratio"
+                                                    defaultChecked
+                                                    className="text-orange-500"
+                                                />
                                                 <label htmlFor="ratio-1-1" className="text-sm">
                                                     Hình ảnh tỷ lệ 1:1
                                                 </label>
@@ -575,9 +541,10 @@ export default function ShopeeAddProductPage() {
                                                     Hình ảnh tỷ lệ 3:4
                                                 </label>
                                             </div>
-                                            <span className="text-blue-500 text-sm cursor-pointer hover:underline">Ví dụ</span>
+                                            <span className="text-blue-500 text-sm cursor-pointer hover:underline">
+                                                Ví dụ
+                                            </span>
                                         </div>
-
                                         <div className="grid grid-cols-5 gap-4">
                                             {images.map((image, index) => (
                                                 <div
@@ -589,7 +556,6 @@ export default function ShopeeAddProductPage() {
                                                         alt={`preview ${index}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
-                                                            console.error("Image load error for:", image.preview);
                                                             const target = e.currentTarget;
                                                             if (!target.dataset.retried) {
                                                                 target.dataset.retried = "true";
@@ -599,9 +565,6 @@ export default function ShopeeAddProductPage() {
                                                                     }
                                                                 }, 100);
                                                             }
-                                                        }}
-                                                        onLoad={() => {
-                                                            console.log("Image loaded successfully:", image.preview);
                                                         }}
                                                     />
                                                     <div className="absolute top-1 right-1">
@@ -639,13 +602,19 @@ export default function ShopeeAddProductPage() {
                                                         stroke="currentColor"
                                                         viewBox="0 0 24 24"
                                                     >
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4v16m8-8H4" />
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={1}
+                                                            d="M12 4v16m8-8H4"
+                                                        />
                                                     </svg>
-                                                    <span className="text-xs text-orange-600">Thêm hình ảnh ({images.length}/9)</span>
+                                                    <span className="text-xs text-orange-600">
+                                                        Thêm hình ảnh ({images.length}/9)
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
-
                                         <input
                                             type="file"
                                             ref={fileInputRef}
@@ -681,8 +650,9 @@ export default function ShopeeAddProductPage() {
                                                 <div className="text-sm text-gray-600">
                                                     <p>Tải lên hình ảnh 1:1.</p>
                                                     <p>
-                                                        Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý hôm nay,... Việc sử dụng ảnh
-                                                        bìa đẹp sẽ thu hút thêm lượt truy cập vào sản phẩm của bạn
+                                                        Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý
+                                                        hôm nay,... Việc sử dụng ảnh bìa đẹp sẽ thu hút thêm lượt truy cập
+                                                        vào sản phẩm của bạn
                                                     </p>
                                                 </div>
                                             </div>
@@ -691,11 +661,18 @@ export default function ShopeeAddProductPage() {
 
                                     {/* Video Section */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Video sản phẩm</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Video sản phẩm
+                                        </label>
                                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                                             <div className="flex items-center space-x-4">
                                                 <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg
+                                                        className="w-8 h-8 text-gray-400"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
                                                         <path
                                                             strokeLinecap="round"
                                                             strokeLinejoin="round"
@@ -709,8 +686,8 @@ export default function ShopeeAddProductPage() {
                                                     <p>Độ dài: 10s-60s</p>
                                                     <p>Định dạng: MP4</p>
                                                     <p>
-                                                        Lưu ý: sản phẩm có thể hiển thị trong khi video đang được xử lý. Video sẽ tự động hiển thị
-                                                        sau khi đã xử lý thành công.
+                                                        Lưu ý: sản phẩm có thể hiển thị trong khi video đang được xử lý.
+                                                        Video sẽ tự động hiển thị sau khi đã xử lý thành công.
                                                     </p>
                                                 </div>
                                             </div>
@@ -768,40 +745,17 @@ export default function ShopeeAddProductPage() {
                                         />
                                         <div className="text-right text-sm text-gray-500 mt-1">{description.length} ký tự</div>
                                     </div>
-
-                                    {/* Attributes */}
-                                    {categoryID && attributes.length > 0 && (
-                                        <div>
-                                            <h4 className="text-md font-medium text-gray-700 mb-3">Thông số Thuộc tính</h4>
-                                            <div className="space-y-4">
-                                                {attributes.map((attr) => (
-                                                    <div key={attr.AttributeID}>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">{attr.Name}</label>
-                                                        <input
-                                                            type="text"
-                                                            value={attributeValues[attr.AttributeID] || ""}
-                                                            onChange={(e) => handleAttributeValueChange(attr.AttributeID, e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                                            placeholder={`Nhập giá trị cho ${attr.Name}`}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
-                            {/* Sales Information Tab */}
                             {activeTab === "sales" && (
                                 <div className="p-6 space-y-6">
                                     <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin bán hàng</h3>
 
-                                    {/* Variant Section (Always enabled) */}
                                     <div className="border-t pt-6 space-y-6">
                                         {variants.map((variant, index) => (
-                                            <div key={index} className="border border-gray-200 p-4 rounded-lg">
-                                                <div className="flex items-center justify-between mb-4">
+                                            <div key={index} className="border border-gray-200 p-4 rounded-lg space-y-4">
+                                                <div className="flex items-center justify-between mb-2">
                                                     <h4 className="text-lg font-medium">Phân loại {index + 1}</h4>
                                                     {variants.length > 1 && (
                                                         <button
@@ -814,14 +768,36 @@ export default function ShopeeAddProductPage() {
                                                     )}
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                                {attributes.length > 0 && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+                                                        {attributes.map((attr) => (
+                                                            <div key={attr.AttributeID}>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    <span className="text-red-500">*</span> {attr.Name}
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={variant.attributeValues[attr.AttributeID] || ""}
+                                                                    onChange={(e) =>
+                                                                        handleVariantAttributeChange(index, attr.AttributeID, e.target.value)
+                                                                    }
+                                                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                                    placeholder={`Nhập ${attr.Name}`}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border-t pt-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Hình ảnh
+                                                        </label>
                                                         <input
                                                             type="file"
-                                                            ref={(el) => {
-                                                                variantFileInputs.current[index] = el;
-                                                            }}
+                                                            ref={(el) => (variantFileInputs.current[index] = el)}
                                                             onChange={(e) => handleVariantImageSelect(e, index)}
                                                             multiple
                                                             accept="image/*"
@@ -829,19 +805,25 @@ export default function ShopeeAddProductPage() {
                                                         />
                                                         <div className="mt-2 flex flex-wrap gap-2">
                                                             {variant.Images.map((img, imgIndex) => (
-                                                                <div key={imgIndex} className="relative w-16 h-16 border rounded-md overflow-hidden">
+                                                                <div
+                                                                    key={imgIndex}
+                                                                    className="relative w-16 h-16 border rounded-md overflow-hidden"
+                                                                >
                                                                     <img
                                                                         src={img.preview || "/placeholder.svg"}
                                                                         alt={`variant ${index} preview ${imgIndex}`}
                                                                         className="w-full h-full object-cover"
                                                                         onError={(e) => {
-                                                                            console.error("Variant image load error:", img.preview);
                                                                             const target = e.currentTarget;
                                                                             if (!target.dataset.retried) {
                                                                                 target.dataset.retried = "true";
                                                                                 setTimeout(() => {
-                                                                                    if (target.src !== "/placeholder.svg?height=64&width=64") {
-                                                                                        target.src = "/placeholder.svg?height=64&width=64";
+                                                                                    if (
+                                                                                        target.src !==
+                                                                                        "/placeholder.svg?height=64&width=64"
+                                                                                    ) {
+                                                                                        target.src =
+                                                                                            "/placeholder.svg?height=64&width=64";
                                                                                     }
                                                                                 }, 100);
                                                                             }
@@ -879,12 +861,16 @@ export default function ShopeeAddProductPage() {
                                                     </div>
 
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Giá so sánh
+                                                        </label>
                                                         <input
                                                             type="number"
                                                             min="0"
                                                             value={variant.CompareAtPrice ?? ""}
-                                                            onChange={(e) => handleVariantChange(index, "CompareAtPrice", e.target.value || null)}
+                                                            onChange={(e) =>
+                                                                handleVariantChange(index, "CompareAtPrice", e.target.value || null)
+                                                            }
                                                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                         />
                                                     </div>
@@ -929,7 +915,6 @@ export default function ShopeeAddProductPage() {
                                 </div>
                             )}
 
-                            {/* Other tabs placeholder */}
                             {activeTab === "shipping" && (
                                 <div className="p-6">
                                     <h3 className="text-lg font-medium text-orange-600 mb-4">Vận chuyển</h3>
@@ -944,7 +929,6 @@ export default function ShopeeAddProductPage() {
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
                             <div className="border-t p-6">
                                 <div className="flex justify-end space-x-4">
                                     <button
@@ -991,7 +975,6 @@ export default function ShopeeAddProductPage() {
                                             alt="Preview"
                                             className="max-w-full max-h-full object-contain"
                                             onError={(e) => {
-                                                console.error("Preview image load error");
                                                 const target = e.currentTarget;
                                                 if (target.src !== "/placeholder.svg?height=200&width=200") {
                                                     target.src = "/placeholder.svg?height=200&width=200";
@@ -1000,7 +983,12 @@ export default function ShopeeAddProductPage() {
                                         />
                                     ) : (
                                         <div className="text-center text-gray-400">
-                                            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg
+                                                className="w-12 h-12 mx-auto mb-2"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
                                                 <path
                                                     strokeLinecap="round"
                                                     strokeLinejoin="round"
@@ -1016,7 +1004,9 @@ export default function ShopeeAddProductPage() {
                                 <div className="text-center text-gray-500 text-sm mb-4">
                                     ₫
                                     {variants.length > 0
-                                        ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(...variants.map((v) => v.Price))}`
+                                        ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(
+                                            ...variants.map((v) => v.Price)
+                                        )}`
                                         : "0 - ₫0"}
                                 </div>
 
@@ -1038,7 +1028,12 @@ export default function ShopeeAddProductPage() {
 
                                 <div className="flex space-x-2">
                                     <button className="flex-1 py-2 bg-orange-100 text-orange-600 rounded flex items-center justify-center hover:bg-orange-200 transition-colors">
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg
+                                            className="w-4 h-4 mr-1"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
@@ -1077,14 +1072,12 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
     const [searchTerm, setSearchTerm] = useState("");
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         }
-
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
@@ -1092,7 +1085,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
     }, []);
 
     const filteredCategories = categories.filter((category) =>
-        category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase()),
+        category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const getSelectedCategoryName = () => {
@@ -1108,14 +1101,15 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Dropdown Trigger */}
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={loading}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-left flex items-center justify-between bg-white"
             >
-                <span className={selectedCategoryID ? "text-gray-900" : "text-gray-500"}>{getSelectedCategoryName()}</span>
+                <span className={selectedCategoryID ? "text-gray-900" : "text-gray-500"}>
+                    {getSelectedCategoryName()}
+                </span>
                 <svg
                     className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
                     fill="none"
@@ -1125,11 +1119,8 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-
-            {/* Dropdown Menu */}
             {isOpen && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
-                    {/* Search Header */}
                     <div className="p-3 border-b border-gray-200">
                         <div className="relative">
                             <input
@@ -1154,8 +1145,6 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                             </svg>
                         </div>
                     </div>
-
-                    {/* Categories List */}
                     <div className="max-h-80 overflow-y-auto">
                         {filteredCategories.length === 0 ? (
                             <div className="p-4 text-center text-gray-500 text-sm">Không tìm thấy ngành hàng nào</div>
@@ -1166,8 +1155,8 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                                     type="button"
                                     onClick={() => handleCategoryClick(category)}
                                     className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
-                                        ? "bg-orange-50 text-orange-600 font-medium"
-                                        : "text-gray-700"
+                                            ? "bg-orange-50 text-orange-600 font-medium"
+                                            : "text-gray-700"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -1186,8 +1175,6 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                             ))
                         )}
                     </div>
-
-                    {/* Footer with breadcrumb style */}
                     <div className="p-3 bg-gray-50 border-t border-gray-200">
                         <div className="flex items-center text-xs text-gray-500">
                             <span>Đã chọn:</span>
