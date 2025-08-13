@@ -19,6 +19,7 @@ interface ImageFile {
   isPrimary: boolean
   sortOrder: number
   ImageID?: number
+  existingUrl?: string | null
 }
 
 interface Attribute {
@@ -230,13 +231,19 @@ export default function EditProductPage() {
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
+          existingUrl: img.ImageURL
         }))
       )
 
       const variantsData = productData.variants.map((v) => ({
         VariantID: v.VariantID,
         Images: v.ImageURL
-          ? [{ preview: `http://localhost:8001/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
+          ? [{
+            preview: `http://localhost:8001/storage/${v.ImageURL}`,
+            isPrimary: true,
+            sortOrder: 0,
+            existingUrl: v.ImageURL
+          }]
           : [],
         Price: v.Price || 0,
         CompareAtPrice: v.CompareAtPrice || null,
@@ -508,6 +515,7 @@ export default function EditProductPage() {
       IsPrimary: img.isPrimary,
       SortOrder: img.sortOrder,
       name: img.file?.name,
+      existingUrl: img.existingUrl
     }))
     productFormData.append("ImageData", JSON.stringify(imageData))
     images.forEach((img, index) => {
@@ -523,14 +531,33 @@ export default function EditProductPage() {
       StockQuantity: v.StockQuantity,
       SKU: v.SKU,
       AttributeValues: v.AttributeValues,
+      existingImageUrl: v.Images[0]?.existingUrl || null,
     }))
     productFormData.append("Variants", JSON.stringify(variantData))
 
-    variants.forEach((variant, variantIndex) => {
+    // Append variant images, fetching old ones if necessary
+    const fetchPromises = variants.map(async (variant, variantIndex) => {
       if (variant.Images[0]?.file) {
         productFormData.append(`VariantImages[${variantIndex}]`, variant.Images[0].file)
+      } else if (variant.Images.length > 0 && variant.Images[0].preview.startsWith('http')) {
+        // Fetch old image and append as file
+        try {
+          const response = await fetch(variant.Images[0].preview)
+          if (response.ok) {
+            const blob = await response.blob()
+            const fileName = variant.Images[0].existingUrl?.split('/').pop() || `variant_${variantIndex}.jpg`
+            const file = new File([blob], fileName, { type: blob.type })
+            productFormData.append(`VariantImages[${variantIndex}]`, file)
+          } else {
+            console.error(`Failed to fetch old image for variant ${variantIndex}`)
+          }
+        } catch (error) {
+          console.error(`Error fetching old image for variant ${variantIndex}:`, error)
+        }
       }
     })
+
+    await Promise.all(fetchPromises)
 
     try {
       await updateProduct(productID, productFormData)
@@ -864,9 +891,19 @@ export default function EditProductPage() {
                           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
-                              <input
+                              {/* <input
                                 type="file"
                                 ref={(el) => (variantFileInputs.current[index] = el)}
+                                onChange={(e) => handleVariantImageSelect(e, index)}
+                                accept="image/*"
+                                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                              /> */}
+                              <input
+                                type="file"
+                                // Sửa lỗi: Đổi ( ... ) thành { ... }
+                                ref={(el) => {
+                                  variantFileInputs.current[index] = el;
+                                }}
                                 onChange={(e) => handleVariantImageSelect(e, index)}
                                 accept="image/*"
                                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
