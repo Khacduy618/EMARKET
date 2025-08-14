@@ -1,7 +1,8 @@
 // src/services/voucher.ts
 
 import { Voucher } from '@/types'; // Import Voucher interface
-import { handleResponse, getAuthToken, API_BASE_URL } from './api'; // handleResponse from your existing api service
+import { handleResponse, getAuthToken } from './api'; // handleResponse from your existing api service
+import { API_URL } from '@/lib/config';
 
 interface FetchVouchersResponse {
     platformVouchers: Voucher[];
@@ -11,7 +12,7 @@ interface FetchVouchersResponse {
 
 export const fetchAvailableVouchers = async (): Promise<FetchVouchersResponse> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/vouchers`, {
+    const response = await fetch(`${API_URL}/vouchers`, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ export interface FetchShopVouchersResponse {
  */
 export const fetchUserShopVouchers = async (shopId: number): Promise<FetchShopVouchersResponse> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/shops/${shopId}/eligible-vouchers`, {
+    const response = await fetch(`${API_URL}/shops/${shopId}/eligible-vouchers`, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

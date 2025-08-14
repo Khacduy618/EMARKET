@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getFullImageUrl, getPublicImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 type Category = {
     CategoryID: number;
@@ -25,7 +26,7 @@ export default function ResponsiveCategoryMenu({ isOpen, onClose }: ResponsiveCa
 
     useEffect(() => {
         axios
-            .get('http://localhost/api/categorySubMenu')
+            .get(`${API_URL}/categorySubMenu`)
             .then((response) => {
                 const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
                 setCategories(activeCategories);

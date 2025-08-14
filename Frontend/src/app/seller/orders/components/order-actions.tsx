@@ -6,6 +6,7 @@ import { Settings, Printer, X, Truck } from "lucide-react"; // Thêm Truck icon 
 import axios from "axios";
 import Swal from "sweetalert2";
 import { getAuthToken } from "@/services/api";
+import { API_URL } from "@/lib/config";
 
 interface OrderActionsProps {
     status: string;
@@ -39,7 +40,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/confirm`,
+                    `${API_URL}/seller/orders/${orderId}/confirm`,
                     {},
                     {
                         headers: { Authorization: `Bearer ${token}` },
@@ -90,7 +91,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 const response = await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/print`,
+                    `${API_URL}/seller/orders/${orderId}/print`,
                     {},
                     { headers: { Authorization: `Bearer ${token}` }, withCredentials: true, responseType: "blob" } // Giả định trả về file PDF
                 );
@@ -147,7 +148,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/cancel`,
+                    `${API_URL}/seller/orders/${orderId}/cancel`,
                     {},
                     {
                         headers: { Authorization: `Bearer ${token}` },
@@ -199,7 +200,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 if (!token) throw new Error("Authentication token not found.");
 
                 await axios.put(
-                    `http://localhost/api/seller/orders/${orderId}/ship`,
+                    `${API_URL}/seller/orders/${orderId}/ship`,
                     {},
                     {
                         headers: { Authorization: `Bearer ${token}` },

@@ -15,6 +15,7 @@ import LoadingState from "./components/loading-state"
 import ErrorState from "./components/error-state"
 import EmptyState from "./components/empty-state"
 import { getAuthToken } from "@/services/api";
+import { API_URL } from "@/lib/config";
 
 // --- INTERFACES ---
 interface SellerOrder {
@@ -67,7 +68,7 @@ export default function SellerOrdersPage() {
                 search: searchTerm,
             })
 
-            const response = await axios.get(`http://localhost/api/seller/orders?${params.toString()}`, {
+            const response = await axios.get(`${API_URL}/seller/orders?${params.toString()}`, {
                 headers: {
                     
                     'Accept': "application/json",

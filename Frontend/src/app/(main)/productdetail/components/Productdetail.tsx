@@ -13,7 +13,7 @@ import ProductReviewPage from './ProductReviewPage';
 import RelatedProductsSidebar from './FeaturedProductsSidebar';
 import { StoredCheckoutData } from '@/types';
 import { useRouter } from 'next/navigation'; 
-import { API_URL } from '@/services/auth';
+import { API_URL } from '@/lib/config';
 
 
 
@@ -156,7 +156,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost/api/productDetail/${productId}`);
+                const response = await axios.get(`${API_URL}/productDetail/${productId}`);
                 const productData: Product = response.data;
                 setProduct(productData);
 

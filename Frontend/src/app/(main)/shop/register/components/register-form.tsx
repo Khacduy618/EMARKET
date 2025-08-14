@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle, Store, MapPin, Phone, ImageIcon, FileText } from "lucide-react"
 import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 interface FormData {
     shop_name: string
@@ -101,7 +102,7 @@ export default function SellerRegisterForm() {
 
         try {
             const token = getAuthToken()
-            const response = await axios.post("http://localhost/api/seller/register", formData, {
+            const response = await axios.post(`${API_URL}/seller/register`, formData, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`,

@@ -2,6 +2,7 @@
 import { Modal, Button } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { getFullImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 type Shop = {
   ShopID: number;
@@ -37,7 +38,7 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost/api/admin/shops/${shopId}`, {
+        const res = await fetch(`${API_URL}/admin/shops/${shopId}`, {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

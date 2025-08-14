@@ -7,6 +7,7 @@ import { Order } from '@/types';
 import Modal from './Modal';
 import { getFullImageUrl } from '@/services/api';
 import Image from 'next/image';
+import { API_URL } from '@/lib/config';
 
 // Props cho component
 interface ReturnRequestModalProps {
@@ -99,9 +100,8 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
 
         try {
             // Fetch CSRF cookie before making the POST request
-            // await axios.get('http://localhost:8001/sanctum/csrf-cookie', { withCredentials: true });
             const response = await axios.post(
-                'http://localhost:8001/api/buyer/return-requests',
+                `${API_URL}/buyer/return-requests`,
                 formData,
                 {
                     headers: {

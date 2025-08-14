@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingCart, ChevronDown, User, Menu, Store, LogOut, LayoutDashboard, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
 import axios from 'axios';
-import { getAuthToken, API_BASE_URL } from '@/services/api'; 
+import { getAuthToken } from '@/services/api'; 
 
 // 1. IMPORT TỪ HỆ THỐNG AUTHCONTEXT (Lấy từ Code 1)
 import { useAuth } from '@/context/AuthContext';
@@ -16,9 +16,12 @@ import { useAuth } from '@/context/AuthContext';
 // 2. IMPORT CÁC TYPES VÀ HELPERS (Lấy từ cả hai phiên bản)
 import { getActiveSeasonTheme, SeasonTheme } from '@/types/seasonalThemes';
 import { toast } from 'react-toastify';
+import { API_URL } from '@/lib/config';
 
 // --- Fetcher cho SWR (Sử dụng phiên bản an toàn hơn từ Code 1) ---
-const fetcher = (url: string) => axios.get(url).then(res => {
+const fetcher = (url: string) => axios.get(url, {headers: {
+        'ngrok-skip-browser-warning': 'true'
+    },}).then(res => {
     // API có thể trả về { success: true, data: [...] } hoặc data trực tiếp
     if (res.data && typeof res.data.data !== 'undefined') {
         return res.data.data;
@@ -81,7 +84,7 @@ export default function Header() {
     const searchContainerRef = useRef<HTMLDivElement>(null);
 
     // --- State và logic cho Nav Menu ---
-    const { data: navData, error: navError } = useSWR('http://localhost:8001/api/category', fetcher);
+    const { data: navData, error: navError } = useSWR(`${API_URL}/category`, fetcher);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeTheme, setActiveTheme] = useState<SeasonTheme | null>(null);
 
@@ -96,7 +99,7 @@ export default function Header() {
         }
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost:8001/api/search/suggest?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`${API_URL}/search/suggest?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Lỗi mạng');
             const rawData = await response.json();
             
@@ -171,7 +174,7 @@ export default function Header() {
         // 2. Nếu đã đăng nhập, gọi API để kiểm tra trạng thái shop
         setIsCheckingShop(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/user/shop-status`, {
+            const response = await fetch(`${API_URL}/user/shop-status`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {

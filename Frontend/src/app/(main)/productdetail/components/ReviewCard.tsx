@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Review, User } from "@/types"
 import { toast } from 'react-toastify';
 import { Send, Star, ThumbsUp } from 'lucide-react'
+import { API_URL } from "@/lib/config"
 
 
 interface ReviewCardProps {
@@ -31,9 +32,10 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
   const handleHelpfulClick = async () => {
     try {
       // Gọi API cập nhật helpful
-      const res = await fetch(`/api/review/${review.id}/helpful`, {
+      const res = await fetch(`${API_URL}/review/${review.id}/helpful`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include', // Quan trọng để gửi cookie
         body: JSON.stringify({ value: voted ? -1 : 1 })
       })
       if (res.ok) {
@@ -48,13 +50,14 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
 
     try {
       // Giả sử bạn có API endpoint này ở backend
-      const response = await fetch(`/api/reviews/${currentReview.id}/reply`, {
+      const response = await fetch(`${API_URL}/reviews/${currentReview.id}/reply`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           // Bạn cần cơ chế để lấy và gửi token xác thực
           // 'Authorization': `Bearer ${your_auth_token}`
         },
+        credentials: 'include', // Quan trọng để gửi cookie
         body: JSON.stringify({ reply_content: replyContent }),
       });
 

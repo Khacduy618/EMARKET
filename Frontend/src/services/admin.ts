@@ -7,9 +7,10 @@ import { User, UserPayload, PaginatedResponse, ApiError } from '@/types';
 // Nếu chưa, bạn cần thêm `export` trước chúng trong file đó.
 import {
     handleResponse,
-    API_URL,
+    
     getDecodedXsrfToken
 } from './auth';
+import { API_URL } from '@/lib/config';
 
 // 2. API để lấy danh sách người dùng (có phân trang và filter)
 // url sẽ là một chuỗi như `/admin/users?page=1&search=...`

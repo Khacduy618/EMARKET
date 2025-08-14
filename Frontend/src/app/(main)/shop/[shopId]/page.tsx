@@ -13,6 +13,7 @@ import { toast } from "react-toastify"
 
 // Types
 import type { ShopInfoForUI, ProductForUI, ShopCategoryForUI } from "@/types"
+import { API_URL } from "@/lib/config"
 
 // === Định nghĩa các kiểu dữ liệu cho từng API Response ===
 interface ShopDetailsResponse {
@@ -69,7 +70,6 @@ const mapApiProductToUiProduct = (p: ApiProductResponseItem): ProductForUI => ({
 export default function ShopPage() {
   const params = useParams();
   const shopId = params.shopId as string;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api';
   const router = useRouter(); 
   // State tách biệt cho từng phần dữ liệu
   const [details, setDetails] = useState<ShopDetailsResponse | null>(null);

@@ -16,6 +16,7 @@ import OrderActions from "../components/order-actions";
 import LoadingSpinner from "../components/loading-spinner";
 import ErrorMessage from "../components/error-message";
 import { getAuthToken } from "@/services/api";
+import { API_URL } from "@/lib/config";
 
 // --- INTERFACES ---
 interface TransformedOrderDetail {
@@ -78,7 +79,7 @@ export default function OrderDetailsPage() {
                     const token = getAuthToken();
                     if (!token) throw new Error("Authentication token not found.");
 
-                    const response = await axios.get(`http://localhost/api/seller/orders/${orderId}`, {
+                    const response = await axios.get(`${API_URL}/seller/orders/${orderId}`, {
                         headers: {"Content-Type": "application/json"},
                     });
                     setOrder(response.data);
@@ -107,7 +108,7 @@ export default function OrderDetailsPage() {
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost/api/seller/orders/${orderId}/confirm`,
+                `${API_URL}/seller/orders/${orderId}/confirm`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -135,7 +136,7 @@ export default function OrderDetailsPage() {
             if (!token) throw new Error("Authentication token not found.");
 
             await axios.put(
-                `http://localhost/api/seller/orders/${orderId}/cancel`,
+                `${API_URL}/seller/orders/${orderId}/cancel`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

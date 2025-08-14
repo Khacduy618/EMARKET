@@ -11,7 +11,6 @@
 //     const [products, setProducts] = useState<IHome.ProcessedProduct[]>([]);
 //     const [loading, setLoading] = useState(true);
 //     const [error, setError] = useState<string | null>(null);
-//     const IMAGE_BASE_URL = 'http://localhost';
 //     useEffect(() => {
 //         // Sử dụng AbortController để xử lý cleanup trong StrictMode
 //         const controller = new AbortController();
@@ -20,7 +19,6 @@
 //             setLoading(true);
 //             setError(null);
 //             try {
-//                 const response = await axios.get<IHome.ApiProduct[]>('http://localhost/api/products/best-selling', {
 //                     signal: controller.signal,
 //                 });
 //                 console.log("API :", response);
@@ -128,7 +126,6 @@
 //                                     product.ImageURL
 //                                         ? product.ImageURL.startsWith('http')
 //                                             ? product.ImageURL
-//                                             : `http://localhost${product.ImageURL.startsWith('/') ? '' : '/'}${product.ImageURL}`
 //                                         : 'https://via.placeholder.com/300x300/F0F0F0/AAAAAA?text=No+Image'
 //                                 }
 //                                 alt={product.ProductName}
@@ -197,6 +194,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { getFullImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 // --- Interfaces: Định nghĩa lại để khớp với API và nhu cầu của component ---
 
@@ -246,8 +244,9 @@ export default function ProductsCart() {
             try {
                 // SỬA 1: API trả về một object lớn, trong đó có key 'data' chứa object phân trang.
                 const response = await axios.get<{ data: PaginationResponse }>(
-                    'http://localhost/api/products/best-selling', {
+                    `${API_URL}/products/best-selling`, {
                     signal: controller.signal,
+                    withCredentials: true, // Đảm bảo gửi cookie CSRF nếu cần
                 });
 
                 // SỬA 2: Mảng sản phẩm thực sự nằm trong `response.data.data`

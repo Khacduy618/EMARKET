@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getAuthToken } from "@/services/api"
+import { API_URL, WEB_URL } from "@/lib/config"
 
 interface OrderItem {
   OrderItemID: number
@@ -89,7 +90,7 @@ export default function Page() {
         setError(null)
         console.log("Fetching order with ID:", orderId)
         // Keep the original URL since it seems to work
-        const url = `http://localhost/api/seller/statistics/orders/deaill/${orderId}`
+        const url = `${API_URL}/seller/statistics/orders/deaill/${orderId}`
         console.log("Fetching URL:", url)
 
         const res = await fetch(url, {
@@ -430,7 +431,7 @@ export default function Page() {
                       <Image
                         src={
                           item.ImageURL
-                            ? `http://localhost/storage/${item.ImageURL}`
+                            ? `${WEB_URL}/storage/${item.ImageURL}`
                             : "/placeholder.svg?height=60&width=60"
                         }
                         alt={item.ProductName}

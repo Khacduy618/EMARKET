@@ -28,6 +28,7 @@ import ProductDetailModal from "./components/ProductDetailModal"
 import { Label } from "@/components/ui/label"
 import CategoryDropDow from "./components/category-selector"
 import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 interface Product {
   ProductID: number
@@ -89,7 +90,7 @@ export default function ProductListPage() {
         return
       }
 
-      const res = await fetch(`http://localhost/api/admin/products?${params.toString()}`, {
+      const res = await fetch(`${API_URL}/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
@@ -152,7 +153,7 @@ export default function ProductListPage() {
           return
         }
 
-        const res = await fetch(`http://localhost/api/admin/products/${productId}/approval-status`, {
+        const res = await fetch(`${API_URL}/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

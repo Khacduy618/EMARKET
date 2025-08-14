@@ -1,261 +1,4 @@
-// // // app/categoryDetail/[categoryId]/page.tsx
-// // 'use client';
 
-// // import { useEffect, useState } from 'react';
-// // import { useParams, useSearchParams } from 'next/navigation';
-// // import axios from 'axios';
-
-// // import CategoryProductView from '../components/CategoryProductView';
-// // import CategorySidebar from '../components/CategorySidebar';
-
-// // // ====================================================================
-// // // ĐỊNH NGHĨA TYPESCRIPT
-// // // ====================================================================
-// // interface Variant {
-// //     VariantID: number;
-// //     Price: number;
-// //     CompareAtPrice: number | null;
-// // }
-// // interface ProductImage {
-// //     ImageID: number;
-// //     ImageURL: string;
-// //     IsPrimary: number;
-// // }
-// // interface Category {
-// //     CategoryID: number;
-// //     Name: string;
-// //     ParentCategoryID: number | null;
-// //     children?: Category[];
-// // }
-// // interface Product {
-// //     ProductID: number;
-// //     Name: string;
-// //     images: ProductImage[];
-// //     variants: Variant[];
-// //     category: Category;
-// // }
-// // interface PaginatedResponse<T> {
-// //     data: T[];
-// //     total: number;
-// //     current_page: number;
-// //     last_page: number;
-// // }
-
-// // // ====================================================================
-// // // COMPONENT TRANG CHÍNH ("NHẠC TRƯỞNG")
-// // // ====================================================================
-// // export default function CategoryDetailPage() {
-// //     const params = useParams();
-// //     const searchParams = useSearchParams();
-
-// //     const categoryId = params.categoryId as string;
-// //     const sort = searchParams.get('sort') || 'popular';
-// //     const page = parseInt(searchParams.get('page') || '1');
-
-// //     const [categoryTree, setCategoryTree] = useState<Category[] | null>(null);
-// //     const [productResponse, setProductResponse] = useState<PaginatedResponse<Product> | null>(null);
-// //     const [isLoading, setIsLoading] = useState(true);
-// //     const [error, setError] = useState<string | null>(null);
-
-// //     useEffect(() => {
-// //         if (!categoryId) return;
-
-// //         const fetchData = async () => {
-// //             setIsLoading(true);
-// //             setError(null);
-// //             try {
-// //                 const [treeResponse, productsResponse] = await Promise.all([
-// //                     axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`),
-// //                     axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
-// //                         params: { sort, page }
-// //                     })
-// //                 ]);
-
-// //                 setCategoryTree(treeResponse.data);
-// //                 setProductResponse(productsResponse.data);
-
-// //             } catch (err) {
-// //                 console.error("Lỗi khi tải dữ liệu trang:", err);
-// //                 setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-// //             } finally {
-// //                 setIsLoading(false);
-// //             }
-// //         };
-
-// //         fetchData();
-// //     }, [categoryId, sort, page]);
-
-// //     if (isLoading) {
-// //         return <div className="container mx-auto text-center p-10">Đang tải...</div>;
-// //     }
-
-// //     if (error) {
-// //         return <div className="container mx-auto text-center p-10 text-red-500">{error}</div>;
-// //     }
-
-// //     if (!productResponse || !categoryTree) {
-// //         return <div className="container mx-auto text-center p-10">Không tìm thấy dữ liệu.</div>;
-// //     }
-
-// //     return (
-// //         <div className="bg-gray-100 min-h-screen w-[1440px] mx-auto">
-// //             <div className="container mx-auto py-4 grid grid-cols-1 lg:grid-cols-12 gap-5">
-// //                 <aside className="col-span-1 lg:col-span-2">
-// //                     <CategorySidebar
-// //                         categoryTree={categoryTree}
-// //                         activeCategoryId={parseInt(categoryId)}
-// //                     />
-// //                 </aside>
-// //                 <main className="col-span-1 lg:col-span-10">
-// //                     {/* Bây giờ việc truyền props sẽ hợp lệ và không còn lỗi */}
-// //                     <CategoryProductView
-// //                         products={productResponse.data}
-// //                         pagination={{
-// //                             total: productResponse.total,
-// //                             currentPage: productResponse.current_page,
-// //                             lastPage: productResponse.last_page
-// //                         }}
-// //                         categoryId={categoryId}
-// //                     />
-// //                 </main>
-// //             </div>
-// //         </div>
-// //     );
-// // }
-// // app/categoryDetail/[categoryId]/page.tsx
-// 'use client';
-
-// import { useEffect, useState } from 'react';
-// import { useParams, useSearchParams } from 'next/navigation';
-// import axios from 'axios';
-
-// import CategoryProductView from '../components/CategoryProductView';
-// import CategorySidebar from '../components/CategorySidebar';
-
-// // ====================================================================
-// // ĐỊNH NGHĨA TYPESCRIPT (THÊM TYPE CHO BỘ LỌC)
-// // ====================================================================
-// interface CategoryFilter { // <-- TYPE MỚI
-//     CategoryID: number;
-//     Name: string;
-//     products_count: number;
-// }
-// interface Variant {
-//     VariantID: number;
-//     Price: number;
-//     CompareAtPrice: number | null;
-// }
-// interface ProductImage {
-//     ImageID: number;
-//     ImageURL: string;
-//     IsPrimary: number;
-// }
-// interface Category {
-//     CategoryID: number;
-//     Name: string;
-//     ParentCategoryID: number | null;
-//     children?: Category[];
-// }
-// interface Product {
-//     ProductID: number;
-//     Name: string;
-//     images: ProductImage[];
-//     variants: Variant[];
-//     category: Category;
-// }
-// interface PaginatedResponse<T> {
-//     data: T[];
-//     total: number;
-//     current_page: number;
-//     last_page: number;
-// }
-
-// // ====================================================================
-// // COMPONENT TRANG CHÍNH ("NHẠC TRƯỞNG")
-// // ====================================================================
-// export default function CategoryDetailPage() {
-//     const params = useParams();
-//     const searchParams = useSearchParams();
-
-//     const categoryId = params.categoryId as string;
-//     const sort = searchParams.get('sort') || 'popular';
-//     const page = parseInt(searchParams.get('page') || '1');
-
-//     const [categoryTree, setCategoryTree] = useState<Category[] | null>(null);
-//     const [productResponse, setProductResponse] = useState<PaginatedResponse<Product> | null>(null);
-//     const [categoryFilters, setCategoryFilters] = useState<CategoryFilter[]>([]); // <-- STATE MỚI CHO BỘ LỌC
-//     const [isLoading, setIsLoading] = useState(true);
-//     const [error, setError] = useState<string | null>(null);
-
-//     useEffect(() => {
-//         if (!categoryId) return;
-
-//         const fetchData = async () => {
-//             setIsLoading(true);
-//             setError(null);
-//             try {
-//                 // Sửa: Gọi 3 API song song
-//                 const [treeResponse, productsResponse, filtersResponse] = await Promise.all([
-//                     axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`), // API lấy cây danh mục
-//                     axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
-//                         params: { sort, page } // API lấy sản phẩm
-//                     }),
-//                     axios.get<CategoryFilter[]>(`http://localhost/api/categories/${categoryId}/filters`) // API LẤY BỘ LỌC
-//                 ]);
-
-//                 setCategoryTree(treeResponse.data);
-//                 setProductResponse(productsResponse.data);
-//                 setCategoryFilters(filtersResponse.data); // Cập nhật state bộ lọc
-
-//             } catch (err) {
-//                 console.error("Lỗi khi tải dữ liệu trang:", err);
-//                 setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
-//             } finally {
-//                 setIsLoading(false);
-//             }
-//         };
-
-//         fetchData();
-//     }, [categoryId, sort, page]); // Dependencies không đổi
-
-//     if (isLoading) {
-//         return <div className="container mx-auto text-center p-10">Đang tải...</div>;
-//     }
-
-//     if (error) {
-//         return <div className="container mx-auto text-center p-10 text-red-500">{error}</div>;
-//     }
-
-//     if (!productResponse || !categoryTree) {
-//         return <div className="container mx-auto text-center p-10">Không tìm thấy dữ liệu.</div>;
-//     }
-
-//     return (
-//         <div className="bg-gray-100 min-h-screen w-[1440px] mx-auto">
-//             <div className="container mx-auto py-4 grid grid-cols-1 lg:grid-cols-12 gap-5">
-//                 <aside className="col-span-1 lg:col-span-2">
-//                     {/* Sửa: Truyền cả 3 props xuống Sidebar */}
-//                     <CategorySidebar
-//                         categoryTree={categoryTree}
-//                         categoryFilters={categoryFilters}
-//                         activeCategoryId={parseInt(categoryId)}
-//                     />
-//                 </aside>
-//                 <main className="col-span-1 lg:col-span-10">
-//                     <CategoryProductView
-//                         products={productResponse.data}
-//                         pagination={{
-//                             total: productResponse.total,
-//                             currentPage: productResponse.current_page,
-//                             lastPage: productResponse.last_page
-//                         }}
-//                         categoryId={categoryId}
-//                     />
-//                 </main>
-//             </div>
-//         </div>
-//     );
-// }
 // app/(main)/categoryDetail/[categoryId]/page.tsx
 'use client';
 
@@ -266,6 +9,7 @@ import axios from 'axios';
 import CategoryProductView from '../components/CategoryProductView';
 import CategorySidebar from '../components/CategorySidebar';
 import CategorySlider from '../components/SliderCatergory';
+import { API_URL } from '@/lib/config';
 
 // ====================================================================
 // ĐỊNH NGHĨA TYPESCRIPT
@@ -317,11 +61,16 @@ function PageContent() {
             try {
                 // Gọi đồng thời 3 API cần thiết cho trang
                 const [treeResponse, productsResponse, filtersResponse] = await Promise.all([
-                    axios.get<Category[]>(`http://localhost/api/categorySubMenu/${categoryId}/products`),
-                    axios.get<PaginatedResponse<Product>>(`http://localhost/api/categories/${categoryId}/products`, {
+                    axios.get<Category[]>(`${API_URL}/categorySubMenu/${categoryId}/products`,
+                        {headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Content-Type': 'application/json'
+    }}
+                    ),
+                    axios.get<PaginatedResponse<Product>>(`${API_URL}/categories/${categoryId}/products`, {
                         params: apiParams
                     }),
-                    axios.get<CategoryFilter[]>(`http://localhost/api/categories/${categoryId}/filters`)
+                    axios.get<CategoryFilter[]>(`${API_URL}/categories/${categoryId}/filters`)
                 ]);
 
                 setCategoryTree(treeResponse.data);

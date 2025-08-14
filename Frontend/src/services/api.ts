@@ -1,8 +1,7 @@
 import { ProductVariant,ProductImage } from "@/types";
 import { getCookie } from "./auth";
+import { API_URL, WEB_URL } from "@/lib/config";
 
-export const API_BASE_URL = 'http://localhost/api';
-export const BASE_URL = 'http://localhost';
 interface ProductWithImages {
     images?: ProductImage[] | null;
 }
@@ -78,7 +77,7 @@ export const getProductAttributes = async (productId: number) => {
 };
 export const api = {
     post: async (endpoint: string, data: any) => {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,7 +89,7 @@ export const api = {
     },
     // Add other HTTP methods (get, put, delete, etc.) as needed
     get: async (endpoint: string) => { // Add get method
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const response = await fetch(`${API_URL}${endpoint}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -105,7 +104,6 @@ export const api = {
  * HÀM 1: Lấy URL đầy đủ cho các ảnh do người dùng UPLOAD (trong thư mục storage).
  * Ví dụ: ảnh đại diện, ảnh sản phẩm.
  * @param storagePath - Đường dẫn tương đối trong thư mục storage (ví dụ: 'avatars/user1.png')
- * @returns URL đầy đủ (ví dụ: 'http://localhost/storage/avatars/user1.png')
  */
 export const getStorageImageUrl = (storagePath: string | null | undefined): string => {
     if (!storagePath) {
@@ -117,13 +115,12 @@ export const getStorageImageUrl = (storagePath: string | null | undefined): stri
     }
 
     const path = storagePath.startsWith('/') ? storagePath.substring(1) : storagePath;
-    return `${BASE_URL}/storage/${path}`;
+    return `${WEB_URL}/storage/${path}`;
 };
 /**
  * HÀM 2 (MỚI): Lấy URL đầy đủ cho các ảnh TĨNH (trong thư mục public).
  * Ví dụ: ảnh banner, ảnh category mặc định.
  * @param publicPath - Đường dẫn tương đối trong thư mục public (ví dụ: 'images/categories/category_amthanh.png')
- * @returns URL đầy đủ (ví dụ: 'http://localhost/images/categories/category_amthanh.png')
  */
 export const getPublicImageUrl = (publicPath: string | null | undefined): string => {
     if (!publicPath) {
@@ -136,7 +133,7 @@ export const getPublicImageUrl = (publicPath: string | null | undefined): string
     
     // File trong public được truy cập trực tiếp từ URL gốc
     const path = publicPath.startsWith('/') ? publicPath.substring(1) : publicPath;
-    return `${BASE_URL}:8001/${path}`;
+    return `${WEB_URL}/${path}`;
 };
 
 

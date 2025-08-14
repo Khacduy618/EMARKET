@@ -220,7 +220,7 @@ function AddressSidePanel({
 // =                Component Chính: ProfileAddress                  =
 // ===================================================================
 export default function ProfileAddress() {
-    const { data: addressData, error, mutate, isLoading } = useSWR('/api/user/addresses', fetchUserAddresses);
+    const { data: addressData, error, mutate, isLoading } = useSWR('/user/addresses', fetchUserAddresses);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
     const [isPanelOpen, setIsPanelOpen] = useState(false);

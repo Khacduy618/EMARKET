@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
 import { getAuthToken, getFullImageUrl } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 interface Variant {
   VariantID: number
@@ -61,10 +62,10 @@ export default function ProductDetailModal({
     const fetchDetail = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`http://localhost/api/admin/products/${productId}`, {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
+        const res = await fetch(`${API_URL}/admin/products/${productId}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include', // Quan trọng để gửi cookie
         })
         const json = await res.json()
         if (json.status) {

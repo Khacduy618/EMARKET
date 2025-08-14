@@ -2,6 +2,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image'; // Sử dụng Next.js Image component
+import { API_URL } from '@/lib/config';
 
 export interface ConversationMeta {
   mongo_conversation_id: string;
@@ -46,7 +47,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/my-conversations`, {
+        const response = await fetch(`${API_URL}/chat/my-conversations`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (!response.ok) {

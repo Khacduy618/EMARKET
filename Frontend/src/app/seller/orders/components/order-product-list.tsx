@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { WEB_URL } from "@/lib/config"
 import { Package } from "lucide-react"
 
 interface OrderItem {
@@ -42,7 +43,7 @@ export default function OrderProductList({ orderItems, formatCurrency }: OrderPr
                                     <img
                                         src={
                                             item.variant?.imageUrl
-                                                ? `http://localhost/storage/${item.variant.imageUrl}`
+                                                ? `${WEB_URL}/storage/${item.variant.imageUrl}`
                                                 : "/placeholder.svg?height=80&width=80&query=product"
                                          }
                                         alt={item.variant?.product?.name || "Sản phẩm"}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost/api',
+    baseURL: 'http://minhweb.click:8001/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

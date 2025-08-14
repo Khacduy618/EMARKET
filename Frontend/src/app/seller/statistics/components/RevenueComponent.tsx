@@ -30,6 +30,7 @@ import type { TimeRange } from "@/types/analytics"
 import { format } from "date-fns"
 import type { summaryDataChart } from "@/types/analytics"
 import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 const formatVND = (amount: number): string => new Intl.NumberFormat("vi-VN").format(amount)
 const formatVND2 = (amount: number): string =>
@@ -126,7 +127,7 @@ export default function ComponentRevenue() {
     if (!startDate || !endDate) return
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost/api/seller/statistics?${params}`, {
+      const res = await fetch(`${API_URL}/seller/statistics?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

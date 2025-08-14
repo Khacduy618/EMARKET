@@ -17,6 +17,8 @@ use App\Models\Voucher;
 use App\Models\UserVoucher;
 use Laravel\Sanctum\HasApiTokens;
 
+
+
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use App\Notifications\ResetPasswordNotification;

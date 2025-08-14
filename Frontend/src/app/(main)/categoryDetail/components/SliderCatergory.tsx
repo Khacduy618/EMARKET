@@ -14,6 +14,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
+import { API_URL } from '@/lib/config';
 
 // Định nghĩa kiểu dữ liệu cho Banner để code an toàn hơn
 interface Banner {
@@ -32,7 +33,10 @@ export default function CategorySlider() {
             try {
                 setIsLoading(true);
                 // Gọi API để lấy banner cho vị trí 'homepage_slider'
-                const response = await axios.get<Banner[]>('http://localhost/api/category_banner', {
+                const response = await axios.get<Banner[]>(`${API_URL}/category_banner`, {
+                    headers: {
+        'ngrok-skip-browser-warning': 'true'
+    },      
                     params: { position: 'homepage_slider' }
                 });
                 setBanners(response.data);
