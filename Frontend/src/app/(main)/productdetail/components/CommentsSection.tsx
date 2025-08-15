@@ -232,7 +232,14 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_URL}/products/${productId}/comments`);
+      const response = await axios.get(`${API_URL}/products/${productId}/comments`,
+        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+      );
       setComments(response.data);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -258,7 +265,12 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
       await axios.post(
         `${API_URL}/products/${productId}/comments`,
         { content: newComment },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
       );
       toast.success("Đã gửi bình luận!");
       setNewComment("");

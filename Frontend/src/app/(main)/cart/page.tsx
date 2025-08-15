@@ -352,7 +352,14 @@ const CartPage: React.FC = () => {
     const filterVariantsForEditing = useCallback(async (productId: number, selectedValueIds: number[]) => {
         // KHÔNG setVariantOptions(null) ở đây nữa để tránh nháy
         try {
-            const response = await axios.get(`${API_URL}/products/${productId}/variants/filter?attribute_values=${selectedValueIds.join(',')}`);
+            const response = await axios.get(`${API_URL}/products/${productId}/variants/filter?attribute_values=${selectedValueIds.join(',')}`,
+            {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+            );
             setVariantOptions(response.data.data);
         } catch (error) {
             showNotification('Không thể tải các tùy chọn phân loại.', 'error');

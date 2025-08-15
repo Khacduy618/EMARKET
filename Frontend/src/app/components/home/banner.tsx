@@ -30,7 +30,14 @@ const HeroBannerSlider: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<{ data: IHome.Banner[] }>(URL);
+                const response = await axios.get<{ data: IHome.Banner[] }>(URL,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
                 const now = new Date();
 
                 // Dữ liệu từ API đã là { data: [...] }

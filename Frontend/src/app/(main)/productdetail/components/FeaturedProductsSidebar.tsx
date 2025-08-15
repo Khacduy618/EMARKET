@@ -122,7 +122,14 @@ export default function RelatedProductsSidebar({ currentProductId }: RelatedProd
             try {
                 // Gọi API sản phẩm liên quan với ID được truyền vào
                 const apiUrl = `${API_URL}/featuredRelated-products/${currentProductId}`;
-                const response = await axios.get<Product[]>(apiUrl);
+                const response = await axios.get<Product[]>(apiUrl,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
 
                 // Dữ liệu trả về đã là mảng sản phẩm, không cần .flatMap
                 setProducts(response.data);

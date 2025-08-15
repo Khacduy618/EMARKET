@@ -62,15 +62,30 @@ function PageContent() {
                 // Gọi đồng thời 3 API cần thiết cho trang
                 const [treeResponse, productsResponse, filtersResponse] = await Promise.all([
                     axios.get<Category[]>(`${API_URL}/categorySubMenu/${categoryId}/products`,
-                        {headers: {
-        'ngrok-skip-browser-warning': 'true',
-        'Content-Type': 'application/json'
-    }}
+                        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
                     ),
                     axios.get<PaginatedResponse<Product>>(`${API_URL}/categories/${categoryId}/products`, {
-                        params: apiParams
+                        params: apiParams,
+                        
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                
                     }),
-                    axios.get<CategoryFilter[]>(`${API_URL}/categories/${categoryId}/filters`)
+                    axios.get<CategoryFilter[]>(`${API_URL}/categories/${categoryId}/filters`,
+                        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                    )
                 ]);
 
                 setCategoryTree(treeResponse.data);

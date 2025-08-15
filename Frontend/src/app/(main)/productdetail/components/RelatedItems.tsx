@@ -50,7 +50,12 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
 
                 // === SỬA ĐỔI 2: ĐƠN GIẢN HÓA VIỆC GỌI API ===
                 // Cho axios biết API trả về một mảng Product.
-                const response = await axios.get<Product[]>(apiUrl);
+                const response = await axios.get<Product[]>(apiUrl,{
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                });
 
 
                 // === SỬA ĐỔI 3: XỬ LÝ DỮ LIỆU SAU KHI GỌI API ===

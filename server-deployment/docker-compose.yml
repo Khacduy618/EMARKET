@@ -1,0 +1,45 @@
+# server-deployment/docker-compose.yml
+version: '3.8'
+
+services:
+  backend:
+    image: khduy555/backend:latest # <-- Sửa username
+    container_name: backend-app
+    restart: unless-stopped
+    volumes:
+      - backend_storage:/var/www/html/storage # Volume để lưu trữ file upload
+    env_file:
+      - ./backend.env # File chứa các biến môi trường cho Laravel
+    networks:
+      - app-network
+
+  frontend:
+    image: khduy555/frontend:latest # <-- Sửa username
+    container_name: frontend-app
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot:rw
+      - ./certbot/conf:/etc/letsencrypt:rw
+    networks:
+      - app-network
+    depends_on:
+      - frontend
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  backend_storage:

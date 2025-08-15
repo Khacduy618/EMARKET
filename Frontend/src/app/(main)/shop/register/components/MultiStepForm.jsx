@@ -66,11 +66,13 @@ export default function SellerRegisterForm() {
                     `${API_URL}/seller/register`,
                     formData,
                     {
-                        headers: {
-                            'Content-Type': 'multipart/form-data', 
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }
+                    headers: {
+                        'Content-Type': 'multipart/form-data', 
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                  
                   );
                 setSuccess(response.data.message || 'Đăng ký thành công!');
                 setTimeout(() => router.push('/'), 2000);

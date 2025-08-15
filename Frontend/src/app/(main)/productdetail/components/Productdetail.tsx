@@ -156,7 +156,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`${API_URL}/productDetail/${productId}`);
+                const response = await axios.get(`${API_URL}/productDetail/${productId}`,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
                 const productData: Product = response.data;
                 setProduct(productData);
 

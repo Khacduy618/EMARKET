@@ -19,9 +19,12 @@ import { toast } from 'react-toastify';
 import { API_URL } from '@/lib/config';
 
 // --- Fetcher cho SWR (Sử dụng phiên bản an toàn hơn từ Code 1) ---
-const fetcher = (url: string) => axios.get(url, {headers: {
-        'ngrok-skip-browser-warning': 'true'
-    },}).then(res => {
+const fetcher = (url: string) => axios.get(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }).then(res => {
     // API có thể trả về { success: true, data: [...] } hoặc data trực tiếp
     if (res.data && typeof res.data.data !== 'undefined') {
         return res.data.data;

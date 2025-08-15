@@ -103,11 +103,11 @@ export default function SellerRegisterForm() {
         try {
             const token = getAuthToken()
             const response = await axios.post(`${API_URL}/seller/register`, formData, {
-                headers: {
-                    "Content-Type": "application/json",
-                    'Authorization': `Bearer ${token}`,
-                },
-            })
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                })
 
             setSuccess(response.data.message || "Đăng ký thành công!")
             setTimeout(() => router.push("/seller/dashboard"), 2000)

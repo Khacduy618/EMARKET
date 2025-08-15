@@ -1,0 +1,52 @@
+{
+    "name": "appstract/laravel-opcache",
+    "description": "PHP OPcache Artisan commands for Laravel.",
+    "keywords": [
+        "appstract",
+        "opcache",
+        "laravel",
+        "php"
+    ],
+    "homepage": "https://github.com/appstract/laravel-opcache",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Olav van Schie",
+            "email": "mail@appstract.nl",
+            "homepage": "https://appstract.nl",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.5",
+        "laravel/framework": ">=7.0",
+        "guzzlehttp/guzzle": "^6.3.1|^7.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^5.0",
+        "phpunit/phpunit": "^8.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Appstract\\Opcache\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Appstract\\Opcache\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Appstract\\Opcache\\OpcacheServiceProvider"
+            ]
+        }
+    }
+}

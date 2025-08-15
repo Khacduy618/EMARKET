@@ -71,6 +71,12 @@ export default function PopularProducts() {
                     limit: productsPerPage,
                     sortBy: sort,
                 },
+                
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                
             })
 
             const apiResponse = response.data

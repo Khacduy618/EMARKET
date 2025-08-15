@@ -239,19 +239,16 @@ Route::post('/login-token', function (Request $request) {
     $request->validate([
         'email' => 'required|email',
         'password' => 'required',
-        'device_name' => 'required', // Tên của thiết bị, ví dụ: "Postman Test"
+        'device_name' => 'required', 
     ]);
 
-    // Kiểm tra thông tin đăng nhập
     if (!Auth::attempt($request->only('email', 'password'))) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
     $user = Auth::user();
-    // Xóa các token cũ nếu muốn
-    // $user->tokens()->delete();
     
-    // Tạo token mới
+    
     $token = $user->createToken($request->device_name)->plainTextToken;
 
     return response()->json([

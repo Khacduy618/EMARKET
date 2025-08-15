@@ -63,7 +63,14 @@ export default function ProductDescription({ productId }: ProductDescriptionProp
 
             try {
                 console.log(`[CLIENT-SIDE FETCH] Attempting to connect to: ${apiUrl}`);
-                const response = await axios.get(apiUrl);
+                const response = await axios.get(apiUrl,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
                 setProduct(response.data);
             } catch (err) {
                 console.error(`[CLIENT-SIDE FETCH] Failed for ID ${productId}. URL: ${apiUrl}. Error:`, err);

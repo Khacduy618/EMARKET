@@ -27,7 +27,14 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
     // Không set loading ở đây nữa để tránh giật màn hình khi fetch lại
     setError(null);
     try {
-      const res = await axios.get(`${API_URL}/product/${productId}/reviews`);
+      const res = await axios.get(`${API_URL}/product/${productId}/reviews`,
+        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+      );
       setReviews(res.data.reviews);
       setRatingStats(res.data.ratingStats);
     } catch (err: any) {

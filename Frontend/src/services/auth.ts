@@ -92,7 +92,7 @@ export const login = async (credentials: LoginPayload): Promise<LoginResponse> =
 
 export const getMe = async (): Promise<User> => {
     const response = await fetch(`${API_URL}/me`, {
-        method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
+        method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json','Content-Type': 'application/json' },
     });
     return handleResponse<User>(response);
 };
