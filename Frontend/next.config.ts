@@ -3,14 +3,22 @@ import type { NextConfig } from 'next';
 const nextConfig = {
   images: {
     remotePatterns: [
-      // Cho phép ảnh từ backend local
+      // Cho phép ảnh từ backend local (Laravel)
       {
         protocol: 'http',
-        hostname: 'localhost:8001',
-        port: '8001',
+        hostname: 'localhost',
+        port: '8001', // Đảm bảo port khớp với server Laravel
         pathname: '/storage/**', // Cho phép tất cả các đường dẫn bên trong /storage
       },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8000', // Thêm port 8000 cho 127.0.0.1 nếu cần
+        pathname: '/storage/**',
+      },
       // Cho phép ảnh từ các nguồn bên ngoài khác
+    
+      { protocol: 'https', hostname: 'store.sony.com.vn' },
       { protocol: 'https', hostname: 'store.sony.com.vn' },
       { protocol: 'https', hostname: 'theson.vn' },
       { protocol: 'https', hostname: 'cdn.hoanghamobile.com' },
@@ -21,6 +29,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'down-vn.img.susercontent.com' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: 'picsum.photos' },
+      //webhook img url ; 
     ],
   },
 

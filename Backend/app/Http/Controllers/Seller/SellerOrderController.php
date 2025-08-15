@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\OrderBuyer;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // ✅ để ở đây
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log; // ✅ để ở đây
 
 class SellerOrderController extends Controller
 {
@@ -123,6 +123,9 @@ class SellerOrderController extends Controller
                     ] : null,
                 ];
             })->values(),
+            'proof_image1' => $order->proof_image1, 
+            'proof_image2' => $order->proof_image2, 
+            'reason'       => $order->Reason,
         ];
 
         return response()->json($transformedData);
@@ -176,31 +179,57 @@ class SellerOrderController extends Controller
         return response()->json(['message' => 'Lỗi tạo PDF: ' . $e->getMessage()], 500);
     }
 }
-   public function handle(Request $request)
-    {
-        // Log lại để kiểm tra nhận đúng chưa
-        Log::info('📦 Nhận webhook từ giao hàng:', $request->all());
 
-        // Validate dữ liệu đến
-        $validated = $request->validate([
-            'order_id' => 'required|string',
-            'status' => 'required|string',
-            'updated_at' => 'required|date',
-        ]);
 
-        // Cập nhật trạng thái đơn hàng trong hệ thống của seller
-        $order = OrderBuyer::where('OrderID', $validated['order_id'])->first();
+public function handle(Request $request)
+{
+    Log::info('>>>>>>> Received webhook from Shipping Manager:', $request->all());
 
-        if ($order) {
-            $order->OverallStatus = $validated['status'];
-            $order->UpdatedAt = $validated['updated_at']; // Nếu có cột riêng
-            $order->save();
+    $status   = $request->input('status');
+    $order_code = $request->input('order_id');
 
-            return response()->json(['message' => 'Order updated'], 200);
-        } else {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
+    // Base rules áp dụng cho tất cả status
+    $baseRules = [
+        'order_id' => 'required|string',
+        'status'   => 'required|string',
+    ];
+
+    // Custom rules tùy theo status
+    $customRules = [];
+
+    if ($status === 'Delivered') {
+        $customRules = [
+            'proof_image1' => 'required|string',
+            'proof_image2' => 'required|string',
+        ];
+    } elseif (in_array($status, ['DeliveryFailed', 'CancelledByBuyer'])) {
+        $customRules = [
+            'reason' => 'required|string|max:255',
+        ];
     }
+    
+    // Validate dữ liệu
+    $validated = $request->validate(array_merge($baseRules, $customRules));
+
+    // Lấy order
+     $order = OrderBuyer::where('OrderCode', $order_code)->first();
+    if (!$order) {
+        return response()->json(['message' => 'Order not found'], 404);
+    }
+
+    // Cập nhật dữ liệu
+    $order->update([
+        'OverallStatus' => $status,
+        'proof_image1'  => $validated['proof_image1'] ?? null,
+        'proof_image2'  => $validated['proof_image2'] ?? null,
+        'reason'        => $validated['reason'] ?? null,
+    ]);
+
+    Log::info("✅ Order {$order_code} updated to status {$status}");
+
+    return response()->json(['message' => 'Order updated successfully'], 200);
+}
+
     public function shipOrder($orderId)
 {
     $order = OrderBuyer::find($orderId);

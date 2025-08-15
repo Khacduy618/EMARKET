@@ -1050,7 +1050,7 @@ export default function ShopeeAddProductPage() {
                                             />
                                         </svg>
                                     </div>
-                                    <span className="text-sm font-medium">duynguykhc8</span>
+                                    <span className="text-sm font-medium">tên cửa hàng</span>
                                     <button className="ml-auto px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
                                         Xem
                                     </button>
