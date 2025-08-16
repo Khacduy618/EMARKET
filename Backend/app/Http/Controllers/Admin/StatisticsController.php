@@ -12,12 +12,15 @@ class StatisticsController extends Controller
 {
   function calculateChange($current, $previous)
   {
+    $current = (int) ($current ?? 0);
+    $previous = (int) ($previous ?? 0);
+    
     if ($previous == 0) {
       if ($current == 0) {
         $percent = 0;
         $type = 'no_change';
       } else {
-        $percent = null; 
+        $percent = null;
         $type = 'increase';
       }
     } else {
@@ -59,8 +62,19 @@ class StatisticsController extends Controller
       }
     }
 
-    $result = caculater($shopID, $startDate, $endDate);
-    $resultPrev = caculater($shopID, $startPrev, $endPrev);
+    $result = caculater($shopID, $startDate, $endDate) ?? (object) [
+      'sold_products' => 0,
+      'returned_products' => 0,
+      'cancel_products' => 0,
+      'total_products' => 0
+    ];
+
+    $resultPrev = caculater($shopID, $startPrev, $endPrev) ?? (object) [
+      'sold_products' => 0,
+      'returned_products' => 0,
+      'cancel_products' => 0,
+      'total_products' => 0
+    ];
 
     $arr = [
       [
@@ -140,8 +154,17 @@ class StatisticsController extends Controller
       }
     }
 
-    $result = caculater2($shopID, $startDate, $endDate);
-    $resultPrev = caculater2($shopID, $startPrev, $endPrev);
+    $result = caculater2($shopID, $startDate, $endDate) ?? (object) [
+      'sold_orders' => 0,
+      'returned_orders' => 0,
+      'cancel_orders' => 0
+    ];
+
+    $resultPrev = caculater2($shopID, $startPrev, $endPrev) ?? (object) [
+      'sold_orders' => 0,
+      'returned_orders' => 0,
+      'cancel_orders' => 0
+    ];
 
     $arr = [
       [
@@ -268,8 +291,8 @@ class StatisticsController extends Controller
     }
 
     $RevenueData = (object) [
-      "current" => $summaryByShop->TotalRevenue,
-      "previous" => $summaryByShop2->TotalRevenue
+      "current" => (int) ($summaryByShop->TotalRevenue ?? 0),
+      "previous" => (int) ($summaryByShop2->TotalRevenue ?? 0)
     ];
 
     // Single order pie chart calculator
