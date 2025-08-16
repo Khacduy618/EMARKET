@@ -59,9 +59,10 @@ interface TransformedOrderDetail {
             }
         }
     }>
-    proof_image1?: string | null // Thêm trường ảnh minh chứng 1
-    proof_image2?: string | null // Thêm trường ảnh minh chứng 2
-    reason?: string | null // Thêm trường lý do
+    proof_image1?: string | null
+    proof_image2?: string | null
+    reason?: string | null
+    delivery_date?: string | null
 }
 
 export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
@@ -91,6 +92,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                         proof_image1: data.proof_image1 || null,
                         proof_image2: data.proof_image2 || null,
                         reason: data.reason || null,
+                        delivery_date: data.delivery_date || null, // Ánh xạ trường delivery_date
                     })
                 } catch (err: any) {
                     setError(err.response?.data?.message || "Không thể tải dữ liệu đơn hàng.")
@@ -203,10 +205,19 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                         <OrderCustomerInfo user={order.user} />
 
                         {order.overallStatus === "Delivered" && (order.proof_image1 || order.proof_image2) && (
-                            <ProofImagesGallery proof_image1={order.proof_image1} proof_image2={order.proof_image2} />
+                            <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                                <h4 className="text-md font-medium mb-2 text-gray-800">Thông tin giao hàng</h4>
+                                {order.delivery_date && (
+                                    <p className="text-gray-600 mb-2">
+                                        <span className="font-medium">Ngày giao hàng:</span>{" "}
+                                        {formatDate(order.delivery_date)}
+                                    </p>
+                                )}
+                                <ProofImagesGallery proof_image1={order.proof_image1} proof_image2={order.proof_image2} />
+                            </div>
                         )}
 
-                        {/* Khối lý do hủy nếu trạng thái là CancelByUser */}
+                        {/* Khối lý do hủy nếu trạng thái là CancelledByUser */}
                         {order.overallStatus === "CancelledByUser" && order.reason && (
                             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
                                 <h4 className="text-md font-medium mb-2 text-yellow-800">Lý do hủy đơn:</h4>

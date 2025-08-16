@@ -9,9 +9,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request; // ✅ để ở đây
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log; // ✅ để ở đây
-
+use App\Services\WebhookService; 
 class SellerOrderController extends Controller
 {
+     protected $webhookService;
+
+    public function __construct(WebhookService $webhookService)
+    {
+        $this->webhookService = $webhookService;
+    }
    public function index(Request $request)
 {
     $shop = Shop::where('UserID', Auth::id())->firstOrFail();
@@ -21,14 +27,24 @@ class SellerOrderController extends Controller
     }
 
     $shopId = $shop->ShopID;
-    $status = $request->query('status'); // lấy status từ query
+    $status = $request->query('status'); // Lấy status từ query
+    $searchTerm = $request->query('search'); // Lấy search term từ query
 
     $ordersQuery = OrderBuyer::whereHas('orderItems.variant.product', function ($query) use ($shopId) {
         $query->where('ShopID', $shopId);
     });
 
+    // Lọc theo trạng thái
     if ($status && $status !== 'all') {
         $ordersQuery->where('OverallStatus', $status);
+    }
+
+    // Lọc theo mã đơn hàng hoặc tên khách hàng
+    if ($searchTerm) {
+        $ordersQuery->where(function ($query) use ($searchTerm) {
+            $query->where('OrderCode', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('ShippingFullName', 'like', '%' . $searchTerm . '%');
+        });
     }
 
     $orders = $ordersQuery
@@ -125,7 +141,8 @@ class SellerOrderController extends Controller
             })->values(),
             'proof_image1' => $order->proof_image1, 
             'proof_image2' => $order->proof_image2, 
-            'reason'       => $order->Reason,
+            'reason'       => $order->reason,
+            'delivery_date' => $order->delivery_date,
         ];
 
         return response()->json($transformedData);
@@ -163,7 +180,29 @@ class SellerOrderController extends Controller
 
     public function printShippingLabel($orderId)
 {
-    $order = OrderBuyer::find($orderId);
+   $user = Auth::user();
+        $shop = $user->shop;
+
+        if (!$shop) {
+            return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 403);
+        }
+    $shopId = $shop->ShopID;
+    $order = OrderBuyer::where('OrderID', $orderId)
+            ->whereHas('orderItems.variant.product', function ($query) use ($shopId) {
+                $query->where('ShopID', $shopId);
+            })
+            ->with([
+                'user:UserID,Username,Email',
+                'address',
+                'orderItems' => function ($query) use ($shopId) {
+                    $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
+                        $subQuery->where('ShopID', $shopId);
+                    });
+                },
+                'orderItems.variant:VariantID,SKU,ImageURL,ProductID',
+                'orderItems.variant.product:ProductID,Name'
+            ])
+            ->firstOrFail();
     if (!$order) {
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
@@ -187,7 +226,7 @@ public function handle(Request $request)
 
     $status   = $request->input('status');
     $order_code = $request->input('order_id');
-
+    $deliver_date = $request->input('deliver_date');
     // Base rules áp dụng cho tất cả status
     $baseRules = [
         'order_id' => 'required|string',
@@ -223,25 +262,48 @@ public function handle(Request $request)
         'proof_image1'  => $validated['proof_image1'] ?? null,
         'proof_image2'  => $validated['proof_image2'] ?? null,
         'reason'        => $validated['reason'] ?? null,
+        'delivery_date' => $deliver_date ?? null,
     ]);
 
     Log::info("✅ Order {$order_code} updated to status {$status}");
 
     return response()->json(['message' => 'Order updated successfully'], 200);
 }
+ public function shipOrder($orderId)
+    {
+        $order = OrderBuyer::find($orderId);
+        if (!$order) {
+            return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+        }
+        if ($order->OverallStatus !== 'Processing') {
+            return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
+        }
 
-    public function shipOrder($orderId)
-{
-    $order = OrderBuyer::find($orderId);
-    if (!$order) {
-        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
-    }
-    if ($order->OverallStatus !== 'Processing') {
-        return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
-    }
-    $order->OverallStatus = 'Shipped';
-    $order->save();
+        $order->OverallStatus = 'Shipped';
+        $order->save();
 
-    return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
-}
+        // Lấy thông tin seller và địa chỉ giao hàng
+        $shop = Shop::where('UserID', Auth::id())->firstOrFail();
+        $seller = $shop->ShopName ?? 'Unknown Seller';
+        $sellerPhone = $shop->ShopPhone ?? 'Unknown Phone';
+        $shippingAddress = $order->address ? implode(', ', array_filter([
+            $order->address->Street,
+            $order->address->Ward,
+            $order->address->District,
+            $order->address->City,
+        ])) : 'Unknown Address';
+
+        // Chuẩn bị payload cho webhook
+        $payload = [
+            'order_code' => $order->OrderCode,
+            'seller' => $seller,
+            'seller_phone' => $sellerPhone,
+            'shipping_address' => $shippingAddress,
+        ];
+
+        // Gửi webhook sang app giao hàng
+        $this->webhookService->sendWebhook($payload);
+
+        return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
+    }
 }
