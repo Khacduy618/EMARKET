@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { da } from "date-fns/locale"
 import Link from "next/link";
 import { Calendar, Package } from "lucide-react"
-import { getAuthToken } from "@/services/api"
+import { API_BASE_URL, getAuthToken } from "@/services/api"
 
 
 type Order = {
@@ -35,12 +35,9 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
     if (show && date) {
       setLoading(true)
       setError(null)
-      fetch(`http://localhost/api/seller/orderss?date=${encodeURIComponent(date)}`, {
+      fetch(`${API_BASE_URL}/seller/orderss?date=${encodeURIComponent(date)}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
+        credentials: 'include',
       })
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)

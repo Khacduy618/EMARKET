@@ -1,5 +1,6 @@
 "use client"
 
+import { da } from "date-fns/locale"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 
 interface SalesData {
@@ -18,7 +19,6 @@ interface ChartData {
 interface RevenueChartProps {
   summaryByDate: SalesData[] | null
   loading: boolean
-
 }
 
 export default function RevenueChart({ summaryByDate, loading }: RevenueChartProps) {
@@ -27,7 +27,7 @@ export default function RevenueChart({ summaryByDate, loading }: RevenueChartPro
     date: item.OrderDate?.slice(0, 10) || "",
     revenue: item.TotalRevenue || 0,
     orders: item.OrderNumber || 0,
-  }))
+  })).reverse();
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("vi-VN", {

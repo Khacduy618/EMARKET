@@ -29,8 +29,9 @@ export interface RegionData {
 }
 
 export interface summaryDataChart {
-  Returned: number
   Completed: number
+  Returned: number
   Cancelled: number
 }
+
 export type TimeRange = "day" | "week" | "month"

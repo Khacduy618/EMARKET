@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import Link from "next/link";
-import { getAuthToken } from "@/services/api"
+import { API_BASE_URL, getAuthToken } from "@/services/api"
 
 type OrderAction = "orderCompleted" | "orderReturn" | "orderCancel"
 
@@ -88,14 +88,10 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
         limit: pageSize.toString(),
       })
 
-      const response = await fetch(`http://localhost/api/seller/statistics/orders?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/seller/statistics/orders?${params}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
+        credentials: 'include',
       })
-      console.log(response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

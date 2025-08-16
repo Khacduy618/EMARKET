@@ -85,18 +85,15 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     try {
       const res = await fetch(API_BASE_URL + "/admin/categories/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         credentials: 'include',
         body: formData,
       })
 
       const result = await res.json()
-      if (res.ok && result.success) {
+      if (res.ok) {
         onCreated()
         setName("")
-        setParentId("0") // Updated default value to '0'
+        setParentId("0") 
         setImageFile(null)
         setImagePreview("")
         onHide()
@@ -133,7 +130,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
                   <SelectValue placeholder="--- Danh mục cấp cao nhất ---" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">--- Danh mục cấp cao nhất ---</SelectItem> {/* Updated value to '0' */}
+                  <SelectItem value="0">--- Danh mục cấp cao nhất ---</SelectItem>
                   {renderOptions(categories)}
                 </SelectContent>
               </Select>

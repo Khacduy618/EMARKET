@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig = {
   images: {
+    domains: ['localhost'],
     remotePatterns: [
       // Cho phép ảnh từ backend local
       {

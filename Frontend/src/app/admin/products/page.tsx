@@ -55,6 +55,7 @@ const formatDate = (isoDate: string) => {
 }
 
 import { API_BASE_URL, getAuthToken } from "@/services/api"
+import { truncateText } from "@/utils";
 
 export default function ProductListPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -486,7 +487,7 @@ export default function ProductListPage() {
                                 </Avatar>
                                 <div className="min-w-0 flex-1">
                                   <p className="font-medium text-gray-900 text-sm">
-                                    {prod.Name.split(' ').slice(0, 5).join(' ') + (prod.Name.split(' ').length > 5 ? '...' : '')}
+                                    {truncateText(prod.Name)}
                                   </p>
                                   <p className="text-xs text-gray-500">ID: {prod.ProductID}</p>
                                 </div>

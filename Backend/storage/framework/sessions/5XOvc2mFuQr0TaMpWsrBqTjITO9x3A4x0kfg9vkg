@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:Backend/storage/framework/sessions/4S18Uc2uYQfNR9OmEdAIIjPsP5Hip2aUDLaeBOOm
-a:3:{s:6:"_token";s:40:"XH5eWvHaVlI1l8k7ZxQBeujFolwluA7JTtG2vjIa";s:9:"_previous";a:1:{s:3:"url";s:34:"http://localhost:8001/api/category";}s:6:"_flash";a:2:{s:3:"old";a:0:{}s:3:"new";a:0:{}}}
-========
-a:3:{s:6:"_token";s:40:"s8nr3HVvlECXcapXBSuZYwTy4jbd3rXXckgNI5r3";s:9:"_previous";a:1:{s:3:"url";s:34:"http://localhost:8001/api/category";}s:6:"_flash";a:2:{s:3:"old";a:0:{}s:3:"new";a:0:{}}}
->>>>>>>> 67735eb71dcf27b6ee3644fa19a9ef1eb562dcda:Backend/storage/framework/sessions/5XOvc2mFuQr0TaMpWsrBqTjITO9x3A4x0kfg9vkg

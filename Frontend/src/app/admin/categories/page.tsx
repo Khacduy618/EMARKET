@@ -48,13 +48,10 @@ export default function CategoryPage() {
       const res = await fetch(
         `${API_BASE_URL}/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: 'include', 
         },
       )
-
+   
       const res2 = await fetch(API_BASE_URL + "/admin/categories/getAllCategory", {
         headers: {
             "Content-Type": "application/json",
@@ -173,10 +170,6 @@ export default function CategoryPage() {
     <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-3xl font-bold text-gray-900">Quản lý danh mục</h4>
-            <p className="text-gray-600 mt-1">Quản lý cây danh mục sản phẩm của shop</p>
-          </div>
           <Button
             onClick={() => setShowCreateModal(true)}
             className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
@@ -225,7 +218,7 @@ export default function CategoryPage() {
                       placeholder="Tìm kiếm danh mục..."
                       value={keyword}
                       onChange={(e) => handleSearchChange(e.target.value)}
-                      className="pl-20 w-64"
+                      className="pl-4 w-64"
                     />
                   </div>
                   <Select value={displayQuantity.toString()} onValueChange={handleQuantityChange}>
@@ -379,22 +372,6 @@ export default function CategoryPage() {
           />
         )}
       </div>
-
-      {/* ToastContainer */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        toastClassName="!bg-white !text-gray-900 !shadow-lg !border"
-        progressClassName="!bg-orange-500"
-      />
     </>
   )
 }
