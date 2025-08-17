@@ -21,6 +21,7 @@ import {
   Users,
   Star,
   Eye,
+  ShipIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,6 +42,7 @@ const sidebarItems = [
   { icon: Home, label: "Trang chủ", active: true },
   { icon: Package, label: "Quản lý sản phẩm", badge: "12" },
   { icon: ShoppingCart, label: "Quản lý đơn hàng", badge: "5" },
+  { icon: ShipIcon, label: "Quản lý trả hàng & hoàn tiền", badge: "8" },
   { icon: BarChart3, label: "Thống kê bán hàng" },
   { icon: Megaphone, label: "Marketing & Khuyến mãi" },
   { icon: Wallet, label: "Tài chính" },

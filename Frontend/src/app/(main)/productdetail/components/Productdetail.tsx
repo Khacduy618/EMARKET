@@ -542,7 +542,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
         setIsProcessingBuyNow(true);
         try {
-            const response = await fetch(`${API_URL}/orders/buy-now`, {
+            const response = await fetch(`http://localhost:3000/orders/buy-now`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

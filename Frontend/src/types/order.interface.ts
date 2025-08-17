@@ -26,7 +26,7 @@ export type OrderStatus =
 // Trạng thái cho UI tab OrderHistory
 export type OrderTabStatus =
   'all' | 'PendingPayment' | 'Processing' | 'Shipped' |
-  'Completed' | 'Cancelled' | 'ReturnedRefunded';
+  'Completed' | 'Cancelled' | 'ReturnedRefunded' | 'Delivered';
 
 
 export type ReturnItemStatus =

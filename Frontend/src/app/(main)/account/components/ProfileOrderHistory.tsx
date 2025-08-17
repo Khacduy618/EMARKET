@@ -17,7 +17,8 @@ const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
     all: [],
     PendingPayment: ['Pending'],
     Processing: ['Processing'],
-    Shipped: ['Shipped', 'Delivered'],
+    Shipped: ['Shipped'],
+    Delivered: ['Delivered'],
     Completed: ['Completed'],
     Cancelled: ['CancelledByBuyer', 'CancelledBySeller'],
     ReturnedRefunded: ['Returned', 'ReturnInProgress'],
@@ -25,10 +26,10 @@ const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
 
 export default function ProfileOrderHistory() {
     const searchParams = useSearchParams();
-    
+
     // State gốc để lưu toàn bộ đơn hàng từ API
     const [allOrders, setAllOrders] = useState<Order[]>([]);
-    
+
     // UI states
     const [activeTab, setActiveTab] = useState<OrderTabStatus>('Completed');
     const [loading, setLoading] = useState(true);
@@ -45,29 +46,29 @@ export default function ProfileOrderHistory() {
     // Effect để lấy dữ liệu từ API
     useEffect(() => {
         const fetchOrders = async () => {
-       try {
-    // Giả sử bạn đã tạo hàm getMyOrders() trong service
-        const responseData = await getMyOrders(); // Gọi hàm service
+            try {
+                // Giả sử bạn đã tạo hàm getMyOrders() trong service
+                const responseData = await getMyOrders(); // Gọi hàm service
 
-        // Kiểm tra xem responseData có phải là object và có thuộc tính 'data' là mảng không
-        if (responseData && Array.isArray(responseData)) {
-            setAllOrders(responseData); // CHỈ LẤY MẢNG NẰM TRONG THUỘC TÍNH `data`
-        } else if (Array.isArray(responseData)) {
-            // Trường hợp API trả về mảng trực tiếp (ít khả năng nếu có phân trang)
-            setAllOrders(responseData);
-        } else {
-            // Nếu API trả về cấu trúc không mong muốn, gán mảng rỗng để tránh lỗi
-            console.error("API did not return an array of orders:", responseData);
-            setAllOrders([]);
-    }
+                // Kiểm tra xem responseData có phải là object và có thuộc tính 'data' là mảng không
+                if (responseData && Array.isArray(responseData)) {
+                    setAllOrders(responseData); // CHỈ LẤY MẢNG NẰM TRONG THUỘC TÍNH `data`
+                } else if (Array.isArray(responseData)) {
+                    // Trường hợp API trả về mảng trực tiếp (ít khả năng nếu có phân trang)
+                    setAllOrders(responseData);
+                } else {
+                    // Nếu API trả về cấu trúc không mong muốn, gán mảng rỗng để tránh lỗi
+                    console.error("API did not return an array of orders:", responseData);
+                    setAllOrders([]);
+                }
 
-} catch (err: any) {
-    setError(err.message);
-    setAllOrders([]); // Khi có lỗi cũng nên reset về mảng rỗng
-} finally {
-    setLoading(false);
-}
-    };
+            } catch (err: any) {
+                setError(err.message);
+                setAllOrders([]); // Khi có lỗi cũng nên reset về mảng rỗng
+            } finally {
+                setLoading(false);
+            }
+        };
         fetchOrders();
     }, []);
 
@@ -92,7 +93,8 @@ export default function ProfileOrderHistory() {
         { id: 'PendingPayment', name: 'Chờ thanh toán', count: getStatusCount('PendingPayment') },
         { id: 'Processing', name: 'Chờ giao hàng', count: getStatusCount('Processing') },
         { id: 'Shipped', name: 'Vận chuyển', count: getStatusCount('Shipped') },
-        { id: 'Completed', name: 'Hoàn thành', count: getStatusCount('Completed') },
+        { id: 'Delivered', name: 'Đã Gửi Hàng', count: getStatusCount('Delivered') },
+        { id: 'Completed', name: 'Đã hoàn thành', count: getStatusCount('Completed') },
         { id: 'Cancelled', name: 'Đã hủy', count: getStatusCount('Cancelled') },
         { id: 'ReturnedRefunded', name: 'Trả hàng/Hoàn tiền', count: getStatusCount('ReturnedRefunded') },
     ];
@@ -106,8 +108,8 @@ export default function ProfileOrderHistory() {
         .filter(order => { // Lọc theo search
             const lowerCaseQuery = searchQuery.toLowerCase().trim();
             if (!lowerCaseQuery) return true;
-            return order.OrderCode.toLowerCase().includes(lowerCaseQuery) || 
-                   (order.items && order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery)));
+            return order.OrderCode.toLowerCase().includes(lowerCaseQuery) ||
+                (order.items && order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery)));
         })
         .filter(order => { // Lọc theo ngày
             const orderDate = new Date(order.OrderDate);
@@ -144,7 +146,7 @@ export default function ProfileOrderHistory() {
     if (loading) {
         return <div className="flex justify-center items-center h-96"><Loader2 className="w-10 h-10 animate-spin text-orange-500" /></div>;
     }
-    
+
     if (error) {
         return <div className="text-center py-20 text-red-600 bg-red-50 p-4 rounded-lg">{error}</div>;
     }
@@ -152,14 +154,14 @@ export default function ProfileOrderHistory() {
     return (
         <div className="flex flex-col h-full bg-white">
             {/* Filter UI - Giữ nguyên giao diện của bạn */}
-             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-6">
                 <div className="flex flex-grow items-center gap-2">
                     <div className="relative flex items-center flex-grow min-w-0">
-                        <input type="date" className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} title="Từ ngày"/>
+                        <input type="date" className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} title="Từ ngày" />
                     </div>
                     <span className="flex-shrink-0 text-gray-500 self-center">đến</span>
                     <div className="relative flex items-center flex-grow min-w-0">
-                        <input type="date" className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} title="Đến ngày"/>
+                        <input type="date" className="w-full py-2.5 pl-3 pr-8 border border-gray-300 rounded-lg shadow-sm" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} title="Đến ngày" />
                     </div>
                 </div>
                 <select className="flex-shrink-0 w-full md:w-auto py-2.5 px-3 border border-gray-300 rounded-lg shadow-sm" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}>

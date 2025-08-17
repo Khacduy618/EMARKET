@@ -23,7 +23,7 @@ use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable ;
 
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
