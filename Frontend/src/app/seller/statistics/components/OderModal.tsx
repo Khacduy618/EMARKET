@@ -38,10 +38,7 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
       setError(null)
       fetch(`${API_URL}/seller/orderss?date=${encodeURIComponent(date)}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
+        credentials: 'include',
       })
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)

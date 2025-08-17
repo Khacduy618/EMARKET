@@ -94,9 +94,7 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     try {
       const res = await fetch(`${API_URL}/admin/categories/update`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
+        credentials: 'include',
         body: formData,
       })
 

@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
-  Menu,
-  Search,
   Bell,
   ChevronDown,
   User,
@@ -16,7 +14,6 @@ import {
   Star,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -27,11 +24,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Sidebar from "./Sidebar"
+import { adminSidebarItems, sidebarItems } from "@/constants/sidebarItems";
 import { useAuth } from "@/context/AuthContext"
+import { usePathname } from "next/navigation"
 
 interface user {
   UserID: number
@@ -52,14 +49,11 @@ interface user {
 }
 
 const Header = () => {
-  
-  const { user, logout , isLoading} = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-console.log("User data in Header:", user)
-  // const [loading, setLoading] = useState(true)
-  
- 
-const getDisplayName = () => {
+
+
+  const getDisplayName = () => {
     if (!user) return "Người dùng"
     return user.FullName || user.Username || "Người dùng"
   }
@@ -92,26 +86,20 @@ const getDisplayName = () => {
     }
   }
 
-  
+  const pathname = usePathname()
+
+  const allItems = [...sidebarItems, ...adminSidebarItems]
+
+  const currentPage = allItems.find(item => item.href === pathname)
+  const pageTitle = currentPage ? currentPage.label : "Không tìm thấy tiêu đề"
+
+
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-64">
-                <Sidebar />
-              </SheetContent>
-            </Sheet>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input placeholder="Tìm kiếm sản phẩm, đơn hàng..." className="pl-10 w-64 hidden md:block" />
-            </div>
+            <h1 className="text-lg font-semibold">{pageTitle}</h1>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -199,7 +187,7 @@ const getDisplayName = () => {
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
                       <p className="text-sm">{user?.Email}</p>
-                     
+
                     </div>
                   </div>
                   <div>

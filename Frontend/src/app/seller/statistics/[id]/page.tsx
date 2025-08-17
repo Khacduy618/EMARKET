@@ -88,22 +88,13 @@ export default function Page() {
 
       try {
         setError(null)
-        console.log("Fetching order with ID:", orderId)
         // Keep the original URL since it seems to work
         const url = `${API_URL}/seller/statistics/orders/deaill/${orderId}`
-        console.log("Fetching URL:", url)
 
         const res = await fetch(url, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
+          credentials: 'include',
         })
-
-        // console.log("Response status:", res.status)
-        // console.log("Response ok:", res.ok)
-        console.log(res)
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
@@ -124,9 +115,6 @@ export default function Page() {
         if (!Array.isArray(data.items)) {
           throw new Error("Dữ liệu sản phẩm không hợp lệ")
         }
-
-        console.log("Data validation passed, setting order data")
-        console.log(data)
         setOrderData(data)
       } catch (error) {
         console.error("Lỗi khi tải đơn hàng:", error)
@@ -242,7 +230,7 @@ export default function Page() {
   }
 
   const handleDownload = () => {
-    console.log("Download invoice")
+    window.print()
   }
 
   if (loading) {
@@ -428,20 +416,9 @@ export default function Page() {
                 {items.map((item) => (
                   <TableRow key={item.OrderItemID}>
                     <TableCell>
-                      <Image
-                        src={
-                          item.ImageURL
-                            ? `${WEB_URL}/storage/${item.ImageURL}`
-                            : "/placeholder.svg?height=60&width=60"
-                        }
-                        alt={item.ProductName}
-                        width={60}
-                        height={60}
-                        className="rounded-md object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = "/placeholder.svg?height=60&width=60"
-                        }}
+                      <img
+                        src={`${WEB_URL}/storage/${item.ImageURL}`}
+                        className="w-full h-auto"
                       />
                     </TableCell>
                     <TableCell>

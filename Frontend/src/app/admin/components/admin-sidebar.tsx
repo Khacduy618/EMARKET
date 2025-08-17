@@ -27,7 +27,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,  
+  SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar"
 
@@ -134,23 +134,6 @@ const menuItems = [
   },
 ]
 
-const bottomMenuItems = [
-  {
-    title: "Tin nhắn",
-    url: "/admin/messages",
-    icon: MessageSquare,
-  },
-  {
-    title: "Bảo mật",
-    url: "/admin/security",
-    icon: Shield,
-  },
-  {
-    title: "Cài đặt",
-    url: "/admin/settings",
-    icon: Settings,
-  },
-]
 
 export function AdminSidebar() {
   const pathname = usePathname()
@@ -196,25 +179,6 @@ export function AdminSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
-      <SidebarFooter className="border-t px-3 py-4">
-        <SidebarMenu>
-          {bottomMenuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.url}
-                className="w-full justify-start px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-700"
-              >
-                <Link href={item.url}>
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.title}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   )
 }

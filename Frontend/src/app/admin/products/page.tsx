@@ -12,7 +12,9 @@ import {
   CheckCircle,
   XCircle,
   MoreHorizontal,
-  RefreshCw,
+  Hourglass,
+  Grid3X3,
+  Sparkles
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,12 +24,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
 import { Label } from "@/components/ui/label"
 import CategoryDropDow from "./components/category-selector"
-import { getAuthToken } from "@/services/api"
 import { API_URL } from "@/lib/config"
 
 interface Product {
@@ -53,6 +54,9 @@ const formatDate = (isoDate: string) => {
   const d = new Date(isoDate)
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString("vi-VN")
 }
+
+import { getAuthToken } from "@/services/api"
+import { truncateText } from "@/utils";
 
 export default function ProductListPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -93,8 +97,8 @@ export default function ProductListPage() {
       const res = await fetch(`${API_URL}/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
         },
+        credentials: 'include',
       })
 
       if (!res.ok) {
@@ -157,8 +161,8 @@ export default function ProductListPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ _method: "PUT", status: newStatus }),
         })
 
@@ -171,7 +175,7 @@ export default function ProductListPage() {
           setProducts((prev) =>
             prev.map((p) => (p.ProductID === productId ? { ...p, AdminApprovalStatus: newStatus } : p)),
           )
-          toast.success("Cập nhật trạng thái thành công!") 
+          toast.success("Cập nhật trạng thái thành công!")
         } else {
           toast.error(json.message || "Có lỗi xảy ra")
         }
@@ -190,12 +194,13 @@ export default function ProductListPage() {
   const totalProducts = products.length
   const activeProducts = products.filter((p) => p.IsActive).length
   const approvedProducts = products.filter((p) => p.AdminApprovalStatus === "Approved").length
+  const pendingProducts = products.filter(p => p.AdminApprovalStatus === "Pending").length;
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Tổng sản phẩm</CardTitle>
@@ -220,6 +225,17 @@ export default function ProductListPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Chờ duyệt</CardTitle>
+              <Hourglass className="w-4 h-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{pendingProducts}</div>
+              <p className="text-xs text-gray-500">Sản phẩm đang chờ duyệt</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Đã duyệt</CardTitle>
               <CheckCircle className="w-4 h-4 text-orange-600" />
             </CardHeader>
@@ -230,33 +246,36 @@ export default function ProductListPage() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-full flex flex-col md:flex-row gap-4">
-              {/* Tìm kiếm từ khóa */}
-              <div className="flex flex-col space-y-1">
-                <Label htmlFor="item-limit">Tìm kiếm:</Label>
-                <div className="relative flex-1">
-
+        {/* Filters and search*/}
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 backdrop-blur-sm">
+          <div className="p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 items-end">
+              {/* Tìm kiếm */}
+              <div className="lg:col-span-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                  <Search className="h-4 w-4 text-blue-500" />
+                  Tìm kiếm sản phẩm
+                </Label>
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <Input
-                    placeholder="Tìm kiếm tên sản phẩm..."
+                    placeholder="Nhập tên sản phẩm..."
                     value={keyword}
                     onChange={(e) => {
                       setKeyword(e.target.value)
                       setCurrentPage(1)
                     }}
+                    className="pl-12 h-11 border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 bg-white shadow-sm rounded-xl"
                   />
-
                 </div>
               </div>
 
-              {/* Trạng thái hiển thị (ẩn/hiện) */}
-              <div className="flex flex-col space-y-1">
-                <Label htmlFor="item-limit">Trạng thái ẩn / hiện:</Label>
+              {/* Trạng thái hiển thị */}
+              <div>
+                <Label className="text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-green-500" />
+                  Trạng thái hiển thị
+                </Label>
                 <Select
                   value={filterStatus}
                   onValueChange={(value) => {
@@ -264,20 +283,38 @@ export default function ProductListPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Trạng thái hiển thị" />
+                  <SelectTrigger className="h-11 border-2 border-gray-200 hover:border-green-300 focus:border-green-500 transition-all duration-200 bg-white shadow-sm rounded-xl">
+                    <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    <SelectItem value="1">Hiển thị</SelectItem>
-                    <SelectItem value="0">Ẩn</SelectItem>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+                        Tất cả
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-sm"></div>
+                        Hiển thị
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full"></div>
+                        Ẩn
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Trạng thái duyệt */}
-              <div className="flex flex-col space-y-1">
-                <Label htmlFor="item-limit">Trạng thái xét duyệt:</Label>
+              <div>
+                <Label className="text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-amber-500" />
+                  Trạng thái duyệt
+                </Label>
                 <Select
                   value={filterApproval}
                   onValueChange={(value) => {
@@ -285,34 +322,57 @@ export default function ProductListPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Trạng thái duyệt" />
+                  <SelectTrigger className="h-11 border-2 border-gray-200 hover:border-amber-300 focus:border-amber-500 transition-all duration-200 bg-white shadow-sm rounded-xl">
+                    <SelectValue placeholder="Chọn trạng thái" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    <SelectItem value="Pending">Chờ duyệt</SelectItem>
-                    <SelectItem value="Approved">Đã duyệt</SelectItem>
-                    <SelectItem value="Rejected">Từ chối</SelectItem>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
+                        Tất cả
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="Pending">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full shadow-sm animate-pulse"></div>
+                        Chờ duyệt
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="Approved">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-sm"></div>
+                        Đã duyệt
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="Rejected">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-rose-500 rounded-full shadow-sm"></div>
+                        Từ chối
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-
-              {/* Tên danh mục */}
-              <div className="flex flex-col space-y-1">
-                <Label htmlFor="item-limit">Danh mục:</Label>
+              {/* Danh mục */}
+              <div>
+                <Label className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                  <Package className="h-4 w-4 text-purple-500" />
+                  Danh mục sản phẩm
+                </Label>
                 <CategoryDropDow
                   value={filterCategory}
-                  onChange={(value) => setFilterCategory(value)}
+                  onChange={(value: string) => setFilterCategory(value)}
                   onPageReset={() => setCurrentPage(1)}
                 />
-
-
               </div>
 
-              {/* Hiển thị bao nhiêu sản phẩm */}
-              <div className="flex flex-col justify-center space-y-1">
-                <Label htmlFor="item-limit">Số mục mỗi trang:</Label>
+              {/* Số mục mỗi trang */}
+              <div>
+                <Label className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                  <Grid3X3 className="h-4 w-4 text-indigo-500" />
+                  Số lượng hiển thị
+                </Label>
                 <Select
                   value={limitItem.toString()}
                   onValueChange={(value: string) => {
@@ -320,20 +380,26 @@ export default function ProductListPage() {
                     setCurrentPage(1)
                   }}
                 >
-                  <SelectTrigger id="item-limit" className="w-20">
+                  <SelectTrigger className="h-11 border-2 border-gray-200 hover:border-indigo-300 focus:border-indigo-500 transition-all duration-200 bg-white shadow-sm rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {[5, 10, 20, 50].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
-                        {n}
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full"></div>
+                          {n} mục
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          </CardContent>
+
+            {/* Decorative bottom border */}
+            <div className="mt-6 h-1 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 rounded-full opacity-20"></div>
+          </div>
         </Card>
 
         {/* Products Table */}
@@ -421,7 +487,9 @@ export default function ProductListPage() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium text-gray-900 line-clamp-1 text-sm">{prod.Name}</p>
+                                  <p className="font-medium text-gray-900 text-sm">
+                                    {truncateText(prod.Name)}
+                                  </p>
                                   <p className="text-xs text-gray-500">ID: {prod.ProductID}</p>
                                 </div>
                               </div>

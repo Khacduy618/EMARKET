@@ -91,12 +91,8 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
 
       const response = await fetch(`${API_URL}/seller/statistics/orders?${params}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
+        credentials: 'include',
       })
-      console.log(response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

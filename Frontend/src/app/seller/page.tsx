@@ -71,7 +71,7 @@
 // //           <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
 // //             <span className="text-white font-bold text-sm">S</span>
 // //           </div>
-// //           <span className="font-bold text-lg text-gray-900">Shopee Seller</span>
+// //           <span className="font-bold text-lg text-gray-900">Emarket Seller</span>
 // //         </div>
 // //       </div>
 

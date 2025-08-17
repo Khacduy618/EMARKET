@@ -8,6 +8,7 @@ const nextConfig = {
         ignoreBuildErrors: true, // Ignore TypeScript errors during build
     },
   images: {
+    domains: ['localhost'],
     remotePatterns: [
       // Cho phép ảnh từ backend local
       {
