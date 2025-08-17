@@ -290,7 +290,7 @@ useEffect(() => {
              console.log(`[handleVnPayPayment] Calling API /api/vnpay/create-payment/${orderId}`);
             const response = await fetch(`${API_URL}/vnpay/create-payment/${orderId}`, {
                     method: 'POST',
-                    headers: { 'Accept': 'application/json' },
+                    headers: {'Content-Type': 'application/json' },
                     credentials: 'include', // Quan trọng để gửi cookie
                 });
             console.log("VNPay create payment response status:", response.status);
@@ -550,7 +550,11 @@ const handlePaymentMethodChange = () => {
              console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
             const response = await fetch(`${API_URL}/orders/place`, {
                     method: 'POST',
-                    headers: { 'Accept': 'application/json' },
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                    body: JSON.stringify(payload),
                     credentials: 'include', // Quan trọng để gửi cookie
                 });
 
@@ -595,9 +599,10 @@ const handlePaymentMethodChange = () => {
         }
 
         try {
-            const response = await fetch(`${API_URL}api/orders/${orderId}/complete`,{
+            const response = await fetch(`${API_URL}/orders/${orderId}/complete`,{
                     method: 'PUT',
-                    headers: { 'Accept': 'application/json' },
+                    headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(payload), 
                     credentials: 'include', // Quan trọng để gửi cookie
                 });
 

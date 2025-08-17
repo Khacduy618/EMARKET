@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Heart, Eye, Star } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '@/lib/config';
+import { getFullImageUrl } from '@/services/api';
 
 // ===================================================================
 // TYPES VÀ HELPER FUNCTIONS (Giữ nguyên)
@@ -58,10 +59,10 @@ function ProductCard({ product }: ProductCardProps) {
                             <Eye size={16} className="text-gray-600" />
                         </button>
                     </div>
-                    <Image
-                        src={product.image_url || '/placeholder-image.png'}
+                    <img
+                        src={getFullImageUrl(product.image_url) || '/placeholder-image.png'}
                         alt={product.product_name}
-                        fill
+                        
                         className="object-contain rounded-md"
                     />
                 </div>

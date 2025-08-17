@@ -3924,3 +3924,26 @@
 #7 /Users/khacduy/Documents/Project/Emarket/Backend/artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #8 {main}
 "} 
+[2025-08-17 10:03:21] local.INFO: Cart data fetched from DB. Number of rows: 1  
+[2025-08-17 10:03:21] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-17 10:03:22] local.INFO: Cart data fetched from DB. Number of rows: 1  
+[2025-08-17 10:03:22] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-17 10:03:31] local.INFO: --- Received request for placeOrder ---  
+[2025-08-17 10:03:31] local.WARNING: placeOrder validation failed: {"shippingAddressId":["The shipping address id field is required."],"shippingFullName":["The shipping full name field is required."],"shippingPhoneNumber":["The shipping phone number field is required."],"totalAmount":["The total amount field is required."],"subtotalAmount":["The subtotal amount field is required."],"shippingFee":["The shipping fee field is required."],"discountAmount":["The discount amount field is required."],"paymentMethod":["The payment method field is required."],"items":["The items field is required."],"totalShopVoucherDiscount":["The total shop voucher discount field is required."]} 
+[2025-08-17 10:06:04] local.INFO: --- Received request for placeOrder ---  
+[2025-08-17 10:06:04] local.WARNING: placeOrder validation failed: {"shippingAddressId":["The shipping address id field is required."],"shippingFullName":["The shipping full name field is required."],"shippingPhoneNumber":["The shipping phone number field is required."],"totalAmount":["The total amount field is required."],"subtotalAmount":["The subtotal amount field is required."],"shippingFee":["The shipping fee field is required."],"discountAmount":["The discount amount field is required."],"paymentMethod":["The payment method field is required."],"items":["The items field is required."],"totalShopVoucherDiscount":["The total shop voucher discount field is required."]} 
+[2025-08-17 10:20:43] local.INFO: Cart data fetched from DB. Number of rows: 1  
+[2025-08-17 10:20:43] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-17 10:20:44] local.INFO: Cart data fetched from DB. Number of rows: 1  
+[2025-08-17 10:20:44] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-17 10:20:53] local.INFO: --- Received request for placeOrder ---  
+[2025-08-17 10:20:53] local.WARNING: placeOrder validation failed: {"shippingAddressId":["The shipping address id field is required."],"shippingFullName":["The shipping full name field is required."],"shippingPhoneNumber":["The shipping phone number field is required."],"totalAmount":["The total amount field is required."],"subtotalAmount":["The subtotal amount field is required."],"shippingFee":["The shipping fee field is required."],"discountAmount":["The discount amount field is required."],"paymentMethod":["The payment method field is required."],"items":["The items field is required."],"totalShopVoucherDiscount":["The total shop voucher discount field is required."]} 
+[2025-08-17 10:26:13] local.INFO: --- Received request for placeOrder --- {"shippingAddressId":1,"shippingFullName":"Nguyễn Văn An","shippingPhoneNumber":"0901234561","notes":null,"totalAmount":2541000,"subtotalAmount":2511000,"shippingFee":30000,"discountAmount":0,"paymentMethod":"COD","items":[{"variantId":4,"quantity":1,"priceAtPurchase":2511000,"subtotal":2511000}],"platformVoucherData":{"codes":[],"discounts":[]},"totalShopVoucherDiscount":0,"shopVouchersApplied":[]} 
+[2025-08-17 10:26:14] local.INFO: placeOrder: Creating order with server-calculated data: {"OrderCode":"EMK20250817ZUMZFX","UserID":1,"TotalAmount":2541000.0,"SubtotalAmount":2511000.0,"ShippingFee":30000,"DiscountAmount":279000.0,"ShippingAddressID":1,"ShippingFullName":"Nguyễn Văn An","ShippingPhoneNumber":"0901234561","Notes":null,"PaymentMethod":"COD","PaymentStatus":"Pending","OverallStatus":"Pending","PlatformVoucherCode":"[]","PlatformDiscountAmount":"[]","shopvoucher":null,"shopdiscountamount":0,"CreatedAt":"2025-08-17 10:26:14","UpdatedAt":"2025-08-17 10:26:14"} 
+[2025-08-17 10:26:14] local.INFO: placeOrder: Successfully created OrderID: 4132  
+[2025-08-17 10:30:21] local.INFO: Order 4132 status updated to Processing.  
+[2025-08-17 10:30:22] local.INFO: Stock quantity updated for order 4132.  
+[2025-08-17 10:30:22] local.INFO: SoldCount updated for products in order 4132. [1] 
+[2025-08-17 10:30:22] local.INFO: Items removed from cart for user 1.  
+[2025-08-17 10:30:31] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 310 đơn hàng.  
+[2025-08-17 10:30:32] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 310 đơn hàng.  
