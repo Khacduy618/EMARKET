@@ -29,7 +29,15 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
     }
     
-
+     public function attributes()
+    {
+        return $this->belongsToMany(
+            AttributeValue::class,
+            'productvariantattribute', // Tên bảng trung gian (pivot table)
+            'VariantID',               // Khóa ngoại của model hiện tại trong bảng trung gian
+            'AttributeValueID'       // Khóa ngoại của model liên quan trong bảng trung gian
+        );
+    }
     // Mối quan hệ đến ProductVariantAttribute (bảng trung gian)
     public function attributeLinks()
     {

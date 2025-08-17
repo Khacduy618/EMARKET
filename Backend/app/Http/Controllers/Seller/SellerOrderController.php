@@ -9,9 +9,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use App\Services\WebhookService;
 
 class SellerOrderController extends Controller
 {
+    protected $webhookService;
+
+    public function __construct(WebhookService $webhookService)
+    {
+        $this->webhookService = $webhookService;
+    }
+
    public function index(Request $request)
 {
     $shop = Shop::where('UserID', Auth::id())->firstOrFail();
@@ -202,18 +210,56 @@ class SellerOrderController extends Controller
         }
     }
 
-    public function shipOrder($orderId)
-{
-    $order = OrderBuyer::find($orderId);
-    if (!$order) {
-        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
-    }
-    if ($order->OverallStatus !== 'Processing') {
-        return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
-    }
-    $order->OverallStatus = 'Shipped';
-    $order->save();
+//     public function shipOrder($orderId)
+// {
+//     $order = OrderBuyer::find($orderId);
+//     if (!$order) {
+//         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+//     }
+//     if ($order->OverallStatus !== 'Processing') {
+//         return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
+//     }
+//     $order->OverallStatus = 'Shipped';
+//     $order->save();
 
-    return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
-}
+//     return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
+// }
+public function shipOrder($orderId)
+    {
+        $order = OrderBuyer::find($orderId);
+        if (!$order) {
+            return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+        }
+        if ($order->OverallStatus !== 'Processing') {
+            return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
+        }
+
+        $order->OverallStatus = 'Shipped';
+        $order->save();
+
+        // Lấy thông tin seller và địa chỉ giao hàng
+        $shop = Shop::where('UserID', Auth::id())->firstOrFail();
+        $seller = $shop->ShopName ?? 'Unknown Seller';
+        $sellerPhone = $shop->ShopPhone ?? 'Unknown Phone';
+        $shippingAddress = $order->address ? implode(', ', array_filter([
+            $order->address->Street,
+            $order->address->Ward,
+            $order->address->District,
+            $order->address->City,
+        ])) : 'Unknown Address';
+
+        // Chuẩn bị payload cho webhook
+        $payload = [
+            'order_code' => $order->OrderCode,
+            'seller' => $seller,
+            'seller_phone' => $sellerPhone,
+            'shipping_address' => $shippingAddress,
+        ];
+
+        // Gửi webhook sang app giao hàng
+        $this->webhookService->sendWebhook($payload);
+
+        return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
+    }
+
 }

@@ -31,7 +31,9 @@ export default function RootLayout({
                         pauseOnHover
                         theme="light"
                     />
+
                 </AuthProvider>
+                <div id="modal-portal-root"></div>
             </body>
         </html>
     );

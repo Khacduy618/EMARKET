@@ -38,6 +38,9 @@ class ReturnRequest extends Model
         'RefundAmount',
         'BuyerShippingInfoForReturn',
         'ShopShippingInfoForReturn',
+         'RefundBankName',
+        'RefundAccountNumber',
+        'RefundAccountHolderName',
     ];
 
     protected $casts = [
@@ -81,4 +84,6 @@ class ReturnRequest extends Model
     }
 
     // Removed shopOrder relationship as it's not in the schema
+     public $timestamps = false;
+    
 }
