@@ -44,6 +44,9 @@ class OrderBuyer extends Model
         'OverallStatus',
         'PlatformVoucherCode',
         'PlatformDiscountAmount',
+        'VnpayTxnRef',
+        'VnpayTransactionNo',
+        'VnpayTransactionDate'
     ];
 
     protected $casts = [

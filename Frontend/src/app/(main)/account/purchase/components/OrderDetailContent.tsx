@@ -396,14 +396,14 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
             <span className="mr-4">MÃ ĐƠN HÀNG. {order.OrderCode}</span>
             <span className="text-orange-500 uppercase">
               {order.OverallStatus === 'Rated' ? 'ĐÃ ĐÁNH GIÁ' :
-              order.OverallStatus === 'Completed' ? 'ĐÃ HOÀN THÀNH' :
-                order.OverallStatus === 'Shipped' ? 'ĐANG GIAO HÀNG' :
-                  order.OverallStatus === 'Delivered' ? 'ĐÃ GIAO HÀNG' :
-                    order.OverallStatus === 'Pending' ? 'CHỜ XÁC NHẬN' :
-                      order.OverallStatus === 'Processing' ? 'ĐANG XỬ LÝ' :
-                        order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' ? 'ĐÃ HỦY' :
-                          order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress' ? 'TRẢ HÀNG' :
-                            order.OverallStatus}
+                order.OverallStatus === 'Completed' ? 'ĐÃ HOÀN THÀNH' :
+                  order.OverallStatus === 'Shipped' ? 'ĐANG GIAO HÀNG' :
+                    order.OverallStatus === 'Delivered' ? 'ĐÃ GIAO HÀNG' :
+                      order.OverallStatus === 'Pending' ? 'CHỜ XÁC NHẬN' :
+                        order.OverallStatus === 'Processing' ? 'ĐANG XỬ LÝ' :
+                          order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' ? 'ĐÃ HỦY' :
+                            order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress' ? 'TRẢ HÀNG' :
+                              order.OverallStatus}
             </span>
           </div>
         </div>
@@ -436,7 +436,7 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
               </div>
               <div className="flex flex-col gap-2 ml-4 flex-shrink-0">
                 {isDeliveredOrCompleted && (
-                  <Link 
+                  <Link
                     href={`/account/review?orderId=${order.OrderID}`}
                     className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
                   >
@@ -494,7 +494,7 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
                       />
                       <div className="flex-1 flex flex-col ml-4">
                         <p className="font-semibold text-gray-800 leading-tight">{item.productName}</p>
-                        <p className="text-gray-600 text-xs mt-0.5">Loại: {item.classification}</p>
+                        <p className="text-gray-600 text-xs mt-0.5">Loại11111: {item.classification}</p>
                         {item.OriginalPrice > item.PriceAtPurchase && (
                           <span className="text-gray-400 line-through text-xs">{formatVND(item.OriginalPrice)}</span>
                         )}

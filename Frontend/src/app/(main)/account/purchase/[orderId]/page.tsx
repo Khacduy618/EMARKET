@@ -35,7 +35,7 @@ export default function OrderIdPage() {
 
             try {
                 const response = await fetch(`/api/orders/${orderId}`, {
-                           method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
+                    method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
                 });
 
                 if (!response.ok) {
@@ -43,7 +43,7 @@ export default function OrderIdPage() {
                 }
 
                 const data: Order = await response.json();
-                
+
                 // KIỂM TRA QUAN TRỌNG: Đảm bảo 'items' là một mảng
                 if (!Array.isArray(data.items)) {
                     console.error("API Error: 'items' is not an array. Received:", data.items);
@@ -75,7 +75,7 @@ export default function OrderIdPage() {
     if (error) {
         return <div className="text-center py-20 text-red-500 bg-gray-100">{error}</div>;
     }
-    
+
     // KIỂM TRA CUỐI CÙNG TRƯỚC KHI RENDER
     // Điều này sẽ ngăn chặn lỗi 'map' của bạn.
     if (!order) {

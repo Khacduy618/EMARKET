@@ -35,7 +35,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\ShopController as BuyerShopController;
 use App\Http\Controllers\ReviewController;
-
+use App\Http\Controllers\Seller\SellerReturnRequestController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
 Route::get('/user/shop-status', function (Request $request) {
@@ -266,8 +266,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/buyer/return-requests', [ReturnRequestController::class, 'listMyRequests']);
      Route::get('/addresses-return/{address}', [AddressController::class, 'showReturn']);
     // API cho Người Bán (Seller)
-    Route::get('/seller/return-requests', [ReturnRequestController::class, 'listShopRequests']);
-    Route::put('/seller/return-requests/{id}/respond', [ReturnRequestController::class, 'sellerRespond']);
+    Route::get('/seller/return-requests', [SellerReturnRequestController::class, 'index']);
+    Route::get('/seller/return-requests/{id}', [SellerReturnRequestController::class, 'show']);
+    Route::post('/seller/return-requests/{id}/respond', [SellerReturnRequestController::class, 'respond']);
+    Route::post('seller/return-requests/{id}/confirm-receipt', [SellerReturnRequestController::class, 'confirmReceipt']);
+    Route::post('seller/return-requests/{id}/confirm-bank-transfer', [SellerReturnRequestController::class, 'confirmBankTransfer']);
     
 });
 Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
@@ -403,8 +406,26 @@ Route::middleware('auth:sanctum')->group(function () {
 //shipping_requests 
 Route::post('/webhook', [SellerOrderController::class, 'handle']);
 
+ Route::middleware('auth:sanctum')->group(function () {
+    
+    // ... các route chung cho user đã đăng nhập ...
 
+    // === API DÀNH RIÊNG CHO SELLER ===
+    // Gộp tiếp một lần nữa với middleware 'is_seller'
+    Route::middleware('is_seller')->prefix('seller')->group(function () {
+        // Các route này sẽ yêu cầu user phải đăng nhập VÀ phải là Seller
+        Route::get('/returns', [SellerReturnRequestController::class, 'index'])->name('seller.returns.index');
+        Route::get('/returns/{id}', [SellerReturnRequestController::class, 'show'])->name('seller.returns.show');
+        Route::post('/returns/{id}/respond', [SellerReturnRequestController::class, 'respond'])->name('seller.returns.respond');
+    });
 
+    // === API DÀNH RIÊNG CHO BUYER ===
+    Route::middleware('is_buyer')->prefix('buyer')->group(function () {
+        // ... các route của buyer ...
+    });
+});
+    // GET /api/seller/returns
+    
 // ================= ADMIN ROUTES =================== //
 
 

@@ -12,12 +12,14 @@ import {
   MessageCircle,
   HelpCircle,
   Home,
+  Truck,
 } from "lucide-react"
 
 const sidebarItems = [
   { icon: Home, label: "Trang chủ", href: "/seller" },
   { icon: Package, label: "Quản lý sản phẩm", href: "/seller/products", badge: "12" },
   { icon: ShoppingCart, label: "Quản lý đơn hàng", href: "/seller/orders", badge: "5" },
+  { icon: Truck, label: "Quản lý trả hàng & hoàn tiền", href: "/seller/return-requests", badge: "8" },
   { icon: BarChart3, label: "Thống kê bán hàng", href: "/seller/statistics" },
   { icon: Megaphone, label: "Marketing & Khuyến mãi", href: "/seller/marketing" },
   { icon: Wallet, label: "Tài chính", href: "/seller/finance" },
@@ -47,11 +49,10 @@ function Sidebar({ className }: { className?: string }) {
           return (
             <Link key={index} href={item.href} className="block">
               <div
-                className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                  isActive
+                className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${isActive
                     ? "bg-orange-50 text-orange-600 border-r-2 border-orange-500"
                     : "text-gray-600 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center space-x-3">
                   <item.icon className="w-5 h-5" />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; 
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap } from 'lucide-react';
 import RelatedItems from './RelatedItems';
@@ -12,7 +12,7 @@ import ShopInfo from './ShopInfo';
 import ProductReviewPage from './ProductReviewPage';
 import RelatedProductsSidebar from './FeaturedProductsSidebar';
 import { StoredCheckoutData } from '@/types';
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from 'next/navigation';
 import { API_URL } from '@/services/auth';
 
 
@@ -110,7 +110,7 @@ const formatPrice = (price: number) => {
 };
 
 // --- MAIN COMPONENT ---
-const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
     const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
@@ -121,12 +121,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({}); // Starts empty
     const [quantity, setQuantity] = useState<number>(1);
-    const [isProcessingBuyNow, setIsProcessingBuyNow] = useState(false); 
+    const [isProcessingBuyNow, setIsProcessingBuyNow] = useState(false);
 
     // Other states remain the same...
     const [showLargeQuantityConfirm, setShowLargeQuantityConfirm] = useState(false);
     const [largeQuantityPromptInfo, setLargeQuantityPromptInfo] = useState<{ productName: string; shopPhone: string } | null>(null);
-    const [isProcessingAddToCart, setIsProcessingAddToCart] = useState(false); 
+    const [isProcessingAddToCart, setIsProcessingAddToCart] = useState(false);
 
     // showNotification is now wrapped in useCallback and imported
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
@@ -156,7 +156,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost/api/productDetail/${productId}`);
+                const response = await axios.get(`http://localhost:8001/api/productDetail/${productId}`);
                 const productData: Product = response.data;
                 setProduct(productData);
 
@@ -333,7 +333,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
         if (!product) {
             return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
         }
-        
+
         let basePrice: number | null = null;
         let stockText = `${product.total_overall_stock_quantity} sản phẩm có sẵn`;
 
@@ -354,7 +354,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
         const discountPercent = product.Discount;
         let finalPrice = basePrice;
         let originalPrice: number | null = null;
-        
+
         // Logic giảm giá này có thể cần xem lại. Giả sử:
         // CompareAtPrice là giá gốc, Price là giá niêm yết
         // Discount là giảm giá thêm trên Price
@@ -510,7 +510,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
         }
     };
 
-     const handleBuyNow = async () => {
+    const handleBuyNow = async () => {
         // Validation cơ bản
         if (!product || !selectedVariant || !pricingInfo.finalPrice) {
             toast.error("Vui lòng chọn đầy đủ các tùy chọn của sản phẩm.");
@@ -525,7 +525,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             setQuantity(selectedVariant.StockQuantity);
             return;
         }
-        
+
         // --- LOGIC KIỂM TRA GIÁ TRỊ ĐƠN HÀNG ĐÃ ĐƯỢC THÊM VÀO ĐÂY ---
         const itemValue = pricingInfo.finalPrice * quantity;
         if (itemValue > ORDER_VALUE_LIMIT) {
@@ -560,7 +560,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             if (!response.ok) {
                 throw new Error(result.message || 'Lỗi xử lý Mua Ngay.');
             }
-            
+
             localStorage.setItem('checkoutData', JSON.stringify(result as StoredCheckoutData));
             router.push('/checkout');
 
@@ -836,11 +836,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
                     <ProductReviewPage productId={productId} />
                 </div>
                 <aside className="w-full md:w-80 md:sticky md:top-24 h-fit bg-white border-l border-gray-200 p-4">
-            <RelatedProductsSidebar currentProductId={productId} />
-            </aside>
+                    <RelatedProductsSidebar currentProductId={productId} />
+                </aside>
             </div>
-            
-            
+
+
         </div>
     );
 };

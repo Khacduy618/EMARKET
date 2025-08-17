@@ -130,10 +130,10 @@ export interface Order {
   ShippingFullName: string;
   ShippingPhoneNumber: string;
   Notes: string | null;
-  PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway'; // Đây là PaymentMethod trong OrdersBuyer
+  PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway' | 'VNPay' | 'Paypal';
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-
+  OrderItemIDs: number[]; // Chứa danh sách OrderItemID
   shopvoucher: string | null;
   shopdiscountamount: number;
 
@@ -143,7 +143,7 @@ export interface Order {
   UpdatedAt: string;
 
   items: OrderItem[];
-
+  ReturnID?: number; // Chỉ có khi đơn hàng đã trả hàng
   shopOrders: OrderDetailShopOrder[];
 
   ShopID: number;

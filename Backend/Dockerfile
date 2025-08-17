@@ -33,6 +33,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Thiết lập thư mục làm việc
 WORKDIR /var/www/html
+COPY cacert.pem /usr/local/etc/php/cacert.pem
+
+# 2. Tìm đường dẫn file php.ini và thêm cấu hình vào đó
+# Chạy `php --ini` để xem đường dẫn file php.ini được load, ví dụ: /usr/local/etc/php/php.ini
+# Sau đó thêm cấu hình vào file đó.
+RUN echo 'curl.cainfo="/usr/local/etc/php/cacert.pem"' >> /usr/local/etc/php/php.ini && \
+    echo 'openssl.cafile="/usr/local/etc/php/cacert.pem"' >> /usr/local/etc/php/php.ini
 
 # Sao chép file composer và toàn bộ source code của backend trước
 COPY composer.json composer.lock ./
