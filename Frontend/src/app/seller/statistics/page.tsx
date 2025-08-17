@@ -260,7 +260,7 @@ export default function ComponentRevenue() {
           <div className="flex gap-6">
             <div className="relative group">
               <StatCard
-                statKey ={dataChartSucess?.[0]?.key}
+                statKey={dataChartSucess?.[0]?.key}
                 title={dataChartSucess?.[0]?.title ?? ''}
                 prevValue={formatVND(dataChartSucess?.[0]?.prevValue as number)}
                 value={formatVND(dataChartSucess?.[0]?.value as number)}
@@ -302,7 +302,7 @@ export default function ComponentRevenue() {
               </Button>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <StatCard
                 title={dataChartSucess?.[2]?.title ?? ''}
                 prevValue={dataChartSucess?.[2]?.prevValue ?? 0}
