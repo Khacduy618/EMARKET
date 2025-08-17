@@ -691,12 +691,12 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
         onClose();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const filesArray = Array.from(e.target.files).slice(0, 5 - evidenceFiles.length);
-            setEvidenceFiles(prevFiles => [...prevFiles, ...filesArray]);
-        }
-    };
+    // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files) {
+    //         const filesArray = Array.from(e.target.files).slice(0, 5 - evidenceFiles.length);
+    //         setEvidenceFiles(prevFiles => [...prevFiles, ...filesArray]);
+    //     }
+    // };
 
     const handleRemoveImage = (indexToRemove: number) => {
         setEvidenceFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToRemove));
@@ -717,6 +717,35 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
         return true;
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const MAX_SIZE_MB = 5; // Đặt giới hạn dung lượng ở đây (ví dụ 5MB)
+            const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+            const filesArray = Array.from(e.target.files);
+            const validFiles: File[] = [];
+            let oversizedFiles: string[] = [];
+
+            filesArray.forEach(file => {
+                if (file.size > MAX_SIZE_BYTES) {
+                    oversizedFiles.push(file.name);
+                } else {
+                    validFiles.push(file);
+                }
+            });
+
+            // Nếu có file quá lớn, báo lỗi và không thêm chúng vào
+            if (oversizedFiles.length > 0) {
+                setError(`Các tệp sau quá lớn (tối đa ${MAX_SIZE_MB}MB): ${oversizedFiles.join(', ')}`);
+            } else {
+                setError(null); // Xóa lỗi cũ nếu không còn file nào quá lớn
+            }
+
+            // Chỉ thêm các file hợp lệ vào state, không vượt quá tổng số 5 file
+            const combinedFiles = [...evidenceFiles, ...validFiles];
+            setEvidenceFiles(combinedFiles.slice(0, 5));
+        }
+    };
     // --- FORM SUBMISSION ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -846,7 +875,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                     <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-indigo-500" onClick={() => fileInputRef.current?.click()}>
                         <div className="space-y-1 text-center">
                             <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
-                            <p className="text-sm text-gray-600">Tải ảnh lên hoặc kéo thả</p>
+                            <p className="text-sm text-gray-600">Tải ảnh lên hoặc kéo thả1111111</p>
                             <p className="text-xs text-gray-500">PNG, JPG, JPEG</p>
                         </div>
                     </div>

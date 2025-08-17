@@ -286,7 +286,7 @@ class ReturnRequestController extends Controller
             'request_type'        => 'required|in:Return,Refund',
             'reason_description'  => 'required|string|max:1000',
             'evidence_images'     => 'nullable|array|max:5',
-            'evidence_images.*'   => 'image|mimes:jpeg,png,jpg|max:2048',
+            'evidence_images.*'   => 'image|mimes:jpeg,png,jpg|max:5120',
 
             // Validation cho địa chỉ trả hàng (chỉ yêu cầu khi request_type là 'Return')
             'buyer_return_address'              => 'required_if:request_type,Return|array',

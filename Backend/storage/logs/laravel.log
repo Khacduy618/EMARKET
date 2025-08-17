@@ -48877,3 +48877,41 @@ Stack trace:
 [2025-08-17 04:58:08] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
 [2025-08-17 04:58:08] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
 [2025-08-17 04:58:09] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:06:58] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:06:58] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:06:59] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:07:00] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:07:00] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:07:01] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:07:18] local.ERROR: Cannot use positional argument after named argument {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use positional argument after named argument at E:\\doantotnghiep\\totnghiep\\EMARKET\\Backend\\app\\Http\\Controllers\\ReturnRequestController.php:305)
+[stacktrace]
+#0 {main}
+"} 
+[2025-08-17 05:07:54] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:07:54] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:07:54] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:07:56] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:07:56] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:07:56] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:08:56] local.ERROR: Cannot use positional argument after named argument {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use positional argument after named argument at E:\\doantotnghiep\\totnghiep\\EMARKET\\Backend\\app\\Http\\Controllers\\ReturnRequestController.php:305)
+[stacktrace]
+#0 {main}
+"} 
+[2025-08-17 05:09:41] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:09:41] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:09:41] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:09:42] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:09:42] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:09:43] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:14:39] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:14:39] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:14:39] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:14:41] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:14:41] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:14:41] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:16:10] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:16:10] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:16:11] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
+[2025-08-17 05:16:12] local.INFO: --- [OrderController@index OPTIMIZED] Bắt đầu xử lý ---  
+[2025-08-17 05:16:12] local.INFO: [OrderController@index OPTIMIZED] UserID: 4  
+[2025-08-17 05:16:12] local.INFO: [OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về 10 đơn hàng.  
