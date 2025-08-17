@@ -65,7 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Đối với các request web thông thường (nếu có), bạn có thể
             // trả về URL frontend của bạn.
-            return config('app.frontend_url') . '/login';
+            return config('app.frontend_url') . '/signin';
         });
         
     })

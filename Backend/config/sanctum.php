@@ -15,8 +15,12 @@ return [
     |
     */
 
+<<<<<<< HEAD
 	'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', '')),
 
+=======
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', '')),
+>>>>>>> 08bfe4a9 (test)
 
     /*
     |--------------------------------------------------------------------------

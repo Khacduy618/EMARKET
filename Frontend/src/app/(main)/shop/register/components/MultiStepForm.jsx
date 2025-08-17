@@ -24,7 +24,7 @@ export default function SellerRegisterForm() {
     // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
         if (!token) {
-            router.push('/login');
+            router.push('/signin');
             return;
         }
 

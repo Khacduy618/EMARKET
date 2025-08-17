@@ -15,7 +15,7 @@ function ErrorContent() {
                 <XCircle className="w-16 h-16 mx-auto text-red-500" />
                 <h2 className="mt-6 text-2xl font-bold text-gray-800">Xác thực thất bại</h2>
                 <p className="mt-4 text-gray-600">{message}</p>
-                <Link href="/login" className="inline-block mt-8 px-6 py-3 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                <Link href="/signin" className="inline-block mt-8 px-6 py-3 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
                     Quay lại trang Đăng nhập
                 </Link>
             </div>

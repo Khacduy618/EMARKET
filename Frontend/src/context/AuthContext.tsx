@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
         if (isLoading) return;
 
-        const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/forgot-password');
+        const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname.startsWith('/forgot-password');
         const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
 
         if (user && isAuthPage) {
@@ -142,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
         if (!user && isProtectedPage) {
             console.log("Auth Guard: User is not logged in, redirecting from protected page to /login");
-            router.push('/login');
+            router.push('/signin');
         }
 
     }, [user, isLoading, pathname, router]);
@@ -228,7 +228,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setRequiresTwoFactor(false);
             setError(null);
             toast.update(toastId, { render: "Đã đăng xuất!", type: "success", isLoading: false, autoClose: 2000 });
-            router.push('/login');
+            router.push('/signin');
         }
     };
 
@@ -242,7 +242,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const resetPassword = async (payload: ResetPasswordPayload) => {
         await toast.promise(
-            apiResetPassword(payload).then(() => router.push('/login')),
+            apiResetPassword(payload).then(() => router.push('/signin')),
             {
                 pending: 'Đang đặt lại mật khẩu...',
                 success: 'Mật khẩu đã được đặt lại! Vui lòng đăng nhập.',

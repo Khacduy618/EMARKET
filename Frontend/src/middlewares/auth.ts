@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
         // Nếu họ đang vào khu vực cần đăng nhập và không có session token,
         // chuyển hướng họ về trang login.
         // Chúng ta cũng có thể thêm một query param `redirect` để đưa họ trở lại sau khi login.
-        const loginUrl = new URL('/login', request.url);
+        const loginUrl = new URL('/signin', request.url);
         loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);
     }

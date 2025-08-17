@@ -208,7 +208,7 @@ const CartPage: React.FC = () => {
     useEffect(() => {
         const authToken = getAuthToken();
         if (!authToken) {
-            router.push('/login');
+            router.push('/signin');
             return;
         }
 
