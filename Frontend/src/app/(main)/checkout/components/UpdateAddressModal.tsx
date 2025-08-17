@@ -181,7 +181,14 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=${apiKey}&language=vi`;
         
-        const response = await axios.get(url);
+        const response = await axios.get(url,
+          {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+        );
         
         if (response.data.status === 'OK' && response.data.results.length > 0) {
             const result = response.data.results[0];

@@ -13,7 +13,7 @@ import ProductReviewPage from './ProductReviewPage';
 import RelatedProductsSidebar from './FeaturedProductsSidebar';
 import { StoredCheckoutData } from '@/types';
 import { useRouter } from 'next/navigation'; 
-import { API_URL } from '@/services/auth';
+import { API_URL } from '@/lib/config';
 
 
 
@@ -156,7 +156,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost/api/productDetail/${productId}`);
+                const response = await axios.get(`${API_URL}/productDetail/${productId}`,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
                 const productData: Product = response.data;
                 setProduct(productData);
 
@@ -727,7 +734,7 @@ useEffect(() => {
         } catch (error: any) {
             if (error.response?.status === 401) { // Kiểm tra lỗi 401 cụ thể hơn
                 toast.warn("Bạn cần đăng nhập để mua hàng.", {
-                    onClick: () => router.push('/login'),
+                    onClick: () => router.push('/signin'),
                     style: { cursor: 'pointer' }
                 });
             } else {

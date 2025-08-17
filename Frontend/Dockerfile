@@ -1,44 +1,27 @@
-# FROM node:18-alpine
+# frontend/Dockerfile
 
-# RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# WORKDIR /app
-
-# # Tạo file pnpm-lock.yaml rỗng nếu chưa có, để lệnh COPY không báo lỗi
-# # và để pnpm install không bị cảnh báo thiếu lock file (nếu bạn chưa có).
-# # Nếu bạn luôn có pnpm-lock.yaml, dòng này có thể không cần.
-# RUN touch pnpm-lock.yaml
-
-# COPY package.json pnpm-lock.yaml* ./
-
-# RUN pnpm install
-
-# EXPOSE 3000
-# CMD ["pnpm", "run", "dev"]
-
-FROM node:18-alpine
-
-# Sử dụng corepack để quản lý pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
+# --- STAGE 1: Build ---
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-# Tạo file pnpm-lock.yaml rỗng nếu chưa có, để lệnh COPY không báo lỗi
-# và để pnpm install không bị cảnh báo thiếu lock file.
-# Nếu bạn luôn commit pnpm-lock.yaml, dòng này có thể bỏ.
-# RUN touch pnpm-lock.yaml
-
-COPY package.json pnpm-lock.yaml* ./
-# Hoặc nếu chỉ có pnpm-lock.yaml:
-# COPY package.json ./
-# COPY pnpm-lock.yaml ./
-
+RUN corepack enable
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
+COPY . .
+# Biến môi trường lúc build sẽ được truyền qua lệnh `docker build`
+ARG NEXT_PUBLIC_BACKEND_URL
+RUN NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL} pnpm build
 
-COPY . . 
-
+# --- STAGE 2: Production ---
+FROM node:18-alpine
+WORKDIR /app
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+RUN corepack enable
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+USER nextjs
 EXPOSE 3000
-
-CMD ["pnpm", "run", "dev"]
-# Nên để Docker Compose quyết định lệnh chạy cho development
-# Nếu không có command trong docker-compose, lệnh này sẽ được dùng.
+ENV NODE_ENV=production
+CMD ["pnpm", "start"]

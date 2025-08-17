@@ -4,6 +4,7 @@ import axios from "axios"
 import Link from "next/link"
 import { Filter, Grid3X3, List, Star } from "lucide-react"
 import { getFullImageUrl } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 // Interface cho một sản phẩm từ API
 interface ApiProduct {
@@ -64,12 +65,18 @@ export default function PopularProducts() {
     const fetchProducts = useCallback(async (page: number, sort: string) => {
         setLoading(true)
         try {
-            const response = await axios.get<PaginatedApiResponse>("http://localhost/api/products/popular", {
+            const response = await axios.get<PaginatedApiResponse>(`${API_URL}/products/popular`, {
                 params: {
                     page: page,
                     limit: productsPerPage,
                     sortBy: sort,
                 },
+                
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                
             })
 
             const apiResponse = response.data

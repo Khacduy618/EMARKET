@@ -16,7 +16,7 @@ export default function SellerRegisterPage() {
     useEffect(() => {
         const token = getAuthToken();
         if (!token) {
-            router.push("/login")
+            router.push("/signin")
             return
         }
         setIsAuthenticated(true)

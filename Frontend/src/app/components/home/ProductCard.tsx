@@ -34,7 +34,6 @@
 // // //         async function fetchProducts() {
 // // //             setLoading(true);
 // // //             try {
-// // //                 const response = await axios.get<ApiProduct[]>('http://localhost/api/ProductFinalPrice');
 // // //                 const apiProducts: ApiProduct[] = response.data;
 
 // // //                 const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
@@ -214,7 +213,6 @@
 // //         async function fetchProducts() {
 // //             setLoading(true);
 // //             try {
-// //                 const response = await axios.get<ApiProduct[]>('http://localhost/api/ProductFinalPrice');
 // //                 const apiProducts: ApiProduct[] = response.data;
 
 // //                 const processedData = apiProducts.map((apiProd): ProcessedProduct | null => {
@@ -396,7 +394,6 @@
 //             setLoading(true);
 //             try {
 //                 // --- CẬP NHẬT 2: Thay đổi URL API ---
-//                 const response = await axios.get<ApiProduct[]>('http://localhost/api/suggestions');
 //                 const apiProducts: ApiProduct[] = response.data;
 
 //                 // --- CẬP NHẬT 3: Viết lại logic xử lý dữ liệu ---
@@ -527,6 +524,7 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import Link from "next/link"
 import { getFullImageUrl } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 interface ApiProduct {
     ProductID: number
@@ -567,7 +565,7 @@ export default function TodaySuggestions() {
         async function fetchProducts() {
             setLoading(true)
             try {
-                const response = await axios.get<ApiProduct[]>("http://localhost/api/suggestions")
+                const response = await axios.get<ApiProduct[]>(`${API_URL}/suggestions`)
                 const apiProducts: ApiProduct[] = response.data
 
                 const processedData = apiProducts

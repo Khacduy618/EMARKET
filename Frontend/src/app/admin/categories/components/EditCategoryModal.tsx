@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { getAuthToken, API_BASE_URL } from "@/services/api"
+import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 type Category = {
   CategoryID: number
@@ -91,7 +92,7 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     formData.append("_method", "PATCH")
 
     try {
-      const res = await fetch(API_BASE_URL + "/admin/categories/update", {
+      const res = await fetch(`${API_URL}/admin/categories/update`, {
         method: "POST",
         credentials: 'include',
         body: formData,

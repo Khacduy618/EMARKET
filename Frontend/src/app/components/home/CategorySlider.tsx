@@ -17,7 +17,6 @@
 //     const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
 //     useEffect(() => {
-//         axios.get('http://localhost/api/categorySubMenu')
 //             .then((response) => {
 //                 const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
 //                 setCategories(activeCategories);
@@ -46,7 +45,6 @@
 //                         >
 //                             {cat.ImageURL && (
 //                                 <img
-//                                     src={cat.ImageURL.startsWith('http') ? cat.ImageURL : `http://localhost${cat.ImageURL}`}
 //                                     alt={cat.Name}
 //                                     className="w-5 h-5 mr-3 object-contain"
 //                                 />
@@ -68,6 +66,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // <-- BƯỚC 1: Import hook usePathname
 import type { IHome } from '@/types/Ihome';
 import { getFullImageUrl, getPublicImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 
 
@@ -77,7 +76,12 @@ export default function CategoryMenu() {
 
     // useEffect để lấy danh sách categories không thay đổi, giữ nguyên
     useEffect(() => {
-        axios.get('http://localhost/api/categorySubMenu')
+        axios.get(`${API_URL}/categorySubMenu`, {
+           headers: {
+        'Content-Type': 'application/json'
+    },
+        withCredentials: true
+})
             .then((response) => {
                 const activeCategories = response.data.filter((cat: IHome.Category) => cat.IsActive);
                 setCategories(activeCategories);

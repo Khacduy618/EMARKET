@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Folder, FolderOpen } from "lucide-react"
-import { API_BASE_URL, getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 interface Category {
   CategoryID: number
@@ -38,12 +38,7 @@ export default function CategorySelector({ value, onChange, onPageReset }: Categ
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const response = await fetch(API_BASE_URL + "/admin/categories/getAllCategory",{
-          headers: {
-            "Content-Type": "application/json",
-          },
-        credentials: 'include', 
-      });
+      const response = await fetch(`${API_URL}/admin/categories/getAllCategory`)
       const result = await response.json()
 
       if (result.status === "success") {

@@ -29,7 +29,6 @@
 //             setLoading(true);
 //             setError(null);
 //             try {
-//                 const response = await fetch('http://localhost/api/flash-sales/active');
 //                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 //                 const result: IHome.FlashSaleApiResponse = await response.json();
 //                 setApiData(result);
@@ -183,7 +182,6 @@
 //                                                 <div className="relative w-full aspect-square mb-2">
 //                                                     <Link href={`/products/${product.ProductID}`} passHref>
 //                                                         <p className="block w-full h-full">
-//                                                             <Image src={product.ProductImage ? (product.ProductImage.startsWith('http') ? product.ProductImage : `http://localhost/${product.ProductImage}`) : "/placeholder-product.png"} alt={product.ProductName} layout="fill" objectFit="contain" className="rounded-md" />
 //                                                         </p>
 //                                                     </Link>
 //                                                     {/* --- BƯỚC 3.1: ẨN TAG GIẢM GIÁ NẾU DISCOUNT LÀ NULL --- */}
@@ -278,6 +276,7 @@ import 'swiper/css/autoplay';
 import { Navigation, Autoplay } from 'swiper/modules';
 import type { IHome } from '@/types/Ihome';
 import { getFullImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 const FlashSaleSection: React.FC = () => {
     // --- State và Logic (Không thay đổi) ---
@@ -293,7 +292,7 @@ const FlashSaleSection: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch('http://localhost/api/flash-sales/active');
+                const response = await fetch(`${API_URL}/flash-sales/active`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const result: IHome.FlashSaleApiResponse = await response.json();
                 setApiData(result);

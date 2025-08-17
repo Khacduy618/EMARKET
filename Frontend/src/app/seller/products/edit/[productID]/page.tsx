@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import { getProduct, updateProduct, getShopCategories, getAttributes } from "@/services/seller-category"
 import Swal from "sweetalert2"
+import { WEB_URL } from "@/lib/config"
 
 // --- INTERFACES ---
 interface ShopCategory {
@@ -270,7 +271,7 @@ export default function EditProductPage() {
 
       setImages(
         productData.images.map((img) => ({
-          preview: `http://localhost/storage/${img.ImageURL}`,
+          preview: `${WEB_URL}/storage/${img.ImageURL}`,
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
@@ -284,7 +285,7 @@ export default function EditProductPage() {
           productData.variants.map((v) => ({
             VariantID: v.VariantID,
             Images: v.ImageURL
-              ? [{ preview: `http://localhost/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
+              ? [{ preview: `${WEB_URL}/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
               : [],
             Price: v.Price || 0,
             CompareAtPrice: v.CompareAtPrice || null,

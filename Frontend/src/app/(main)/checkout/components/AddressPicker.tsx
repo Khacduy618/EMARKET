@@ -52,7 +52,14 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
       // Không cần setLoading(true) vì đã đặt mặc định
       try {
         // Chỉ cần gọi 1 API duy nhất để lấy tất cả dữ liệu
-        const response = await axios.get(`${API_HOST}?depth=3`);
+        const response = await axios.get(`${API_HOST}?depth=3`,
+          {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+        );
         console.log("Fetched all provinces and districts:", response.data);
         setAllProvinces(response.data || []);
       } catch (error) {

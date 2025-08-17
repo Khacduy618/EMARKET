@@ -15,7 +15,8 @@ import CreateCategoryModal from "./components/CreateCategoryModal"
 import EditCategoryModal from "./components/EditCategoryModal"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { API_BASE_URL, getAuthToken } from "@/services/api"
+import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 type Category = {
   CategoryID: number
@@ -46,13 +47,13 @@ export default function CategoryPage() {
     setLoading(true)
     try { 
       const res = await fetch(
-        `${API_BASE_URL}/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
+        `${API_URL}/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
         {
           credentials: 'include', 
         },
       )
-   
-      const res2 = await fetch(API_BASE_URL + "/admin/categories/getAllCategory", {
+
+      const res2 = await fetch(`${API_URL}/admin/categories/getAllCategory`, {
         headers: {
             "Content-Type": "application/json",
           },
@@ -99,7 +100,7 @@ export default function CategoryPage() {
 
     if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
       try {
-        const res = await fetch(API_BASE_URL + `/admin/categories/delete/${id}`, {
+          const res = await fetch(`${API_URL}/admin/categories/delete/${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

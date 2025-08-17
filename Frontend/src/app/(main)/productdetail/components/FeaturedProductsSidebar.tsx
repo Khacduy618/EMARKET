@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Eye, Star } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '@/lib/config';
 
 // ===================================================================
 // TYPES VÀ HELPER FUNCTIONS (Giữ nguyên)
@@ -120,8 +121,15 @@ export default function RelatedProductsSidebar({ currentProductId }: RelatedProd
             setError(null);
             try {
                 // Gọi API sản phẩm liên quan với ID được truyền vào
-                const apiUrl = `http://localhost/api/featuredRelated-products/${currentProductId}`;
-                const response = await axios.get<Product[]>(apiUrl);
+                const apiUrl = `${API_URL}/featuredRelated-products/${currentProductId}`;
+                const response = await axios.get<Product[]>(apiUrl,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
 
                 // Dữ liệu trả về đã là mảng sản phẩm, không cần .flatMap
                 setProducts(response.data);

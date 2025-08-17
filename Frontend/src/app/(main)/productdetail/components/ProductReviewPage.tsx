@@ -6,6 +6,7 @@ import ProductDescription from "./ProductDescription"
 import axios from "axios"
 import { RatingStats, Review } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
+import { API_URL } from "@/lib/config"
 
 interface ProductReviewPageProps {
   productId: number;
@@ -21,29 +22,19 @@ export default function ProductReviewPage({ productId }: ProductReviewPageProps)
   // Lấy thông tin người dùng hiện tại để truyền xuống
   const { user, isLoading: isUserLoading } = useAuth();
 
-  // useEffect(() => {
-  //   async function fetchReviews() {
-  //     setLoading(true)
-  //     setError(null)
-  //     try {
-  //       // Thay đổi endpoint cho phù hợp với API của bạn
-  //       const res = await axios.get(`/api/product/${productId}/reviews`)
-  //       setReviews(res.data.reviews)
-  //       setRatingStats(res.data.ratingStats)
-  //     } catch (err: any) {
-  //       setError("Không thể tải đánh giá sản phẩm.")
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-  //   fetchReviews()
-  // }, [productId])
 
   const fetchReviews = useCallback(async () => {
     // Không set loading ở đây nữa để tránh giật màn hình khi fetch lại
     setError(null);
     try {
-      const res = await axios.get(`/api/product/${productId}/reviews`);
+      const res = await axios.get(`${API_URL}/product/${productId}/reviews`,
+        {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+      );
       setReviews(res.data.reviews);
       setRatingStats(res.data.ratingStats);
     } catch (err: any) {

@@ -5,11 +5,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductCard, { type Product } from './ProductCard'; // Import cả Component và Type
 import { Loader2 } from 'lucide-react';
+import { API_URL } from '@/lib/config';
 
 
 /**
  * Hàm tiện ích để "dọn dẹp" URL ảnh bị lỗi từ API.
- * Nó sẽ cắt bỏ phần `http://localhost/storage/` thừa.
  * @param corruptedUrl - URL bị lỗi từ API.
  * @returns URL đã được sửa hoặc ảnh placeholder.
  */
@@ -45,12 +45,17 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentProductId }) => {
             setLoading(true);
             setError(null);
             try {
-                const apiUrl = `http://localhost:8001/api/products/${currentProductId}/related`;
+                const apiUrl = `${API_URL}/products/${currentProductId}/related`;
 
 
                 // === SỬA ĐỔI 2: ĐƠN GIẢN HÓA VIỆC GỌI API ===
                 // Cho axios biết API trả về một mảng Product.
-                const response = await axios.get<Product[]>(apiUrl);
+                const response = await axios.get<Product[]>(apiUrl,{
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                });
 
 
                 // === SỬA ĐỔI 3: XỬ LÝ DỮ LIỆU SAU KHI GỌI API ===

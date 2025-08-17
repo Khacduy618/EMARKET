@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { getAuthToken, API_BASE_URL } from "@/services/api"
+import { getAuthToken } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 type Category = {
   CategoryID: number
@@ -35,7 +36,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
 
   useEffect(() => {
     if (show) {
-      fetch(API_BASE_URL + "/admin/categories/getAllCategory", {
+      fetch(`${API_URL}/admin/categories/getAllCategory`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -83,7 +84,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     }
 
     try {
-      const res = await fetch(API_BASE_URL + "/admin/categories/create", {
+      const res = await fetch(`${API_URL}/admin/categories/create`, {
         method: "POST",
         credentials: 'include',
         body: formData,

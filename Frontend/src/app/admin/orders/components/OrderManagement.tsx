@@ -87,7 +87,6 @@
 //              return
 //            }
 
-//       const res = await fetch(`http://localhost:8001/api/admin/orders?${params.toString()}`, {
 //          headers: {
 //         "Accept": "application/json",
 //         },
@@ -297,6 +296,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TableBody, TableCell, TableHead, TableHeader, TableRow , Table} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { getAuthToken, getFullImageUrl } from "@/services/api"
+import { API_URL } from "@/lib/config"
 
 // --- TYPESCRIPT & HÀM TIỆN ÍCH ---
 export interface User { UserID: number; FullName: string; Email: string; avatar?: string; }
@@ -385,7 +385,7 @@ export default function OrderManagement() {
         return;
       }
 
-      const res = await fetch(`http://localhost:8001/api/admin/orders?${params.toString()}`, {
+      const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, {
          headers: { "Accept": "application/json" },
          credentials: 'include', 
       });

@@ -9,6 +9,7 @@ import { SubmitSection } from "./SubmitSection"
 import { toast } from "react-toastify"
 import { Loader2 } from "lucide-react"
 import { useSearchParams } from "next/navigation"
+import { API_URL } from "@/lib/config"
 export interface ProductReview {
   rating: number
   reviewText: string
@@ -55,7 +56,11 @@ export default function MultiProductReviewPage() {
     }
     setLoading(true);
     setError(null);
-    fetch(`/api/orders/${orderId}`)
+    fetch(`${API_URL}/orders/${orderId}`,{
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
+                })
       .then(res => {
         if (!res.ok) {
           throw new Error(res.status === 404 ? 'Không tìm thấy đơn hàng.' : 'Không thể tải chi tiết đơn hàng.');
@@ -204,12 +209,12 @@ export default function MultiProductReviewPage() {
       console.log('---------------------------------');
 
       formData.append('reviews', JSON.stringify(reviewsArr));
-      const res = await fetch('/api/reviews/store', {
+      const res = await fetch(`${API_URL}/reviews/store`, {
         method: 'POST',
-        // credentials: 'include',
-        // headers: {
-        //   'Accept': 'application/json',
-        // },
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        },
         body: formData
       });
       const result = await res.json();

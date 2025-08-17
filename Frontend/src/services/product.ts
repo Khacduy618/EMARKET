@@ -1,6 +1,6 @@
 // src/services/product.ts
+import { API_URL } from '@/lib/config';
 import { Product } from '@/types'; // Đảm bảo import type Product nếu chưa có
-import {API_BASE_URL} from '@/services/api';
 
 export async function fetchProductById(id: number): Promise<Product | null> {
     try {
@@ -9,7 +9,7 @@ export async function fetchProductById(id: number): Promise<Product | null> {
             throw new Error("Invalid Product ID provided to fetchProductById: ID is NaN.");
         }
 
-        const url = `${API_BASE_URL}/products/${id}`; // Đảm bảo endpoint là /products/:id
+        const url = `${API_URL}/products/${id}`; // Đảm bảo endpoint là /products/:id
         console.log("Attempting to fetch product from URL:", url);
 
         const response = await fetch(url, {

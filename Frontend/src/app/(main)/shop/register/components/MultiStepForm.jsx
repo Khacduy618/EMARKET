@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import InputField from './InputField';
 import Button from './Button';
+import {API_URL} from '@/lib/config';
 
 export default function SellerRegisterForm() {
     const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export default function SellerRegisterForm() {
     // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
         if (!token) {
-            router.push('/login');
+            router.push('/signin');
             return;
         }
 
@@ -62,14 +63,16 @@ export default function SellerRegisterForm() {
             try {
                 console.log('Sending POST /api/seller/register');
                 const response = await axios.post(
-                    'http://localhost/api/seller/register',
+                    `${API_URL}/seller/register`,
                     formData,
                     {
-                        headers: {
-                            'Content-Type': 'multipart/form-data', 
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }
+                    headers: {
+                        'Content-Type': 'multipart/form-data', 
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                  
                   );
                 setSuccess(response.data.message || 'Đăng ký thành công!');
                 setTimeout(() => router.push('/'), 2000);

@@ -1,5 +1,5 @@
+import { API_URL } from "@/lib/config";
 import { PaginatedOrders } from "@/types/order.interface";
-import { API_BASE_URL } from "@/services/api";
 
 // Hàm helper fetch
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
@@ -9,7 +9,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
     ...options.headers,
   };
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+  const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ message: res.statusText }));

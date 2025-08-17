@@ -24,7 +24,8 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { API_BASE_URL } from "@/services/api"
+import { getAuthToken } from "@/services/api"
+import { API_URL, WEB_URL } from "@/lib/config"
 
 interface OrderItem {
   OrderItemID: number
@@ -88,7 +89,7 @@ export default function Page() {
       try {
         setError(null)
         // Keep the original URL since it seems to work
-        const url = `${API_BASE_URL}/seller/statistics/orders/deaill/${orderId}`
+        const url = `${API_URL}/seller/statistics/orders/deaill/${orderId}`
 
         const res = await fetch(url, {
           method: "GET",
@@ -416,7 +417,7 @@ export default function Page() {
                   <TableRow key={item.OrderItemID}>
                     <TableCell>
                       <img
-                        src={`${API_BASE_URL}/storage/${item.ImageURL}`}
+                        src={`${WEB_URL}/storage/${item.ImageURL}`}
                         className="w-full h-auto"
                       />
                     </TableCell>

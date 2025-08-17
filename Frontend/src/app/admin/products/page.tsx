@@ -29,6 +29,7 @@ import "react-toastify/dist/ReactToastify.css"
 import ProductDetailModal from "./components/ProductDetailModal"
 import { Label } from "@/components/ui/label"
 import CategoryDropDow from "./components/category-selector"
+import { API_URL } from "@/lib/config"
 
 interface Product {
   ProductID: number
@@ -54,7 +55,7 @@ const formatDate = (isoDate: string) => {
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString("vi-VN")
 }
 
-import { API_BASE_URL, getAuthToken } from "@/services/api"
+import { getAuthToken } from "@/services/api"
 import { truncateText } from "@/utils";
 
 export default function ProductListPage() {
@@ -93,7 +94,7 @@ export default function ProductListPage() {
         return
       }
 
-      const res = await fetch(API_BASE_URL + `/admin/products?${params.toString()}`, {
+      const res = await fetch(`${API_URL}/admin/products?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -156,7 +157,7 @@ export default function ProductListPage() {
           return
         }
 
-        const res = await fetch(API_BASE_URL + `/admin/products/${productId}/approval-status`, {
+        const res = await fetch(`${API_URL}/admin/products/${productId}/approval-status`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

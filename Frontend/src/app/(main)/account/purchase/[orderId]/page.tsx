@@ -7,6 +7,7 @@ import { Order } from '@/types';
 import { getAuthToken } from '@/services/api';
 import { Loader2 } from 'lucide-react';
 import { getDecodedXsrfToken } from '@/services/auth';
+import { API_URL } from '@/lib/config';
 
 export default function OrderIdPage() {
     const params = useParams();
@@ -34,7 +35,7 @@ export default function OrderIdPage() {
             }
 
             try {
-                const response = await fetch(`/api/orders/${orderId}`, {
+                const response = await fetch(`${API_URL}/orders/${orderId}`, {
                            method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
                 });
 

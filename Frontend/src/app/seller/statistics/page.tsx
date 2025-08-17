@@ -29,9 +29,9 @@ import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths }
 import { CalendarItem } from "./components/CalenderItem"
 import type { TimeRange } from "@/types/analytics"
 import { format } from "date-fns"
-import { API_BASE_URL } from "@/services/api"
 import ChartProduct from "./components/CharProduct";
 import type { summaryDataChart } from "@/types/analytics"
+import { API_URL } from "@/lib/config"
 
 const formatVND = (amount: number): string => new Intl.NumberFormat("vi-VN").format(amount)
 const formatVND2 = (amount: number): string =>
@@ -142,7 +142,7 @@ export default function ComponentRevenue() {
     if (!startDate || !endDate) return
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE_URL}/seller/statistics?${params}`, {
+      const res = await fetch(`${API_URL}/seller/statistics?${params}`, {
         method: "GET",
         credentials: 'include',
       })

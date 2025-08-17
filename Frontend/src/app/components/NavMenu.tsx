@@ -55,7 +55,6 @@
 //  * Component NavMenu chính
 //  */
 // export default function NavMenu() {
-//     const { data, error } = useSWR('http://localhost/api/category1qqq', fetcher)
 //     const [isScrolled, setIsScrolled] = useState(false)
 //     const [activeTheme, setActiveTheme] = useState<SeasonTheme | null>(null);
 

@@ -104,46 +104,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // };
     const fetchUser = async () => {
     try {
-        const authToken = getAuthToken(); // Giả sử hàm này lấy token từ localStorage
-        if (authToken) {
-            setToken(authToken); // Cập nhật state token
-            try {
-                const userData = await apiGetMe();
-                if (userData && userData.UserID) {
-                    setUser(userData);
-                } else {
-                    setUser(null);
-                    setToken(null); // Xóa token nếu user không hợp lệ
-                }
-            } catch (err) {
-                setUser(null);
-                setToken(null); // Xóa token khi có lỗi
-            }
-        } else {
-            setUser(null);
-            setToken(null);
-        }
+        // Không cần kiểm tra token, chỉ cần gọi getMe
+        // Trình duyệt sẽ tự lo việc gửi cookie
+        const userData = await apiGetMe();
+        setUser(userData);
     } catch (err) {
-        console.log("Error during fetchUser, setting user to null:", err);
-        setUser(null); // Đặt user thành null khi có lỗi
+        // Nếu getMe thất bại (lỗi 401), có nghĩa là chưa đăng nhập
+        // hoặc session đã hết hạn. Set user về null là đúng.
+        setUser(null);
     }
 };
 
     // Khởi tạo Auth ban đầu
-    useEffect(() => {
-        const initializeAuth = async () => {
-            // await getCsrfCookie();
-            await fetchUser();
-            setIsLoading(false);
-        };
-        initializeAuth();
-    }, []);
+   useEffect(() => {
+    const initializeAuth = async () => {
+        setIsLoading(true); // Bắt đầu loading
+        await getCsrfCookie(); // Rất quan trọng, phải lấy cookie trước
+        await fetchUser();
+        setIsLoading(false); // Kết thúc loading
+    };
+    initializeAuth();
+}, []); 
     
     useEffect(() => {
     // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
         if (isLoading) return;
 
-        const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/forgot-password');
+        const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname.startsWith('/forgot-password');
         const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
 
         if (user && isAuthPage) {
@@ -155,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
         if (!user && isProtectedPage) {
             console.log("Auth Guard: User is not logged in, redirecting from protected page to /login");
-            router.push('/login');
+            router.push('/signin');
         }
 
     }, [user, isLoading, pathname, router]);
@@ -241,7 +228,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setRequiresTwoFactor(false);
             setError(null);
             toast.update(toastId, { render: "Đã đăng xuất!", type: "success", isLoading: false, autoClose: 2000 });
-            router.push('/login');
+            router.push('/signin');
         }
     };
 
@@ -255,7 +242,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const resetPassword = async (payload: ResetPasswordPayload) => {
         await toast.promise(
-            apiResetPassword(payload).then(() => router.push('/login')),
+            apiResetPassword(payload).then(() => router.push('/signin')),
             {
                 pending: 'Đang đặt lại mật khẩu...',
                 success: 'Mật khẩu đã được đặt lại! Vui lòng đăng nhập.',

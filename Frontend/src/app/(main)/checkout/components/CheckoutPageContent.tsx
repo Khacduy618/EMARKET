@@ -34,6 +34,7 @@ import { toast } from 'react-toastify';
 import { OrderResponseBody } from '@paypal/paypal-js';
 import { getAuthToken } from '@/services/api';
 import PaymentMethodSelectionModal from './PaymentMethodSelectionModal';
+import { API_URL } from '@/lib/config';
 
 
 const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
@@ -93,10 +94,10 @@ useEffect(() => {
             try {
                 console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
                 // Bạn cần tạo một API endpoint mới để lấy chi tiết đơn hàng
-                const response = await fetch(`/api/orders/${orderIdFromUrl}?context=checkout`, {
-                    headers: {
-                        'Authorization': `Bearer ${getAuthToken()}` // Đảm bảo có xác thực
-                    }
+                const response = await fetch(`${API_URL}/orders/${orderIdFromUrl}?context=checkout`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
                 });
                 console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
                 if (!response.ok) throw new Error("Không tìm thấy thông tin đơn hàng.");
@@ -287,12 +288,11 @@ useEffect(() => {
         }
         try {
              console.log(`[handleVnPayPayment] Calling API /api/vnpay/create-payment/${orderId}`);
-            const response = await fetch(`/api/vnpay/create-payment/${orderId}`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${getAuthToken()}` ,'Content-Type': 'application/json', // Thêm header này để rõ ràng
-                'Accept': 'application/json',},
-                
-            });
+            const response = await fetch(`${API_URL}/vnpay/create-payment/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
+                });
             console.log("VNPay create payment response status:", response.status);
             const data = await response.json();
              console.log("Data received from /api/vnpay/create-payment:", data);
@@ -458,13 +458,11 @@ const handlePaymentMethodChange = () => {
             
             toast.info("Đang hủy đơn hàng nháp...");
 
-            const response = await fetch(`/api/orders/${orderId}/cancel-draft`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-            });
+            const response = await fetch(`${API_URL}/orders/${orderId}/cancel-draft`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
+                });
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -550,15 +548,11 @@ const handlePaymentMethodChange = () => {
         try {
             // Gọi API để tạo đơn hàng nháp
              console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
-            const response = await fetch('/api/orders/place', { // Sử dụng route mới
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Giả sử bạn đã có cơ chế lấy token
-                    'Authorization': `Bearer ${getAuthToken()}`,
-                },
-                body: JSON.stringify(payload),
-            });
+            const response = await fetch(`${API_URL}/orders/place`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
+                });
 
             const result = await response.json();
 
@@ -601,13 +595,11 @@ const handlePaymentMethodChange = () => {
         }
 
         try {
-            const response = await fetch(`/api/orders/${orderId}/complete`, {
-                method: 'PUT',
-                headers: {  'Content-Type': 'application/json',
-                    // Giả sử bạn đã có cơ chế lấy token
-                    'Authorization': `Bearer ${getAuthToken()}`,},
-                body: JSON.stringify(payload),
-            });
+            const response = await fetch(`${API_URL}api/orders/${orderId}/complete`,{
+                    method: 'PUT',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include', // Quan trọng để gửi cookie
+                });
 
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || "Hoàn tất đơn hàng thất bại.");
@@ -630,9 +622,10 @@ const handlePaymentMethodChange = () => {
         // Gọi API để cập nhật trạng thái đơn hàng đã có
         try {
             // Bạn sẽ cần tạo một API route mới để cập nhật, ví dụ: /api/orders/{orderId}/update-payment
-            const response = await fetch(`/api/orders/${checkoutData.orderId}/update-payment`, {
+            const response = await fetch(`${API_URL}/orders/${checkoutData.orderId}/update-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // Quan trọng để gửi cookie
                 body: JSON.stringify({
                     paymentMethod: 'PAYPAL',
                     paymentDetails: {
@@ -641,6 +634,7 @@ const handlePaymentMethodChange = () => {
                     }
                 }),
             });
+            
 
             if (!response.ok) throw new Error("Cập nhật thanh toán thất bại.");
 

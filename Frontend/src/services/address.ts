@@ -2,7 +2,8 @@
 
 // Import các types và các hàm helper đã có
 import { Address, AddressPayload, ApiError } from '@/types';
-import { getCookie, handleResponse, API_URL, getDecodedXsrfToken } from './auth'; // Giả sử các hàm này đã được export từ auth.service
+import { getCookie, handleResponse, getDecodedXsrfToken } from './auth'; // Giả sử các hàm này đã được export từ auth.service
+import { API_URL } from '@/lib/config';
 
 // 1. LẤY DANH SÁCH ĐỊA CHỈ
 export const getAddresses = async (url: string): Promise<Address[]> => {

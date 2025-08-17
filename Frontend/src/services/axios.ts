@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // baseURL phải trỏ đến thư mục /api của backend
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
 
     // RẤT QUAN TRỌNG: Cho phép gửi cookie đi
     withCredentials: true,

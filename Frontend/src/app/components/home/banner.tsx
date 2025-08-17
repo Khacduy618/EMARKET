@@ -15,9 +15,10 @@ import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
 import type { IHome } from '@/types/Ihome';
+import { API_URL, WEB_URL } from '@/lib/config';
 
 // API Endpoint đã được định nghĩa rõ ràng
-const API_URL = 'http://localhost/api/banners?position=homepage_carousel';
+const URL = `${API_URL}/banners?position=homepage_carousel`;
 
 const HeroBannerSlider: React.FC = () => {
     const [banners, setBanners] = useState<IHome.Banner[]>([]);
@@ -29,7 +30,14 @@ const HeroBannerSlider: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get<{ data: IHome.Banner[] }>(API_URL);
+                const response = await axios.get<{ data: IHome.Banner[] }>(URL,
+                    {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    withCredentials: true,
+                }
+                );
                 const now = new Date();
 
                 // Dữ liệu từ API đã là { data: [...] }
@@ -72,7 +80,7 @@ const HeroBannerSlider: React.FC = () => {
             return imageUrl;
         }
         // Nếu ImageURL luôn là path tương đối, ví dụ: /images/banners/mybanner.jpg
-        const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'http://localhost';
+        const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || `${WEB_URL}`;
         return `${imageBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
     };
 
@@ -146,7 +154,7 @@ const HeroBannerSlider: React.FC = () => {
                                         priority={index === 0} // Ưu tiên tải ảnh đầu tiên
                                         className="transition-transform duration-500 ease-in-out group-hover:scale-105"
                                         // Unoptimize nếu ảnh là GIF hoặc từ localhost (nếu không muốn Next.js xử lý)
-                                        unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith('http://localhost')}
+                                        unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
                                         onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             target.onerror = null;
@@ -163,7 +171,7 @@ const HeroBannerSlider: React.FC = () => {
                                     objectFit="cover"
                                     priority={index === 0}
                                     className="transition-transform duration-500 ease-in-out group-hover:scale-105"
-                                    unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith('http://localhost')}
+                                    unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
                                         target.onerror = null;

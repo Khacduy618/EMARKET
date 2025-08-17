@@ -1,5 +1,6 @@
 import { Cart, AddCartItemResponse } from '../types';
-import {handleResponse,getAuthToken, API_BASE_URL } from '../services/api';
+import {handleResponse,getAuthToken } from '../services/api';
+import { API_URL } from '@/lib/config';
 
 // Helper function to get the auth token (replace with your actual auth logic)
 
@@ -8,7 +9,7 @@ import {handleResponse,getAuthToken, API_BASE_URL } from '../services/api';
 
 export const fetchCart = async (): Promise<Cart> => {
     
-    const response = await fetch(`${API_BASE_URL}/cart`, {
+    const response = await fetch(`${API_URL}/cart`, {
          method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json',
@@ -21,7 +22,7 @@ export const fetchCart = async (): Promise<Cart> => {
 
 export async function updateCartItemQuantity(cartItemId: number, quantity: number): Promise<Cart> {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}`, {
+    const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -34,7 +35,7 @@ export async function updateCartItemQuantity(cartItemId: number, quantity: numbe
 
 export const removeCartItem = async (cartItemId: number): Promise<Cart> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}`, {
+    const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -51,7 +52,7 @@ export const updateCartItemVariant = async (cartItemId: number, newVariantId: nu
         return Promise.reject(new Error('Authentication token not found.'));
     }
 
-    const response = await fetch(`${API_BASE_URL}/cart/items/${cartItemId}/variant`, {
+    const response = await fetch(`${API_URL}/cart/items/${cartItemId}/variant`, {
         
         method: 'PUT',
         headers: {
@@ -68,7 +69,7 @@ export const updateCartItemVariant = async (cartItemId: number, newVariantId: nu
 
 export const addCartItem = async (variantId: number, quantity: number, shopId: number): Promise<AddCartItemResponse> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/cart/items`, {
+    const response = await fetch(`${API_URL}/cart/items`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -83,7 +84,7 @@ export const addCartItem = async (variantId: number, quantity: number, shopId: n
 
 export const fetchProductAttributes = async (productId: number) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/products/${productId}/attributes`);
+        const response = await fetch(`${API_URL}/products/${productId}/attributes`);
         if (!response.ok) {
             throw new Error(`Failed to fetch attributes: ${response.status}`);
         }
@@ -101,7 +102,7 @@ export const fetchProductAttributes = async (productId: number) => {
  */
 export const removeMultipleCartItems = async (cartItemIds: number[]): Promise<Cart> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/cart/items`, {
+    const response = await fetch(`${API_URL}/cart/items`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,

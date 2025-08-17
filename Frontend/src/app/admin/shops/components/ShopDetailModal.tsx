@@ -3,8 +3,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { API_BASE_URL, getAuthToken } from '@/services/api';
+import { getFullImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 type Shop = {
   ShopID: number;
@@ -40,8 +40,7 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const authToken = getAuthToken();
-        const res = await fetch(API_BASE_URL + `/admin/shops/${shopId}`, {
+        const res = await fetch(`${API_URL}/admin/shops/${shopId}`, {
           headers: {
             "Content-Type": "application/json",
           },

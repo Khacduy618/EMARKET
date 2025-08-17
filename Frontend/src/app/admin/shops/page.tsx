@@ -1,23 +1,10 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import Swal from 'sweetalert2'
-import ShopDetailModal from './components/ShopDetailModal'
-import { API_BASE_URL, getAuthToken } from "@/services/api"
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react'
-import { Label } from '@/components/ui/label'
+'use client';
+import { useEffect, useState } from 'react';
+import { OverlayTrigger, Tooltip, Spinner } from 'react-bootstrap';
+import Swal from 'sweetalert2';
+import ShopDetailModal from './components/ShopDetailModal'; // Đảm bảo đúng đường dẫn
+import { getFullImageUrl } from '@/services/api';
+import { API_URL } from '@/lib/config';
 
 type Shop = {
   ShopID: number
@@ -103,7 +90,7 @@ export default function ShopTable() {
         display_quantity: limitItem.toString(),
       })
 
-      const res = await fetch(API_BASE_URL + `/admin/shops?${params.toString()}`, {
+      const res = await fetch(`${API_URL}/admin/shops?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -151,8 +138,8 @@ export default function ShopTable() {
     if (!result.isConfirmed) return
 
     try {
-      const res = await fetch(API_BASE_URL + `/admin/shops/${shopId}/status`, {
-        method: 'POST', // Or PUT, depending on your API
+      const res = await fetch(`${API_URL}/admin/shops/${shopId}/status`, {
+        method: 'POST',
         headers: {
           "Content-Type": "application/json",
         },

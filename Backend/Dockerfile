@@ -1,85 +1,58 @@
-# Define composer stage
-FROM docker.io/library/composer:latest AS composer
 
-# Sử dụng image PHP chính thức với FPM (ví dụ PHP 8.2)
+
+# --- STAGE 1: Composer ---
+FROM composer:2.7 AS composer
+
+# --- STAGE 2: PHP Base Image ---
 FROM php:8.3-fpm-alpine AS base
-
-ENV TZ=Asia/Ho_Chi_Minh
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# 1. Cài đặt các dependencies hệ thống cần thiết (đã bỏ linux-headers và các thứ cho xdebug build)
-RUN apk add --no-cache \
-    bash \
-    git \
-    curl \
-    openssl \
-    libzip-dev \
-    zip \
-    unzip \
-    libpng-dev \
-    jpeg-dev \
-    freetype-dev \
-    icu-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    # Không cần .build-deps cho $PHPIZE_DEPS nếu không cài extension bằng pecl hoặc không cần compile phức tạp
-    # Chỉ cần các thư viện runtime cho các extension cài bằng docker-php-ext-install
-    && apk add --virtual .phpize-deps $PHPIZE_DEPS \
-    # XÓA CÁC LỆNH LIÊN QUAN ĐẾN XDEBUG
-    # && pecl install xdebug \
-    # && docker-php-ext-enable xdebug \
-    && apk del .phpize-deps
-
-# 2. Cài đặt các PHP extensions cần thiết cho Laravel
+RUN apk add --no-cache bash git curl openssl libzip-dev zip unzip libpng-dev jpeg-dev freetype-dev icu-dev oniguruma-dev libxml2-dev
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-    gd \
-    pdo_mysql \
-    zip \
-    bcmath \
-    intl \
-    exif \
-    opcache \
-    pcntl \
-    soap
-
-# 3. Cài đặt Composer
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql zip bcmath intl exif opcache pcntl soap
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
-# Thiết lập thư mục làm việc
+# --- SỬA LỖI PHP-FPM ---
+# Sửa file config mặc định để lắng nghe trên port 9000 thay vì socket
+RUN sed -i 's/listen = \/var\/run\/php-fpm.sock/listen = 9000/' /usr/local/etc/php-fpm.d/www.conf.default
+
+RUN addgroup -g 1000 -S www && adduser -u 1000 -S www -G www
 WORKDIR /var/www/html
+USER www
 
-# Sao chép chỉ các file cần thiết cho việc cài đặt Composer dependencies
-COPY composer.json composer.lock ./
+# --- STAGE 3: Build Dependencies ---
+FROM base AS vendor
+COPY --chown=www:www composer.json composer.lock ./
+RUN composer install --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader --no-dev
+RUN composer clear-cache
 
-# Cài đặt dependencies của Laravel
-RUN composer install \
-    --prefer-dist \
-    --no-interaction \
-    --no-scripts \
-    --no-progress \
-    --optimize-autoloader \
-    --ignore-platform-reqs
-    # Bỏ --no-dev nếu bạn đang build cho môi trường development và cần các dev packages
-    # Nếu đây là image cho production, hãy thêm --no-dev
+# --- STAGE 4: Production Image ---
+FROM base AS production
+COPY --from=vendor /var/www/html/vendor ./vendor
+COPY --chown=www:www . .
 
-# Sao chép toàn bộ source code của ứng dụng Laravel vào thư mục làm việc
-COPY . .
+# 1. Tạo file .env tạm thời, an toàn để build
+RUN \
+    # 1. Tạo file .env với một APP_KEY tĩnh và an toàn
+    # Key này chỉ dùng để build, không phải key production thật
+    echo "APP_ENV=production" > .env && \
+    echo "APP_KEY=base64:b59hrBAP20zTw01R+So+KY/3jGFlYgM8tNDIDTjC38g=" >> .env && \
+    echo "DB_CONNECTION=mysql" >> .env && \
+    echo "CACHE_DRIVER=file" >> .env && \
+    echo "SESSION_DRIVER=file" >> .env 
 
-# Chạy các script của Composer
+# 2. Chạy các lệnh tối ưu hóa ngay trong quá trình build
 RUN composer dump-autoload --optimize
 
-# *** PHẦN SỬA LỖI QUAN TRỌNG ***
+# 3. Sao chép Entrypoint Script và cấp quyền thực thi
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# 1. Tạo symbolic link. Xóa link cũ nếu có để tránh lỗi.
-# Lệnh này đảm bảo link được tạo bên trong image.
-RUN rm -rf public/storage && php artisan storage:link
+USER root
+RUN chmod +x /usr/local/bin/entrypoint.sh
+USER www
 
-# 2. Thiết lập quyền sở hữu và quyền ghi cho thư mục storage và bootstrap/cache
-# Điều này cực kỳ quan trọng để Nginx container (khi mount volume) có thể đọc được file.
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# 4. Đặt lại quyền truy cập cho thư mục storage và bootstrap/cache
+RUN chown -R www:www /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Lệnh để khởi động Laravel development server (Giữ nguyên như của bạn)
-EXPOSE 8000
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Khai báo port, entrypoint, và lệnh khởi động
+EXPOSE 9000
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]

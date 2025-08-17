@@ -3,8 +3,8 @@
 import axios from 'axios';
 import { getAuthToken } from './api'; // Hàm lấy token của bạn
 import type { AdminReview, ReviewStatus } from '@/types';
+import { API_URL } from '@/lib/config';
 
-const API_URL = 'http://localhost:8001/api/admin';
 
 interface UpdateStatusPayload {
   status: ReviewStatus;
@@ -16,9 +16,8 @@ export const updateReviewStatus = async (
   payload: UpdateStatusPayload
 ): Promise<AdminReview> => {
   try {
-    const token = getAuthToken();
     const response = await axios.put(
-      `${API_URL}/reviews/${reviewId}`,
+      `${API_URL}/admin/reviews/${reviewId}`,
       payload,
       {
         headers: {

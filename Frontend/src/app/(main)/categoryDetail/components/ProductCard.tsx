@@ -1,6 +1,7 @@
 // app/categoryDetail/components/ProductCard.tsx
 import Link from 'next/link';
 import Image from 'next/image';
+import { WEB_URL } from '@/lib/config';
 
 // --- THÊM TYPE TRỰC TIẾP VÀO ĐÂY ---
 interface Variant {
@@ -28,7 +29,7 @@ const formatCurrency = (amount: number) => new Intl.NumberFormat('vi-VN', { styl
 const getImageUrl = (url: string | null | undefined) => {
     if (!url) return '/placeholder.svg';
     if (url.startsWith('http')) return url;
-    return `http://localhost${url}`;
+    return `${WEB_URL}${url}`;
 };
 
 export default function ProductCard({ product }: { product: Product }) {

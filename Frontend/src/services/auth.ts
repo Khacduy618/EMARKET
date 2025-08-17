@@ -1,6 +1,7 @@
 // services/auth.service.ts
 
 // 1. IMPORT CÁC TYPES CẦN THIẾT
+import { API_URL, WEB_URL } from '@/lib/config';
 import {
     LoginPayload,
     User,
@@ -17,8 +18,6 @@ import {
 
 // --- 2. CÁC BIẾN MÔI TRƯỜNG VÀ HÀM HELPER CƠ BẢN ---
 
-export const API_URL = 'http://localhost/api';
-const WEB_URL = 'http://localhost:8001';
 
 // Tiện ích để đọc cookie
 export function getCookie(name: string): string | null {
@@ -57,7 +56,8 @@ export async function handleResponse<T>(response: Response): Promise<T> {
 // --- 3. CÁC HÀM API CHÍNH ---
 
 export const getCsrfCookie = async (): Promise<void> => {
-    await fetch(`${WEB_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
+    await fetch(`${WEB_URL}/sanctum/csrf-cookie`, {
+        credentials: 'include' ,});
 };
 
 // HÀM LOGIN ĐÃ ĐƯỢC SỬA LẠI ĐỂ XỬ LÝ 2FA
@@ -92,7 +92,7 @@ export const login = async (credentials: LoginPayload): Promise<LoginResponse> =
 
 export const getMe = async (): Promise<User> => {
     const response = await fetch(`${API_URL}/me`, {
-        method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json' },
+        method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json','Content-Type': 'application/json' },
     });
     return handleResponse<User>(response);
 };
