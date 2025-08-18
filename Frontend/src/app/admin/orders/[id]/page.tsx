@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 
 // File: Frontend/src/app/(admin)/admin/orders/[id]/page.tsx
+=======
+>>>>>>> 4fbea40f (orderadmin)
 'use client'; // <-- QUAN TRỌNG: Chuyển thành Client Component
 
 import React, { useState, useEffect } from 'react';
@@ -77,7 +80,7 @@ export default function OrderDetailPage() {
                     headers: { 'Accept': 'application/json' },
                     credentials: 'include', // Quan trọng để gửi cookie
                 });
-
+                console.log('data:',response)
                 if (!response.ok) {
                     if (response.status === 404) throw new Error('Không tìm thấy đơn hàng.');
                     if (response.status === 401 || response.status === 403) throw new Error('Bạn không có quyền xem đơn hàng này.');

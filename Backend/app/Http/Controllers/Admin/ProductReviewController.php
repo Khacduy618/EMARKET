@@ -108,7 +108,7 @@ class ProductReviewController extends Controller
             $review->requestFromShop = json_decode($review->requestFromShop);
             return $review;
         });
-        
+
         return response()->json([
             'success' => true,
             'data' => $reviews
@@ -150,7 +150,7 @@ class ProductReviewController extends Controller
             'success' => true,
             'message' => 'Cập nhật trạng thái review thành công.',
             // Trả về review đã được cập nhật để frontend có thể cập nhật UI
-            'data' => $review 
+            'data' => $review
         ]);
     }
 }

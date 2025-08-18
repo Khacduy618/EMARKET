@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
+use App\Models\Order; // Sử dụng Model OrderBuyer và đặt bí danh là Order
 use App\Models\OrderItem;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class OrderItemController extends Controller
 {
@@ -12,24 +14,32 @@ class OrderItemController extends Controller
      * Hiển thị danh sách tất cả các sản phẩm (items)
      * thuộc về một đơn hàng cụ thể.
      *
-     * @param  \App\Models\Order  $order
+     * @param  \App\Models\OrderBuyer $order
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Order $order)
+    public function index(Order $order): JsonResponse
     {
-        // Nhờ vào Route Model Binding, Laravel đã tự tìm Order cho chúng ta.
-        // Bây giờ, chúng ta chỉ cần lấy các 'items' liên quan đến nó.
+        try {
+            // Sử dụng eager loading để tải các quan hệ cần thiết, tránh N+1 query
+            $items = $order->items()->with([
+                'variant.product.shop:ShopID,ShopName', // Chỉ lấy ID và tên của shop
+                'variant.attributes.attribute:AttributeID,Name',       // Chỉ lấy ID và tên của thuộc tính (Màu, Size)
+                'variant.attributes.attributeValue:AttributeValueID,Value'   // Chỉ lấy ID và giá trị của thuộc tính
+            ])->get();
 
-        // Sử dụng `with()` để tải kèm thông tin của variant và sản phẩm chính.
-        // Điều này giúp tránh lỗi N+1 query và cung cấp đủ dữ liệu cho frontend.
-        // Giả sử mối quan hệ của bạn là: OrderItem -> variant -> product
-        $items = $order->items()->with('variant.product')->get();
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy danh sách sản phẩm của đơn hàng thành công!',
+                'data' => $items
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Lấy danh sách sản phẩm của đơn hàng thành công!',
-            'data' => $items
-        ]);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy danh sách item của đơn hàng ' . $order->OrderID . ': ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi lấy danh sách sản phẩm.'
+            ], 500);
+        }
     }
 
     /**
@@ -38,18 +48,36 @@ class OrderItemController extends Controller
      * @param  \App\Models\OrderItem  $orderItem
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(OrderItem $orderItem)
+    public function show(OrderItem $orderItem): JsonResponse
     {
-        // Laravel đã tự động tìm OrderItem dựa trên ID từ URL.
-        // Chúng ta chỉ cần tải thêm các thông tin liên quan.
-        $orderItem->load(['order.user', 'variant.product']);
+        try {
+            // Laravel đã tự động tìm OrderItem cho bạn nhờ Route Model Binding.
+            // Giờ chỉ cần tải thêm các thông tin liên quan.
+            $orderItem->load([
+                'order.user', // Thông tin người mua của đơn hàng chứa item này
+                'variant.product.shop', // Thông tin đầy đủ của shop
+                'variant.attributes.attribute',
+                'variant.attributes.attributeValue'
+            ]);
 
-       return response()->json([
-        'success' => true,
-        'message' => 'Lấy chi tiết đơn hàng thành công!',
-        'data' => $order // Dữ liệu $order bây giờ đã chứa cả 'items' bên trong
-    ]);
+           // Trả về đúng biến $orderItem
+           return response()->json([
+                'success' => true,
+                'message' => 'Lấy chi tiết mục sản phẩm thành công!',
+                'data' => $orderItem
+           ]);
+
+       } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy chi tiết OrderItem ID ' . $orderItem->OrderItemID . ': ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi lấy chi tiết sản phẩm.'
+            ], 500);
+       }
     }
 
-    // Các phương thức khác như store, update, destroy sẽ ở đây...
+    // Nơi đây có thể chứa các phương thức khác trong tương lai như:
+    // - Cập nhật số lượng của một item (nếu được phép)
+    // - Xóa một item khỏi đơn hàng nháp
+    // - Cập nhật trạng thái trả hàng cho một item cụ thể
 }
