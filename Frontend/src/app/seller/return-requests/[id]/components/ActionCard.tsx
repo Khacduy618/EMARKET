@@ -86,6 +86,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2'; // Sử dụng SweetAlert2 cho thông báo đẹp hơn
 import { ReturnRequest } from '@/types/return-request';
 import { getAuthToken } from '@/services/api'; // Giả sử bạn có hàm này
+import { API_URL } from '@/lib/config';
 
 interface ActionCardProps {
     request: ReturnRequest;
@@ -119,7 +120,7 @@ export default function ActionCard({ request, onSuccess }: ActionCardProps) {
         try {
             // [SỬA LỖI 1] Đổi từ PUT thành POST và thêm headers
             const response = await axios.post(
-                `http://localhost:8001/api/seller/return-requests/${request.ReturnRequestID}/respond`,
+                `${API_URL}/seller/return-requests/${request.ReturnRequestID}/respond`,
                 { action, seller_note: sellerNote || (action === 'approve' ? 'Yêu cầu được chấp thuận.' : '') },
                 {
                     headers: {

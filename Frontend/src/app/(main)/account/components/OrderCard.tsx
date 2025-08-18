@@ -28,20 +28,8 @@ const formatDate = (isoString: string): string => {
 const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    let tokenFromStorage: string | null = null;
-    if (typeof window !== 'undefined') {
-      // *** SỬA LỖI DUY NHẤT TẠI ĐÂY ***
-      // Đọc đúng key 'token' thay vì 'authToken'
-      tokenFromStorage = localStorage.getItem('token');
-    }
-    // Dòng log này bây giờ sẽ hiển thị đúng giá trị token
-    console.log(`[OrderCard ID: ${order.OrderID}] Đã đọc token từ localStorage:`, tokenFromStorage);
-    setAuthToken(tokenFromStorage);
-  }, [order.OrderID]); // Thêm dependency để đảm bảo logic đúng khi props thay đổi
-
+  
   const handleReturnSuccess = (message: string) => {
     alert(message);
     setIsReturnModalOpen(false);
@@ -191,12 +179,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
                 <button
                   className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0"
                   onClick={() => {
-                    // Thêm kiểm tra an toàn ngay tại đây
-                    if (!authToken) {
-                      alert("Không tìm thấy thông tin đăng nhập. Vui lòng tải lại trang hoặc đăng nhập lại.");
-                    } else {
                       setIsReturnModalOpen(true);
-                    }
                   }}
                 >
                   Yêu Cầu Trả Hàng
@@ -240,13 +223,13 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
       </div>
 
       {/* Logic render Modal */}
-      {isReturnModalOpen && authToken && (
+      {isReturnModalOpen && (
         <ReturnRequestModal
           isOpen={isReturnModalOpen}
           onClose={() => setIsReturnModalOpen(false)}
           onSuccess={handleReturnSuccess}
           order={order}
-          token={authToken}
+         
         />
       )}
     </>

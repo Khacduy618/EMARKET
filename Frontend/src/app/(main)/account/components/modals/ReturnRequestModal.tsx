@@ -459,7 +459,6 @@ interface ReturnRequestModalProps {
     onClose: () => void;
     onSuccess: (message: string) => void;
     order: Order | null;
-    token: string;
 }
 
 interface ReturnAddress {
@@ -601,8 +600,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
-    order,
-    token,
+    order
 }) => {
     // --- STATE MANAGEMENT ---
     const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
@@ -642,13 +640,13 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
             resetForm();
 
             const fetchDefaultAddress = async () => {
-                if (!token || !order.ShippingAddressID) {
+                if ( !order.ShippingAddressID) {
                     setIsEditingAddress(true); // Nếu không có địa chỉ, bật chế độ sửa
                     return;
                 }
                 try {
                     const response = await axios.get<Address>(`http://localhost:8001/api/addresses/${order.ShippingAddressID}`, {
-                        headers: { 'Authorization': `Bearer ${token}` },
+                        headers: { 'Content-Type': 'application/json'},
                         withCredentials: true,
                     });
                     const addr = response.data;
@@ -678,7 +676,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
             fetchDefaultAddress();
             fetchBanks();
         }
-    }, [isOpen, order, token, resetForm]);
+    }, [isOpen, order, resetForm]);
 
     // Effect để tạo và dọn dẹp URL preview ảnh
     useEffect(() => {
@@ -784,7 +782,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                 formData,
                 {
                     headers: {
-                        'Accept': 'application/json',
+                        'Content-Type' : 'multipart/form-data',
                     },
                     withCredentials: true,
                 

@@ -10,6 +10,7 @@ import Swal from "sweetalert2"
 import { getAuthToken } from "@/services/api" // Hàm helper của bạn để lấy token
 import Link from "next/link"
 import InfoBlock, { InfoRow } from "./components/InfoBlock" // Component của bạn
+import { API_URL } from "@/lib/config"
 
 // --- CÁC COMPONENT GIAO DIỆN NHỎ ---
 const LoadingSpinner = () => (
@@ -178,11 +179,7 @@ export default function ReturnRequestDetailPage() {
     }
 
     const performApiAction = async (url: string, payload: object = {}) => {
-        const token = getAuthToken();
-        if (!token) {
-            Swal.fire("Lỗi", "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.", "error");
-            return;
-        }
+        
 
         Swal.fire({
             title: "Đang xử lý...",
@@ -193,7 +190,7 @@ export default function ReturnRequestDetailPage() {
 
         try {
             const response = await axios.post(url, payload, {
-                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
             });
             handleSuccessfulAction(response);
@@ -223,7 +220,7 @@ export default function ReturnRequestDetailPage() {
         if (!result.isConfirmed) return
 
         const sellerNote = result.value || (action === "approve" ? "Yêu cầu được chấp thuận." : "Yêu cầu bị từ chối.");
-        const url = `http://localhost:8001/api/seller/return-requests/${returnRequestId}/respond`;
+        const url = `${API_URL}/seller/return-requests/${returnRequestId}/respond`;
         performApiAction(url, { action, seller_note: sellerNote });
     }
 
@@ -241,7 +238,7 @@ export default function ReturnRequestDetailPage() {
 
         if (!result.isConfirmed) return;
 
-        const url = `http://localhost:8001/api/seller/return-requests/${returnRequestId}/confirm-receipt`;
+        const url = `${API_URL}/seller/return-requests/${returnRequestId}/confirm-receipt`;
         performApiAction(url);
     };
 
@@ -257,7 +254,7 @@ export default function ReturnRequestDetailPage() {
         });
 
         if (typeof transactionNote !== 'undefined') { // Check if user clicked "Cancel"
-            const url = `http://localhost:8001/api/seller/return-requests/${returnRequestId}/confirm-bank-transfer`;
+            const url = `${API_URL}/seller/return-requests/${returnRequestId}/confirm-bank-transfer`;
             performApiAction(url, { transaction_note: transactionNote || "Seller confirmed manual transfer." });
         }
     };
@@ -270,11 +267,9 @@ export default function ReturnRequestDetailPage() {
                 setLoading(true);
                 setError(null);
                 try {
-                    const token = getAuthToken();
-                    if (!token) throw new Error("Không tìm thấy token xác thực.");
-
-                    const response = await axios.get(`http://localhost:8001/api/seller/return-requests/${returnRequestId}`, {
-                        headers: { Authorization: `Bearer ${token}` },
+                    
+                    const response = await axios.get(`${API_URL}/seller/return-requests/${returnRequestId}`, {
+                        headers: { 'Content-Type': 'application/json' },
                         withCredentials: true,
                     });
                     const data = response.data;

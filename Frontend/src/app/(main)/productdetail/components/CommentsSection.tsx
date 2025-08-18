@@ -52,12 +52,13 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
 
   const handleInteraction = async (type: 'like' | 'dislike') => {
       if (!currentUser) return toast.warn("Vui lòng đăng nhập để tương tác.");
-      const token = getAuthToken();
+      
       try {
           await axios.post(
               `${API_URL}/comments/${comment.id}/interaction`,
               { type },
-              { headers: { Authorization: `Bearer ${token}` } }
+              { headers:{'Content-Type' : 'application/json'}
+               , withCredentials: true}
           );
           onActionSuccess();
       } catch (error) {
@@ -69,11 +70,11 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
     if (!replyContent.trim() || !currentUser || replyHasProfanity) return; 
     setIsSubmittingReply(true);
     try {
-      const token = getAuthToken();
       await axios.post(
         `${API_URL}/products/${productId}/comments`,
         { content: replyContent, parentId: comment.id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {  headers:{'Content-Type' : 'application/json'}
+               , withCredentials: true }
       );
       toast.success("Đã gửi trả lời!");
       setReplyContent("");
@@ -89,12 +90,13 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
   const handleUpdateSubmit = async () => {
       if (!editedContent.trim() || editHasProfanity) return;
       setIsSubmittingEdit(true);
-      const token = getAuthToken();
+     
       try {
           await axios.put(
               `${API_URL}/comments/${comment.id}`,
               { content: editedContent },
-              { headers: { Authorization: `Bearer ${token}` } }
+              {  headers:{'Content-Type' : 'application/json'}
+               , withCredentials: true }
           );
           toast.success("Đã cập nhật bình luận!");
           setIsEditing(false);
@@ -108,11 +110,12 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
 
   const handleDelete = async () => {
       if (window.confirm("Bạn có chắc chắn muốn xoá bình luận này không? Thao tác này không thể hoàn tác.")) {
-          const token = getAuthToken();
+          
           try {
               await axios.delete(
                   `${API_URL}/comments/${comment.id}`,
-                  { headers: { Authorization: `Bearer ${token}` } }
+                  {  headers:{'Content-Type' : 'application/json'}
+               , withCredentials: true }
               );
               toast.success("Đã xoá bình luận.");
               onActionSuccess();
@@ -265,12 +268,8 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
       await axios.post(
         `${API_URL}/products/${productId}/comments`,
         { content: newComment },
-        {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                    withCredentials: true,
-                }
+        {  headers:{'Content-Type' : 'application/json'}
+               , withCredentials: true }
       );
       toast.success("Đã gửi bình luận!");
       setNewComment("");

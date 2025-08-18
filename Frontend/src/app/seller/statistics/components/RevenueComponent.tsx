@@ -131,7 +131,7 @@ export default function ComponentRevenue() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getAuthToken()}`,
+          
         },
       })
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)

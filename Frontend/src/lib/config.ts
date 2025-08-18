@@ -1,5 +1,5 @@
 // Biến này sẽ lấy giá trị từ Environment Variable trên Render,
-export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost';
 
 export const API_URL = `${BACKEND_URL}/api`;
 // Dùng cho Sanctum CSRF cookie và các đường dẫn không có /api

@@ -182,7 +182,7 @@ export default function Header() {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
-                    'Authorization': `Bearer ${getAuthToken()}`, // Gửi token xác thực
+                    
                 },
             });
             

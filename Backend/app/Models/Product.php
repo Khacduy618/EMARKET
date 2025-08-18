@@ -289,7 +289,7 @@ class Product extends Model
      */
     public function reviews(): HasMany
     {
-        return $this->hasMany(Review::class, 'ProductID', 'ProductID');
+        return $this->hasMany(ProductReview::class, 'ProductID', 'ProductID');
     }
     public function scopeActive($query)
     {

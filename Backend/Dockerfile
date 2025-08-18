@@ -10,6 +10,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql zip bcmath intl exif opcache pcntl soap
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
+COPY cacert.pem /usr/local/share/ca-certificates/cacert.crt
+RUN update-ca-certificates
+
 # --- SỬA LỖI PHP-FPM ---
 # Sửa file config mặc định để lắng nghe trên port 9000 thay vì socket
 RUN sed -i 's/listen = \/var\/run\/php-fpm.sock/listen = 9000/' /usr/local/etc/php-fpm.d/www.conf.default

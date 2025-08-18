@@ -221,6 +221,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const toastId = toast.loading("Đang đăng xuất...");
         try {
             await apiLogout();
+            localStorage.clear();
+            sessionStorage.clear();
+            function deleteAllCookies() {
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        // Để xóa, ta đặt ngày hết hạn của cookie về quá khứ
+        // Cần chỉ định cả path và domain để đảm bảo xóa đúng
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + document.domain;
+        // Thử xóa cho các sub-domain
+        const domainParts = document.domain.split('.');
+        for (let j = domainParts.length - 1; j >= 0; j--) {
+            const domain = domainParts.slice(j).join('.');
+             document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + domain;
+        }
+    }
+}
+deleteAllCookies();
         } catch (e) {
             console.error("Logout API call failed, proceeding with client-side cleanup.");
         } finally {

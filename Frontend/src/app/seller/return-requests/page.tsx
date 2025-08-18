@@ -9,6 +9,7 @@ import type { PaginatedResponse, ReturnRequest } from "@/types/return-request"
 import FilterTabs from "./components/FilterTabs"
 import ReturnRequestTable from "./components/ReturnRequestList"
 import Pagination from "./components/Pagination"
+import { API_URL } from "@/lib/config"
 
 const SellerReturnRequestsPage = () => {
     // === 1. STATE MANAGEMENT ===
@@ -27,17 +28,13 @@ const SellerReturnRequestsPage = () => {
 
             try {
                 // Lấy token từ localStorage nếu bạn dùng Bearer Token
-                const token = localStorage.getItem("authToken")
-                const headers: { [key: string]: string } = { Accept: "application/json" }
-                if (token) {
-                    headers["Authorization"] = `Bearer ${token}`
-                }
+               
 
                 // Gọi API bằng axios
                 const response = await axios.get<PaginatedResponse<ReturnRequest>>(
-                    `http://localhost:8001/api/seller/return-requests?status=${statusFilter}&page=${currentPage}`,
+                    `${API_URL}/seller/return-requests?status=${statusFilter}&page=${currentPage}`,
                     {
-                        headers: headers,
+                        headers: { 'Content-Type': 'application/json' },
                         withCredentials: true, // Quan trọng: Để trình duyệt tự gửi cookie
                     },
                 )

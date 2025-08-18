@@ -86,6 +86,9 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     try {
       const res = await fetch(`${API_URL}/admin/categories/create`, {
         method: "POST",
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
         credentials: 'include',
         body: formData,
       })
