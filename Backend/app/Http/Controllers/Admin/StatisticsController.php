@@ -182,7 +182,7 @@ class StatisticsController extends Controller
         'title' => 'Đã bán',
         'prevValue' => $resultPrev->sold_orders,
         'value' => $result->sold_orders,
-        'unit' => 'Sản phẩm',
+        'unit' => 'Đơn hàng',
         'icon' => 'TrendingUp',
         'color' => 'green',
       ] + $this->calculateChange($result->sold_orders, $resultPrev->sold_orders),
@@ -192,7 +192,7 @@ class StatisticsController extends Controller
         'title' => 'Bị trả về',
         'prevValue' => $resultPrev->returned_orders,
         'value' => $result->returned_orders,
-        'unit' => 'Sản phẩm',
+        'unit' => 'Đơn hàng',
         'icon' => 'RotateCcw',
         'color' => 'orange',
       ] + $this->calculateChange($result->returned_orders, $resultPrev->returned_orders),
@@ -202,7 +202,7 @@ class StatisticsController extends Controller
         'title' => 'Bị hủy',
         'prevValue' => $resultPrev->cancel_orders,
         'value' => $result->cancel_orders,
-        'unit' => 'Sản phẩm',
+        'unit' => 'Đơn hàng',
         'icon' => 'XCircle',
         'color' => 'red',
       ] + $this->calculateChange($result->cancel_orders, $resultPrev->cancel_orders)
@@ -259,9 +259,7 @@ class StatisticsController extends Controller
         ->select(
           's.ShopID',
           's.ShopName',
-          DB::raw('COUNT(ob.OrderID) AS OrderNumber'),
           DB::raw('SUM(oi.Subtotal) AS TotalRevenue'),
-          DB::raw('SUM(oi.Quantity) AS NumProductsSold')
         )
         ->whereBetween('ob.OrderDate', [$startDate, $endDate])
         ->where('s.ShopID', $shopID)
@@ -278,9 +276,7 @@ class StatisticsController extends Controller
         ->select(
           's.ShopID',
           's.ShopName',
-          DB::raw('COUNT(ob.OrderID) AS OrderNumber'),
           DB::raw('SUM(oi.Subtotal) AS TotalRevenue'),
-          DB::raw('SUM(oi.Quantity) AS NumProductsSold')
         )
         ->whereBetween('ob.OrderDate', [$startPrev, $endPrev])
         ->where('s.ShopID', $shopID)

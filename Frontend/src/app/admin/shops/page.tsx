@@ -2,9 +2,16 @@
 import { useEffect, useState } from 'react';
 import { OverlayTrigger, Tooltip, Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
-import ShopDetailModal from './components/ShopDetailModal'; // Đảm bảo đúng đường dẫn
+import ShopDetailModal from './components/ShopDetailModal'; 
 import { getFullImageUrl } from '@/services/api';
 import { API_URL } from '@/lib/config';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react';
+import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 type Shop = {
   ShopID: number
@@ -77,7 +84,6 @@ export default function ShopTable() {
   const [totalPage, setTotalPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [selectedShopId, setSelectedShopId] = useState<number | null>(null)
-  const authToken = getAuthToken()
 
   const fetchShops = async () => {
     setLoading(true)
