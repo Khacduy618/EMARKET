@@ -1,0 +1,27 @@
+# Ignore toàn cục
+.DS_Store
+Thumbs.db
+*.log
+
+# Laravel
+Backend/vendor
+Backend/node_modules
+Backend/public/storage
+Backend/storage/*.key
+Backend/.env
+Backend/.env.*
+
+# Bỏ theo dõi toàn bộ config backend
+Backend/config/*.php
+!Backend/config/app.php
+!Backend/config/database.php
+!Backend/config/auth.php
+
+# Frontend
+Frontend/node_modules
+Frontend/.env
+Frontend/.env.*
+Frontend/.next
+Frontend/dist
+Frontend/build
+Frontend/out

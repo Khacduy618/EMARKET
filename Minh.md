@@ -19,5 +19,5 @@ rm -rf public/storage
 php artisan storage:link
 
 
-Bỏ theo dõi 
-docker-compose.yml
+run docker
+docker compose -f docker-minh-compose.yml up --build -d
