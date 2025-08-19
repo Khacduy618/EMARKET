@@ -479,99 +479,178 @@ const handlePaymentMethodChange = () => {
     };
     
 
+    // const handlePlaceOrder = async () => {
+    //     console.log("[handlePlaceOrder] Initiated. Current checkoutData:", checkoutData);
+    //     if (!checkoutData || !checkoutData.address) {
+    //         toast.error("Vui lòng chọn địa chỉ giao hàng.");
+    //         return;
+    //     }
+    //      // TÍNH TOÁN LẠI CÁC GIÁ TRỊ TRƯỚC KHI GỬI
+    //     const itemsPayload = checkoutData.shopOrders.flatMap(shopOrder =>
+    //         shopOrder.items.map(item => {
+    //             // Tính toán giá cuối cùng và thành tiền cho từng sản phẩm
+    //             const finalPrice = calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount);
+    //             return {
+    //                 variantId: item.variantId,
+    //                 quantity: item.quantity,
+    //                 // GỬI ĐI GIÁ ĐÃ GIẢM
+    //                 priceAtPurchase: finalPrice,
+    //                 // GỬI ĐI THÀNH TIỀN DỰA TRÊN GIÁ ĐÃ GIẢM
+    //                 subtotal: finalPrice * item.quantity,
+    //             };
+    //         })
+    //     );
+        
+    //     // CHUẨN BỊ THÔNG TIN VOUCHER
+    //     const shopVouchersApplied = checkoutData.shopOrders
+    //         .filter(so => so.appliedVoucher)
+    //         .map(so => ({
+    //             shopId: so.shopId,
+    //             code: so.appliedVoucher!.Code,
+    //             discount: calculateDiscountForVoucher(
+    //                 so.appliedVoucher!,
+    //                 so.items.reduce((sum, item) => sum + calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount) * item.quantity, 0)
+    //             ),
+    //         }));
+
+    //     const platformVoucherCodes: { saleOff?: string, freeShip?: string } = {};
+    //     const platformDiscountAmounts: { saleOff?: number, freeShip?: number } = {};
+
+    //     if (checkoutData.appliedPlatformVouchers.saleOffVoucher && checkoutData.summary.totalSaleoff > 0) {
+    //         platformVoucherCodes.saleOff = checkoutData.appliedPlatformVouchers.saleOffVoucher.Code;
+    //         platformDiscountAmounts.saleOff = checkoutData.summary.totalSaleoff;
+    //     }
+    //     if (checkoutData.appliedPlatformVouchers.freeShipVoucher && checkoutData.summary.totalFreeship > 0) {
+    //         platformVoucherCodes.freeShip = checkoutData.appliedPlatformVouchers.freeShipVoucher.Code;
+    //         platformDiscountAmounts.freeShip = checkoutData.summary.totalFreeship;
+    //     }
+    //     // Tạo payload để gửi lên API /api/orders/place
+    //     const payload = {
+    //         shippingAddressId: checkoutData.address.AddressID,
+    //         shippingFullName: checkoutData.address.FullName,
+    //         shippingPhoneNumber: checkoutData.address.PhoneNumber,
+    //         notes: checkoutData.shopOrders.map(so => so.messageToSeller).filter(m => m).join('; '),
+    //         totalAmount: checkoutData.summary.finalTotal,
+    //         subtotalAmount: checkoutData.summary.totalProductsPrice,
+    //         shippingFee: checkoutData.summary.totalShippingFee,
+    //         discountAmount: checkoutData.summary.totalDiscount,
+    //         paymentMethod: checkoutData.paymentMethod.type,
+    //         items: itemsPayload,
+
+    //         platformVoucherData: {
+    //             codes: platformVoucherCodes,
+    //             discounts: platformDiscountAmounts
+    //         },
+    //         totalShopVoucherDiscount: checkoutData.summary.totalShopVoucherDiscount, // Tổng giảm giá từ voucher shop
+    //         shopVouchersApplied: shopVouchersApplied
+    //     };
+        
+    //     try {
+    //         // Gọi API để tạo đơn hàng nháp
+    //          console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
+    //         const response = await fetch(`${API_URL}/orders/place`, {
+    //                 method: 'POST',
+    //                 headers: { 'Content-Type': 'application/json' },
+    //                 credentials: 'include', // Quan trọng để gửi cookie
+    //                 body: JSON.stringify(payload),
+    //             });
+
+    //         const result = await response.json();
+
+    //         if (!response.ok) {
+    //              if (result.errors) {
+    //                 // Lỗi validation, có thể hiển thị lỗi đầu tiên
+    //                 const firstErrorKey = Object.keys(result.errors)[0];
+    //                 const firstErrorMessage = result.errors[firstErrorKey][0];
+    //                 throw new Error(`Lỗi dữ liệu: ${firstErrorMessage}`);
+    //             }
+    //             throw new Error(result.message || 'Không thể đặt hàng.');
+    //         }
+
+    //         toast.success("Đã tạo đơn hàng nháp thành công!");
+
+    //         // Xóa dữ liệu cũ trong localStorage và chuyển hướng với orderId
+    //         localStorage.removeItem('checkoutData');
+    //         router.push(`/checkout?orderId=${result.orderId}`); // Tải lại trang với orderId trên URL
+
+    //     } catch (error: any) {
+    //         console.error("[handlePlaceOrder] FAILED:", error);
+    //         toast.error(error.message);
+    //     }
+    // };
     const handlePlaceOrder = async () => {
-        console.log("[handlePlaceOrder] Initiated. Current checkoutData:", checkoutData);
+        console.log("[handlePlaceOrder] Initiated with ID-based logic.");
         if (!checkoutData || !checkoutData.address) {
             toast.error("Vui lòng chọn địa chỉ giao hàng.");
             return;
         }
-         // TÍNH TOÁN LẠI CÁC GIÁ TRỊ TRƯỚC KHI GỬI
+        
+        // 1. Thu thập danh sách item (chỉ variantId và quantity)
         const itemsPayload = checkoutData.shopOrders.flatMap(shopOrder =>
-            shopOrder.items.map(item => {
-                // Tính toán giá cuối cùng và thành tiền cho từng sản phẩm
-                const finalPrice = calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount);
-                return {
-                    variantId: item.variantId,
-                    quantity: item.quantity,
-                    // GỬI ĐI GIÁ ĐÃ GIẢM
-                    priceAtPurchase: finalPrice,
-                    // GỬI ĐI THÀNH TIỀN DỰA TRÊN GIÁ ĐÃ GIẢM
-                    subtotal: finalPrice * item.quantity,
-                };
-            })
+            shopOrder.items.map(item => ({
+                variantId: item.variantId,
+                quantity: item.quantity,
+            }))
         );
         
-        // CHUẨN BỊ THÔNG TIN VOUCHER
-        const shopVouchersApplied = checkoutData.shopOrders
-            .filter(so => so.appliedVoucher)
-            .map(so => ({
-                shopId: so.shopId,
-                code: so.appliedVoucher!.Code,
-                discount: calculateDiscountForVoucher(
-                    so.appliedVoucher!,
-                    so.items.reduce((sum, item) => sum + calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount) * item.quantity, 0)
-                ),
-            }));
+        // 2. Thu thập mã voucher của các shop đã áp dụng
+        const shopVoucherCodes = checkoutData.shopOrders
+            .map(so => so.appliedVoucher?.Code)
+            .filter((code): code is string => !!code); // Lọc bỏ các giá trị null/undefined
 
-        const platformVoucherCodes: { saleOff?: string, freeShip?: string } = {};
-        const platformDiscountAmounts: { saleOff?: number, freeShip?: number } = {};
-
-        if (checkoutData.appliedPlatformVouchers.saleOffVoucher && checkoutData.summary.totalSaleoff > 0) {
-            platformVoucherCodes.saleOff = checkoutData.appliedPlatformVouchers.saleOffVoucher.Code;
-            platformDiscountAmounts.saleOff = checkoutData.summary.totalSaleoff;
-        }
-        if (checkoutData.appliedPlatformVouchers.freeShipVoucher && checkoutData.summary.totalFreeship > 0) {
-            platformVoucherCodes.freeShip = checkoutData.appliedPlatformVouchers.freeShipVoucher.Code;
-            platformDiscountAmounts.freeShip = checkoutData.summary.totalFreeship;
-        }
-        // Tạo payload để gửi lên API /api/orders/place
+        // 3. Thu thập mã voucher của platform đã áp dụng
+        // Logic mới: Chỉ có 1 voucher platform tại một thời điểm
+        const platformVoucherCode = 
+            checkoutData.appliedPlatformVouchers.saleOffVoucher?.Code || 
+            checkoutData.appliedPlatformVouchers.freeShipVoucher?.Code || 
+            null;
+            
+        // 4. Tạo payload cuối cùng, chỉ chứa các ID và thông tin cần thiết
         const payload = {
             shippingAddressId: checkoutData.address.AddressID,
-            shippingFullName: checkoutData.address.FullName,
-            shippingPhoneNumber: checkoutData.address.PhoneNumber,
             notes: checkoutData.shopOrders.map(so => so.messageToSeller).filter(m => m).join('; '),
-            totalAmount: checkoutData.summary.finalTotal,
-            subtotalAmount: checkoutData.summary.totalProductsPrice,
-            shippingFee: checkoutData.summary.totalShippingFee,
-            discountAmount: checkoutData.summary.totalDiscount,
             paymentMethod: checkoutData.paymentMethod.type,
             items: itemsPayload,
-
-            platformVoucherData: {
-                codes: platformVoucherCodes,
-                discounts: platformDiscountAmounts
-            },
-            totalShopVoucherDiscount: checkoutData.summary.totalShopVoucherDiscount, // Tổng giảm giá từ voucher shop
-            shopVouchersApplied: shopVouchersApplied
+            shopVoucherCodes: shopVoucherCodes,
+            platformVoucherCode: platformVoucherCode,
+            // **Lưu ý**: shippingFee vẫn cần gửi lên vì nó được tính ở client
+            // và backend cần biết để tính toán giảm giá freeship.
+            shippingFee: checkoutData.summary.totalShippingFee, 
         };
         
         try {
-            // Gọi API để tạo đơn hàng nháp
-             console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
+            console.log("[handlePlaceOrder] Sending FINAL ID-based payload:", payload);
+            
+            toast.info("Đang xử lý đơn hàng của bạn...");
+
             const response = await fetch(`${API_URL}/orders/place`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include', // Quan trọng để gửi cookie
-                    body: JSON.stringify(payload),
-                });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload),
+            });
 
             const result = await response.json();
 
             if (!response.ok) {
-                 if (result.errors) {
-                    // Lỗi validation, có thể hiển thị lỗi đầu tiên
+                if (result.errors) {
                     const firstErrorKey = Object.keys(result.errors)[0];
                     const firstErrorMessage = result.errors[firstErrorKey][0];
-                    throw new Error(`Lỗi dữ liệu: ${firstErrorMessage}`);
+                    throw new Error(`Lỗi: ${firstErrorMessage}`);
                 }
-                throw new Error(result.message || 'Không thể đặt hàng.');
+                throw new Error(result.message || 'Không thể đặt hàng. Vui lòng thử lại.');
             }
 
-            toast.success("Đã tạo đơn hàng nháp thành công!");
-
-            // Xóa dữ liệu cũ trong localStorage và chuyển hướng với orderId
+            toast.success("Đã tạo đơn hàng thành công!");
             localStorage.removeItem('checkoutData');
-            router.push(`/checkout?orderId=${result.orderId}`); // Tải lại trang với orderId trên URL
+            
+            // Chuyển hướng để tiếp tục thanh toán nếu cần
+            if (checkoutData.paymentMethod.type === 'VNPay') {
+                router.push(`/checkout?orderId=${result.orderId}`);
+            } else {
+                // Với COD hoặc PayPal (đã xử lý), chuyển đến trang lịch sử
+                router.push('/account/purchase?status=Processing');
+            }
 
         } catch (error: any) {
             console.error("[handlePlaceOrder] FAILED:", error);

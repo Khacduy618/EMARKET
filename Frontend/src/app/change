@@ -11,7 +11,7 @@ AuthContext.tsx:
 
             // Nếu thành công
             toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
-            router.push('/register/success'); // << Chỉ chuyển trang khi thành công
+            router.push('/signup/success'); // << Chỉ chuyển trang khi thành công
 
         } catch (error: any) {
             // Nếu thất bại

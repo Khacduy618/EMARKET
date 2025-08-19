@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
-import { Order, OrderStatus, OrderItem } from '@/types'; // Import thêm OrderItem nếu cần
+import { Order, OrderStatus, OrderItem, SellerOrder } from '@/types'; // Import thêm OrderItem nếu cần
 import { getFullImageUrl } from '@/services/api';
 import ReturnRequestModal from './modals/ReturnRequestModal';
 
@@ -112,6 +112,8 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
               <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>
             )}
             <h3 className="font-semibold text-gray-800 text-sm">{order.shopName}</h3>
+            <span className="text-xs text-gray-400">|</span>
+            <span className="text-xs font-medium text-gray-500">Mã gói hàng: {order.SellerOrderCode}</span>
             <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
               <FaCommentDots className="mr-1 text-sm" /> Chat
             </button>
@@ -119,7 +121,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
               <FaStore className="mr-1 text-sm" /> Xem Shop
             </button>
           </div>
-          {renderDeliveryStatus(order.OverallStatus)}
+          {renderDeliveryStatus(order.Status)} 
         </div>
 
         {/* Danh sách sản phẩm */}
@@ -146,7 +148,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 
         {/* Tổng tiền */}
         <div className="flex justify-end items-center px-4 pt-3 pb-3 border-t border-gray-100">
-          <span className="text-gray-700 text-sm mr-3">Thành tiền:</span>
+          <span className="text-gray-700 text-sm mr-3">Thành tiền (Gói hàng này):</span>
           <span className="text-xl font-bold text-orange-500">{formatVND(order.TotalAmount)}</span>
         </div>
 

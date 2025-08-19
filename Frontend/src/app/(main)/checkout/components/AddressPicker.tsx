@@ -54,10 +54,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ value, onChange }) => {
         // Chỉ cần gọi 1 API duy nhất để lấy tất cả dữ liệu
         const response = await axios.get(`${API_HOST}?depth=3`,
           {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                    withCredentials: true,
+                    withCredentials: false,
                 }
         );
         console.log("Fetched all provinces and districts:", response.data);

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import OrderCard from './OrderCard'; // Component con để render mỗi đơn hàng
-import { Order, OrderStatus, OrderTabStatus, StatusTab } from '@/types';
+import { Order, OrderStatus, OrderTabStatus, SellerOrder, StatusTab } from '@/types';
 import { FaSearch, FaCalendarAlt } from 'react-icons/fa';
 import { Loader2 } from 'lucide-react';
 import { getAuthToken } from '@/services/api';
@@ -15,27 +15,22 @@ import { getMyOrders } from '@/services/order';
  */
 const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
     all: [],
-    PendingPayment: ['Pending'],
+    PendingPayment: ['Pending'], // Sẽ lọc các gói hàng có trạng thái Pending
     Processing: ['Processing'],
-    Shipped: ['Shipped'],
+    Shipped: ['Shipped', 'OutForDelivery'], // Gộp cả hai vào tab Vận chuyển
     Delivered: ['Delivered'],
-    Completed: ['Completed'],
+    Completed: ['Completed', 'Rated'], // Gộp cả hai vào tab Hoàn thành
     Cancelled: ['CancelledByBuyer', 'CancelledBySeller'],
     ReturnedRefunded: ['Returned', 'ReturnInProgress'],
 };
 
 export default function ProfileOrderHistory() {
     const searchParams = useSearchParams();
-
-    // State gốc để lưu toàn bộ đơn hàng từ API
-    const [allOrders, setAllOrders] = useState<Order[]>([]);
-
-    // UI states
-    const [activeTab, setActiveTab] = useState<OrderTabStatus>('Completed');
+    const [allOrders, setAllOrders] = useState<Order[]>([]); // State này giờ chứa các SellerOrder
+    const [activeTab, setActiveTab] = useState<OrderTabStatus>('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Filter & Sort states
     const [searchQuery, setSearchQuery] = useState('');
     const [startDateFilter, setStartDateFilter] = useState('');
     const [endDateFilter, setEndDateFilter] = useState('');
@@ -43,28 +38,20 @@ export default function ProfileOrderHistory() {
     const [currentPage, setCurrentPage] = useState(1);
     const ordersPerPage = 10;
 
-    // Effect để lấy dữ liệu từ API
     useEffect(() => {
         const fetchOrders = async () => {
+            setLoading(true);
             try {
-                // Giả sử bạn đã tạo hàm getMyOrders() trong service
-                const responseData = await getMyOrders(); // Gọi hàm service
-
-                // Kiểm tra xem responseData có phải là object và có thuộc tính 'data' là mảng không
-                if (responseData && Array.isArray(responseData)) {
-                    setAllOrders(responseData); // CHỈ LẤY MẢNG NẰM TRONG THUỘC TÍNH `data`
-                } else if (Array.isArray(responseData)) {
-                    // Trường hợp API trả về mảng trực tiếp (ít khả năng nếu có phân trang)
+                const responseData = await getMyOrders();
+                if (Array.isArray(responseData)) {
                     setAllOrders(responseData);
                 } else {
-                    // Nếu API trả về cấu trúc không mong muốn, gán mảng rỗng để tránh lỗi
                     console.error("API did not return an array of orders:", responseData);
                     setAllOrders([]);
                 }
-
             } catch (err: any) {
                 setError(err.message);
-                setAllOrders([]); // Khi có lỗi cũng nên reset về mảng rỗng
+                setAllOrders([]);
             } finally {
                 setLoading(false);
             }
@@ -72,7 +59,6 @@ export default function ProfileOrderHistory() {
         fetchOrders();
     }, []);
 
-    // Effect để đồng bộ tab với URL
     useEffect(() => {
         const statusFromUrl = searchParams.get('status') as OrderTabStatus;
         if (statusFromUrl && uiTabToDbStatusMapping[statusFromUrl]) {
@@ -80,21 +66,21 @@ export default function ProfileOrderHistory() {
         }
         setCurrentPage(1);
     }, [searchParams]);
-
-    // --- LOGIC LỌC, SẮP XẾP, PHÂN TRANG ---
+    
+    // --- LOGIC LỌC, SẮP XẾP, PHÂN TRANG (SỬA ĐỔI) ---
     const getStatusCount = (status: OrderTabStatus): number => {
         if (status === 'all') return allOrders.length;
         const dbStatuses = uiTabToDbStatusMapping[status] || [];
-        return allOrders.filter(o => dbStatuses.includes(o.OverallStatus)).length;
+        return allOrders.filter(o => dbStatuses.includes(o.Status)).length;
     };
-
+    
     const statusTabs: StatusTab[] = [
         { id: 'all', name: 'Tất cả', count: getStatusCount('all') },
         { id: 'PendingPayment', name: 'Chờ thanh toán', count: getStatusCount('PendingPayment') },
         { id: 'Processing', name: 'Chờ giao hàng', count: getStatusCount('Processing') },
-        { id: 'Shipped', name: 'Vận chuyển', count: getStatusCount('Shipped') },
-        { id: 'Delivered', name: 'Đã Gửi Hàng', count: getStatusCount('Delivered') },
-        { id: 'Completed', name: 'Đã hoàn thành', count: getStatusCount('Completed') },
+        { id: 'Shipped', name: 'Đang giao', count: getStatusCount('Shipped') },
+        { id: 'Delivered', name: 'Đã giao', count: getStatusCount('Delivered') },
+        { id: 'Completed', name: 'Hoàn thành', count: getStatusCount('Completed') },
         { id: 'Cancelled', name: 'Đã hủy', count: getStatusCount('Cancelled') },
         { id: 'ReturnedRefunded', name: 'Trả hàng/Hoàn tiền', count: getStatusCount('ReturnedRefunded') },
     ];
@@ -103,13 +89,14 @@ export default function ProfileOrderHistory() {
         .filter(order => { // Lọc theo tab
             if (activeTab === 'all') return true;
             const dbStatuses = uiTabToDbStatusMapping[activeTab] || [];
-            return dbStatuses.includes(order.OverallStatus);
+            return dbStatuses.includes(order.Status); // Lọc trực tiếp trên trạng thái của gói hàng
         })
         .filter(order => { // Lọc theo search
             const lowerCaseQuery = searchQuery.toLowerCase().trim();
             if (!lowerCaseQuery) return true;
-            return order.OrderCode.toLowerCase().includes(lowerCaseQuery) ||
-                (order.items && order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery)));
+            return order.SellerOrderCode.toLowerCase().includes(lowerCaseQuery) ||
+                   order.OrderCode.toLowerCase().includes(lowerCaseQuery) ||
+                   (order.items && order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery)));
         })
         .filter(order => { // Lọc theo ngày
             const orderDate = new Date(order.OrderDate);
@@ -120,8 +107,8 @@ export default function ProfileOrderHistory() {
             return true;
         })
         .sort((a, b) => { // Sắp xếp
-            const dateA = new Date(a.OrderDate).getTime();
-            const dateB = new Date(b.OrderDate).getTime();
+            const dateA = new Date(a.CreatedAt).getTime();
+            const dateB = new Date(b.CreatedAt).getTime();
             return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
         });
 
@@ -190,7 +177,7 @@ export default function ProfileOrderHistory() {
             {/* Order List */}
             <div className="flex-1">
                 {currentOrders.length > 0 ? (
-                    currentOrders.map(order => <OrderCard key={order.OrderID} order={order} />)
+                    currentOrders.map(order => <OrderCard key={order.SellerOrderID} order={order} />)
                 ) : (
                     <p className="text-center text-gray-500 mt-10 p-4">Không có đơn hàng nào.</p>
                 )}

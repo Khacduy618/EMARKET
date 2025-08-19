@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             // Chỉ chạy các hành động thành công khi không có lỗi
             toast.update(toastId, { render: "Đăng ký thành công! Vui lòng kiểm tra email.", type: "success", isLoading: false, autoClose: 5000 });
-            router.push('/register/success');
+            router.push('/signup/success');
 
         } catch (error: any) {
             // XỬ LÝ LỖI Ở ĐÂY
