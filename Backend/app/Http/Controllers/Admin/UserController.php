@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -178,5 +179,92 @@ class UserController extends Controller
         ])->save();
 
         return response()->json(['message' => 'Đã tắt 2FA cho người dùng.']);
+    }
+
+
+    /**
+     * Cập nhật trạng thái hàng loạt cho nhiều người dùng.
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'userIds' => 'required|array',
+            'userIds.*' => 'integer|exists:Users,UserID',
+            'status' => 'required|boolean',
+        ]);
+
+        // Ngăn Admin tự vô hiệu hóa chính mình trong danh sách
+        $safeUserIds = collect($validated['userIds'])->reject(function ($userId) {
+            return $userId == Auth::id();
+        });
+
+        User::whereIn('UserID', $safeUserIds)->update(['IsActive' => $validated['status']]);
+
+        return response()->json(['message' => 'Cập nhật trạng thái hàng loạt thành công.']);
+    }
+
+    /**
+     * "Xóa mềm" hoặc xóa vĩnh viễn nhiều người dùng.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'userIds' => 'required|array',
+            'userIds.*' => 'integer|exists:Users,UserID',
+        ]);
+
+        $safeUserIds = collect($validated['userIds'])->reject(function ($userId) {
+            return $userId == Auth::id();
+        });
+
+        $deactivatedCount = 0;
+        $deletedCount = 0;
+
+        $users = User::whereIn('UserID', $safeUserIds)->get();
+
+        foreach ($users as $user) {
+            if ($user->orders()->exists() || $user->shops()->exists()) {
+                // Nếu có dữ liệu, chỉ vô hiệu hóa
+                $user->IsActive = false;
+                $user->save();
+                $deactivatedCount++;
+            } else {
+                // Nếu không, xóa vĩnh viễn
+                $user->delete();
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => "Hành động hoàn tất. {$deactivatedCount} tài khoản đã được vô hiệu hóa, {$deletedCount} tài khoản đã được xóa vĩnh viễn.",
+        ]);
+    }
+
+    /**
+     * Tắt 2FA hàng loạt cho danh sách người dùng.
+     */
+    public function bulkDisableTwoFactor(Request $request)
+    {
+        $validated = $request->validate([
+            'userIds' => 'required|array',
+            'userIds.*' => 'integer|exists:Users,UserID',
+        ]);
+
+        $safeUserIds = collect($validated['userIds'])->reject(function ($userId) {
+            return $userId == Auth::id();
+        });
+
+        // Tìm tất cả user hợp lệ và cập nhật
+        $users = User::whereIn('UserID', $safeUserIds)->get();
+
+        foreach ($users as $user) {
+            $user->forceFill([
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+            ])->save();
+        }
+
+        return response()->json(['message' => 'Đã tắt 2FA cho các tài khoản đã chọn.']);
     }
 }
