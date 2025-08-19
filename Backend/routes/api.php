@@ -467,6 +467,9 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::apiResource('users', AdminUserController::class)->except(['show']);
     Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
     Route::delete('/users/{user:UserID}/two-factor-authentication', [AdminUserController::class, 'disableTwoFactorForUser']);
+    Route::post('/users/bulk-update-status', [AdminUserController::class, 'bulkUpdateStatus']);
+    Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDestroy']);
+    Route::post('/users/bulk-disable-2fa', [AdminUserController::class, 'bulkDisableTwoFactor']);
 
     // === CATEGORY MANAGEMENT ===
     Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
