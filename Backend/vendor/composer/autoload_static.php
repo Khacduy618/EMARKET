@@ -740,6 +740,7 @@ class ComposerStaticInita64313eabaa5623e576835b3db0430ad
         'App\\Models\\Order' => __DIR__ . '/../..' . '/app/Models/Order.php',
         'App\\Models\\OrderBuyer' => __DIR__ . '/../..' . '/app/Models/OrderBuyer.php',
         'App\\Models\\OrderItem' => __DIR__ . '/../..' . '/app/Models/OrderItem.php',
+        'App\\Models\\OrderSeller' => __DIR__ . '/../..' . '/app/Models/OrderSeller.php',
         'App\\Models\\PlatformCategory' => __DIR__ . '/../..' . '/app/Models/PlatformCategory.php',
         'App\\Models\\Product' => __DIR__ . '/../..' . '/app/Models/Product.php',
         'App\\Models\\ProductComment' => __DIR__ . '/../..' . '/app/Models/ProductComment.php',

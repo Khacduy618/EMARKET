@@ -17,17 +17,14 @@ class OrderSeller extends Model
     /**
      * Lấy thông tin shop sở hữu đơn hàng này.
      */
-    public function shop(): BelongsTo
+    public function orderBuyer()
     {
-        return $this->belongsTo(Shop::class, 'ShopID');
+        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
     }
 
-    /**
-     * Lấy thông tin đơn hàng tổng của người mua.
-     */
-    public function orderBuyer(): BelongsTo
+    public function shop()
     {
-        return $this->belongsTo(OrderBuyer::class, 'OrderID');
+        return $this->belongsTo(Shop::class, 'ShopID', 'ShopID');
     }
 
     /**
@@ -37,10 +34,6 @@ class OrderSeller extends Model
      */
     public function items(): HasMany
     {
-        return $this->hasMany(OrderItem::class, 'OrderID', 'OrderID')
-            ->whereHas('variant.product', function ($query) {
-                // Lọc các order item chỉ thuộc về shop này
-                $query->where('ShopID', $this->ShopID);
-            });
+       return $this->hasMany(OrderItem::class, 'SellerOrderID', 'SellerOrderID');
     }
 }

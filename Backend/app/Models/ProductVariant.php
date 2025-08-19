@@ -35,6 +35,11 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductVariantAttribute::class, 'VariantID', 'VariantID');
     }
+    // Mối quan hệ đến Attribute (thông qua bảng trung gian ProductVariantAttribute)
+    public function attributes()
+    {
+         return $this->hasMany(ProductVariantAttribute::class, 'VariantID', 'VariantID');
+    }
 
     // Mối quan hệ nhiều-nhiều đến AttributeValues thông qua ProductVariantAttribute
     // public function attributeValues()

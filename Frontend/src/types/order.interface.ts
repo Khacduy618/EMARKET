@@ -312,15 +312,23 @@ export interface SellerOrder {
       user: User; // User interface của bạn nên có trường Avatar
   };
 }
+
+export interface ProductVariantAttribute {
+    attributeValue: {
+        Value: string;
+        attribute: {
+            Name: string;
+        };
+    };
+}
+
 // Mở rộng ProductVariant để bao gồm các thông tin được load kèm từ backend
 export interface ProductVariantDetail extends ProductVariant {
     product: Product & {
         primaryImage?: ProductImage | null;
     };
-    attributes: {
-        attribute: { Name: string };
-        attributeValue: { Value: string };
-    }[];
+    attributes: ProductVariantAttribute[];
+    classification_string?: string;
 }
 // Chi tiết một sản phẩm trong đơn hàng
 export interface SellerOrderItem {
@@ -340,11 +348,10 @@ export interface SellerOrderDetail {
     ShopVoucherDiscount: number;
     TotalAmount: number;
     Notes: string | null;
-    shop: Shop;
-    order_buyer: { // Lưu ý: snake_case
-        user: User;
-        shippingAddress: Address;
-    };
+    shop: Shop; // Lưu ý: snake_case
+    user: User;
+    shippingAddress: Address;
+   
     items: SellerOrderItem[];
 }
 export interface OrderStats {

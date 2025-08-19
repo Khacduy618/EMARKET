@@ -92,32 +92,64 @@ class OrderController extends Controller
     {
         try {
             $sellerOrder->load([
-                'shop:ShopID,ShopName,ShopLevel,LogoURL',
+                'shop:ShopID,ShopName,Level,LogoURL',
                 'orderBuyer.user:UserID,FullName,Email,Avatar',
                 'orderBuyer.shippingAddress',
-                'items.variant.product.primaryImage:ProductImageID,ProductID,ImageURL',
-                'items.variant.attributes.attribute:AttributeID,Name',
-                'items.variant.attributes.attributeValue:AttributeValueID,Value'
+                'items.variant.product.primaryImage:ImageID,ProductID,ImageURL',
+              'items.variant.attributes.attributeValue' => function ($query) {
+                $query->select('AttributeValueID', 'AttributeID', 'Value'); // Chọn cột cho AttributeValue
+            },
+            'items.variant.attributes.attributeValue.attribute' => function ($query) {
+                $query->select('AttributeID', 'Name'); // Chọn cột cho Attribute
+            }
             ]);
 
             $orderBuyer = $sellerOrder->orderBuyer;
+            if (!$orderBuyer) {
+            Log::warning('Không tìm thấy OrderBuyer cho SellerOrder ID: ' . $sellerOrder->SellerOrderID . '. Có thể do lỗi toàn vẹn dữ liệu.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy thông tin đơn hàng gốc tương ứng.'
+            ], 404);
+        }   
             $user = $orderBuyer->user;
             $address = $orderBuyer->shippingAddress;
             $shop = $sellerOrder->shop;
-
             $formattedItems = $sellerOrder->items->map(function ($item) {
                 $variant = $item->variant;
+                if (!$variant || !$variant->product) {
+                    return null;
+                }
                 $product = $variant->product;
-                $classification = $variant->attributes->map(fn ($attr) => $attr->attribute->Name . ': ' . $attr->attributeValue->Value)->implode(', ');
+                
+                // Dùng quan hệ đã load
+                $classification = $variant->attributes->map(function ($pva) {
+                    if ($pva->attributeValue && $pva->attributeValue->attribute) {
+                        return $pva->attributeValue->attribute->Name . ': ' . $pva->attributeValue->Value;
+                    }
+                    return null;
+                })->filter()->implode(', ');
+
                 $imageUrl = $variant->ImageURL ?? $product->primaryImage?->ImageURL;
+                
                 return [
-                    'orderItemId' => $item->OrderItemID,
-                    'quantity' => $item->Quantity,
-                    'priceAtPurchase' => $item->PriceAtPurchase,
-                    'subtotal' => $item->Subtotal,
-                    'product' => [ 'productId' => $product->ProductID, 'name' => $product->Name, 'sku' => $variant->SKU, 'image' => $imageUrl, 'classification' => $classification, ],
+                    'OrderItemID' => $item->OrderItemID, // Giữ lại tên key từ model
+                    'Quantity' => $item->Quantity,
+                    'PriceAtPurchase' => $item->PriceAtPurchase,
+                    'Subtotal' => $item->Subtotal,
+                    'variant' => [
+                        'SKU' => $variant->SKU,
+                        'ImageURL' => $variant->ImageURL,
+                        'product' => [
+                            'Name' => $product->Name,
+                            'primaryImage' => $product->primaryImage,
+                        ],
+                        // **SỬA Ở ĐÂY: Trả về cấu trúc đơn giản hơn**
+                        'attributes' => $variant->attributes, // Trả về nguyên gốc, frontend sẽ tự xử lý
+                        'classification_string' => $classification, // Trả về chuỗi đã format sẵn
+                    ]
                 ];
-            });
+            })->filter()->values();
 
             $formattedData = [
                 'sellerOrderId' => $sellerOrder->SellerOrderID, 'sellerOrderCode' => $sellerOrder->SellerOrderCode, 'status' => $sellerOrder->Status,
@@ -126,7 +158,7 @@ class OrderController extends Controller
                 'subtotalAmount' => $sellerOrder->SubtotalAmount, 'shippingFee' => $sellerOrder->ShippingFee, 'shopVoucherDiscount' => $sellerOrder->ShopVoucherDiscount, 'totalAmount' => $sellerOrder->TotalAmount,
                 'user' => [ 'userId' => $user->UserID, 'fullName' => $user->FullName, 'email' => $user->Email, 'avatar' => $user->Avatar, ],
                 'shippingAddress' => $address ? [ 'fullName' => $address->FullName, 'phoneNumber' => $address->PhoneNumber, 'fullAddress' => "{$address->Street}, {$address->Ward}, {$address->District}, {$address->City}", 'street' => $address->Street, 'ward' => $address->Ward, 'district' => $address->District, 'city' => $address->City, ] : null,
-                'shop' => [ 'shopId' => $shop->ShopID, 'shopName' => $shop->ShopName, 'shopLevel' => $shop->ShopLevel, ],
+                'shop' => [ 'shopId' => $shop->ShopID, 'shopName' => $shop->ShopName, 'shopLevel' => $shop->Level, ],
                 'items' => $formattedItems,
             ];
 

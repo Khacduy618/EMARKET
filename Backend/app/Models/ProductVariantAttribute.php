@@ -2,31 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProductVariantAttribute extends Pivot // Sử dụng Pivot nếu nó chỉ là bảng trung gian
+class ProductVariantAttribute extends Model
 {
-    protected $table = 'ProductVariantAttribute';
-    // Laravel sẽ tự hiểu khóa chính là (VariantID, AttributeValueID) cho pivot table
-    // Nếu không, bạn cần khai báo:
-    // protected $primaryKey = ['VariantID', 'AttributeValueID'];
-    // public $incrementing = false;
-    public $timestamps = false; // Giả sử không có timestamps
-
+    protected $table = 'productvariantattribute';
+    public $timestamps = false;
     protected $fillable = ['VariantID', 'AttributeValueID'];
 
-    public function variant()
-    {
-        return $this->belongsTo(ProductVariant::class, 'VariantID', 'VariantID');
-    }
-
-    public function attributeValue()
+    /**
+     * Mối quan hệ để lấy thông tin chi tiết của AttributeValue (giá trị thuộc tính).
+     */
+    public function attributeValue(): BelongsTo
     {
         return $this->belongsTo(AttributeValue::class, 'AttributeValueID', 'AttributeValueID');
-    }
-    // Quan hệ: Một giá trị thuộc tính thuộc về một thuộc tính (cha)
-    public function attribute()
-    {
-        return $this->belongsTo(Attribute::class, 'AttributeID');
     }
 }

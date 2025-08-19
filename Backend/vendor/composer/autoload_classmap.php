@@ -81,6 +81,7 @@ return array(
     'App\\Models\\Order' => $baseDir . '/app/Models/Order.php',
     'App\\Models\\OrderBuyer' => $baseDir . '/app/Models/OrderBuyer.php',
     'App\\Models\\OrderItem' => $baseDir . '/app/Models/OrderItem.php',
+    'App\\Models\\OrderSeller' => $baseDir . '/app/Models/OrderSeller.php',
     'App\\Models\\PlatformCategory' => $baseDir . '/app/Models/PlatformCategory.php',
     'App\\Models\\Product' => $baseDir . '/app/Models/Product.php',
     'App\\Models\\ProductComment' => $baseDir . '/app/Models/ProductComment.php',

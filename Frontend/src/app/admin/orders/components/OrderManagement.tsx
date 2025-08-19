@@ -67,21 +67,21 @@
 //   const [filterShop, setFilterShop] = useState("all");
 //   const [dateFilter, setDateFilter] = useState({ start_date: "", end_date: "" });
 //   const [activeDatePreset, setActiveDatePreset] = useState<string>('all');
-//   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 //   useEffect(() => {
 //     const fetchInitialData = async () => {
 //       try {
 //         const [shopsRes, statsRes] = await Promise.all([
-//           fetch(`${apiBaseUrl}/admin/orders/shop-filters`, { credentials: 'include' }),
-//           fetch(`${apiBaseUrl}/admin/orders/stats`, { credentials: 'include' })
+//           fetch(`${API_URL}/admin/orders/shop-filters`, { credentials: 'include' }),
+//           fetch(`${API_URL}/admin/orders/stats`, { credentials: 'include' })
 //         ]);
 //         if (shopsRes.ok) setShops(await shopsRes.json());
 //         if (statsRes.ok) setStats(await statsRes.json());
 //       } catch (error) { toast.error("Lỗi khi tải dữ liệu ban đầu."); }
 //     };
 //     fetchInitialData();
-//   }, [apiBaseUrl]);
+//   }, [API_URL]);
 
 //   const fetchOrders = useCallback(async () => {
 //     setLoading(true);
@@ -92,7 +92,7 @@
 //       if (dateFilter.start_date) params.set('start_date', dateFilter.start_date);
 //       if (dateFilter.end_date) params.set('end_date', dateFilter.end_date);
 
-//       const res = await fetch(`${apiBaseUrl}/admin/orders?${params.toString()}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+//       const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
 //       if (!res.ok) {
 //         if(res.status === 401) {
 //             toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
@@ -112,7 +112,7 @@
 //         // Toast error đã được hiển thị bên trên nếu có
 //     } 
 //     finally { setLoading(false); }
-//   }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter, filterShop, apiBaseUrl]);
+//   }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter, filterShop, API_URL]);
 
 //   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
@@ -122,7 +122,7 @@
 //     if (filterShop !== "all") params.set("shop_id", filterShop);
 //     if (dateFilter.start_date) params.set('start_date', dateFilter.start_date);
 //     if (dateFilter.end_date) params.set('end_date', dateFilter.end_date);
-//     const exportUrl = `${apiBaseUrl}/admin/orders/export?${params.toString()}`;
+//     const exportUrl = `${API_URL}/admin/orders/export?${params.toString()}`;
 //     window.open(exportUrl, '_blank');
 //     toast.info("Đang chuẩn bị file báo cáo...");
 //   };
@@ -289,6 +289,7 @@ import { Button } from "@/components/ui/button";
 import { getFullImageUrl } from "@/services/api";
 import { SellerOrder, OrderStats } from "@/types/order.interface";
 import { Shop } from "@/types/shop.interface";
+import { API_URL } from "@/lib/config";
 
 // --- HÀM TIỆN ÍCH ---
 const formatCurrency = (amount: number): string => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -316,8 +317,6 @@ const formatDateToYyyyMmDd = (date: Date): string => date.toISOString().split('T
 
 export default function OrderManagement() {
   const [orders, setOrders] = useState<SellerOrder[]>([]);
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [stats, setStats] = useState<OrderStats | null>(null);
   const [keyword, setKeyword] = useState("");
   const [sortColumn, setSortColumn] = useState("OrderDate");
   const [sortType, setSortType] = useState<"asc" | "desc">("desc");
@@ -330,22 +329,9 @@ export default function OrderManagement() {
   const [filterShop, setFilterShop] = useState("all");
   const [dateFilter, setDateFilter] = useState({ start_date: "", end_date: "" });
   const [activeDatePreset, setActiveDatePreset] = useState<string>('all');
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+ 
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [shopsRes, statsRes] = await Promise.all([
-          fetch(`${apiBaseUrl}/admin/orders/shop-filters`, { credentials: 'include' }),
-          fetch(`${apiBaseUrl}/admin/orders/stats`, { credentials: 'include' })
-        ]);
-        if (shopsRes.ok) setShops(await shopsRes.json());
-        if (statsRes.ok) setStats(await statsRes.json());
-      } catch (error) { toast.error("Lỗi khi tải dữ liệu ban đầu."); }
-    };
-    fetchInitialData();
-  }, [apiBaseUrl]);
-
+  
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
@@ -355,7 +341,7 @@ export default function OrderManagement() {
       if (dateFilter.start_date) params.set('start_date', dateFilter.start_date);
       if (dateFilter.end_date) params.set('end_date', dateFilter.end_date);
 
-      const res = await fetch(`${apiBaseUrl}/admin/orders?${params.toString()}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+      const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const json = await res.json();
       setOrders(json.data || []);
@@ -367,7 +353,7 @@ export default function OrderManagement() {
     } finally { 
         setLoading(false); 
     }
-  }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter, filterShop, apiBaseUrl]);
+  }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter, filterShop, API_URL]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   
@@ -441,24 +427,14 @@ export default function OrderManagement() {
             <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng được gom nhóm theo từng nhà bán hàng</p>
           </div>
 
-          {stats && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Tổng Đơn Hàng Shop</CardTitle><ShoppingBag className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
-              <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Chờ Xử Lý</CardTitle><Clock className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-yellow-600">{stats.pending}</div></CardContent></Card>
-              <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Đang Xử Lý</CardTitle><Box className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-blue-600">{stats.processing}</div></CardContent></Card>
-              <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium">Đang Giao</CardTitle><Ship className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-purple-600">{stats.shipped}</div></CardContent></Card>
-            </div>}
+          
           
           <Card>
             <CardHeader><CardTitle>Bộ lọc và tìm kiếm</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
                     <div className="flex-grow"><label className="text-sm font-medium">Tìm kiếm</label><Input placeholder="Mã đơn, tên khách..." value={keyword} onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }} /></div>
-                    <div><label className="text-sm font-medium">Lọc theo Shop</label>
-                        <Select value={filterShop} onValueChange={(v) => { setFilterShop(v); setCurrentPage(1); }}>
-                            <SelectTrigger className="w-full md:w-[200px]"><SelectValue placeholder="Chọn shop" /></SelectTrigger>
-                            <SelectContent><SelectItem value="all">Tất cả Shop</SelectItem>{shops.map(shop => <SelectItem key={shop.ShopID} value={shop.ShopID.toString()}>{shop.ShopName}</SelectItem>)}</SelectContent>
-                        </Select>
-                    </div>
+                   
                     <div><label className="text-sm font-medium">Trạng thái</label>
                         <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setCurrentPage(1); }}>
                             <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Chọn trạng thái" /></SelectTrigger>
