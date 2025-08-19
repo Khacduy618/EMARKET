@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
-import { Order, OrderStatus, OrderItem, SellerOrder } from '@/types'; // Import thêm OrderItem nếu cần
+import { Order, OrderStatus, OrderItem } from '@/types'; // Import thêm OrderItem nếu cần
 import { getFullImageUrl } from '@/services/api';
 import ReturnRequestModal from './modals/ReturnRequestModal';
 
@@ -41,9 +41,17 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
       case 'Rated':
         return (
           <div className="flex items-center text-green-600 font-semibold text-xs">
-            <FaTruckFast className="mr-1 text-sm" /> Đã đánh giá{' '}
+            {/* <FaTruckFast className="mr-1 text-sm" /> Đã đánh giá{' '} */}
             <FaCircleQuestion className="ml-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết đánh giá" />
             <span className="ml-2 pl-2 border-l border-gray-300 text-green-600 uppercase">ĐÃ ĐÁNH GIÁ</span>
+          </div>
+        );
+      case 'Completed':
+        return (
+          <div className="flex items-center text-green-600 font-semibold text-xs">
+            {/* <FaTruckFast className="mr-1 text-sm" /> Đã hoàn thành{' '} */}
+            <FaCircleQuestion className="ml-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết hoàn thành" />
+            <span className="ml-2 pl-2 border-l border-gray-300 text-green-600 uppercase">ĐÃ HOÀN THÀNH</span>
           </div>
         );
       case 'Delivered':
@@ -51,7 +59,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
           <div className="flex items-center text-green-600 font-semibold text-xs">
             <FaTruckFast className="mr-1 text-sm" /> Đã Giao {' '}
             <FaCircleQuestion className="ml-1 text-xs text-gray-500 cursor-pointer hover:text-gray-700" title="Chi tiết giao hàng" />
-            <span className="ml-2 pl-2 border-l border-gray-300 text-green-600 uppercase">HOÀN THÀNH</span>
+            <span className="ml-2 pl-2 border-l border-gray-300 text-green-600 uppercase">ĐÃ GIAO</span>
           </div>
         );
       case 'Shipped':
@@ -91,13 +99,13 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
       default:
         return (
           <div className="flex items-center text-gray-600 font-semibold text-xs">
-            <span className="ml-2 pl-2 text-gray-500 uppercase">{order.OverallStatus}</span>
+            <span className="ml-2 pl-2 text-gray-500 uppercase">{order.Status}</span>
           </div>
         );
     }
   };
 
-  const detailPageUrl = `/account/purchase/${order.OrderID}`;
+const detailPageUrl = `/account/purchase/seller-order/${order.SellerOrderID}`;
 
   return (
     <>
@@ -111,7 +119,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
             {order.shopLevel === 'Favorite' && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>
             )}
-            <h3 className="font-semibold text-gray-800 text-sm">{order.shopName}</h3>
+            <h3 className="font-semibold text-gray-800 text-sm">{order.ShopName}</h3>
             <span className="text-xs text-gray-400">|</span>
             <span className="text-xs font-medium text-gray-500">Mã gói hàng: {order.SellerOrderCode}</span>
             <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
@@ -154,7 +162,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 
         {/* Các nút hành động */}
         <div className="px-4 pb-4 pt-3 border-t border-gray-100 flex flex-col items-end">
-          {order.OverallStatus === 'Delivered' && order.items.some(item => item.canReview) && (
+          {order.Status === 'Delivered' && order.items.some(item => item.canReview) && (
             <div className="w-full text-right">
               <p className="text-xs text-gray-500 mb-1">
                 Đánh giá sản phẩm trước{' '}
@@ -168,11 +176,11 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
           )}
 
           <div className="flex gap-2 justify-end w-full">
-            {order.OverallStatus === 'Delivered' && (
+            {order.Status === 'Delivered' && (
               <>
                 {order.items.some(item => item.canReview) && (
                   <Link
-                    href={`/account/review?orderId=${order.OrderID}`}
+                    href={`/account/review?orderId=${order.SellerOrderID}`}
                     className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
                   >
                     Đánh Giá
@@ -208,13 +216,13 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
             )}
 
             {/* Các điều kiện khác cho các nút */}
-            {(order.OverallStatus === 'Shipped' || order.OverallStatus === 'Processing' || order.OverallStatus === 'Pending') && (
+            {(order.Status === 'Shipped' || order.Status === 'Processing' || order.Status === 'Pending') && (
               <div className="flex gap-2">
                 <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100">Liên Hệ Người Bán</button>
                 <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100">Hủy Đơn</button>
               </div>
             )}
-            {(order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' || order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress') && (
+            {(order.Status === 'CancelledByBuyer' || order.Status === 'CancelledBySeller' || order.Status === 'Returned' || order.Status === 'ReturnInProgress') && (
               <div className="flex gap-2">
                 <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100">Mua Lại</button>
                 <button className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100">Liên Hệ Người Bán</button>

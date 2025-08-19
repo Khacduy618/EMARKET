@@ -449,7 +449,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL } from '@/lib/config';
 import Modal from './Modal'; // Component Modal chung của bạn
-import { Order, OrderItem, Address, SellerOrder } from '@/types'; // Các kiểu dữ liệu của bạn
+import { Order, OrderItem, Address } from '@/types'; // Các kiểu dữ liệu của bạn
 import { getFullImageUrl } from '@/services/api'; // Hàm helper lấy URL ảnh đầy đủ
 
 // --- ĐỊNH NGHĨA CÁC KIỂU DỮ LIỆU ---

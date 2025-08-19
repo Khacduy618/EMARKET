@@ -6,6 +6,11 @@ interface ProductWithImages {
     images?: ProductImage[] | null;
 }
 
+export const formatVND = (price: number): string => {
+  if (typeof price !== 'number' || isNaN(price)) return '0 ₫';
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+};
+
 export const getAuthToken = (): string | null => {
 
     const xsrfToken = getCookie('XSRF-TOKEN');

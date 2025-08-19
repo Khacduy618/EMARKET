@@ -38,6 +38,29 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\SellerReturnRequestController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 
+
+Route::post('/login-token', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required', 
+    ]);
+
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    $user = Auth::user();
+    
+    
+    $token = $user->createToken($request->device_name)->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user' => $user
+    ]);
+});
+
 Route::get('/user/shop-status', function (Request $request) {
     $user = $request->user();
 
@@ -198,12 +221,16 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::get('/orders', [OrderController::class, 'index']);
 
-    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
     // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
     Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+        Route::get('seller-orders/{sellerOrderId}', [OrderController::class, 'showSellerOrder']);
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
 
     Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);
     // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
+     Route::put('/orders/{orderId}/update-draft', [OrderController::class, 'updateDraft']);
     Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
@@ -407,54 +434,6 @@ Route::post('/webhook', [SellerOrderController::class, 'handle']);
 // ================= ADMIN ROUTES =================== //
 
 
-
-//route chat;
-
-Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function (Request $request) {
-    Log::info('--- Socket Token Validation Endpoint Hit ---');
-    Log::info('Request Headers: ', $request->headers->all()); // Xem tất cả headers
-    Log::info('Authorization Header Content: ' . $request->header('Authorization'));
-    Log::info('Auth User (before check): ', ['user_id' => Auth::id(), 'user_object' => Auth::user() ? Auth::user() : null]);
-
-
-    $user = Auth::user(); // Thử lấy user sau khi middleware chạy
-
-    if ($user) {
-        Log::info('Token VALIDATED for user:', ['user_id' => $user->UserID, 'username' => $user->Username]);
-        return response()->json(['user' => [
-            'id' => $user->UserID,
-            'username' => $user->Username,
-            'avatar_url' => $user->avatar_url ?? null,
-        ]]);
-    } else {
-        Log::warning('Token VALIDATION FAILED: $request->user() is null or middleware did not authenticate.');
-        // Thử kiểm tra thủ công token nếu $request->user() là null
-        // (Phần này tùy thuộc vào cách bạn quản lý token - ví dụ với Sanctum Personal Access Tokens)
-        // $token = $request->bearerToken();
-        // if ($token) {
-        //     $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        //     if ($personalAccessToken && $personalAccessToken->tokenable) {
-        //          Log::info('Manual token check successful for user:', ['user_id' => $personalAccessToken->tokenable->UserID]);
-        //          // Logic trả về user info nếu muốn
-        //     } else {
-        //          Log::warning('Manual token check failed: Token not found or not valid.');
-        //     }
-        // } else {
-        //      Log::warning('Manual token check failed: No bearer token found.');
-        // }
-        return response()->json(['message' => 'Unauthenticated.'], 401);
-    }
-});
-
-    // Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations']);
-    Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations'])->middleware('auth:sanctum');
-
-// API Routes for Socket.IO Server (cần cơ chế bảo vệ riêng, ví dụ IP Whitelisting hoặc Secret Key)
-// Bạn có thể nhóm chúng lại với một middleware bảo vệ riêng.
-Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(function () { // 'auth.socketserver' là middleware bạn tự tạo
-    Route::post('/update-conversation-meta', [ChatController::class, 'updateConversationMeta']);
-    Route::post('/mark-meta-as-read', [ChatController::class, 'markMetaAsRead']);
-});
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);

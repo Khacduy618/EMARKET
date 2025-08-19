@@ -16,8 +16,8 @@ export type OrderStatus =
   'Rated' | 'DeliveryFailed' | 'OutForDelivery';
 
 export type OrderTabStatus =
-  'all' | 'PendingPayment' | 'Processing' | 'Shipped' |
-  'Completed' | 'Cancelled' | 'ReturnedRefunded' | 'Delivered';
+  'all' | 'Processing' | 'Shipped' |
+  'Completed' | 'Cancelled' | 'ReturnedRefunded' | 'Delivered' | 'Rated';
 
 export type ReturnItemStatus =
   'None' | 'Requested' | 'Approved' | 'Rejected' | 'Returned' |
@@ -100,6 +100,9 @@ export interface OrderDetailShopOrder {
   shopName: string;
   shopLevel: ShopLevel;
   isFavoriteShop: boolean;
+  ShippingCarrier?: string; // Tên nhà vận chuyển (ví dụ: SPX Express)
+  TrackingCode?: string; // Mã vận đơn (ví dụ: SPXVN037
+  Notes?: string | null; // Ghi chú của shop
   items: OrderItem[];
   SellerOrderCode: string; // Mã đơn hàng của shop
   // Thêm các trường voucher cho shop
@@ -122,16 +125,26 @@ export interface Order {
   ShippingAddressID: number;
   ShippingFullName: string;
   ShippingPhoneNumber: string;
+  Street: string;
+  Ward: string;
+  District: string;
+  City: string;
+
   Notes: string | null;
   PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway' | 'VNPay' | 'Paypal';
   PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
   OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
   OrderItemIDs: number[]; // Chứa danh sách OrderItemID
-  shopvoucher: string | null;
-  shopdiscountamount: number;
+  shopvoucher: string | null;             // Ví dụ: '[{"shopId":1,...}]'
+  shopdiscountamount: string | null; 
 
+  
   PlatformVoucherCode: string | null;
-  PlatformDiscountAmount: number;
+  PlatformDiscountAmount: string | null;
+
+  AllocatedPlatformSaleOff: number;
+  AllocatedPlatformFreeship: number;
+
   CreatedAt: string;
   UpdatedAt: string;
 
@@ -140,11 +153,12 @@ export interface Order {
   shopOrders: OrderDetailShopOrder[];
 
   ShopID: number;
-  shopName: string;
+  ShopName: string;
   shopLevel: ShopLevel;
   Status: OrderStatus;       // Trạng thái RIÊNG của gói hàng
   isFavoriteShop: boolean;
   ReasonForRejection?: string;
+  ShippingCarrier?: string; // Tên nhà vận chuyển (ví dụ: SPX Express)
   shippingProvider?: string; // Tên nhà vận chuyển (ví dụ?: SPX Express)
   trackingNumber?: string; // Mã vận đơn (ví dụ?: SPXVN037324157726)
   orderStatusHistory?: OrderStatusHistory[]; // Lịch sử trạng thái trên timeline
@@ -154,6 +168,12 @@ export interface Order {
   totalShopeeCoinsDiscount?: number;
   is_return_eligible: boolean;
 
+
+  
+  ShopVoucherDiscount: number;
+  
+  TrackingCode: string | null;
+  
   
 }
 
@@ -288,28 +308,41 @@ export interface PaginatedOrders {
   totalItems: number;
 }
 
-export type SellerOrder = {
-  SellerOrderID: number;
-  SellerOrderCode: string;
-  OrderID: number;      // ID của đơn hàng tổng
-  OrderCode: string;    // Code của đơn hàng tổng
-  ShopID: number;
-  ShopName: string;
-  shopLevel: ShopLevel;
-  Status: OrderStatus;  // TRẠNG THÁI RIÊNG CỦA GÓI HÀNG NÀY
-  OverallStatus: OrderStatus; // Thêm trường này để đồng bộ tên
-  TotalAmount: number;
-  SubtotalAmount: number;
-  items: OrderItem[];
-  isFavoriteShop: boolean;
-  OrderDate: string;
-  orderStatusHistory: OrderStatusHistory[];
-  CreatedAt: string;
-  UpdatedAt: string;
-  ShippingAddressID: number;
-  // Các trường khác từ ordersbuyer mà bạn cần
-  PaymentMethod: PaymentMethodType;
-};
+// export type SellerOrder = {
+//   SellerOrderID: number;
+//   SellerOrderCode: string;
+//   OrderID: number;      // ID của đơn hàng tổng
+//   OrderCode: string;    // Code của đơn hàng tổng
+//   ShopID: number;
+//   ShopName: string;
+//   shopLevel: ShopLevel;
+//   Status: OrderStatus;  // TRẠNG THÁI RIÊNG CỦA GÓI HÀNG NÀY
+//   TotalAmount: number;
+//   SubtotalAmount: number;
+//   ShippingFee: number;
+//   ShopVoucherDiscount: number;
+//   ReasonForRejection?: string;
+//   Notes: string | null;
+//   TrackingCode: string | null;
+//   items: OrderItem[];
+//   isFavoriteShop: boolean;
+//   OrderDate: string;
+//   CreatedAt: string;
+//   PaymentMethod: PaymentMethodType;
+//   PaymentStatus: PaymentStatusType;
+
+//   // Các trường này có thể có hoặc không tùy vào context
+//   orderStatusHistory?: OrderStatusHistory[]; 
+//   // Các trường địa chỉ sẽ được thêm vào khi gọi API chi tiết
+  
+//   ShippingAddressID?: number;
+//   ShippingFullName?: string;
+//   ShippingPhoneNumber?: string;
+//   Street?: string;
+//   Ward?: string;
+//   District?: string;
+//   City?: string;
+// };
 
 export type BuyerOrder = {
     OrderID: number;
@@ -325,5 +358,5 @@ export type BuyerOrder = {
     PaymentMethod: 'COD' | 'BankTransfer' | 'OnlineGateway' | 'VNPay' | 'Paypal';
     PaymentStatus: PaymentStatusType; // Đây là PaymentStatus trong OrdersBuyer
     OverallStatus: OrderStatus; // Đây là OverallStatus trong OrdersBuyer
-    shopOrders: SellerOrder[]; // Một đơn hàng tổng chứa nhiều đơn hàng con
+    shopOrders: Order[]; // Một đơn hàng tổng chứa nhiều đơn hàng con
 };

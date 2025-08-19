@@ -1,9 +1,10 @@
+// account/components/ProfileOrderHistory.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import OrderCard from './OrderCard'; // Component con để render mỗi đơn hàng
-import { Order, OrderStatus, OrderTabStatus, SellerOrder, StatusTab } from '@/types';
+import { Order, OrderStatus, OrderTabStatus, StatusTab } from '@/types';
 import { FaSearch, FaCalendarAlt } from 'react-icons/fa';
 import { Loader2 } from 'lucide-react';
 import { getAuthToken } from '@/services/api';
@@ -15,7 +16,6 @@ import { getMyOrders } from '@/services/order';
  */
 const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
     all: [],
-    PendingPayment: ['Pending'], // Sẽ lọc các gói hàng có trạng thái Pending
     Processing: ['Processing'],
     Shipped: ['Shipped', 'OutForDelivery'], // Gộp cả hai vào tab Vận chuyển
     Delivered: ['Delivered'],
@@ -46,12 +46,10 @@ export default function ProfileOrderHistory() {
                 if (Array.isArray(responseData)) {
                     setAllOrders(responseData);
                 } else {
-                    console.error("API did not return an array of orders:", responseData);
                     setAllOrders([]);
                 }
             } catch (err: any) {
                 setError(err.message);
-                setAllOrders([]);
             } finally {
                 setLoading(false);
             }
@@ -59,7 +57,8 @@ export default function ProfileOrderHistory() {
         fetchOrders();
     }, []);
 
-    useEffect(() => {
+
+   useEffect(() => {
         const statusFromUrl = searchParams.get('status') as OrderTabStatus;
         if (statusFromUrl && uiTabToDbStatusMapping[statusFromUrl]) {
             setActiveTab(statusFromUrl);
@@ -67,7 +66,6 @@ export default function ProfileOrderHistory() {
         setCurrentPage(1);
     }, [searchParams]);
     
-    // --- LOGIC LỌC, SẮP XẾP, PHÂN TRANG (SỬA ĐỔI) ---
     const getStatusCount = (status: OrderTabStatus): number => {
         if (status === 'all') return allOrders.length;
         const dbStatuses = uiTabToDbStatusMapping[status] || [];
@@ -76,12 +74,12 @@ export default function ProfileOrderHistory() {
     
     const statusTabs: StatusTab[] = [
         { id: 'all', name: 'Tất cả', count: getStatusCount('all') },
-        { id: 'PendingPayment', name: 'Chờ thanh toán', count: getStatusCount('PendingPayment') },
         { id: 'Processing', name: 'Chờ giao hàng', count: getStatusCount('Processing') },
         { id: 'Shipped', name: 'Đang giao', count: getStatusCount('Shipped') },
         { id: 'Delivered', name: 'Đã giao', count: getStatusCount('Delivered') },
         { id: 'Completed', name: 'Hoàn thành', count: getStatusCount('Completed') },
         { id: 'Cancelled', name: 'Đã hủy', count: getStatusCount('Cancelled') },
+        { id: 'Rated', name: 'Đã đánh giá', count: getStatusCount('Rated') },
         { id: 'ReturnedRefunded', name: 'Trả hàng/Hoàn tiền', count: getStatusCount('ReturnedRefunded') },
     ];
 
@@ -91,14 +89,14 @@ export default function ProfileOrderHistory() {
             const dbStatuses = uiTabToDbStatusMapping[activeTab] || [];
             return dbStatuses.includes(order.Status); // Lọc trực tiếp trên trạng thái của gói hàng
         })
-        .filter(order => { // Lọc theo search
+        .filter(order => {
             const lowerCaseQuery = searchQuery.toLowerCase().trim();
             if (!lowerCaseQuery) return true;
             return order.SellerOrderCode.toLowerCase().includes(lowerCaseQuery) ||
                    order.OrderCode.toLowerCase().includes(lowerCaseQuery) ||
-                   (order.items && order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery)));
+                   order.items.some(item => item.productName.toLowerCase().includes(lowerCaseQuery));
         })
-        .filter(order => { // Lọc theo ngày
+        .filter(order => {
             const orderDate = new Date(order.OrderDate);
             const start = startDateFilter ? new Date(new Date(startDateFilter).setHours(0, 0, 0, 0)) : null;
             const end = endDateFilter ? new Date(new Date(endDateFilter).setHours(23, 59, 59, 999)) : null;
@@ -106,11 +104,12 @@ export default function ProfileOrderHistory() {
             if (end && orderDate > end) return false;
             return true;
         })
-        .sort((a, b) => { // Sắp xếp
-            const dateA = new Date(a.CreatedAt).getTime();
-            const dateB = new Date(b.CreatedAt).getTime();
-            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-        });
+        .sort((a, b) => { 
+        const dateA = new Date(a.CreatedAt).getTime();
+        const dateB = new Date(b.CreatedAt).getTime();
+       
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
 
     // Phân trang
     const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);

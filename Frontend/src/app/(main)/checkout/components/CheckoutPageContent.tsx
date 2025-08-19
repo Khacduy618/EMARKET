@@ -36,11 +36,15 @@ import { getAuthToken } from '@/services/api';
 import PaymentMethodSelectionModal from './PaymentMethodSelectionModal';
 import { API_URL } from '@/lib/config';
 
+// HÀM HELPER 1: TÍNH GIÁ CUỐI CÙNG CỦA SẢN PHẨM (SAU KHI TRỪ DISCOUNT GỐC)
+const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
+    const basePrice = originalPrice ?? price;
+    return Math.floor(basePrice * (1 - (discount ?? 0) / 100));
+};
 
+// HÀM HELPER 2: TÍNH GIẢM GIÁ TỪ MỘT VOUCHER CỤ THỂ
 const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
-    if (!voucher || subtotal < voucher.MinOrderValue) {
-        return 0;
-    }
+    if (!voucher || subtotal < voucher.MinOrderValue) return 0;
     let discount = 0;
     if (voucher.DiscountType === 'FixedAmount') {
         discount = voucher.DiscountValue;
@@ -52,14 +56,40 @@ const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number
     }
     return Math.round(discount);
 };
-const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
-    // Giá gốc để tính chiết khấu là CompareAtPrice nếu có, ngược lại là Price
-    const basePrice = originalPrice ?? price;
-    // Giảm giá từ bảng product (nếu có)
-    const finalPrice = Math.floor(basePrice * (1 - (discount ?? 0) / 100));
-    return finalPrice;
-};
 
+// HÀM HELPER 3 (QUAN TRỌNG): TÍNH TOÁN LẠI TOÀN BỘ SUMMARY
+// Đây là "nguồn chân lý duy nhất" cho việc tính toán
+const recalculateSummary = (shopOrders: CheckoutShopOrder[], platformVouchers: AppliedVouchersCombined): CheckoutSummaryDetails => {
+    const totalProductsPrice = shopOrders.reduce((sum, so) => sum + so.items.reduce((itemSum, item) => itemSum + item.subtotal, 0), 0);
+    const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
+
+    const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
+        if (!so.appliedVoucher) return sum;
+        const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
+        return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
+    }, 0);
+
+    let totalSaleoff = 0;
+    if (platformVouchers.saleOffVoucher) {
+        totalSaleoff = calculateDiscountForVoucher(platformVouchers.saleOffVoucher, totalProductsPrice);
+    }
+    
+    let totalFreeship = 0;
+    if (platformVouchers.freeShipVoucher) {
+        const freeshipDiscount = calculateDiscountForVoucher(platformVouchers.freeShipVoucher, totalShippingFee);
+        totalFreeship = Math.min(freeshipDiscount, totalShippingFee);
+    }
+    
+    const totalPlatformVoucherDiscount = totalSaleoff + totalFreeship;
+    const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
+    const finalTotal = totalProductsPrice + totalShippingFee - totalDiscount;
+
+    return {
+        totalProductsPrice, totalShippingFee, totalShopVoucherDiscount,
+        totalPlatformVoucherDiscount, totalFreeship, totalSaleoff,
+        totalDiscount, finalTotal, address: null
+    };
+};
 
 const CheckoutPageContent = () => {
     const router = useRouter();
@@ -104,40 +134,24 @@ useEffect(() => {
                 
                 const orderDetails = await response.json();
                
-
+                // const summary = recalculateSummary(orderDetails.shopOrders, orderDetails.appliedPlatformVouchers);
                 
                 // Chuyển đổi dữ liệu từ API về định dạng CheckoutData để hiển thị lại
                 // (Phần này cần bạn tự viết logic chuyển đổi, dưới đây là ví dụ)
-                const reconstructedCheckoutData: CheckoutData = {
-                    orderId: orderDetails.OrderID,
-                    address: orderDetails.address,
-                    shopOrders: orderDetails.shopOrders,
-                    
-                    // Thêm giá trị mặc định cho trường bị thiếu
-                    appliedPlatformVouchers: orderDetails.appliedPlatformVouchers,
-
-
-                    summary: {
-                        totalProductsPrice: orderDetails.SubtotalAmount,
-                        totalShippingFee: orderDetails.ShippingFee,
-                         totalShopVoucherDiscount: orderDetails.summary.totalShopVoucherDiscount,
-                         totalFreeship: orderDetails.summary.totalFreeship, 
-                        
-                        totalPlatformVoucherDiscount: orderDetails.summary.totalPlatformVoucherDiscount,
-                        totalDiscount: orderDetails.DiscountAmount,
-                        finalTotal: orderDetails.TotalAmount,
-                        totalSaleoff: orderDetails.summary.totalPlatformVoucherDiscount,
-                        address: orderDetails.address
-                    },
-                    paymentMethod: {
-                        method: orderDetails.PaymentMethod === 'Paypal' ? 'Paypal' : ( orderDetails.PaymentMethod === 'VNPay' ? 'VNPay' : 'Thanh toán khi nhận hàng'),
-                        type: orderDetails.PaymentMethod,
-                        canChange: true,
-                    },
-                };
-                console.log("[useEffect] Reconstructed checkoutData from API:", reconstructedCheckoutData);
-                setOrderCode(orderDetails.OrderCode);
-                setCheckoutData(reconstructedCheckoutData);
+               const reconstructedCheckoutData: CheckoutData = {
+                        orderId: orderDetails.OrderID,
+                        address: orderDetails.address,
+                        shopOrders: orderDetails.shopOrders,
+                        appliedPlatformVouchers: orderDetails.appliedPlatformVouchers,
+                        summary: { ...orderDetails.summary, address: orderDetails.address },
+                        paymentMethod: {
+                            method: orderDetails.PaymentMethod === 'Paypal' ? 'PayPal' : (orderDetails.PaymentMethod === 'VNPay' ? 'Cổng thanh toán VNPay' : 'Thanh toán khi nhận hàng'),
+                            type: orderDetails.PaymentMethod,
+                            canChange: true,
+                        },
+                    };
+                    setOrderCode(orderDetails.OrderCode);
+                    setCheckoutData(reconstructedCheckoutData);
 
             } catch (e: any) {
                 console.error("Failed to fetch pending order:", e);
@@ -147,130 +161,85 @@ useEffect(() => {
         } else {
            console.log("[useEffect] No orderId in URL. Building data from localStorage...");
             const buildCheckoutData = async () => {
-            const storedDataString = localStorage.getItem('checkoutData');
-            if (!storedDataString) {
-                setError('Không tìm thấy dữ liệu thanh toán. Vui lòng quay lại giỏ hàng.');
-                setLoading(false);
-                return;
-            }
-            
-            try {
-                const storedData: StoredCheckoutData = JSON.parse(storedDataString);
-                const addressData = await fetchUserAddresses();
-                const defaultAddress = addressData.default_address;
-                setAllUserAddresses(addressData.addresses || []); 
-                
-                // Chuyển đổi dữ liệu
-                const groupedItems: Record<number, CartItem[]> = storedData.selectedItems.reduce((acc, item) => {
-                    if (!acc[item.ShopID]) acc[item.ShopID] = [];
-                    acc[item.ShopID].push(item);
-                    return acc;
-                }, {} as Record<number, CartItem[]>);
-                
-                // === BẮT ĐẦU TÍNH TOÁN LẠI TỪ ĐẦU ===
-                let calculatedTotalProductsPrice = 0;
-                
-                const shopOrders: CheckoutShopOrder[] = [];
+                    const storedDataString = localStorage.getItem('checkoutData');
+                    if (!storedDataString) {
+                        setError('Không tìm thấy dữ liệu thanh toán.'); return;
+                    }
+                    try {
+                        const storedData: StoredCheckoutData = JSON.parse(storedDataString);
+                        const addressData = await fetchUserAddresses();
+                        const defaultAddress = addressData.default_address;
+                        setAllUserAddresses(addressData.addresses || []);
 
-                for (const shopIdStr in groupedItems) {
-                    const shopId = parseInt(shopIdStr);
-                    const itemsInShop = groupedItems[shopId];
-                    const firstItem = itemsInShop[0];
+                        const groupedItems = storedData.selectedItems.reduce((acc, item) => {
+                            (acc[item.ShopID] = acc[item.ShopID] || []).push(item);
+                            return acc;
+                        }, {} as Record<number, CartItem[]>);
 
-                    let shopSubtotal = 0; // Subtotal của riêng shop này
+                        let calculatedTotalProductsPrice = 0;
+                        const shopOrders: CheckoutShopOrder[] = [];
 
-                    const checkoutItems: CheckoutProductItem[] = itemsInShop.map(cartItem => {
-                        // Tính giá cuối cùng của sản phẩm (sau khi trừ % discount của sản phẩm)
-                        const finalPrice = calculateFinalItemPrice(
-                            cartItem.productVariant.Price, 
-                            cartItem.productVariant.CompareAtPrice, 
-                            cartItem.productVariant.product?.Discount
-                        );
+                        for (const shopIdStr in groupedItems) {
+                            const shopId = parseInt(shopIdStr);
+                            const itemsInShop = groupedItems[shopId];
+                            const firstItem = itemsInShop[0];
+
+                            let shopSubtotal = 0;
+                            const checkoutItems: CheckoutProductItem[] = itemsInShop.map(cartItem => {
+                                const finalPrice = calculateFinalItemPrice(
+                                    cartItem.productVariant.Price, 
+                                    cartItem.productVariant.CompareAtPrice, 
+                                    cartItem.productVariant.product?.Discount
+                                );
+                                const itemSubtotal = finalPrice * cartItem.Quantity;
+                                shopSubtotal += itemSubtotal;
+                                return {
+                                    variantId: cartItem.VariantID, productId: cartItem.productVariant.product.ProductID,
+                                    shopId: cartItem.ShopID, name: cartItem.productVariant.product.Name,
+                                    imageUrl: cartItem.productVariant.ImageURL, classification: cartItem.productVariant.attributeValues.map(v => v.Value).join(', '),
+                                    price: finalPrice, originalPrice: cartItem.productVariant.CompareAtPrice ?? (cartItem.productVariant.product?.Discount > 0 ? cartItem.productVariant.Price : null),
+                                    quantity: cartItem.Quantity, subtotal: itemSubtotal,
+                                    hasInsurance: false, product: cartItem.productVariant.product
+                                };
+                            });
+                            
+                            calculatedTotalProductsPrice += shopSubtotal;
+                            shopOrders.push({
+                                shopId, shopName: firstItem.shop.ShopName, shopLevel: firstItem.shop.Level,
+                                items: checkoutItems, shippingMethod: 'Nhanh', shippingFee: 30000, 
+                                deliveryEstimate: '2-3 ngày', appliedVoucher: storedData.appliedShopVouchers[shopId] || null,
+                                messageToSeller: '', // Khởi tạo message rỗng
+                            });
+                        }
+
+                        const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
+                        const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
+                            if (!so.appliedVoucher) return sum;
+                            const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
+                            return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
+                        }, 0);
                         
-                        const itemSubtotal = finalPrice * cartItem.Quantity;
-                        shopSubtotal += itemSubtotal;
-
-                        return {
-                            variantId: cartItem.VariantID,
-                            productId: cartItem.productVariant.product.ProductID,
-                            shopId: cartItem.ShopID,
-                            name: cartItem.productVariant.product.Name,
-                            imageUrl: cartItem.productVariant.ImageURL,
-                            classification: cartItem.productVariant.attributeValues.map(v => v.Value).join(', '),
-                            price: finalPrice, // <<-- LƯU Ý: price giờ là giá đã giảm của sản phẩm
-                            originalPrice: cartItem.productVariant.CompareAtPrice ?? (cartItem.productVariant.product?.Discount > 0 ? cartItem.productVariant.Price : null),
-                            quantity: cartItem.Quantity,
-                            subtotal: itemSubtotal,
-                            hasInsurance: false,
-                            product: cartItem.productVariant.product
-                        };
-                    });
-                    
-                    calculatedTotalProductsPrice += shopSubtotal;
-                    
-                    const shippingFeePerShop = 30000; // Phí ship tạm thời
-
-                    shopOrders.push({
-                        shopId,
-                        shopName: firstItem.shop.ShopName,
-                        shopLevel: firstItem.shop.Level,
-                        items: checkoutItems,
-                        shippingMethod: 'Nhanh',
-                        shippingFee: shippingFeePerShop,
-                        deliveryEstimate: '2-3 ngày',
-                        appliedVoucher: storedData.appliedShopVouchers[shopId] || null,
-                        messageToSeller: '',
-                    });
-                }
-
-                // TÍNH TOÁN LẠI TOÀN BỘ SUMMARY
-                const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
-                
-                const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
-                    if (!so.appliedVoucher) return sum;
-                    const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
-                    return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
-                }, 0);
-                
-                // Lấy giá trị voucher platform từ dữ liệu đã lưu
-                const totalFreeshipDiscount = storedData.summary.totalFreeship ?? 0;
-                const totalSaleoffDiscount = storedData.summary.totalSaleoff ?? 0;
-                const totalPlatformVoucherDiscount = totalFreeshipDiscount + totalSaleoffDiscount;
-
-                const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
-                const finalTotal = calculatedTotalProductsPrice + totalShippingFee - totalDiscount;
-                
-                const finalCheckoutData: CheckoutData = {
-                    orderId: storedData.orderId, 
-                    address: defaultAddress,
-                    shopOrders,
-                    appliedPlatformVouchers: storedData.appliedPlatformVouchers,
-                    summary: {
-                        totalProductsPrice: calculatedTotalProductsPrice, // Dùng giá đã tính toán lại
-                        totalShippingFee: totalShippingFee,
-                        totalShopVoucherDiscount: totalShopVoucherDiscount,
-                        totalPlatformVoucherDiscount: totalPlatformVoucherDiscount, // Gộp cả hai
-                        totalFreeship: totalFreeshipDiscount,
-                        totalSaleoff: totalSaleoffDiscount,
-                        totalDiscount: totalDiscount,
-                        finalTotal: finalTotal, // Dùng giá đã tính toán lại
-                        address: defaultAddress
-                    },
-                    paymentMethod: { method: 'Thanh toán khi nhận hàng', type: 'COD', canChange: true },
+                        const totalFreeshipDiscount = storedData.summary.totalFreeship ?? 0;
+                        const totalSaleoffDiscount = storedData.summary.totalSaleoff ?? 0;
+                        const totalPlatformVoucherDiscount = totalFreeshipDiscount + totalSaleoffDiscount;
+                        const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
+                        const finalTotal = calculatedTotalProductsPrice + totalShippingFee - totalDiscount;
+                        //  const summary = recalculateSummary(shopOrders, storedData.appliedPlatformVouchers);
+                        setCheckoutData({
+                            orderId: storedData.orderId, address: defaultAddress, shopOrders,
+                            appliedPlatformVouchers: storedData.appliedPlatformVouchers,
+                            summary: {
+                                totalProductsPrice: calculatedTotalProductsPrice, totalShippingFee, totalShopVoucherDiscount,
+                                totalPlatformVoucherDiscount, totalFreeship: totalFreeshipDiscount, totalSaleoff: totalSaleoffDiscount,
+                                totalDiscount, finalTotal,
+                                // ...summary,
+                                 address: defaultAddress
+                            },
+                            paymentMethod: { method: 'Thanh toán khi nhận hàng', type: 'COD', canChange: true },
+                        });
+                    } catch (e) { setError('Dữ liệu thanh toán không hợp lệ.'); }
                 };
-                
-                setCheckoutData(finalCheckoutData);
-
-
-            } catch (e) {
-                console.error("Failed to process checkout data:", e);
-                setError('Dữ liệu thanh toán không hợp lệ.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        buildCheckoutData();
+                buildCheckoutData();
         }
         setLoading(false);
     };
@@ -278,15 +247,65 @@ useEffect(() => {
     loadData();
 
     }, [searchParams]);
+    
+    
+    const updateNotesBeforePayment = async (): Promise<boolean> => {
+        if (!orderId || !checkoutData) {
+            console.error("updateNotesBeforePayment: Missing orderId or checkoutData.");
+            return false;
+        }
 
+        const shopNotes = checkoutData.shopOrders.reduce((acc, so) => {
+            if (so.messageToSeller && so.messageToSeller.trim() !== '') {
+                acc[so.shopId] = so.messageToSeller.trim();
+            }
+            return acc;
+        }, {} as Record<number, string>);
 
+        // Nếu không có lời nhắn nào, coi như thành công và không cần gọi API.
+        if (Object.keys(shopNotes).length === 0) {
+            return true;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/orders/${orderId}/update-draft`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ shopNotes }),
+            });
+
+            if (!response.ok) {
+                toast.error("Không thể cập nhật ghi chú cho đơn hàng.");
+                return false;
+            }
+            
+            console.log("Notes updated successfully before payment redirection.");
+            return true;
+
+        } catch (error) {
+            toast.error("Lỗi kết nối khi cập nhật ghi chú.");
+            console.error("updateNotesBeforePayment failed:", error);
+            return false;
+        }
+    };
+
+    
     const handleVnPayPayment = async () => {
         console.log(`[handleVnPayPayment] Initiated for orderId: ${orderId}`);
         if (!orderId) {
             toast.error("Không tìm thấy đơn hàng để thanh toán.");
             return;
         }
+        // **BƯỚC 1: CẬP NHẬT LỜI NHẮN**
+       const notesUpdatedSuccessfully = await updateNotesBeforePayment();
+
+        // Nếu cập nhật lời nhắn thất bại, dừng quá trình thanh toán
+        if (!notesUpdatedSuccessfully) {
+            return;
+        }
         try {
+            
              console.log(`[handleVnPayPayment] Calling API /api/vnpay/create-payment/${orderId}`);
             const response = await fetch(`${API_URL}/vnpay/create-payment/${orderId}`, {
                     method: 'POST',
@@ -385,14 +404,14 @@ useEffect(() => {
   const handleAddressChange = () => alert('Thay đổi địa chỉ đang được phát triển!');
   const handleSelectShopVoucher = (shopId: number) => alert(`Chọn voucher của shop ${shopId} đang được phát triển!`);
   const handleMessageChange = (shopId: number, message: string) => {
-    setCheckoutData(prev => {
-      if (!prev) return null;
-      const updatedShopOrders = prev.shopOrders.map(so =>
-        so.shopId === shopId ? { ...so, messageToSeller: message } : so
-      );
-      return { ...prev, shopOrders: updatedShopOrders };
-    });
-  };
+        setCheckoutData(prev => {
+            if (!prev) return null;
+            const updatedShopOrders = prev.shopOrders.map(so =>
+                so.shopId === shopId ? { ...so, messageToSeller: message } : so
+            );
+            return { ...prev, shopOrders: updatedShopOrders };
+        });
+    };
   const handleShippingMethodChange = (shopId: number) => alert(`Thay đổi phương thức vận chuyển cho shop ${shopId} đang được phát triển!`);
   const handleSelectPlatformVoucher = () => alert('Chọn Shopee Voucher đang được phát triển!');
 
@@ -479,105 +498,7 @@ const handlePaymentMethodChange = () => {
     };
     
 
-    // const handlePlaceOrder = async () => {
-    //     console.log("[handlePlaceOrder] Initiated. Current checkoutData:", checkoutData);
-    //     if (!checkoutData || !checkoutData.address) {
-    //         toast.error("Vui lòng chọn địa chỉ giao hàng.");
-    //         return;
-    //     }
-    //      // TÍNH TOÁN LẠI CÁC GIÁ TRỊ TRƯỚC KHI GỬI
-    //     const itemsPayload = checkoutData.shopOrders.flatMap(shopOrder =>
-    //         shopOrder.items.map(item => {
-    //             // Tính toán giá cuối cùng và thành tiền cho từng sản phẩm
-    //             const finalPrice = calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount);
-    //             return {
-    //                 variantId: item.variantId,
-    //                 quantity: item.quantity,
-    //                 // GỬI ĐI GIÁ ĐÃ GIẢM
-    //                 priceAtPurchase: finalPrice,
-    //                 // GỬI ĐI THÀNH TIỀN DỰA TRÊN GIÁ ĐÃ GIẢM
-    //                 subtotal: finalPrice * item.quantity,
-    //             };
-    //         })
-    //     );
-        
-    //     // CHUẨN BỊ THÔNG TIN VOUCHER
-    //     const shopVouchersApplied = checkoutData.shopOrders
-    //         .filter(so => so.appliedVoucher)
-    //         .map(so => ({
-    //             shopId: so.shopId,
-    //             code: so.appliedVoucher!.Code,
-    //             discount: calculateDiscountForVoucher(
-    //                 so.appliedVoucher!,
-    //                 so.items.reduce((sum, item) => sum + calculateFinalItemPrice(item.price, item.originalPrice, item.product?.Discount) * item.quantity, 0)
-    //             ),
-    //         }));
-
-    //     const platformVoucherCodes: { saleOff?: string, freeShip?: string } = {};
-    //     const platformDiscountAmounts: { saleOff?: number, freeShip?: number } = {};
-
-    //     if (checkoutData.appliedPlatformVouchers.saleOffVoucher && checkoutData.summary.totalSaleoff > 0) {
-    //         platformVoucherCodes.saleOff = checkoutData.appliedPlatformVouchers.saleOffVoucher.Code;
-    //         platformDiscountAmounts.saleOff = checkoutData.summary.totalSaleoff;
-    //     }
-    //     if (checkoutData.appliedPlatformVouchers.freeShipVoucher && checkoutData.summary.totalFreeship > 0) {
-    //         platformVoucherCodes.freeShip = checkoutData.appliedPlatformVouchers.freeShipVoucher.Code;
-    //         platformDiscountAmounts.freeShip = checkoutData.summary.totalFreeship;
-    //     }
-    //     // Tạo payload để gửi lên API /api/orders/place
-    //     const payload = {
-    //         shippingAddressId: checkoutData.address.AddressID,
-    //         shippingFullName: checkoutData.address.FullName,
-    //         shippingPhoneNumber: checkoutData.address.PhoneNumber,
-    //         notes: checkoutData.shopOrders.map(so => so.messageToSeller).filter(m => m).join('; '),
-    //         totalAmount: checkoutData.summary.finalTotal,
-    //         subtotalAmount: checkoutData.summary.totalProductsPrice,
-    //         shippingFee: checkoutData.summary.totalShippingFee,
-    //         discountAmount: checkoutData.summary.totalDiscount,
-    //         paymentMethod: checkoutData.paymentMethod.type,
-    //         items: itemsPayload,
-
-    //         platformVoucherData: {
-    //             codes: platformVoucherCodes,
-    //             discounts: platformDiscountAmounts
-    //         },
-    //         totalShopVoucherDiscount: checkoutData.summary.totalShopVoucherDiscount, // Tổng giảm giá từ voucher shop
-    //         shopVouchersApplied: shopVouchersApplied
-    //     };
-        
-    //     try {
-    //         // Gọi API để tạo đơn hàng nháp
-    //          console.log("[handlePlaceOrder] Sending payload to /api/orders/place:", payload);
-    //         const response = await fetch(`${API_URL}/orders/place`, {
-    //                 method: 'POST',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 credentials: 'include', // Quan trọng để gửi cookie
-    //                 body: JSON.stringify(payload),
-    //             });
-
-    //         const result = await response.json();
-
-    //         if (!response.ok) {
-    //              if (result.errors) {
-    //                 // Lỗi validation, có thể hiển thị lỗi đầu tiên
-    //                 const firstErrorKey = Object.keys(result.errors)[0];
-    //                 const firstErrorMessage = result.errors[firstErrorKey][0];
-    //                 throw new Error(`Lỗi dữ liệu: ${firstErrorMessage}`);
-    //             }
-    //             throw new Error(result.message || 'Không thể đặt hàng.');
-    //         }
-
-    //         toast.success("Đã tạo đơn hàng nháp thành công!");
-
-    //         // Xóa dữ liệu cũ trong localStorage và chuyển hướng với orderId
-    //         localStorage.removeItem('checkoutData');
-    //         router.push(`/checkout?orderId=${result.orderId}`); // Tải lại trang với orderId trên URL
-
-    //     } catch (error: any) {
-    //         console.error("[handlePlaceOrder] FAILED:", error);
-    //         toast.error(error.message);
-    //     }
-    // };
+   
     const handlePlaceOrder = async () => {
         console.log("[handlePlaceOrder] Initiated with ID-based logic.");
         if (!checkoutData || !checkoutData.address) {
@@ -585,75 +506,59 @@ const handlePaymentMethodChange = () => {
             return;
         }
         
-        // 1. Thu thập danh sách item (chỉ variantId và quantity)
-        const itemsPayload = checkoutData.shopOrders.flatMap(shopOrder =>
-            shopOrder.items.map(item => ({
-                variantId: item.variantId,
-                quantity: item.quantity,
-            }))
+        const itemsPayload = checkoutData.shopOrders.flatMap(so =>
+            so.items.map(item => ({ variantId: item.variantId, quantity: item.quantity }))
         );
         
-        // 2. Thu thập mã voucher của các shop đã áp dụng
-        const shopVoucherCodes = checkoutData.shopOrders
-            .map(so => so.appliedVoucher?.Code)
-            .filter((code): code is string => !!code); // Lọc bỏ các giá trị null/undefined
+        const shopVoucherCodes = checkoutData.shopOrders.map(so => so.appliedVoucher?.Code).filter(Boolean) as string[];
 
-        // 3. Thu thập mã voucher của platform đã áp dụng
-        // Logic mới: Chỉ có 1 voucher platform tại một thời điểm
-        const platformVoucherCode = 
-            checkoutData.appliedPlatformVouchers.saleOffVoucher?.Code || 
-            checkoutData.appliedPlatformVouchers.freeShipVoucher?.Code || 
-            null;
+        const platformVoucherCodes: string[] = [];
+        if (checkoutData.appliedPlatformVouchers.saleOffVoucher) {
+            platformVoucherCodes.push(checkoutData.appliedPlatformVouchers.saleOffVoucher.Code);
+        }
+        if (checkoutData.appliedPlatformVouchers.freeShipVoucher) {
+            platformVoucherCodes.push(checkoutData.appliedPlatformVouchers.freeShipVoucher.Code);
+        }
+        // Tạo đối tượng shopNotes từ state
+        const shopNotes = checkoutData.shopOrders.reduce((acc, so) => {
+           if (so.messageToSeller && so.messageToSeller.trim() !== '') {
+                acc[so.shopId] = so.messageToSeller.trim();
+            }
+            return acc;
+        }, {} as Record<number, string>);
             
         // 4. Tạo payload cuối cùng, chỉ chứa các ID và thông tin cần thiết
         const payload = {
             shippingAddressId: checkoutData.address.AddressID,
-            notes: checkoutData.shopOrders.map(so => so.messageToSeller).filter(m => m).join('; '),
+            shopNotes: shopNotes, // Gửi đối tượng notes
             paymentMethod: checkoutData.paymentMethod.type,
             items: itemsPayload,
             shopVoucherCodes: shopVoucherCodes,
-            platformVoucherCode: platformVoucherCode,
-            // **Lưu ý**: shippingFee vẫn cần gửi lên vì nó được tính ở client
-            // và backend cần biết để tính toán giảm giá freeship.
+            platformVoucherCodes: platformVoucherCodes,
             shippingFee: checkoutData.summary.totalShippingFee, 
         };
         
         try {
-            console.log("[handlePlaceOrder] Sending FINAL ID-based payload:", payload);
-            
             toast.info("Đang xử lý đơn hàng của bạn...");
-
             const response = await fetch(`${API_URL}/orders/place`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(payload),
             });
-
             const result = await response.json();
-
-            if (!response.ok) {
-                if (result.errors) {
-                    const firstErrorKey = Object.keys(result.errors)[0];
-                    const firstErrorMessage = result.errors[firstErrorKey][0];
-                    throw new Error(`Lỗi: ${firstErrorMessage}`);
-                }
-                throw new Error(result.message || 'Không thể đặt hàng. Vui lòng thử lại.');
-            }
-
+            if (!response.ok) throw new Error(result.message || 'Không thể đặt hàng.');
             toast.success("Đã tạo đơn hàng thành công!");
             localStorage.removeItem('checkoutData');
-            
-            // Chuyển hướng để tiếp tục thanh toán nếu cần
-            if (checkoutData.paymentMethod.type === 'VNPay') {
-                router.push(`/checkout?orderId=${result.orderId}`);
-            } else {
-                // Với COD hoặc PayPal (đã xử lý), chuyển đến trang lịch sử
+            if (checkoutData.paymentMethod.type === 'COD') {
+                // Nếu là COD, đơn hàng đã được xử lý, chuyển thẳng đến trang lịch sử
                 router.push('/account/purchase?status=Processing');
+            } else {
+                // Nếu là VNPay/PayPal, chuyển đến trang checkout để tiếp tục thanh toán
+                router.push(`/checkout?orderId=${result.orderId}`);
             }
-
+            
         } catch (error: any) {
-            console.error("[handlePlaceOrder] FAILED:", error);
             toast.error(error.message);
         }
     };
@@ -664,8 +569,15 @@ const handlePaymentMethodChange = () => {
             toast.error("Không tìm thấy mã đơn hàng.");
             return;
         }
+        const notesUpdatedSuccessfully = await updateNotesBeforePayment();
+
+        // Nếu cập nhật lời nhắn thất bại, dừng quá trình thanh toán
+        if (!notesUpdatedSuccessfully) {
+            return;
+        }
 
         const paymentMethod = checkoutData?.paymentMethod.type.toUpperCase() || 'COD';
+        
         let payload: any = { paymentMethod };
         if (paymentMethod === 'PAYPAL' && paypalDetails) {
             payload.paymentDetails = {

@@ -1,275 +1,166 @@
+// In app/(main)/(account)/purchase/components/OrderDetailContent.tsx
 
 'use client';
 
-// Thêm useState vào import
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { FaChevronLeft, FaCommentDots, FaRegLifeRing, FaTruckFast } from 'react-icons/fa6';
-import { Order } from '@/types'; // Lấy Order từ '@/types'
-
+import { FaChevronLeft, FaStore, FaTicketAlt, FaShippingFast } from 'react-icons/fa';
+import { Order, OrderStatus } from '@/types'; 
 import OrderProgressTracker from './OrderProgressTracker';
 import OrderShippingInfo from './OrderShippingInfo';
-import { getFullImageUrl } from '@/services/api';
-import RequestSelectionModal from './modals/RequestSelectionModal';
-import ReturnRequestFormModal from './modals/ReturnRequestFormModal';
-
-// Import các modal đã tạo
+import { formatVND, getFullImageUrl } from '@/services/api';
 
 
-const getDeliveryEstimate = (orderDateString: string) => {
-  const orderDate = new Date(orderDateString);
-  if (isNaN(orderDate.getTime())) {
-    return { start: 'N/A', end: 'N/A' };
-  }
-  const startDate = new Date(orderDate);
-  startDate.setDate(orderDate.getDate() + 3);
-  const endDate = new Date(orderDate);
-  endDate.setDate(orderDate.getDate() + 6);
-  const formatDate = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
-  return {
-    start: formatDate(startDate),
-    end: formatDate(endDate),
-  };
-};
-// src/utils/format.ts
-export const formatVND = (price: number): string => {
-  if (typeof price !== 'number') return '0 ₫';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
+const DiscountRow: React.FC<{ icon: React.ReactNode; label: string; value: number }> = ({ icon, label, value }) => (
+    <div className="flex justify-between items-center w-full max-w-md text-sm">
+        <span className="flex items-center text-gray-700">
+            {icon}
+            {label}
+        </span>
+        <span className="text-orange-500 font-medium">- {formatVND(value)}</span>
+    </div>
+);
+
+const getStatusInVietnamese = (status: OrderStatus) => {
+    const statusMap: { [key in OrderStatus]: string } = {
+        Pending: 'Chờ Xác Nhận', Processing: 'Đang Xử Lý', Shipped: 'Đang Giao Hàng',
+        OutForDelivery: 'Đang Vận Chuyển', Delivered: 'Đã Giao Hàng', Completed: 'Hoàn Thành',
+        Rated: 'Đã Đánh Giá', CancelledByBuyer: 'Đã Hủy Bởi Bạn', CancelledBySeller: 'Đã Hủy Bởi Người Bán',
+        Returned: 'Đã Trả Hàng', ReturnInProgress: 'Đang Trả Hàng/Hoàn Tiền', DeliveryFailed: 'Giao Hàng Thất Bại',
+    };
+    return statusMap[status] || status;
+}
+
 interface OrderDetailContentProps {
   order: Order;
 }
 
-const priceColWidth = '150px';
-const qtyColWidth = '100px';
-const subtotalColWidth = '150px';
-
 const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
-  const [isSelectionModalOpen, setSelectionModalOpen] = useState(false);
-  const [isReturnModalOpen, setReturnModalOpen] = useState(false);
-  const [isRefundModalOpen, setRefundModalOpen] = useState(false);
+  const isCancelled = order.Status.startsWith('Cancelled');
+  
+  // **LOGIC PHÂN TÍCH VOUCHER AN TOÀN VÀ ĐẦY ĐỦ**
+  // let platformSaleOffDiscount = 0;
+  // let platformFreeshipDiscount = 0;
+  let saleOffCode: string | null = null;
+  let freeShipCode: string | null = null;
+  let shopVoucherCode: string | null = null;
+  
+  try {
 
-  const isCancelled = order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller';
-  const isDeliveredOrCompleted = order.OverallStatus === 'Delivered' || order.OverallStatus === 'Completed';
-  const hasShippingTracking = order.shippingTracking && order.shippingTracking.length > 0;
-
-  const totalProductsPrice = order.shopOrders.reduce((total, shopOrder) => {
-    const shopSubtotal = shopOrder.items.reduce((sum, item) => sum + item.Subtotal, 0);
-    return total + shopSubtotal;
-  }, 0);
-
-  // const handleOpenSelectionModal = () => setSelectionModalOpen(true);
-  const handleCloseAllModals = () => {
-    setSelectionModalOpen(false);
-    setReturnModalOpen(false);
-    setRefundModalOpen(false);
-  };
-
-  const handleOpenReturnForm = () => {
-    setSelectionModalOpen(false);
-    setReturnModalOpen(true);
-  };
-
-  const handleOpenRefundForm = () => {
-    setSelectionModalOpen(false);
-    setRefundModalOpen(true);
-  };
-  const handleOpenSelectionModal = () => {
-    console.log('Nút "Yêu Cầu Trả Hàng/Hoàn Tiền" ĐÃ ĐƯỢC NHẤN!'); // <--- THÊM DÒNG NÀY
-    setSelectionModalOpen(true);
-  };
+    if (order.PlatformVoucherCode) {
+      const platformCodes = JSON.parse(order.PlatformVoucherCode);
+      saleOffCode = platformCodes.saleOff;
+      freeShipCode = platformCodes.freeShip;
+    }
+    // Lấy mã voucher của shop từ cột 'shopvoucher'
+    if(order.shopvoucher){
+        const shopVoucherDetails: {shopId: number; code: string}[] = JSON.parse(order.shopvoucher);
+        // Tìm voucher cho shop hiện tại
+        const currentShopVoucher = shopVoucherDetails.find(v => v.shopId === order.ShopID);
+        if(currentShopVoucher) {
+            shopVoucherCode = currentShopVoucher.code;
+        }
+    }
+  } catch (e) {
+    console.error("Lỗi phân tích JSON voucher:", e);
+  }
+  
   return (
     <div className="flex flex-col h-full">
-      {/* Header trang chi tiết */}
-      <div className="bg-white py-4 px-6 rounded-sm border-b border-gray-100 shadow-sm">
+      <div className="bg-white py-4 px-6 border-b">
         <div className="container mx-auto max-w-6xl flex justify-between items-center">
-          <Link href="/account/purchase" className="flex items-center text-gray-600 hover:text-orange-500 text-sm">
-            <FaChevronLeft className="mr-2" /> TRỞ LẠI
-          </Link>
-          <div className="flex items-center text-gray-800 text-sm font-semibold">
-            <span className="mr-4">MÃ ĐƠN HÀNG. {order.OrderCode}</span>
-            <span className="text-orange-500 uppercase">
-              {order.OverallStatus === 'Rated' ? 'ĐÃ ĐÁNH GIÁ' :
-                order.OverallStatus === 'Completed' ? 'ĐÃ HOÀN THÀNH' :
-                  order.OverallStatus === 'Shipped' ? 'ĐANG GIAO HÀNG' :
-                    order.OverallStatus === 'Delivered' ? 'ĐÃ GIAO HÀNG' :
-                      order.OverallStatus === 'Pending' ? 'CHỜ XÁC NHẬN' :
-                        order.OverallStatus === 'Processing' ? 'ĐANG XỬ LÝ' :
-                          order.OverallStatus === 'CancelledByBuyer' || order.OverallStatus === 'CancelledBySeller' ? 'ĐÃ HỦY' :
-                            order.OverallStatus === 'Returned' || order.OverallStatus === 'ReturnInProgress' ? 'TRẢ HÀNG' :
-                              order.OverallStatus}
-            </span>
-          </div>
+            <Link href="/account/purchase" className="flex items-center text-sm text-gray-600 hover:text-orange-500">
+                <FaChevronLeft className="mr-2" /> TRỞ LẠI DANH SÁCH
+            </Link>
+            <div className="text-sm font-semibold">
+                <span className="mr-4 text-gray-800">MÃ GÓI HÀNG. {order.SellerOrderCode}</span>
+                <span className="text-orange-500 uppercase">{getStatusInVietnamese(order.Status)}</span>
+            </div>
         </div>
       </div>
-
-      {/* Main Content Area */}
-      <div className="container bg-white mx-auto max-w-6xl pb-10">
-        {isCancelled ? (
-          <div className="bg-white rounded-sm shadow-sm px-6 py-6 my-4 text-center">
-            <h2 className="text-xl font-bold text-red-600 mb-4">Đơn hàng đã bị hủy</h2>
-            <p className="text-gray-700">Lý do hủy: {order.ReasonForRejection ?? 'Không có lý do cụ thể.'}</p>
-          </div>
-        ) : (
-          <>
-            {order.orderStatusHistory && order.orderStatusHistory.length > 0 && (
-              <OrderProgressTracker statusHistory={order.orderStatusHistory} />
-            )}
-
-            <div className="bg-white rounded-sm shadow-sm border-b border-gray-100 px-6 py-6 flex justify-between items-center text-sm">
-              <div className="flex flex-col flex-1">
-                <p className="text-gray-700">Ngày nhận hàng dự kiến từ <span className="text-green-600">{getDeliveryEstimate(order.OrderDate).start}</span> đến <span className="text-green-600">{getDeliveryEstimate(order.OrderDate).end}</span>.
-                  {order.PaymentMethod === 'COD' && ' Lưu ý đây là đơn hàng Thanh toán khi nhận hàng.'}
-                </p>
-                {hasShippingTracking && (
-                  <p className="text-gray-500 mt-1 flex items-center">
-                    <FaTruckFast className="mr-2 text-green-600" /> Giao nhanh đúng hẹn.
-                    <Link href="#" className="text-blue-500 ml-1 hover:underline">Xem thêm</Link>
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2 ml-4 flex-shrink-0">
-                {isDeliveredOrCompleted && (
-                  <Link
-                    href={`/account/review?orderId=${order.OrderID}`}
-                    className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
-                  >
-                    Đánh Giá
-                  </Link>
-                )}
-                {isDeliveredOrCompleted && (
-                  <button
-                    onClick={handleOpenSelectionModal}
-                    className="bg-white text-gray-700 px-6 py-2 rounded-md text-sm border border-gray-300 hover:bg-gray-100 transition-colors"
-                  >
-                    Yêu Cầu Trả Hàng/Hoàn Tiền
-                  </button>
-                )}
-
+      
+      <div className="container bg-gray-50/50 mx-auto max-w-6xl py-6">
+        {!isCancelled && order.orderStatusHistory && <OrderProgressTracker statusHistory={order.orderStatusHistory} />}
+        {!isCancelled && <OrderShippingInfo order={order} />}
+        
+        <div className="bg-white rounded-md shadow-sm mt-4">
+            <div className="px-6 py-3 border-b">
+              <div className="flex items-center gap-2 text-sm">
+                {order.shopLevel === 'Mall' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>}
+                <FaStore className="text-gray-500" />
+                <span className="font-semibold text-gray-800">{order.ShopName}</span>
               </div>
             </div>
 
-            {hasShippingTracking && (
-              <OrderShippingInfo order={order} />
-            )}
-          </>
-        )}
-
-        {/* Sản phẩm trong đơn hàng */}
-        <div className="bg-white rounded-sm shadow-sm border-b border-gray-100 overflow-hidden mt-4">
-          {order.shopOrders.map((shopOrder) => (
-            <div key={shopOrder.shopId} className="bg-white border-b border-gray-200 last:border-b-0 overflow-hidden mb-4 last:mb-0">
-              <div className="flex justify-between items-center px-6 py-3 border-b border-gray-100">
-                <div className="flex items-center gap-2 text-gray-800 text-sm">
-                  {shopOrder.shopLevel === 'Mall' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>}
-                  {shopOrder.shopLevel === 'Favorite' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>}
-                  <span className="font-semibold">{shopOrder.shopName}</span>
-                  <button className="flex items-center text-blue-500 hover:text-blue-600 whitespace-nowrap">
-                    <FaCommentDots className="mr-1" /> Chat ngay
-                  </button>
-                </div>
+            {order.items.map((item) => (
+              <div key={item.OrderItemID} className="px-6 py-4 flex items-start text-sm border-b last:border-b-0">
+                 <img src={getFullImageUrl(item.productImageURL)} alt={item.productName} className="w-20 h-20 object-cover rounded border mr-4"/>
+                 <div className="flex-1">
+                     <p className="font-semibold text-gray-800">{item.productName}</p>
+                     <p className="text-gray-600 text-xs mt-1">Phân loại: {item.classification}</p>
+                     <p className="text-sm text-gray-800 mt-1">x{item.Quantity}</p>
+                 </div>
+                 <div className="text-right ml-4">
+                     {item.OriginalPrice > item.PriceAtPurchase && (
+                       <p className="text-gray-400 line-through text-xs">{formatVND(item.OriginalPrice)}</p>
+                     )}
+                     <p className="text-base font-semibold text-gray-800">{formatVND(item.PriceAtPurchase)}</p>
+                 </div>
               </div>
-
-              <div className="flex px-6 pt-4 pb-2 text-xs text-gray-500">
-                <div className="flex-1">Sản phẩm</div>
-                <div style={{ width: priceColWidth }} className="text-right flex-shrink-0">Đơn giá</div>
-                <div style={{ width: qtyColWidth }} className="text-center flex-shrink-0">Số lượng</div>
-                <div style={{ width: subtotalColWidth }} className="text-right flex-shrink-0">Thành tiền</div>
-              </div>
-
-              {shopOrder.items.map((item, itemIndex) => (
-                <div key={item.OrderItemID} className={`px-6 py-4 ${itemIndex < shopOrder.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                  <div className="flex items-start text-sm">
-                    <div className="flex items-start flex-1">
-                      <img
-                        src={getFullImageUrl(item.productImageURL)}
-                        alt={item.productName}
-                        className="object-cover w-16 h-16 border border-gray-200 rounded-md flex-shrink-0"
-                      />
-                      <div className="flex-1 flex flex-col ml-4">
-                        <p className="font-semibold text-gray-800 leading-tight">{item.productName}</p>
-                        <p className="text-gray-600 text-xs mt-0.5">Loại11111: {item.classification}</p>
-                        {item.OriginalPrice > item.PriceAtPurchase && (
-                          <span className="text-gray-400 line-through text-xs">{formatVND(item.OriginalPrice)}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ width: priceColWidth }} className="flex-shrink-0 flex flex-col items-end">
-                      <span className="text-gray-800">{formatVND(item.PriceAtPurchase)}</span>
-                    </div>
-                    <div style={{ width: qtyColWidth }} className="flex-shrink-0 text-center text-gray-800">
-                      x{item.Quantity}
-                    </div>
-                    <div style={{ width: subtotalColWidth }} className="flex-shrink-0 text-right font-semibold text-orange-500">
-                      {formatVND(item.Subtotal)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-
-          <div className="bg-white rounded-sm px-6 py-4 flex flex-col items-end space-y-2 mt-4">
-            <div className="flex justify-between w-full max-w-sm text-sm text-gray-700">
-              <span>Tổng tiền hàng:</span>
-              <span>{formatVND(totalProductsPrice)}</span>
-            </div>
-            <div className="flex justify-between w-full max-w-sm text-sm text-gray-700">
-              <span>Phí vận chuyển:</span>
-              <span>{formatVND(order.ShippingFee)}</span>
-            </div>
-            <div className="flex justify-between w-full max-w-sm text-sm text-gray-700">
-              <span>Tổng cộng Voucher từ Shop:</span>
-              <span className="text-orange-500">- {formatVND(order.shopdiscountamount)}</span>
-            </div>
-            {order.PlatformVoucherCode && order.PlatformDiscountAmount > 0 && (
-              <div className="flex justify-between w-full max-w-sm text-sm text-gray-700">
-                <span>Voucher từ E-Market ({order.PlatformVoucherCode}):</span>
-                <span className="text-orange-500">- {formatVND(order.PlatformDiscountAmount)}</span>
+            ))}
+            
+             {order.Notes && (
+              <div className="px-6 py-3 border-t bg-gray-50 text-sm text-gray-700">
+                <strong>Ghi chú cho Shop:</strong> {order.Notes}
               </div>
             )}
-            <div className="flex justify-between w-full max-w-sm text-orange-500 font-bold text-xl pt-2 border-t border-gray-200 mt-2">
+        </div>
+
+        {/* PHẦN TÓM TẮT ĐƠN HÀNG ĐÃ SỬA LỖI */}
+        <div className="bg-white rounded-md shadow-sm px-6 py-5 flex flex-col items-end mt-4">
+          <div className="w-full max-w-md space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-700">Tổng tiền hàng:</span>
+              <span className="font-medium">{formatVND(order.SubtotalAmount)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-700">Phí vận chuyển:</span>
+              <span className="font-medium">{formatVND(order.ShippingFee)}</span>
+            </div>
+            
+            {order.ShopVoucherDiscount > 0 && (
+              <DiscountRow 
+                icon={<FaStore className="mr-2 text-blue-500" />} 
+                label={`Voucher từ Shop ${shopVoucherCode ? `(${shopVoucherCode})` : ''}`}
+                value={order.ShopVoucherDiscount}
+              />
+            )}
+             {/* **SỬ DỤNG GIÁ TRỊ FREESHIP ĐÃ PHÂN BỔ** */}
+            {order.AllocatedPlatformFreeship > 0 && (
+              <DiscountRow 
+                icon={<FaShippingFast className="mr-2 text-green-500" />} 
+                label={`Giảm giá vận chuyển ${freeShipCode ? `(${freeShipCode})` : ''}`}
+                value={order.AllocatedPlatformFreeship}
+              />
+            )}
+
+            {/* **SỬ DỤNG GIÁ TRỊ SALEOFF ĐÃ PHÂN BỔ** */}
+            {order.AllocatedPlatformSaleOff > 0 && (
+              <DiscountRow 
+                icon={<FaTicketAlt className="mr-2 text-red-500" />} 
+                label={`Giảm giá E-Market ${saleOffCode ? `(${saleOffCode})` : ''}`}
+                value={order.AllocatedPlatformSaleOff}
+              />
+            )}
+          
+          
+            <div className="flex justify-between items-center text-orange-500 font-bold text-xl pt-3 border-t mt-3">
               <span>Thành tiền:</span>
               <span>{formatVND(order.TotalAmount)}</span>
             </div>
-
-            {order.PaymentMethod === 'COD' && (
-              <p className="bg-orange-50 text-orange-500 text-sm px-4 py-2 rounded mt-3 text-center w-full max-w-sm">
-                Vui lòng thanh toán <span className="font-bold">{formatVND(order.TotalAmount)}</span> khi nhận hàng.
-              </p>
-            )}
           </div>
         </div>
       </div>
-
-      {/* --- PHẦN RENDER MODAL --- */}
-      <RequestSelectionModal
-        isOpen={isSelectionModalOpen}
-        onClose={handleCloseAllModals}
-        onReturnRequest={handleOpenReturnForm}
-        onRefundRequest={handleOpenRefundForm}
-      />
-
-      {/* Truyền cả đối tượng 'order' vào modal để lấy danh sách sản phẩm */}
-      <ReturnRequestFormModal
-        isOpen={isReturnModalOpen}
-        onClose={handleCloseAllModals}
-        order={order}
-      />
-
-
-      {/* Nút Chat cố định */}
-      <Link href="https://shopee.vn/chat" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 right-4 bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors flex items-center justify-center z-30 w-16 h-16">
-        <FaCommentDots className="text-2xl" />
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-          2
-        </span>
-      </Link>
     </div>
   );
 };
