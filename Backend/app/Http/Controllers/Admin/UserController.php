@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 
 class UserController extends Controller
 {
@@ -22,10 +23,10 @@ class UserController extends Controller
         // 1. Tìm kiếm (search)
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('Username', 'like', "%{$searchTerm}%")
-                  ->orWhere('FullName', 'like', "%{$searchTerm}%")
-                  ->orWhere('Email', 'like', "%{$searchTerm}%");
+                    ->orWhere('FullName', 'like', "%{$searchTerm}%")
+                    ->orWhere('Email', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -128,7 +129,6 @@ class UserController extends Controller
                 'message' => 'Người dùng có dữ liệu liên quan (đơn hàng/shop), tài khoản đã được vô hiệu hóa thay vì xóa.',
                 'action' => 'deactivated'
             ]);
-
         } else {
             // Trường hợp 2: Người dùng "sạch" -> Xóa vĩnh viễn
             $user->delete();
@@ -151,5 +151,25 @@ class UserController extends Controller
         $user->save();
 
         return response()->json($user);
+    }
+
+    /**
+     * Tắt Xác thực Hai Yếu tố cho một người dùng cụ thể.
+     */
+    public function disableTwoFactorForUser(Request $request, User $user, TwoFactorAuthenticationProvider $provider)
+    {
+        // Ngăn Admin tự tắt 2FA của chính mình qua đây (nên vào trang security)
+        if ($request->user()->UserID === $user->UserID) {
+            return response()->json(['message' => 'Bạn nên quản lý 2FA của mình trong trang Bảo mật.'], 403);
+        }
+
+        // Tắt 2FA bằng cách xóa secret và confirmed_at
+        $user->forceFill([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null, // Quan trọng
+        ])->save();
+
+        return response()->json(['message' => 'Đã tắt 2FA cho người dùng.']);
     }
 }

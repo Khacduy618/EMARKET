@@ -7,7 +7,7 @@ import { User, UserPayload, PaginatedResponse, ApiError } from '@/types';
 // Nếu chưa, bạn cần thêm `export` trước chúng trong file đó.
 import {
     handleResponse,
-    
+
     getDecodedXsrfToken
 } from './auth';
 import { API_URL } from '@/lib/config';
@@ -80,4 +80,15 @@ export const deleteUser = async (userId: number): Promise<void> => {
     });
     // Hàm này trả về Promise<void> vì API DELETE trả về 204 No Content
     await handleResponse<void>(response);
+};
+
+export const adminDisableTwoFactor = async (userId: number): Promise<void> => {
+    await fetch(`${API_URL}/admin/users/${userId}/two-factor-authentication`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': getDecodedXsrfToken(),
+        },
+    });
 };

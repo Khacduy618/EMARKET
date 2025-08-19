@@ -5,17 +5,12 @@ import useSWR from 'swr';
 import { useDebounce } from 'use-debounce';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/context/AuthContext';
-
-// Components
-// Services và Types
-import { getUsers, updateUserStatus, deleteUser } from '@/services/admin';
-import { User, PaginatedResponse } from '@/types';
-
-// Icons
-import { Search, ChevronLeft, ChevronRight, PlusCircle, Edit, UserX, ToggleLeft, ToggleRight } from 'lucide-react';
 import RoleGuard from '@/app/components/auth/RoleGuard';
 import ConfirmModal from './components/ConfirmModal';
 import UserFormModal from './components/UserFormModal';
+import { getUsers, updateUserStatus, deleteUser as apiDisableUser, adminDisableTwoFactor } from '@/services/admin';
+import { User } from '@/types';
+import { Search, ChevronLeft, ChevronRight, PlusCircle, Edit, UserX, ToggleLeft, ToggleRight, ShieldOff } from 'lucide-react';
 
 // ===================================================================
 // =                  Component: Một hàng trong bảng                  =
@@ -24,13 +19,15 @@ const UserRow = ({
     user,
     onEdit,
     onConfirmStatusChange,
-    onConfirmRemove, // Đổi tên cho đúng chức năng "Xóa/Vô hiệu hóa"
+    onConfirmRemove,
+    onConfirmDisable2FA,
     isCurrentUser,
 }: {
     user: User;
     onEdit: () => void;
     onConfirmStatusChange: () => void;
     onConfirmRemove: () => void;
+    onConfirmDisable2FA: () => void;
     isCurrentUser: boolean;
 }) => (
     <tr key={user.UserID} className={`border-b text-sm transition-colors ${isCurrentUser ? 'bg-indigo-50 font-semibold' : 'hover:bg-gray-50'}`}>
@@ -43,15 +40,27 @@ const UserRow = ({
                 {user.IsActive ? 'Hoạt động' : 'Vô hiệu hóa'}
             </span>
         </td>
+        <td className="p-3 text-center">
+            {user.two_factor_enabled ? (
+                <span title="Đã bật 2FA" className="text-green-500 font-bold">✓</span>
+            ) : (
+                <span title="Chưa bật 2FA" className="text-gray-400">-</span>
+            )}
+        </td>
         <td className="p-3">
             <div className="flex items-center gap-3">
-                <button onClick={onConfirmStatusChange} title={user.IsActive ? "Vô hiệu hóa" : "Kích hoạt"} disabled={isCurrentUser} className="text-gray-500 hover:text-green-600 disabled:text-gray-300 disabled:cursor-not-allowed">
+                <button onClick={onConfirmStatusChange} title={user.IsActive ? "Vô hiệu hóa" : "Kích hoạt"} disabled={isCurrentUser} className="text-gray-500 hover:text-yellow-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                     {user.IsActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                 </button>
                 <button onClick={onEdit} title="Chỉnh sửa" disabled={isCurrentUser} className="text-gray-500 hover:text-indigo-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                     <Edit size={16} />
                 </button>
-                <button onClick={onConfirmRemove} title="Xóa / Vô hiệu hóa tài khoản" disabled={isCurrentUser} className="text-gray-500 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed">
+                {user.two_factor_enabled && (
+                    <button onClick={onConfirmDisable2FA} title="Tắt 2FA cho người dùng này" disabled={isCurrentUser} className="text-gray-500 hover:text-orange-600 disabled:text-gray-300 disabled:cursor-not-allowed">
+                        <ShieldOff size={16} />
+                    </button>
+                )}
+                <button onClick={onConfirmRemove} title="Vô hiệu hóa tài khoản" disabled={isCurrentUser} className="text-gray-500 hover:text-red-600 disabled:text-gray-300 disabled:cursor-not-allowed">
                     <UserX size={16} />
                 </button>
             </div>
@@ -69,6 +78,7 @@ function AdminUsersContent() {
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [debouncedSearch] = useDebounce(search, 500);
+
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [confirmAction, setConfirmAction] = useState<{ action: () => Promise<void>; title: string; message: string; variant: 'danger' | 'info' } | null>(null);
@@ -108,12 +118,10 @@ function AdminUsersContent() {
         });
     };
 
-    // --- HÀM XÁC NHẬN "XÓA THÔNG MINH" ĐÃ SỬA LẠI ---
     const openRemoveConfirm = (userToRemove: User) => {
         setConfirmAction({
             action: async () => {
-                const response: any = await deleteUser(userToRemove.UserID);
-                // Backend trả về message khi vô hiệu hóa, hoặc không có gì khi xóa hẳn
+                const response: any = await apiDisableUser(userToRemove.UserID);
                 if (response && response.action === 'deactivated') {
                     toast.info(`Tài khoản "${userToRemove.FullName}" đã được vô hiệu hóa.`);
                 } else {
@@ -122,7 +130,20 @@ function AdminUsersContent() {
                 mutate();
             },
             title: 'Xác nhận Xóa / Vô hiệu hóa',
-            message: `Bạn sắp xóa tài khoản "${userToRemove.FullName}". Nếu tài khoản này có dữ liệu liên quan (đơn hàng, shop), nó sẽ được vô hiệu hóa. Nếu không, nó sẽ bị xóa vĩnh viễn. Bạn có chắc chắn muốn tiếp tục?`,
+            message: `Bạn sắp xóa tài khoản "${userToRemove.FullName}". Nếu tài khoản có dữ liệu liên quan, nó sẽ được vô hiệu hóa. Nếu không, nó sẽ bị xóa vĩnh viễn. Bạn có chắc chắn muốn tiếp tục?`,
+            variant: 'danger'
+        });
+    }
+
+    const openDisable2FAConfirm = (userToUpdate: User) => {
+        setConfirmAction({
+            action: async () => {
+                await adminDisableTwoFactor(userToUpdate.UserID);
+                toast.success(`Đã tắt 2FA cho tài khoản "${userToUpdate.FullName}".`);
+                mutate();
+            },
+            title: 'Xác nhận Tắt 2FA',
+            message: `Bạn có chắc chắn muốn tắt Xác thực hai yếu tố cho người dùng "${userToUpdate.FullName}"?`,
             variant: 'danger'
         });
     }
@@ -156,12 +177,12 @@ function AdminUsersContent() {
 
             <div className="bg-white rounded-lg shadow-md overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-gray-50"><tr className="border-b"><th className="text-left p-3 font-semibold text-gray-600 text-sm">ID</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Người dùng</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Email</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Vai trò</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Trạng thái</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Hành động</th></tr></thead>
+                    <thead className="bg-gray-50"><tr className="border-b"><th className="text-left p-3 font-semibold text-gray-600 text-sm">ID</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Người dùng</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Email</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Vai trò</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Trạng thái</th><th className="text-center p-3 font-semibold text-gray-600 text-sm">2FA</th><th className="text-left p-3 font-semibold text-gray-600 text-sm">Hành động</th></tr></thead>
                     <tbody>
-                        {isLoading && <tr><td colSpan={6} className="p-8 text-center text-gray-500">Đang tải...</td></tr>}
-                        {error && <tr><td colSpan={6} className="p-8 text-center text-red-500">Lỗi khi tải dữ liệu. Vui lòng thử lại.</td></tr>}
-                        {response && response.data.map(user => <UserRow key={user.UserID} user={user} isCurrentUser={currentUser?.UserID === user.UserID} onEdit={() => handleEditUser(user)} onConfirmStatusChange={() => openStatusChangeConfirm(user)} onConfirmRemove={() => openRemoveConfirm(user)} />)}
-                        {!isLoading && response && response.data.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-gray-500">Không tìm thấy người dùng nào khớp với tiêu chí.</td></tr>}
+                        {isLoading && <tr><td colSpan={7} className="p-8 text-center text-gray-500">Đang tải...</td></tr>}
+                        {error && <tr><td colSpan={7} className="p-8 text-center text-red-500">Lỗi khi tải dữ liệu. Vui lòng thử lại.</td></tr>}
+                        {response && response.data.map(user => <UserRow key={user.UserID} user={user} isCurrentUser={currentUser?.UserID === user.UserID} onEdit={() => handleEditUser(user)} onConfirmStatusChange={() => openStatusChangeConfirm(user)} onConfirmRemove={() => openRemoveConfirm(user)} onConfirmDisable2FA={() => openDisable2FAConfirm(user)} />)}
+                        {!isLoading && response && response.data.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-gray-500">Không tìm thấy người dùng nào khớp với tiêu chí.</td></tr>}
                     </tbody>
                 </table>
                 {response && response.total > response.per_page && (
@@ -201,6 +222,7 @@ function AdminUsersContent() {
     )
 }
 
+// Component cha bọc bởi RoleGuard
 export default function AdminUsersPage() {
     return (
         <RoleGuard allowedRoles={['Admin']}>
