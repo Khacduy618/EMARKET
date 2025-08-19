@@ -218,6 +218,16 @@ export default function Header() {
         }
     };
 
+    const handleLogoutClick = () => {
+        setIsUserDropdownOpen(false);
+        if (pathname === "/account/security") {
+            toast.warn("Đăng xuất không khả dụng ở trang bảo mật.");
+        } else {
+            logout();
+        }
+    };
+
+
     // LOẠI BỎ: useEffect và handleLogout dùng localStorage đã được thay thế bằng useAuth
 
 
@@ -285,17 +295,12 @@ export default function Header() {
                                             {/* === KẾT THÚC SỬA ĐỔI === */}
 
                                             <div className="py-1 border-t mt-1">
-                                                {pathname !== "/account/security" && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setIsUserDropdownOpen(false);
-                                                            logout();
-                                                        }}
-                                                        className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
-                                                    >
-                                                        <LogOut className="mr-3 h-4 w-4" /> Đăng xuất
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={handleLogoutClick}
+                                                    className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                                                >
+                                                    <LogOut className="mr-3 h-4 w-4" /> Đăng xuất
+                                                </button>
                                             </div>
                                         </div>
                                     )}
