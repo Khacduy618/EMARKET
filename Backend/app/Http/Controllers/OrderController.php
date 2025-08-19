@@ -1643,9 +1643,13 @@ public function completeOrder(Request $request, $orderId)
                 if (!$order) {
                     return;
                 }
+                // Lấy SellerOrderID từ đơn hàng chính
+                $SellerOrderID = DB::table('ordersseller')
+                    ->where('OrderID', $orderId)
+                    ->value('SellerOrderID');
 
                 // Lấy lại các items đã đặt để khôi phục tồn kho
-                $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
+                $orderItems = DB::table('orderitems')->where('SellerOrderID', $SellerOrderID)->get();
 
                 // 1. Khôi phục số lượng tồn kho (dùng increment)
                 foreach ($orderItems as $item) {

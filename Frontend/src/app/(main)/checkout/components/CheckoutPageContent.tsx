@@ -557,7 +557,7 @@ const handlePaymentMethodChange = () => {
                 // Nếu là VNPay/PayPal, chuyển đến trang checkout để tiếp tục thanh toán
                 router.push(`/checkout?orderId=${result.orderId}`);
             }
-            
+
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -587,7 +587,7 @@ const handlePaymentMethodChange = () => {
         }
 
         try {
-            const response = await fetch(`${API_URL}api/orders/${orderId}/complete`,{
+            const response = await fetch(`${API_URL}/orders/${orderId}/complete`,{
                     method: 'PUT',
                     headers: { 'Accept': 'application/json' },
                     credentials: 'include', // Quan trọng để gửi cookie

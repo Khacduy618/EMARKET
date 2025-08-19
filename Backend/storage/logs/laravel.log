@@ -580,3 +580,34 @@
 [2025-08-19 16:58:24] local.INFO: Cart data structured successfully. Number of items: 1  
 [2025-08-19 16:58:25] local.INFO: Cart data fetched from DB. Number of rows: 3  
 [2025-08-19 16:58:25] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:05:35] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:05:35] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:05:36] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:05:36] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:06:30] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:06:30] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:06:30] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:06:30] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:06:49] local.INFO: --- Received request for placeOrder (FINAL LOGIC) --- {"shippingAddressId":16,"shopNotes":[],"paymentMethod":"Paypal","items":[{"variantId":134,"quantity":3}],"shopVoucherCodes":[],"platformVoucherCodes":["FREESHIPMAX"],"shippingFee":30000} 
+[2025-08-19 17:06:49] local.INFO: Voucher validation passed for UserID: 25  
+[2025-08-19 17:06:50] local.INFO: placeOrder (Full Allocation): Successfully created OrderID: 4105  
+[2025-08-19 17:10:00] local.ERROR: Draft order cancellation failed for OrderID 4105: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'OrderID' in 'WHERE' (Connection: mysql, SQL: select * from `orderitems` where `OrderID` = 4105)  
+[2025-08-19 17:10:11] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:10:11] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:10:12] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:10:12] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:10:15] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:10:15] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:10:23] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:10:23] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:12:04] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:12:04] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:12:06] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:12:06] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:13:11] local.INFO: --- Received request for placeOrder (FINAL LOGIC) --- {"shippingAddressId":16,"shopNotes":[],"paymentMethod":"Paypal","items":[{"variantId":134,"quantity":1}],"shopVoucherCodes":[],"platformVoucherCodes":[],"shippingFee":30000} 
+[2025-08-19 17:13:11] local.INFO: Voucher validation passed for UserID: 25  
+[2025-08-19 17:13:12] local.INFO: placeOrder (Full Allocation): Successfully created OrderID: 4106  
+[2025-08-19 17:13:22] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:13:22] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-19 17:13:23] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-19 17:13:23] local.INFO: Cart data structured successfully. Number of items: 1  
