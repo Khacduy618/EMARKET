@@ -79,9 +79,9 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        // === YÊU CẦU MỚI: NGĂN ADMIN TỰ SỬA MÌNH ===
+        // Ngăn admin tự sửa mình...
         if ($request->user()->UserID === $user->UserID) {
-            return response()->json(['message' => 'Bạn không thể chỉnh sửa thông tin của chính mình tại đây.'], 403); // 403 Forbidden
+            return response()->json(['message' => 'Bạn không thể chỉnh sửa thông tin của chính mình tại đây.'], 403);
         }
 
         $validated = $request->validate([
@@ -90,6 +90,10 @@ class UserController extends Controller
             'Email'    => ['required', 'string', 'email', 'max:255', Rule::unique('Users', 'Email')->ignore($user->UserID, 'UserID')],
             'Phone'    => ['nullable', 'string', 'max:12'],
             'Role'     => ['required', Rule::in(User::ROLES)],
+
+            // --- SỬA ĐỔI QUAN TRỌNG ---
+            // Biến IsActive giờ không bắt buộc (không có 'required')
+            'IsActive' => ['nullable', 'boolean'],
         ]);
 
         // Mật khẩu chỉ được cập nhật nếu được cung cấp
@@ -97,6 +101,9 @@ class UserController extends Controller
             $request->validate(['Password' => ['string', Password::min(8), 'confirmed']]);
             $validated['Password'] = Hash::make($request->input('Password'));
         }
+
+        $validated['IsActive'] = $request->has('IsActive') ? $request->boolean('IsActive') : $user->IsActive;
+
 
         $user->update($validated);
 
