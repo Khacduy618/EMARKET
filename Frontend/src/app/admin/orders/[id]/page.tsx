@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 
-// File: Frontend/src/app/(admin)/admin/orders/[id]/page.tsx
-=======
->>>>>>> 4fbea40f (orderadmin)
 'use client'; // <-- QUAN TRỌNG: Chuyển thành Client Component
 
 import React, { useState, useEffect } from 'react';

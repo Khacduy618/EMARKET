@@ -2,10 +2,11 @@
 
 // types/order.interface.ts
 import { Address } from './address.interface';
-import { ShopSummary, ShopLevel } from './shop.interface';
-import { Product, ProductSummary, ProductVariant } from './product.interface';
+import { ShopSummary, ShopLevel, Shop } from './shop.interface';
+import { Product, ProductImage, ProductSummary, ProductVariant } from './product.interface';
 import { AppliedShopVouchers, AppliedVouchersCombined, Voucher } from './voucher.interface';
 import { CartItem } from './cartItem.interface';
+import { User } from './user.interface';
 
 // import { ProductVariant } from './product.interface'; // Không cần import ProductVariant đầy đủ nếu bạn đã có MockVariant
 
@@ -64,6 +65,11 @@ export interface OrderItem {
   CreatedAt: string;
   productVariant: ProductVariant & {
       product: Product;
+      attributes: {
+            attribute: { Name: string };
+            attributeValue: { Value: string };
+        }[];
+
   };
   productName: string;
   productImageURL: string;
@@ -290,4 +296,60 @@ export interface PaginatedOrders {
   currentPage: number;
   totalPages: number;
   totalItems: number;
+}
+export interface SellerOrder {
+  SellerOrderID: number;
+  SellerOrderCode: string;
+  TotalAmount: number;
+  Status: string;
+  shop: {
+      ShopID: number;
+      ShopName: string;
+  };
+  order_buyer: { // Lưu ý: snake_case
+      OrderCode: string;
+      OrderDate: string;
+      user: User; // User interface của bạn nên có trường Avatar
+  };
+}
+// Mở rộng ProductVariant để bao gồm các thông tin được load kèm từ backend
+export interface ProductVariantDetail extends ProductVariant {
+    product: Product & {
+        primaryImage?: ProductImage | null;
+    };
+    attributes: {
+        attribute: { Name: string };
+        attributeValue: { Value: string };
+    }[];
+}
+// Chi tiết một sản phẩm trong đơn hàng
+export interface SellerOrderItem {
+    OrderItemID: number;
+    Quantity: number;
+    PriceAtPurchase: number;
+    Subtotal: number;
+    variant: ProductVariantDetail;
+}
+// Cấu trúc đầy đủ của dữ liệu chi tiết đơn hàng
+export interface SellerOrderDetail {
+    SellerOrderID: number;
+    SellerOrderCode: string;
+    Status: string;
+    SubtotalAmount: number;
+    ShippingFee: number;
+    ShopVoucherDiscount: number;
+    TotalAmount: number;
+    Notes: string | null;
+    shop: Shop;
+    order_buyer: { // Lưu ý: snake_case
+        user: User;
+        shippingAddress: Address;
+    };
+    items: SellerOrderItem[];
+}
+export interface OrderStats {
+  pending: number;
+  processing: number;
+  shipped: number;
+  total: number;
 }

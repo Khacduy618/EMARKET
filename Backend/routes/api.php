@@ -247,15 +247,12 @@ Route::post('/login-token', function (Request $request) {
     }
 
     $user = Auth::user();
-<<<<<<< HEAD
     
     
-=======
     // Xóa các token cũ nếu muốn
     // $user->tokens()->delete();
 
     // Tạo token mới
->>>>>>> 4fbea40f (orderadmin)
     $token = $user->createToken($request->device_name)->plainTextToken;
 
     return response()->json([
@@ -500,6 +497,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/orders/shop-filters', [AdminOrderController::class, 'getShopFilters']);
     Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
     Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+    Route::get('/orders/seller/{sellerOrder}', [OrderController::class, 'show']);
     // === REVIEW MANAGEMENT === //
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
