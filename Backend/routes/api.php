@@ -497,7 +497,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/orders/shop-filters', [AdminOrderController::class, 'getShopFilters']);
     Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
     Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
-    Route::get('/orders/seller/{sellerOrder}', [OrderController::class, 'show']);
+    Route::get('/orders/seller/{sellerOrder}', [AdminOrderController::class, 'show']);
     // === REVIEW MANAGEMENT === //
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
