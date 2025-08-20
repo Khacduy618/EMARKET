@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Product;
+use App\Models\OrdersSeller;
 use App\Models\ProductVariant;
 
 class OrderItem extends Model {
@@ -18,7 +18,7 @@ class OrderItem extends Model {
     public $timestamps = false;
 
     protected $fillable = [
-        'OrderID',
+        'SellerOrderID',
         'VariantID',
         'Quantity',
         'PriceAtPurchase',
@@ -53,7 +53,7 @@ class OrderItem extends Model {
      */
     public function order(): BelongsTo
     {
-        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
+        return $this->belongsTo(OrdersSeller::class, 'SellerOrderID', 'SellerOrderID');
     }
 
     /**

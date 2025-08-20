@@ -13,7 +13,6 @@
 
     .container {
         max-width: 190mm;
-        /* A4 width minus margins */
         margin: 0 auto;
         border: 1px solid #000;
         padding: 10mm;
@@ -22,20 +21,20 @@
 
     h1 {
         text-align: center;
-        font-size: 16pt;
+        font-size: 18pt;
         border-bottom: 2px solid #000;
         padding-bottom: 8px;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 
     .section {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 
     .section-title {
         font-weight: bold;
-        font-size: 13pt;
-        margin-bottom: 8px;
+        font-size: 14pt;
+        margin-bottom: 10px;
         text-decoration: underline;
     }
 
@@ -46,25 +45,25 @@
     }
 
     .info-grid p {
-        margin: 5px 0;
+        margin: 4px 0;
     }
 
     .info-grid p strong {
         display: inline-block;
-        width: 120px;
+        width: 130px;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
+        margin-top: 12px;
     }
 
     th,
     td {
         border: 1px solid #000;
-        padding: 8px;
-        text-align: left;
+        padding: 6px;
+        text-align: center;
     }
 
     th {
@@ -72,10 +71,19 @@
         font-weight: bold;
     }
 
-    .total {
-        font-weight: bold;
+    .totals {
+        margin-top: 15px;
+        width: 50%;
+        margin-left: auto;
+    }
+
+    .totals td {
+        padding: 6px;
         text-align: right;
-        margin-top: 10px;
+    }
+
+    .totals tr td:first-child {
+        font-weight: bold;
     }
 
     .shop-info {
@@ -92,20 +100,17 @@
         <h1>Phiếu Giao Hàng</h1>
 
         <!-- Shop Information -->
-        <div class="shop-info">
-            <p><strong>Cửa hàng:</strong> <?php echo e($order->user->shop->Name ?? 'Cửa hàng không xác định'); ?></p>
-        </div>
 
         <!-- Order Information -->
         <div class="section">
             <div class="section-title">Thông tin đơn hàng</div>
             <div class="info-grid">
-                <p><strong>Mã đơn hàng:</strong> <?php echo e($order->OrderCode); ?></p>
+                <p><strong>Mã đơn hàng:</strong> <?php echo e($order->SellerOrderCode); ?></p>
                 <p><strong>Ngày đặt hàng:</strong> <?php echo e(\Carbon\Carbon::parse($order->OrderDate)->format('d/m/Y H:i')); ?>
 
                 </p>
                 <p><strong>Trạng thái:</strong> <?php echo e($order->OverallStatus); ?></p>
-                <p><strong>Tổng tiền:</strong> <?php echo e(number_format($order->TotalAmount, 0, ',', '.')); ?> VND</p>
+                <p><strong>Thanh toán:</strong> <?php echo e(number_format($order->TotalAmount, 0, ',', '.')); ?> VND</p>
             </div>
         </div>
 
@@ -113,8 +118,8 @@
         <div class="section">
             <div class="section-title">Thông tin khách hàng</div>
             <div class="info-grid">
-                <p><strong>Họ tên:</strong> <?php echo e($order->ShippingFullName); ?></p>
-                <p><strong>Số điện thoại:</strong> <?php echo e($order->ShippingPhoneNumber); ?></p>
+                <p><strong>Họ tên:</strong> <?php echo e($orderBuyer->ShippingFullName); ?></p>
+                <p><strong>SĐT:</strong> <?php echo e($orderBuyer->ShippingPhoneNumber); ?></p>
                 <p><strong>Địa chỉ:</strong>
                     <?php echo e($order->address ? $order->address->Street . ', ' . ($order->address->Ward ? $order->address->Ward . ', ' : '') . $order->address->District . ', ' . $order->address->City : 'Chưa có thông tin'); ?>
 
@@ -141,7 +146,7 @@
                     <?php $__currentLoopData = $order->orderItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr>
                         <td><?php echo e($index + 1); ?></td>
-                        <td><?php echo e($item->variant->product->Name ?? 'Không xác định'); ?></td>
+                        <td style="text-align:left"><?php echo e($item->variant->product->Name ?? 'Không xác định'); ?></td>
                         <td><?php echo e($item->variant->SKU ?? 'N/A'); ?></td>
                         <td><?php echo e($item->Quantity); ?></td>
                         <td><?php echo e(number_format($item->PriceAtPurchase, 0, ',', '.')); ?> VND</td>
@@ -150,9 +155,24 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
             </table>
-            <div class="total">
-                <p>Tổng cộng: <?php echo e(number_format($order->TotalAmount, 0, ',', '.')); ?> VND</p>
-            </div>
+
+            <!-- Totals -->
+            <table class="totals">
+                <tr>
+                    <td>Tạm tính:</td>
+                    <td><?php echo e(number_format($order->SubtotalAmount ?? $order->TotalAmount, 0, ',', '.')); ?> VND</td>
+                </tr>
+                <?php if(!empty($order->ShopVoucherDiscount) && $order->ShopVoucherDiscount > 0): ?>
+                <tr>
+                    <td>Giảm giá (Voucher):</td>
+                    <td>-<?php echo e(number_format($order->ShopVoucherDiscount, 0, ',', '.')); ?> VND</td>
+                </tr>
+                <?php endif; ?>
+                <tr>
+                    <td>Tổng cộng:</td>
+                    <td><strong><?php echo e(number_format($order->TotalAmount, 0, ',', '.')); ?> VND</strong></td>
+                </tr>
+            </table>
         </div>
     </div>
 </body>

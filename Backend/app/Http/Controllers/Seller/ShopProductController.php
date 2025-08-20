@@ -277,7 +277,6 @@ class ShopProductController extends Controller
             'Images' => 'nullable|array',
             'Images.*' => 'image|max:2048',
             'Variants' => 'required|json',
-            
             'VariantImages.*.*' => 'image|max:2048',
         ]);
         DB::beginTransaction();

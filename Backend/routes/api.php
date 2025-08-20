@@ -225,36 +225,10 @@ Route::get('/products/{product_id}/variants/filter',[ProductController::class, '
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
-});
-
-// Route::middleware('auth:sanctum' )->group(function () {
-//     Route::get('/user', [AuthController::class, 'user']);
-//     Route::middleware('seller')->group(function () {
-//         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-//         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-//         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-//         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-//         Route::get('/products', [ShopProductController::class, 'index']);
-//         Route::post('/shop/products', [ShopProductController::class, 'store']);
-//         Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
-//         Route::post('/shop/products/{productID}', [ShopProductController::class, 'update']);
-//         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
-//         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
-//         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
-//     });
-// });
-
-
-
 // Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
     Route::get('/user', [AuthController::class, 'user']);
 
     // Seller protected routes (must be seller)
@@ -275,11 +249,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
 
         // Orders
-        Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+       
         // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        
+        Route::get('/seller/orders', [SellerOrderController::class, 'index']); 
+        Route::get('/seller/orders/{SellerOrderID}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
         Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
-
-        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+       
+     
         Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
         Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);

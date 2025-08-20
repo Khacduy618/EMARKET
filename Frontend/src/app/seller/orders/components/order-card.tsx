@@ -1,34 +1,60 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Package, User, ShoppingBag, BarChart3, Calendar, Eye } from "lucide-react"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+    Package,
+    User,
+    ShoppingBag,
+    BarChart3,
+    Calendar,
+    Eye,
+} from "lucide-react";
 
 interface OrderItem {
-    OrderItemID: number
-    Quantity: number
-    Subtotal: number
+    OrderItemID: number;
+    Quantity: number;
+    Subtotal: number;
     variant: {
         product: {
-            Name: string
-        }
-    }
+            Name: string;
+            ProductID: number;
+            ShopID: number;
+        };
+    };
 }
 
-interface Order {
-    OrderID: number
-    OrderCode: string
-    OrderDate: string
-    OverallStatus: string
-    ShippingFullName: string
-    TotalAmount: number
-    shop_subtotal: number
-    order_items?: OrderItem[]
+interface OrderBuyer {
+    OrderID: number;
+    OrderCode: string;
+    ShippingFullName: string | null;
+    OrderDate: string;
+}
+
+interface SellerOrder {
+    SellerOrderID: number;
+    SellerOrderCode: string;
+    OrderID: number;
+    ShopID: number;
+    ShippingFullName: string | null,
+    Status: string;
+    SubtotalAmount: number;
+    ShippingFee: number;
+    ShopVoucherDiscount: number;
+    TotalAmount: number;
+    TrackingCode: string | null;
+    ShippingCarrier: string | null;
+    ShippedAt: string | null;
+    DeliveredAt: string | null;
+    CreatedAt: string;
+    shop_subtotal: number;
+    orderBuyer: OrderBuyer | null;
+    order_items: OrderItem[] | null; // Cập nhật tên trường thành order_items
 }
 
 interface OrderCardProps {
-    order: Order
-    formatCurrency: (amount: number) => string
-    formatDate: (date: string) => string
+    order: SellerOrder;
+    formatCurrency: (amount: number) => string;
+    formatDate: (date: string) => string;
 }
 
 const statusTabs = [
@@ -37,7 +63,8 @@ const statusTabs = [
     { key: "Shipped", label: "Đã giao vận", color: "bg-purple-100 text-purple-800 border-purple-200" },
     { key: "Delivered", label: "Đã giao", color: "bg-green-100 text-green-800 border-green-200" },
     { key: "CancelledBySeller", label: "Đã hủy", color: "bg-red-100 text-red-800 border-red-200" },
-]
+    { key: "ReturnInProgress", label: "Đang hoàn trả", color: "bg-orange-100 text-orange-800 border-orange-200" },
+];
 
 export default function OrderCard({ order, formatCurrency, formatDate }: OrderCardProps) {
     const getStatusBadge = (status: string) => {
@@ -47,21 +74,37 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
             Shipped: "bg-purple-100 text-purple-800 border-purple-200",
             Delivered: "bg-green-100 text-green-800 border-green-200",
             CancelledBySeller: "bg-red-100 text-red-800 border-red-200",
-        }
-        const colorClass = statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200"
+            ReturnInProgress: "bg-orange-100 text-orange-800 border-orange-200",
+        };
+        const colorClass =
+            statusColors[status as keyof typeof statusColors] ||
+            "bg-gray-100 text-gray-800 border-gray-200";
         return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+            <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}
+            >
                 {statusTabs.find((tab) => tab.key === status)?.label || status}
             </span>
-        )
-    }
+        );
+    };
 
-    const getProductNames = (orderItems: Order["order_items"]) => {
-        if (!orderItems || orderItems.length === 0) return "Không có sản phẩm"
-        const firstProduct = orderItems[0].variant.product.Name
-        const remainingCount = orderItems.length - 1
-        return remainingCount > 0 ? `${firstProduct} và ${remainingCount} sản phẩm khác` : firstProduct
-    }
+    const getProductNames = (orderItems: OrderItem[] | null) => {
+        if (!orderItems || orderItems.length === 0) return "Không có sản phẩm";
+        const firstProduct = orderItems[0].variant.product.Name;
+        const remainingCount = orderItems.length - 1;
+        return remainingCount > 0
+            ? `${firstProduct} và ${remainingCount} sản phẩm khác`
+            : firstProduct;
+    };
+
+    const getTotalQuantity = (orderItems: OrderItem[] | null) =>
+        (orderItems || []).reduce((acc, item) => acc + item.Quantity, 0);
+
+    const getBuyerName = (orderBuyer: OrderBuyer | null) =>
+        orderBuyer?.ShippingFullName || "Không xác định";
+
+    const getOrderDate = (orderBuyer: OrderBuyer | null) =>
+        orderBuyer?.OrderDate || order.CreatedAt;
 
     return (
         <Card className="hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-orange-500">
@@ -72,9 +115,11 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
                             <div className="flex items-center gap-2">
                                 <Package className="text-orange-500 h-5 w-5" />
-                                <h3 className="font-bold text-lg text-gray-900">#{order.OrderCode}</h3>
+                                <h3 className="font-bold text-lg text-gray-900">
+                                    #{order.SellerOrderCode}
+                                </h3>
                             </div>
-                            {getStatusBadge(order.OverallStatus)}
+                            {getStatusBadge(order.Status)}
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                             <div className="bg-gray-50 p-3 rounded-lg">
@@ -82,15 +127,20 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                                     <User className="h-4 w-4" />
                                     Khách hàng
                                 </p>
-                                <p className="font-semibold text-gray-900">{order.ShippingFullName}</p>
+                                <p className="font-semibold text-gray-900">
+                                    {order.ShippingFullName}
+                                </p>
                             </div>
                             <div className="bg-gray-50 p-3 rounded-lg">
                                 <p className="text-gray-500 mb-1 flex items-center gap-1">
                                     <ShoppingBag className="h-4 w-4" />
                                     Sản phẩm
                                 </p>
-                                <p className="font-semibold text-gray-900 truncate" title={getProductNames(order.order_items)}>
-                                    {getProductNames(order.order_items)}
+                                <p
+                                    className="font-semibold text-gray-900 truncate"
+                                    title={getProductNames(order.order_items)} 
+                                >
+                                    {getProductNames(order.order_items)} 
                                 </p>
                             </div>
                             <div className="bg-gray-50 p-3 rounded-lg">
@@ -99,7 +149,7 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                                     Số lượng
                                 </p>
                                 <p className="font-semibold text-gray-900">
-                                    {(order.order_items ?? []).reduce((acc, item) => acc + item.Quantity, 0)} sản phẩm
+                                    {getTotalQuantity(order.order_items)} sản phẩm 
                                 </p>
                             </div>
                             <div className="bg-gray-50 p-3 rounded-lg">
@@ -107,7 +157,9 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                                     <Calendar className="h-4 w-4" />
                                     Ngày đặt
                                 </p>
-                                <p className="font-semibold text-gray-900">{formatDate(order.OrderDate)}</p>
+                                <p className="font-semibold text-gray-900">
+                                    {formatDate(getOrderDate(order.orderBuyer))}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -115,9 +167,11 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:ml-6 lg:min-w-0 lg:w-80">
                         <div className="text-right flex-1">
                             <p className="text-gray-500 text-sm mb-1">Tổng tiền</p>
-                            <p className="text-2xl font-bold text-orange-600">{formatCurrency(order.shop_subtotal)}</p>
+                            <p className="text-2xl font-bold text-orange-600">
+                                {formatCurrency(order.shop_subtotal || order.SubtotalAmount)}
+                            </p>
                         </div>
-                        <Link href={`/seller/orders/${order.OrderID}`} className="w-full sm:w-auto">
+                        <Link href={`/seller/orders/${order.SellerOrderID}`} className="w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 className="w-full bg-white border-orange-500 text-orange-600 hover:bg-orange-50 hover:border-orange-600"
@@ -130,5 +184,5 @@ export default function OrderCard({ order, formatCurrency, formatDate }: OrderCa
                 </div>
             </CardContent>
         </Card>
-    )
+    );
 }

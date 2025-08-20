@@ -97,6 +97,7 @@ export const getMe = async (): Promise<User> => {
     return handleResponse<User>(response);
 };
 
+
 export const logout = async (): Promise<void> => {
     await fetch(`${API_URL}/logout`, {
         method: 'POST', credentials: 'include', headers: { 'X-XSRF-TOKEN': getDecodedXsrfToken() }
