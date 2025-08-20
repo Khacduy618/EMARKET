@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\utils\CategoryUtil;
+use Illuminate\Support\Collection;
 
 class StatisticsController extends Controller
 {
@@ -14,7 +15,7 @@ class StatisticsController extends Controller
   {
     $current = (int) ($current ?? 0);
     $previous = (int) ($previous ?? 0);
-    
+
     if ($previous == 0) {
       if ($current == 0) {
         $percent = 0;
@@ -30,7 +31,7 @@ class StatisticsController extends Controller
 
     return [
       'changeType' => $type,
-      'percent' => $percent !== null ? round(abs($percent), 2) : '∞'
+      'percent' => $percent !== null ? round(abs($percent), 2) : '0'
     ];
   }
 
@@ -39,18 +40,16 @@ class StatisticsController extends Controller
     if ($shopID) {
       function caculater($shopID, $startDate, $endDate)
       {
-        $data = DB::table('ordersbuyer as o')
-          ->join('orderitems as oi', 'o.OrderID', '=', 'oi.OrderID')
-          ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-          ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+        $data = DB::table('ordersbuyer as ob')
+          ->join('ordersseller as os', 'ob.OrderID', '=', 'os.OrderID')
+          ->join('orderitems as oi', 'os.SellerOrderID', '=', 'oi.SellerOrderID')
           ->select(
-            DB::raw("SUM(CASE WHEN o.OverallStatus = 'Completed' THEN oi.quantity ELSE 0 END) as sold_products"),
-            DB::raw("SUM(CASE WHEN o.OverallStatus = 'Returned' THEN oi.quantity ELSE 0 END) as returned_products"),
-            DB::raw("SUM(CASE WHEN o.Overallstatus IN ('CancelledBySeller', 'CancelledByBuyer') THEN oi.quantity ELSE 0 END
-        ) as cancel_products")
+            DB::raw("SUM(CASE WHEN os.Status = 'Completed' THEN oi.Quantity ELSE 0 END) AS sold_products"),
+            DB::raw("SUM(CASE WHEN os.Status = 'Returned' THEN oi.Quantity ELSE 0 END) AS returned_products"),
+            DB::raw("SUM(CASE WHEN os.Status IN ('CancelledBySeller','CancelledByBuyer') THEN oi.Quantity ELSE 0 END) AS cancel_products")
           )
-          ->where('p.ShopID', $shopID)
-          ->whereBetween('o.OrderDate', [$startDate, $endDate])
+          ->where('os.ShopID', $shopID)
+          ->whereBetween('ob.OrderDate', [$startDate, $endDate])
           ->first();
 
         return (object) [
@@ -133,16 +132,14 @@ class StatisticsController extends Controller
     if ($shopID) {
       function caculater2($shopID, $startDate, $endDate)
       {
-        $data = DB::table('OrdersBuyer as ob')
-          ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-          ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-          ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
+        $data = DB::table('ordersbuyer as ob')
+          ->join('ordersseller as os', 'ob.OrderID', '=', 'os.OrderID')
           ->select(
-            DB::raw("COUNT(DISTINCT CASE WHEN ob.OverallStatus = 'Completed' THEN ob.OrderID END) AS sold_orders"),
-            DB::raw("COUNT(DISTINCT CASE WHEN ob.OverallStatus = 'Returned' THEN ob.OrderID END) AS returned_orders"),
-            DB::raw("COUNT(DISTINCT CASE WHEN ob.OverallStatus IN ('CancelledByBuyer','CancelledBySeller') THEN ob.OrderID END) AS cancel_orders")
+            DB::raw("COUNT(DISTINCT CASE WHEN os.Status = 'Completed' THEN os.SellerOrderID END) AS sold_orders"),
+            DB::raw("COUNT(DISTINCT CASE WHEN os.Status = 'Returned' THEN os.SellerOrderID END) AS returned_orders"),
+            DB::raw("COUNT(DISTINCT CASE WHEN os.Status IN ('CancelledByBuyer','CancelledBySeller') THEN os.SellerOrderID END) AS cancel_orders")
           )
-          ->where('p.ShopID', $shopID)
+          ->where('os.ShopID', $shopID)
           ->whereBetween('ob.OrderDate', [$startDate, $endDate])
           ->first();
 
@@ -218,6 +215,7 @@ class StatisticsController extends Controller
     return $arr;
   }
 
+  // Function main of analytic page 
   public function getRevenueByDate(Request $req)
   {
     $user = Auth::user();
@@ -233,7 +231,7 @@ class StatisticsController extends Controller
       ->where('UserID', $user->UserID)
       ->value('ShopID');
 
-    $daysCount = ceil($startDate->diffInDays($endDate) + 1);
+    $daysCount = ceil($startDate->diffInDays($endDate));
 
     $startPrev = $startDate->copy()->subDays($daysCount);
     $endPrev = $startDate->copy()->subDay()->endOfDay();
@@ -251,39 +249,34 @@ class StatisticsController extends Controller
 
     $summaryByShop = null;
     if ($shopID) {
-      $summaryByShop = DB::table('OrdersBuyer as ob')
-        ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-        ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-        ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
-        ->join('Shops as s', 'p.ShopID', '=', 's.ShopID')
+      $summaryByShop = DB::table('ordersbuyer as ob')
+        ->join('ordersseller as os', 'os.OrderID', '=', 'ob.OrderID')
+        ->join('shops as s', 'os.ShopID', '=', 's.ShopID')
         ->select(
           's.ShopID',
           's.ShopName',
-          DB::raw('SUM(oi.Subtotal) AS TotalRevenue'),
+          'os.SellerOrderID',
+          DB::raw('SUM(os.SubtotalAmount) AS TotalRevenue')
         )
         ->whereBetween('ob.OrderDate', [$startDate, $endDate])
         ->where('s.ShopID', $shopID)
-        ->where('ob.OverallStatus', 'Completed')
-        ->groupBy('s.ShopID', 's.ShopName')
-        ->orderByDesc('TotalRevenue')
+        ->where('os.Status', 'Completed')
         ->first();
 
-      $summaryByShop2 = DB::table('OrdersBuyer as ob')
-        ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-        ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-        ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
-        ->join('Shops as s', 'p.ShopID', '=', 's.ShopID')
+      $summaryByShop2 = DB::table('ordersbuyer as ob')
+        ->join('ordersseller as os', 'os.OrderID', '=', 'ob.OrderID')
+        ->join('shops as s', 'os.ShopID', '=', 's.ShopID')
         ->select(
           's.ShopID',
           's.ShopName',
-          DB::raw('SUM(oi.Subtotal) AS TotalRevenue'),
+          'os.SellerOrderID',
+          DB::raw('SUM(os.SubtotalAmount) AS TotalRevenue')
         )
         ->whereBetween('ob.OrderDate', [$startPrev, $endPrev])
         ->where('s.ShopID', $shopID)
-        ->where('ob.OverallStatus', 'Completed')
-        ->groupBy('s.ShopID', 's.ShopName')
-        ->orderByDesc('TotalRevenue')
+        ->where('os.Status', 'Completed')
         ->first();
+
     }
 
     $RevenueData = (object) [
@@ -305,24 +298,42 @@ class StatisticsController extends Controller
     }
 
     // Oder list get by date
+    $listOrderDate = null;
     if ($shopID) {
-      $listOrderDate = DB::table('OrdersBuyer as ob')
-        ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-        ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-        ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
-        ->join('Shops as s', 'p.ShopID', '=', 's.ShopID')
-        ->select(
-          DB::raw('DATE(ob.OrderDate) AS OrderDate'),
-          DB::raw('COUNT(DISTINCT ob.OrderID) AS OrderNumber'),
-          DB::raw('SUM(oi.Subtotal) AS TotalRevenue'),
-          DB::raw('SUM(oi.Quantity) AS NumProductsSold')
+      $sql = "
+        WITH revenue AS (
+            SELECT 
+                DATE(ob.OrderDate) AS OrderDate,
+                COUNT(DISTINCT os.SellerOrderID) AS OrderNumber,
+                SUM(os.SubtotalAmount) AS TotalRevenue
+            FROM ordersbuyer AS ob
+            INNER JOIN ordersseller AS os ON ob.OrderID = os.OrderID
+            WHERE ob.OrderDate BETWEEN ? AND ?
+              AND os.ShopID = ?
+              AND os.Status = 'Completed'
+            GROUP BY DATE(ob.OrderDate)
+        ),
+        quantity AS (
+            SELECT 
+                DATE(ob.OrderDate) AS OrderDate,
+                SUM(oi.Quantity) AS NumProductsSold
+            FROM ordersbuyer AS ob
+            INNER JOIN ordersseller AS os ON ob.OrderID = os.OrderID
+            INNER JOIN orderitems AS oi ON os.SellerOrderID = oi.SellerOrderID
+            WHERE ob.OrderDate BETWEEN ? AND ?
+              AND os.ShopID = ?
+              AND os.Status = 'Completed'
+            GROUP BY DATE(ob.OrderDate)
         )
-        ->whereBetween('ob.OrderDate', [$startDate, $endDate])
-        ->where('s.ShopID', $shopID)
-        ->where('ob.OverallStatus', 'Completed')
-        ->groupBy(DB::raw('DATE(ob.OrderDate)'))
-        ->orderBy($sortField, $sortDirection)
-        ->get();
+        SELECT 
+            r.OrderDate,
+            r.OrderNumber,
+            r.TotalRevenue,
+            q.NumProductsSold
+        FROM revenue r
+        JOIN quantity q ON r.OrderDate = q.OrderDate
+        ORDER BY $sortField $sortDirection";
+      $listOrderDate = collect(DB::select($sql, [$startDate, $endDate, $shopID, $startDate, $endDate, $shopID]));
     }
 
     $quantityDisplay = 20;
@@ -372,24 +383,23 @@ class StatisticsController extends Controller
       ], 400);
     }
 
-    $orders = DB::table('OrdersBuyer as ob')
+    $orders = DB::table('ordersbuyer as ob')
       ->distinct()
       ->select(
         'ob.OrderID',
         'ob.OrderCode',
         'u.FullName as BuyerName',
         'ob.OrderDate',
-        'ob.TotalAmount',
-        'ob.OverallStatus',
-        'p.ShopID'
+        'os.TotalAmount',
+        'os.Status as OverallStatus',
+        'os.ShopID'
       )
-      ->join('Users as u', 'ob.UserID', '=', 'u.UserID')
-      ->join('OrderItems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-      ->join('ProductVariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-      ->join('Products as p', 'pv.ProductID', '=', 'p.ProductID')
-      ->where('p.ShopID', $shopID)
+      ->join('users as u', 'ob.UserID', '=', 'u.UserID')
+      ->join('ordersseller as os', 'ob.OrderID', '=', 'os.OrderID')
+      ->join('orderitems as oi', 'os.SellerOrderID', '=', 'oi.SellerOrderID')
+      ->where('os.ShopID', $shopID)
       ->whereDate('ob.OrderDate', $date)
-      ->where('ob.OverallStatus', 'Completed')
+      ->where('os.Status', 'Completed')
       ->get();
 
     return response()->json($orders);
@@ -418,40 +428,39 @@ class StatisticsController extends Controller
     $action = $req->input('action');
 
     $ordersQuery = DB::table('ordersbuyer as ob')
+      ->join('ordersseller as os', 'os.OrderID', '=', 'ob.OrderID')
+      ->join('users as u', 'ob.UserID', '=', 'u.UserID')
+      ->join('orderitems as oi', 'oi.SellerOrderID', '=', 'os.SellerOrderID')
       ->select(
         'ob.OrderID',
         'ob.OrderCode',
+        'os.SellerOrderID',
         'u.FullName as CustomerName',
         'ob.OrderDate',
-        'ob.TotalAmount',
-        'ob.OverallStatus',
-        DB::raw('COUNT(oi.OrderID) as ProductCount')
+        'os.TotalAmount',
+        'os.Status as ShopStatus',
+        DB::raw('SUM(oi.Quantity) as ProductCount')
       )
-      ->join('users as u', 'ob.UserID', '=', 'u.UserID')
-      ->join('orderitems as oi', 'ob.OrderID', '=', 'oi.OrderID')
-      ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-      ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-      ->where('p.ShopID', $shopID)
+      ->where('os.ShopID', $shopID)
       ->whereBetween('ob.OrderDate', [$startDate, $endDate])
-      ->groupBy('ob.OrderID', 'ob.OrderCode', 'u.FullName', 'ob.OrderDate', 'ob.TotalAmount', 'ob.OverallStatus');
+      ->groupBy('ob.OrderID', 'os.SellerOrderID');
 
     switch ($action) {
       case 'orderReturn':
-        $ordersQuery->where('ob.OverallStatus', 'Returned');
+        $ordersQuery->whereIn('os.Status', ['Returned']);
         break;
 
       case 'orderCancel':
-        $ordersQuery->whereIn('ob.OverallStatus', ['CancelledByBuyer', 'CancelledBySeller']);
+        $ordersQuery->whereIn('os.Status', ['CancelledByBuyer', 'CancelledBySeller']);
         break;
 
       case 'orderCompleted':
       default:
-        $ordersQuery->where('ob.OverallStatus', 'Completed');
+        $ordersQuery->where('os.Status', 'Completed');
         break;
     }
 
     $orders = $ordersQuery->get();
-
     return response()->json([
       'action' => $action,
       'orders' => $orders
@@ -475,10 +484,8 @@ class StatisticsController extends Controller
         'o.PaymentMethod',
         'o.paidAt',
         'o.PaymentStatus',
-        'o.OverallStatus',
         'o.ShippingFullName',
         'o.ShippingPhoneNumber',
-        'o.Notes',
         'u.FullName as BuyerName',
         'u.Email as BuyerEmail',
         DB::raw("CONCAT_WS(', ', a.Street, a.Ward, a.District, a.City) as ShippingAddress")
@@ -493,6 +500,7 @@ class StatisticsController extends Controller
 
     // Lấy các sản phẩm trong đơn hàng
     $items = DB::table('orderitems as oi')
+      ->join('ordersseller as os', 'oi.SellerOrderID', '=', 'os.SellerOrderID')
       ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
       ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
       ->select(
@@ -504,9 +512,11 @@ class StatisticsController extends Controller
         'oi.PriceAtPurchase',
         'oi.Subtotal',
         'oi.IsFlashSaleItem',
-        'oi.ReturnStatus'
+        'oi.ReturnStatus',
+        'os.Status as ShopStatus',
+        'os.ShopID'
       )
-      ->where('oi.OrderID', $id)
+      ->where('os.OrderID', $id)
       ->get();
 
     return response()->json([

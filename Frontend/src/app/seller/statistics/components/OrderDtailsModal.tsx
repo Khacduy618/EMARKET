@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import Link from "next/link";
-import { getAuthToken } from "@/services/api"
 import { API_URL } from "@/lib/config"
 
 type OrderAction = "orderCompleted" | "orderReturn" | "orderCancel"
@@ -19,7 +18,7 @@ type OrderDetail = {
   OrderDate: string
   CustomerName: string
   TotalAmount: number
-  OverallStatus: string
+  ShopStatus: string
   ProductCount: number
   ShippingAddress?: string
 }
@@ -233,7 +232,7 @@ export default function OrderDetailsModal({ show, action, startDate, endDate, on
                               <span className="font-bold text-green-600">{formatVND(order.TotalAmount)}</span>
                             </div>
                           </TableCell>
-                          <TableCell>{getStatusBadge(order.OverallStatus)}</TableCell>
+                          <TableCell>{getStatusBadge(order.ShopStatus)}</TableCell>
                         </TableRow>
                       ))
                     )}
