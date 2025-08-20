@@ -1572,56 +1572,7 @@ public function completeOrder(Request $request, $orderId)
     }
 
 
-/**
-     * Hàm private để cập nhật số lần sử dụng voucher sau khi đơn hàng được xác nhận.
-     *
-     * @param object $order - Đối tượng đơn hàng từ bảng ordersbuyer
-     */
-    public function updateUserVoucherUsage($order)
-{
-    $platformCodes = json_decode($order->PlatformVoucherCode, true) ?: [];
-    $shopVouchers = json_decode($order->shopvoucher, true) ?: [];
-    $shopCodes = array_column($shopVouchers, 'code');
-    
-    $allAppliedCodes = array_filter(array_merge(
-        [$platformCodes['saleOff'] ?? null],
-        [$platformCodes['freeShip'] ?? null],
-        $shopCodes
-    ));
 
-    if (empty($allAppliedCodes)) {
-        Log::info("No vouchers to update for OrderID: {$order->OrderID}");
-        return;
-    }
-
-    $vouchersToUpdate = DB::table('vouchers')->whereIn('Code', $allAppliedCodes)->get();
-    if ($vouchersToUpdate->isEmpty()) return;
-    
-    $userVouchersToInsert = [];
-    foreach ($vouchersToUpdate as $voucher) {
-        // Increment total usage count on the main voucher table
-        DB::table('vouchers')->where('VoucherID', $voucher->VoucherID)->increment('TimesUsed');
-        
-        // Prepare data for the user-specific usage log table
-        $userVouchersToInsert[] = [
-            'UserID' => $order->UserID,
-            'VoucherID' => $voucher->VoucherID,
-            'ShopID' => $voucher->ShopID,
-            'OrderID' => $order->OrderID, // **ADD THE OrderID**
-            'UsedAt' => now()
-            // The TimesUsedThisOrder column seems redundant now, can be removed
-        ];
-    }
-
-    // Insert all usage records at once.
-    // The new UNIQUE KEY (with OrderID) will prevent duplicates for the same order,
-    // while allowing the user to use the same voucher on a different order.
-    if (!empty($userVouchersToInsert)) {
-        DB::table('uservouchers')->insert($userVouchersToInsert);
-    }
-
-    Log::info("Successfully updated usage count for vouchers in OrderID: {$order->OrderID}", $allAppliedCodes);
-}
     /**
      * Hủy một đơn hàng nháp để người dùng có thể tạo lại.
      */

@@ -4,24 +4,13 @@
 import React from 'react';
 import { Tag } from 'lucide-react';
 import { CheckoutShopOrder, Voucher } from '@/types';
+import { calculateDiscountForVoucher } from '@/utils/calculation';
+import { useSearchParams } from 'next/navigation';
 
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
-const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
-    if (!voucher || subtotal < voucher.MinOrderValue) return 0;
-    let discount = 0;
-    if (voucher.DiscountType === 'FixedAmount') {
-        discount = voucher.DiscountValue;
-    } else if (voucher.DiscountType === 'Percentage') {
-        discount = subtotal * (voucher.DiscountValue / 100);
-        if (voucher.MaxValueForPercentage != null && discount > voucher.MaxValueForPercentage) {
-            discount = voucher.MaxValueForPercentage;
-        }
-    }
-    return Math.round(discount);
-};
 
 interface CheckoutShopVoucherSectionProps {
   shopOrder: CheckoutShopOrder;
@@ -40,14 +29,16 @@ const CheckoutShopVoucherSection: React.FC<CheckoutShopVoucherSectionProps> = ({
   const discountAmount = shopOrder.appliedVoucher 
     ? calculateDiscountForVoucher(shopOrder.appliedVoucher, shopSubtotal) 
     : 0;
-
+ const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
   return (
     <>
       <div className="flex justify-between items-center px-4 pt-4 pb-3 border-t border-gray-100">
         <div className="flex items-center text-sm text-gray-800">
           <Tag className="mr-2 text-green-500 h-4 w-4" /> Voucher của Shop
         </div>
-        <button onClick={() => onSelectShopVoucher(shopOrder.shopId)} className="text-sm text-blue-500 hover:underline">
+        <button onClick={() => onSelectShopVoucher(shopOrder.shopId)} className="text-sm text-blue-500 hover:underline disabled:text-gray-500 disabled:no-underline disabled:cursor-not-allowed"
+          disabled={!!orderId} > 
           {discountAmount > 0 ? (
             <span className="font-semibold text-green-600"> -{formatPrice(discountAmount)}</span>
           ) : (
