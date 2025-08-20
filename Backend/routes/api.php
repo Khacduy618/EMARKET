@@ -208,6 +208,7 @@ Route::middleware('auth:sanctum')->group(function (){
     
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::get('/vouchers/platform-eligible', [App\Http\Controllers\VoucherController::class, 'getEligiblePlatformVouchers']);
     Route::post('/vouchers/{voucher}/collect', [VoucherController::class, 'collectVoucher']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
 

@@ -975,7 +975,7 @@ const CartPage: React.FC = () => {
 
                                     />
                                     <span className="text-lg text-red-500">🏪</span>
-                                    <span className="font-bold text-sm text-gray-800">{shopName || `Shop ID: ${shopId}`}</span>
+                                    <Link href={`/shop/${shopId}`} ><span className="font-bold text-sm text-gray-800">{shopName || `Shop ID: ${shopId}`}</span></Link>
                                 </div>
                                 {/* Cart Items for this shop */}
                                 {items.map((item: CartItem) => (

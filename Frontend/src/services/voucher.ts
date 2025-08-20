@@ -11,12 +11,12 @@ interface FetchVouchersResponse {
 }
 
 export const fetchAvailableVouchers = async (): Promise<FetchVouchersResponse> => {
-    const token = getAuthToken();
-    const response = await fetch(`${API_URL}/vouchers`, {
+
+    const response = await fetch(`${API_URL}/platform-eligible`, {
         headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
+        credentials: 'include', // Ensure cookies are sent if needed
     });
     return handleResponse(response);
 };

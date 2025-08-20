@@ -13,7 +13,7 @@ class ReviewController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'orderId' => 'required|integer|exists:ordersbuyer,OrderID',
+            'sellerorderid' => 'required|integer|exists:ordersseller,SellerOrderID',
             'reviews' => 'required|string',
             'images' => 'nullable|array',
             'images.*' => 'nullable|array',
@@ -27,7 +27,7 @@ class ReviewController extends Controller
             return response()->json(['success' => false, 'error' => 'Dữ liệu không hợp lệ.', 'details' => $validator->errors()], 422);
         }
 
-        $orderId = $request->input('orderId');
+        $SellerOrderID = $request->input('SellerOrderID');
         $reviewsData = json_decode($request->input('reviews'), true);
         $userId = Auth::id();
 
@@ -35,7 +35,7 @@ class ReviewController extends Controller
             return response()->json(['success' => false, 'error' => 'Định dạng dữ liệu đánh giá không hợp lệ.'], 400);
         }
 
-        $order = DB::table('ordersbuyer')->where('OrderID', $orderId)->where('UserID', $userId)->first();
+        $order = DB::table('ordersseller')->where('SellerOrderID', $SellerOrderID)->where('UserID', $userId)->first();
         if (!$order) {
             return response()->json(['success' => false, 'error' => 'Đơn hàng không tồn tại hoặc bạn không có quyền đánh giá.'], 403);
         }
@@ -51,7 +51,7 @@ class ReviewController extends Controller
                 // Kiểm tra bảo mật: đảm bảo item này thuộc về đơn hàng đang được đánh giá
                 $orderItem = DB::table('orderitems')
                     ->where('OrderItemID', $orderItemId)
-                    ->where('OrderID', $orderId)
+                    ->where('SellerOrderID', $SellerOrderID)
                     ->first();
 
                 if (!$orderItem) {
@@ -86,7 +86,7 @@ class ReviewController extends Controller
 
                 // Lưu vào database
                 DB::table('productreviews')->insert([
-                    'OrderID' => $orderId,
+                    'SellerOrderID' => $SellerOrderID,
                     'OrderItemID' => $orderItem->OrderItemID, // <-- Lưu lại liên kết quan trọng này
                     'VariantID' => $orderItem->VariantID,
                     'UserID' => $userId,
@@ -100,14 +100,14 @@ class ReviewController extends Controller
                 ]);
             }
             // Nếu tất cả đánh giá đã được lưu thành công
-            Log::info('All reviews saved successfully for OrderID: ' . $orderId,
+            Log::info('All reviews saved successfully for SellerOrderID: ' . $SellerOrderID,
                 ['userId' => $userId, 'reviewsCount' => count($reviewsData)]
             );
             //Change OverallStatus of order to 'Rated'
-            DB::table('ordersbuyer')
-                ->where('OrderID', $orderId)
-                ->update(['OverallStatus' => 'Rated', 'UpdatedAt' => now()]);
-            Log::info('Order status updated to Reviewed for OrderID: ' . $orderId, ['userId' => $userId]);
+            DB::table('ordersseller')
+                ->where('SellerOrderID', $SellerOrderID)
+                ->update(['Status' => 'Rated', 'UpdatedAt' => now()]);
+            Log::info('Order status updated to Reviewed for SellerOrderID: ' . $SellerOrderID, ['userId' => $userId]);
 
             // Commit transaction
             DB::commit();

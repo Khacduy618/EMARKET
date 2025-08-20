@@ -88,7 +88,7 @@ const OrderDetailContent: React.FC<OrderDetailContentProps> = ({ order }) => {
               <div className="flex items-center gap-2 text-sm">
                 {order.shopLevel === 'Mall' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>}
                 <FaStore className="text-gray-500" />
-                <span className="font-semibold text-gray-800">{order.ShopName}</span>
+<Link href={`/shop/${order.ShopID}`} ><span className="font-semibold text-gray-800">{order.ShopName}</span></Link>
               </div>
             </div>
 

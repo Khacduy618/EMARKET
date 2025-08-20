@@ -125,9 +125,9 @@ const detailPageUrl = `/account/purchase/seller-order/${order.SellerOrderID}`;
             <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
               <FaCommentDots className="mr-1 text-sm" /> Chat
             </button>
-            <button className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors">
-              <FaStore className="mr-1 text-sm" /> Xem Shop
-            </button>
+            
+              <Link href={`/shop/${order.ShopID}`} className="flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-100 transition-colors"><FaStore className="mr-1 text-sm" /> Xem Shop</Link> 
+           
           </div>
           {renderDeliveryStatus(order.Status)} 
         </div>
@@ -180,7 +180,7 @@ const detailPageUrl = `/account/purchase/seller-order/${order.SellerOrderID}`;
               <>
                 {order.items.some(item => item.canReview) && (
                   <Link
-                    href={`/account/review?orderId=${order.SellerOrderID}`}
+                    href={`/account/review?SellerOrderID=${order.SellerOrderID}`}
                     className="bg-orange-500 text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors block text-center"
                   >
                     Đánh Giá

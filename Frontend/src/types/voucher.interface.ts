@@ -29,7 +29,7 @@ export interface Voucher {
     TimesUsedByUser?: number;
 
     // Cập nhật visualType để bao gồm các loại mới
-    visualType?: 'VOUCHER_XTRA' | 'SHOPEE' | 'XA_HANG' | 'SHOPEE_LIVE' | 'ONLY_LIVE' | 'EMARKET' | 'FREESHIP';
+    visualType?: 'VOUCHER_XTRA' | 'XA_HANG' | 'EMARKET_LIVE' | 'ONLY_LIVE' | 'EMARKET' | 'FREESHIP';
 }
 
 export interface FetchVouchersResponse {

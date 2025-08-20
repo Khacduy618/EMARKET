@@ -2,6 +2,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 export interface ShopStats {
     rating_count: string;
@@ -53,7 +54,7 @@ export default function ShopInfo({ shop }: { shop: Shop }) {
                     </span>
                 </div>
                 <div className="flex flex-col space-y-2">
-                    <h2 className="text-lg font-bold text-gray-800">{shop.ShopName}</h2>
+                    <Link href={`/shop/${shop.ShopID}`} ><h2 className="text-lg font-bold text-gray-800">{shop.ShopName}</h2></Link>
                     {/* Dùng dữ liệu thật từ API */}
                     <p className="text-sm text-gray-500">{stats.online_status}</p>
                     <div className="flex space-x-2">
