@@ -49,8 +49,8 @@ class OrderController extends Controller
             ->select(
                 'ob.OrderID', 'ob.OrderCode', 'ob.UserID', 'ob.OrderDate', 'ob.TotalAmount',
                 'ob.SubtotalAmount', 'ob.ShippingFee', 'ob.DiscountAmount', 'ob.ShippingAddressID',
-                'ob.ShippingFullName', 'ob.ShippingPhoneNumber', 'ob.Notes', 'ob.PaymentMethod',
-                'ob.PaymentStatus', 'ob.OverallStatus', 'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount',
+                'ob.ShippingFullName', 'ob.ShippingPhoneNumber', 'os.Notes', 'ob.PaymentMethod',
+                'ob.PaymentStatus', 'os.Status', 'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount',
                 'ob.CreatedAt', 'ob.UpdatedAt',
                 's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel'
             )
