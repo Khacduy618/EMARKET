@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState, type ChangeEvent } from "react"
-import { X, Upload, FolderPlus, ImageIcon } from "lucide-react"
+import { X, Upload, FolderPlus, ImageIcon, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { getAuthToken } from "@/services/api"
 import { API_URL } from "@/lib/config"
 
 type Category = {
@@ -28,10 +27,12 @@ type Props = {
 
 export default function CreateCategoryModal({ show, onHide, onCreated }: Props) {
   const [categories, setCategories] = useState<Category[]>([])
-  const [parentId, setParentId] = useState<string>("0") // Updated default value to '0'
+  const [parentId, setParentId] = useState<string>("0")
   const [name, setName] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [attributes, setAttributes] = useState<string[]>([])
+  const [newAttribute, setNewAttribute] = useState("")
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => setCategories(data.data))
@@ -72,6 +73,17 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     }
   }
 
+  const handleAddAttribute = () => {
+    if (newAttribute.trim() && !attributes.includes(newAttribute.trim())) {
+      setAttributes([...attributes, newAttribute.trim()])
+      setNewAttribute("")
+    }
+  }
+
+  const handleRemoveAttribute = (index: number) => {
+    setAttributes(attributes.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -79,6 +91,10 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     const formData = new FormData()
     formData.append("Parent", parentId)
     formData.append("Name", name)
+    attributes.forEach(attr => {
+      formData.append("Attributes[]", attr);
+    });
+    
     if (imageFile) {
       formData.append("image", imageFile)
     }
@@ -86,7 +102,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
     try {
       const res = await fetch(`${API_URL}/admin/categories/create`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         body: formData,
       })
 
@@ -94,9 +110,11 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
       if (res.ok) {
         onCreated()
         setName("")
-        setParentId("0") 
+        setParentId("0")
         setImageFile(null)
         setImagePreview("")
+        setAttributes([])
+        setNewAttribute("")
         onHide()
       } else {
         alert(result.message || "Tạo danh mục thất bại!")
@@ -111,7 +129,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
 
   return (
     <Dialog open={show} onOpenChange={onHide}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
             <FolderPlus className="w-5 h-5 mr-2 text-orange-500" />
@@ -191,6 +209,7 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
                       <Input
                         id="category-image"
                         type="file"
+                        name="image"
                         accept="image/*"
                         onChange={handleImageChange}
                         className="hidden"
@@ -206,6 +225,61 @@ export default function CreateCategoryModal({ show, onHide, onCreated }: Props) 
                   )}
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Thuộc tính sản phẩm</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={newAttribute}
+                    onChange={(e) => setNewAttribute(e.target.value)}
+                    placeholder="Nhập thuộc tính (VD: Chất liệu, Màu sắc, Kích thước...)"
+                    className="flex-1 focus:ring-orange-500 focus:border-orange-500"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleAddAttribute()
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddAttribute}
+                    disabled={!newAttribute.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {attributes.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500">Thuộc tính đã thêm:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {attributes.map((attr, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 bg-orange-50 text-orange-700 px-2 py-1 rounded-md text-sm"
+                        >
+                          <span>{attr}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveAttribute(index)}
+                            className="h-4 w-4 p-0 hover:bg-orange-100"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

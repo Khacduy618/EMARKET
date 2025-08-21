@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
-import { X, Upload, Save, ImageIcon } from "lucide-react"
+import { X, Upload, Save, ImageIcon, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { getAuthToken } from "@/services/api"
 import { API_URL } from "@/lib/config"
 
 type Category = {
@@ -21,33 +20,73 @@ type Category = {
   children?: Category[]
 }
 
+type Attribute = {
+  AttributeID: number
+  Name: string
+  pivot?: {
+    CategoryID: number
+    AttributeID: number
+  }
+}
+
+type CategoryData = {
+  CategoryID: number
+  Name: string
+  ParentCategoryID?: number
+  ImageURL?: string
+  Attributes: Attribute[]
+}
+
 type EditCategoryModalProps = {
-  category: Category | null
+  categoryId: number | null
   categoryTree: Category[]
   onClose: () => void
   onUpdated: (updatedCategory: Category) => void
 }
 
-export default function EditCategoryModal({ category, categoryTree, onClose, onUpdated }: EditCategoryModalProps) {
+export default function EditCategoryModal({ categoryId, categoryTree, onClose, onUpdated }: EditCategoryModalProps) {
   const [parentId, setParentId] = useState<string>("0")
   const [title, setTitle] = useState("")
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [attributes, setAttributes] = useState<string[]>([])
+  const [newAttribute, setNewAttribute] = useState("")
   const [loading, setLoading] = useState(false)
+  const [categoryData, setCategoryData] = useState<CategoryData | null>(null)
 
   useEffect(() => {
-    if (category) {
-      setTitle(category.Name)
-      setParentId(category.ParentCategoryID?.toString() || "0")
-      setPreviewUrl(category.ImageURL || null)
-      setImageFile(null)
+    if (categoryId) {
+      const fetchCategoryData = async () => {
+        try {
+          const response = await fetch(`${API_URL}/admin/categories/edit/${categoryId}`, {
+            credentials: "include",
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            const data = result.data as CategoryData
+            setCategoryData(data)
+
+            // Populate form fields
+            setTitle(data.Name)
+            setParentId(data.ParentCategoryID?.toString() || "0")
+            setPreviewUrl(data.ImageURL || null)
+            setAttributes(data.Attributes.map((attr) => attr.Name))
+            setImageFile(null)
+          }
+        } catch (error) {
+          console.error("Error fetching category data:", error)
+        }
+      }
+
+      fetchCategoryData()
     }
-  }, [category])
+  }, [categoryId])
 
   const buildCategoryOptions = (tree: Category[], level = 0): React.ReactNode[] => {
     return tree.flatMap((node) => {
       // Không hiển thị chính danh mục đang edit và các danh mục con của nó
-      if (category && node.CategoryID === category.CategoryID) {
+      if (categoryData && node.CategoryID === categoryData.CategoryID) {
         return []
       }
 
@@ -73,28 +112,42 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
     } else {
-      setPreviewUrl(category?.ImageURL || null)
+      setPreviewUrl(categoryData?.ImageURL || null)
     }
+  }
+
+  const handleAddAttribute = () => {
+    if (newAttribute.trim() && !attributes.includes(newAttribute.trim())) {
+      setAttributes([...attributes, newAttribute.trim()])
+      setNewAttribute("")
+    }
+  }
+
+  const handleRemoveAttribute = (index: number) => {
+    setAttributes(attributes.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!category) return
+    if (!categoryData) return
 
     setLoading(true)
     const formData = new FormData()
-    formData.append("CategoryID", category.CategoryID.toString())
+    formData.append("CategoryID", categoryData.CategoryID.toString())
     formData.append("Name", title)
     formData.append("Parent", parentId)
+    attributes.forEach((attr) => {
+      formData.append("Attributes[]", attr)
+    })
     if (imageFile) {
       formData.append("image", imageFile)
     }
     formData.append("_method", "PATCH")
-
+     
     try {
       const res = await fetch(`${API_URL}/admin/categories/update`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         body: formData,
       })
 
@@ -111,17 +164,17 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
     }
   }
 
-  if (!category) return null
+  if (!categoryId || !categoryData) return null
 
   return (
-    <Dialog open={!!category} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={!!categoryId} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
-            <Save className="w-5 h-5 mr-2 text-blue-200" />
+            <Save className="w-5 h-5 mr-2 text-blue-500" />
             Chỉnh sửa danh mục
           </DialogTitle>
-          <DialogDescription>Cập nhật thông tin danh mục "{category.Name}"</DialogDescription>
+          <DialogDescription>Cập nhật thông tin danh mục "{categoryData.Name}"</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -226,6 +279,61 @@ export default function EditCategoryModal({ category, categoryTree, onClose, onU
                   )}
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Thuộc tính sản phẩm</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={newAttribute}
+                    onChange={(e) => setNewAttribute(e.target.value)}
+                    placeholder="Nhập thuộc tính (VD: Chất liệu, Màu sắc, Kích thước...)"
+                    className="flex-1 focus:ring-blue-500 focus:border-blue-500"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleAddAttribute()
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddAttribute}
+                    disabled={!newAttribute.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {attributes.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500">Thuộc tính đã thêm:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {attributes.map((attr, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-sm"
+                        >
+                          <span>{attr}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveAttribute(index)}
+                            className="h-4 w-4 p-0 hover:bg-blue-100"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
