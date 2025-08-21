@@ -46,6 +46,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $rules['IsActive'] = ['boolean'];
         }
 
+        if (array_key_exists('Avatar', $input)) {
+            // Cho phép link avatar có thể là null (nếu người dùng xóa ảnh)
+            // hoặc là một URL hợp lệ
+            $rules['Avatar'] = ['nullable', 'string', 'url', 'max:512'];
+        }
+
         // Validate
         Validator::make($input, $rules)->validateWithBag('updateProfileInformation');
 

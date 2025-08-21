@@ -103,41 +103,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     //     }
     // };
     const fetchUser = async () => {
-    try {
-        // Không cần kiểm tra token, chỉ cần gọi getMe
-        // Trình duyệt sẽ tự lo việc gửi cookie
-        const userData = await apiGetMe();
-        setUser(userData);
-    } catch (err) {
-        // Nếu getMe thất bại (lỗi 401), có nghĩa là chưa đăng nhập
-        // hoặc session đã hết hạn. Set user về null là đúng.
-        setUser(null);
-    }
-};
+        try {
+            // Không cần kiểm tra token, chỉ cần gọi getMe
+            // Trình duyệt sẽ tự lo việc gửi cookie
+            const userData = await apiGetMe();
+            setUser(userData);
+        } catch (err) {
+            // Nếu getMe thất bại (lỗi 401), có nghĩa là chưa đăng nhập
+            // hoặc session đã hết hạn. Set user về null là đúng.
+            setUser(null);
+        }
+    };
 
     // Khởi tạo Auth ban đầu
-   useEffect(() => {
-    const initializeAuth = async () => {
-        setIsLoading(true); // Bắt đầu loading
-        await getCsrfCookie(); // Rất quan trọng, phải lấy cookie trước
-        await fetchUser();
-        setIsLoading(false); // Kết thúc loading
-    };
-    initializeAuth();
-}, []); 
-    
     useEffect(() => {
-    // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
+        const initializeAuth = async () => {
+            setIsLoading(true); // Bắt đầu loading
+            await getCsrfCookie(); // Rất quan trọng, phải lấy cookie trước
+            await fetchUser();
+            setIsLoading(false); // Kết thúc loading
+        };
+        initializeAuth();
+    }, []);
+
+    useEffect(() => {
+        // Chỉ thực thi logic này sau khi đã xác định xong trạng thái user (isLoading = false)
         if (isLoading) return;
 
         const isAuthPage = pathname === '/login' || pathname === '/register' || pathname.startsWith('/forgot-password');
         const isProtectedPage = pathname.startsWith('/account'); // Trang account và các trang con
 
         if (user && isAuthPage) {
-        const redirectPath = getRedirectPathByRole(user.Role);
-        console.log(`Auth Guard: User is logged in, redirecting from auth page to ${redirectPath}`);
-        router.push(redirectPath);
-    }
+            const redirectPath = getRedirectPathByRole(user.Role);
+            console.log(`Auth Guard: User is logged in, redirecting from auth page to ${redirectPath}`);
+            router.push(redirectPath);
+        }
 
         // Kịch bản 2: Chưa đăng nhập nhưng cố vào trang cần bảo vệ -> Đá về trang login
         if (!user && isProtectedPage) {
@@ -153,39 +153,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setRequiresTwoFactor(false);
         const toastId = toast.loading("Đang đăng nhập...");
         try {
-        await getCsrfCookie();
-        
-        // apiLogin bây giờ sẽ trả về một object có dạng { user: User, ... }
-        const loginResponse = await apiLogin(credentials);
+            await getCsrfCookie();
 
-        // KIỂM TRA VÀ SỬ DỤNG USER TRỰC TIẾP TỪ RESPONSE
-        if (loginResponse && loginResponse.user) {
-            
-            console.log("Login successful, setting user directly from login response:", loginResponse.user);
-            
-            // GỌI setUser VỚI DỮ LIỆU USER VỪA NHẬN ĐƯỢC
-            setUser(loginResponse.user);
+            // apiLogin bây giờ sẽ trả về một object có dạng { user: User, ... }
+            const loginResponse = await apiLogin(credentials);
 
-            toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
-            // useEffect sẽ tự động chuyển hướng bạn đi khi state 'user' thay đổi
+            // KIỂM TRA VÀ SỬ DỤNG USER TRỰC TIẾP TỪ RESPONSE
+            if (loginResponse && loginResponse.user) {
 
-        } else if (loginResponse && loginResponse.two_factor === true) {
-            setRequiresTwoFactor(true);
-            toast.dismiss(toastId);
-            router.push('/two-factor-challenge');
-        } else {
-            // Trường hợp response không hợp lệ
-            throw new Error('Login response was invalid.');
+                console.log("Login successful, setting user directly from login response:", loginResponse.user);
+
+                // GỌI setUser VỚI DỮ LIỆU USER VỪA NHẬN ĐƯỢC
+                setUser(loginResponse.user);
+
+                toast.update(toastId, { render: "Đăng nhập thành công!", type: "success", isLoading: false, autoClose: 3000 });
+                // useEffect sẽ tự động chuyển hướng bạn đi khi state 'user' thay đổi
+
+            } else if (loginResponse && loginResponse.two_factor === true) {
+                setRequiresTwoFactor(true);
+                toast.dismiss(toastId);
+                router.push('/two-factor-challenge');
+            } else {
+                // Trường hợp response không hợp lệ
+                throw new Error('Login response was invalid.');
+            }
+
+        } catch (error: any) {
+            const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
+            setError(message);
+            setUser(null); // Đảm bảo user là null khi login thất bại
+            toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
+            throw error;
         }
 
-    } catch (error: any) {
-        const message = getErrorMessage(error, 'Thông tin đăng nhập không chính xác.');
-        setError(message);
-        setUser(null); // Đảm bảo user là null khi login thất bại
-        toast.update(toastId, { render: message, type: "error", isLoading: false, autoClose: 5000 });
-        throw error;
-    }
-      
 
     };
 
@@ -262,8 +262,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updateProfile = async (payload: UpdateProfilePayload) => {
         const toastId = toast.loading("Đang cập nhật thông tin...");
         try {
-            const updatedUser = await apiUpdateProfile(payload);
-            setUser(updatedUser); // Cập nhật state user với dữ liệu mới
+            await apiUpdateProfile(payload); // Gọi update trước
+            await fetchUser(); // Fetch lại từ getMe để lấy data mới nhất (bao gồm avatar)
             toast.update(toastId, { render: "Cập nhật thành công!", type: "success", isLoading: false, autoClose: 3000 });
         } catch (error: any) {
             const errorMessage = getErrorMessage(error, 'Cập nhật thất bại.');
@@ -306,7 +306,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return (
         <AuthContext.Provider
             value={{
-                user, isLoading,  error, fetchUser, token , login, register, logout,
+                user, isLoading, error, fetchUser, token, login, register, logout,
                 forgotPassword, resetPassword, updatePassword, updateProfile,
                 resendVerificationEmail, requiresTwoFactor, twoFactorChallenge
             }}
