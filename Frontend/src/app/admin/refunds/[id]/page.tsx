@@ -5,6 +5,7 @@ import axios, { AxiosError } from 'axios';
 import { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import React from 'react';
+import { WEB_URL } from '@/lib/config';
 
 //=========== TYPE DEFINITIONS (trong cùng file) ===========
 interface RefundRequestDetail {
@@ -75,7 +76,7 @@ const AdminRefundDetailPage: NextPage = () => {
             try {
                 // Tạo instance axios với cấu hình cho Sanctum SPA
                 const apiClient = axios.create({
-                    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+                    baseURL: `${WEB_URL}`,
                     withCredentials: true,
                 });
 
@@ -112,7 +113,7 @@ const AdminRefundDetailPage: NextPage = () => {
         try {
             // Tái sử dụng instance axios đã cấu hình
             const apiClient = axios.create({
-                baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
+                baseURL: `${WEB_URL}`,
                 withCredentials: true,
             });
             await apiClient.get('/sanctum/csrf-cookie');

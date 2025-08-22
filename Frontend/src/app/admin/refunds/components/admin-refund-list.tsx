@@ -5,6 +5,7 @@ import Link from "next/link"
 import type { NextPage } from "next"
 import type React from "react"
 import { useState, useEffect } from "react"
+import { WEB_URL } from "@/lib/config"
 
 //=========== TYPE DEFINITIONS (trong cùng file) ===========
 interface RefundRequestSummary {
@@ -88,7 +89,7 @@ const AdminRefundListPage: NextPage = () => {
             try {
                 // Tạo một instance axios tạm thời với cấu hình cần thiết
                 const apiClient = axios.create({
-                    baseURL: "http://localhost:8001", // URL gốc của Laravel backend
+                    baseURL: `${WEB_URL}`, // URL gốc của Laravel backend
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
                         Accept: "application/json",

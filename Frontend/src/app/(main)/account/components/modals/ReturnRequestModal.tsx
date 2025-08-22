@@ -7,6 +7,7 @@ import { API_URL } from '@/lib/config';
 import Modal from './Modal'; // Component Modal chung của bạn
 import { Order, OrderItem, Address } from '@/types'; // Các kiểu dữ liệu của bạn
 import { getFullImageUrl } from '@/services/api'; // Hàm helper lấy URL ảnh đầy đủ
+import { toast } from 'react-toastify';
 
 
 // --- ĐỊNH NGHĨA CÁC KIỂU DỮ LIỆU ---
@@ -103,7 +104,10 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
                     return;
                 }
                 try {
-                    const response = await axios.get<Address>(`${API_URL}/addresses-return/${order.ShippingAddressID}`, { withCredentials: true });
+                    console.log("Fetching default address for order:", order.ShippingAddressID);
+                    const response = await axios.get<Address>(`${API_URL}/addresses-return/${order.ShippingAddressID}`, 
+                        { headers: { 'Content-Type': 'application/json' },
+                             withCredentials: true });
                     const addr = response.data;
                     setReturnAddress({
                         full_name: addr.FullName,
@@ -199,7 +203,7 @@ const ReturnRequestModal: React.FC<ReturnRequestModalProps> = ({
 
         try {
             const response = await axios.post(`${API_URL}/buyer/return-requests`, formData, { withCredentials: true });
-            onSuccess(response.data.message || 'Yêu cầu của bạn đã được gửi thành công!');
+            toast.success(response.data.message || 'Yêu cầu đã được gửi thành công.');
             handleClose();
         } catch (err: any) {
             const serverErrors = err.response?.data?.errors;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Filter, RefreshCw, Users, Clock, CheckCircle, XCircle, AlertCircle, Eye, DollarSign } from "lucide-react";
+import { WEB_URL } from "@/lib/config";
 
 //=========== TYPE DEFINITIONS ===========
 interface RefundRequestSummary {
@@ -115,7 +116,7 @@ export default function AdminRefundListPage() {
         setError(null);
         try {
             const apiClient = axios.create({
-                baseURL: "http://localhost:8001",
+                baseURL: `${WEB_URL}`,
                 headers: { "X-Requested-With": "XMLHttpRequest", Accept: "application/json" },
                 withCredentials: true,
             });

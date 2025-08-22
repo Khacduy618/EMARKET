@@ -64,7 +64,7 @@ services:
     env_file:
       - ./Backend/.env
 
-    command: php artisan queue:work --sleep=3 --tries=3 --timeout=0
+    command: php artisan queue:work --tries=3 --timeout=60
     restart: unless-stopped
     networks:
       - app-network
