@@ -832,8 +832,8 @@ useEffect(() => {
                     <ProductReviewPage productId={productId} />
                 </div>
                 <aside className="w-full md:w-80 md:sticky md:top-24 h-fit bg-white border-l border-gray-200 p-4">
-                    <RelatedProductsSidebar currentProductId={productId} />
-                </aside>
+            <RelatedProductsSidebar currentProductId={productId} />
+            </aside>
             </div>
         </div>
     );
