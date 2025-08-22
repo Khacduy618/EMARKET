@@ -56,7 +56,7 @@ public function register(Request $request)
 
     // 4) User đã có shop?
     if (Shop::where('UserID', Auth::id())->exists()) {
-        return response()->json(['message' => 'Bạn đã có cửa hàng rồi.'], 409); // Conflict
+        return response()->json(['message' => 'Bạn đã  đăng kí cửa hàng rồi.'], 409); // Conflict
     }
 
     // 5) Build dữ liệu lưu

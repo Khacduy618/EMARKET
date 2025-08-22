@@ -139,7 +139,7 @@ class SellerOrderController extends Controller
         'ShopVoucherDiscount' => $order->ShopVoucherDiscount,
         'shippingPhoneNumber' => $order->orderBuyer->ShippingPhoneNumber,
         'notes'               => $order->orderBuyer->Notes,
-        'totalAmount'         => $order->orderBuyer->TotalAmount,
+        'totalAmount'         => $order->TotalAmount,
         'shopSubtotal'        => $order->orderItems->sum('Subtotal'),
         'paymentMethod'       => $order->orderBuyer->PaymentMethod,
         'paymentStatus'       => $order->orderBuyer->PaymentStatus,
@@ -174,6 +174,7 @@ class SellerOrderController extends Controller
         'proof_image1'   => $order->proof_image1,
         'proof_image2'   => $order->proof_image2,
         'reason'         => $order->reason,
+        'DeliveredAt'=> $order->DeliveredAt,
         'delivery_date'  => $order->orderBuyer->delivery_date,
     ];
 
@@ -285,9 +286,9 @@ public function handle(Request $request)
             'proof_image1' => 'required|string',
             'proof_image2' => 'required|string',
         ];
-    } elseif (in_array($status, ['DeliveryFailed', 'CancelledByBuyer'])) {
+    } elseif (in_array($status, ['Failed', 'CancelledByBuyer'])) {
         $customRules = [
-            'reason' => 'required|string|max:255',
+            'reason' => 'required|string',
         ];
     }
     
@@ -301,14 +302,19 @@ public function handle(Request $request)
     }
 
     // Cập nhật dữ liệu
-    $order->update([
-        'Status' => $status,
+      $updateData = [
+        'Status'        => $status,
         'proof_image1'  => $validated['proof_image1'] ?? null,
         'proof_image2'  => $validated['proof_image2'] ?? null,
         'reason'        => $validated['reason'] ?? null,
-        'delivery_date' => $deliver_date ?? null,
-    ]);
+    ];
 
+    // Chỉ set DeliveredAt khi status là Delivered
+    if ($status === 'Delivered') {
+        $updateData['DeliveredAt'] = $deliver_date ?? now();
+    }
+
+    $order->update($updateData);
     Log::info("✅ Order {$order_code} updated to status {$status}");
 
     return response()->json(['message' => 'Order updated successfully'], 200);

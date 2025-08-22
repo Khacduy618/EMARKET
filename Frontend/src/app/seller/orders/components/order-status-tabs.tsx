@@ -15,7 +15,7 @@ const statusTabs = [
     { key: "Processing", label: "Đang xử lý" },
     { key: "Shipped", label: "Đã giao vận" },
     { key: "OutForDelivery", label: "Đang giao" },
-    { key: "DeliveryFailed", label: "Giao hàng thất bại" },
+    { key: "Failed", label: "Giao hàng thất bại" },
     { key: "Delivered", label: "Đã giao" },
     { key: "Completed", label: "Hoàn tất" },
     { key: "ReturnInProgress", label: "Đang trả hàng" },

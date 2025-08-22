@@ -46,6 +46,7 @@ interface SellerOrder {
     ShippingFee: number;
     ShopVoucherDiscount: number;
     TotalAmount: number;
+    ShippingFullName: string | null;
     TrackingCode: string | null;
     ShippingCarrier: string | null;
     ShippedAt: string | null;

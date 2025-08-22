@@ -31,6 +31,7 @@ class OrderSeller extends Model
         'proof_image2',
         'reason',
         'Notes',
+        'CreatedAt'
     ];
 
     /**

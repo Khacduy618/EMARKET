@@ -5,92 +5,70 @@
     <title>Phiếu Giao Hàng - Đơn <?php echo e($order->OrderID); ?></title>
     <style>
     body {
-        font-family: "DejaVu Sans", sans-serif;
-        margin: 20mm;
-        font-size: 12pt;
-        line-height: 1.4;
+        font-family: DejaVu Sans, sans-serif;
+        font-size: 11pt;
+        margin: 0;
+        padding: 0;
     }
 
     .container {
-        max-width: 190mm;
+        max-width: 180mm;
+        /* vừa với A4 */
         margin: 0 auto;
         border: 1px solid #000;
-        padding: 10mm;
+        padding: 8mm;
         box-sizing: border-box;
     }
 
-    h1 {
+    h2 {
         text-align: center;
-        font-size: 18pt;
-        border-bottom: 2px solid #000;
-        padding-bottom: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
     }
 
-    .section {
-        margin-bottom: 20px;
-    }
-
-    .section-title {
-        font-weight: bold;
-        font-size: 14pt;
+    .info {
         margin-bottom: 10px;
-        text-decoration: underline;
     }
 
-    .info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .info-grid p {
-        margin: 4px 0;
-    }
-
-    .info-grid p strong {
-        display: inline-block;
-        width: 130px;
+    .info p {
+        margin: 2px 0;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 12px;
+        table-layout: fixed;
+        /* chia đều cột */
+        word-wrap: break-word;
+        word-break: break-word;
     }
 
     th,
     td {
         border: 1px solid #000;
         padding: 6px;
-        text-align: center;
+        font-size: 11pt;
     }
 
     th {
         background-color: #f2f2f2;
         font-weight: bold;
+        text-align: center;
+    }
+
+    td:nth-child(2) {
+        text-align: left;
+        white-space: normal;
+        /* cho phép xuống dòng */
     }
 
     .totals {
         margin-top: 15px;
-        width: 50%;
-        margin-left: auto;
-    }
-
-    .totals td {
-        padding: 6px;
         text-align: right;
     }
 
-    .totals tr td:first-child {
-        font-weight: bold;
-    }
-
-    .shop-info {
-        margin-bottom: 15px;
-        text-align: center;
-        font-size: 11pt;
-        color: #333;
+    .totals p {
+        margin: 3px 0;
     }
     </style>
 </head>

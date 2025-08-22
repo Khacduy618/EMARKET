@@ -55,6 +55,7 @@ interface TransformedOrderDetail {
     shippingPhoneNumber: string;
     notes: string | null;
     totalAmount: number;
+    shippingFee: number;
     shopSubtotal: number;
     paymentMethod: string;
     paymentStatus: string;
@@ -65,6 +66,8 @@ interface TransformedOrderDetail {
     proof_image2?: string | null;
     reason?: string | null;
     delivery_date?: string | null;
+    ShopVoucherDiscount: number;
+    DeliveredAt?: string | null;
 }
 
 export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
@@ -221,10 +224,10 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                                     <h4 className="text-md font-medium mb-2 text-gray-800">
                                         Thông tin giao hàng
                                     </h4>
-                                    {order.delivery_date && (
+                                {order.DeliveredAt && (
                                         <p className="text-gray-600 mb-2">
                                             <span className="font-medium">Ngày giao hàng:</span>{" "}
-                                            {formatDate(order.delivery_date)}
+                                        {formatDate(order.DeliveredAt)}
                                         </p>
                                     )}
                                     <ProofImagesGallery
@@ -235,7 +238,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                             )}
 
                         {/* Khối lý do hủy nếu trạng thái là CancelledByUser */}
-                        {order.overallStatus === "CancelledByUser" && order.reason && (
+                        {order.overallStatus === "Failed" && order.reason && (
                             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
                                 <h4 className="text-md font-medium mb-2 text-yellow-800">
                                     Lý do hủy đơn:
