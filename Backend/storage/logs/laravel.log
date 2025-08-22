@@ -223,7 +223,59 @@
 #66 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
 #67 {main}
 "} 
+<<<<<<< HEAD
 [2025-08-22 13:04:44] local.ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ob.OverallStatus' in 'WHERE' (Connection: mysql, SQL: select `s`.`ShopID`, `s`.`ShopName`, COUNT(ob.OrderID) AS OrderNumber, SUM(oi.Subtotal) AS TotalRevenue, SUM(oi.Quantity) AS NumProductsSold from `OrdersBuyer` as `ob` inner join `OrderItems` as `oi` on `ob`.`OrderID` = `oi`.`OrderID` inner join `ProductVariants` as `pv` on `oi`.`VariantID` = `pv`.`VariantID` inner join `Products` as `p` on `pv`.`ProductID` = `p`.`ProductID` inner join `Shops` as `s` on `p`.`ShopID` = `s`.`ShopID` where `ob`.`OrderDate` between 2025-07-31 00:00:00 and 2025-08-22 23:59:59 and `s`.`ShopID` = 1 and `ob`.`OverallStatus` = Completed group by `s`.`ShopID`, `s`.`ShopName` order by `TotalRevenue` desc limit 1) {"userId":2,"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ob.OverallStatus' in 'WHERE' (Connection: mysql, SQL: select `s`.`ShopID`, `s`.`ShopName`, COUNT(ob.OrderID) AS OrderNumber, SUM(oi.Subtotal) AS TotalRevenue, SUM(oi.Quantity) AS NumProductsSold from `OrdersBuyer` as `ob` inner join `OrderItems` as `oi` on `ob`.`OrderID` = `oi`.`OrderID` inner join `ProductVariants` as `pv` on `oi`.`VariantID` = `pv`.`VariantID` inner join `Products` as `p` on `pv`.`ProductID` = `p`.`ProductID` inner join `Shops` as `s` on `p`.`ShopID` = `s`.`ShopID` where `ob`.`OrderDate` between 2025-07-31 00:00:00 and 2025-08-22 23:59:59 and `s`.`ShopID` = 1 and `ob`.`OverallStatus` = Completed group by `s`.`ShopID`, `s`.`ShopName` order by `TotalRevenue` desc limit 1) at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:824)
+=======
+[2025-08-22 11:13:27] local.ERROR: Gửi webhook TRỰC TIẾP thất bại cho yêu cầu RR-68A84F9E2ED89: cURL error 7: Failed to connect to localhost port 8000 after 0 ms: Could not connect to server (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for http://localhost:8000/api/webhook  
+[2025-08-22 11:13:34] local.INFO: Đã đẩy yêu cầu hoàn tiền VNPay #15 vào hàng đợi sau khi xác nhận nhận hàng.  
+[2025-08-22 11:13:37] local.INFO: [API CALL] VNPay Refund Request URL: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction  
+[2025-08-22 11:13:37] local.INFO: [API CALL] VNPay HASHING STRING: vnp_Amount=251100000&vnp_Command=refund&vnp_CreateBy=system_seller_approve&vnp_CreateDate=20250822111337&vnp_IpAddr=8.8.8.8&vnp_OrderInfo=HoantienEMK20250822ZNNHFE&vnp_RequestId=609810&vnp_TmnCode=7VLCM12C&vnp_TransactionDate=20250822180647&vnp_TransactionNo=15143061&vnp_TransactionType=02&vnp_TxnRef=EMK20250822ZNNHFE&vnp_Version=2.1.0  
+[2025-08-22 11:13:37] local.INFO: [API CALL] VNPay Refund Request Data:  {"vnp_Amount":"251100000","vnp_Command":"refund","vnp_CreateBy":"system_seller_approve","vnp_CreateDate":"20250822111337","vnp_IpAddr":"8.8.8.8","vnp_OrderInfo":"HoantienEMK20250822ZNNHFE","vnp_RequestId":609810,"vnp_TmnCode":"7VLCM12C","vnp_TransactionDate":"20250822180647","vnp_TransactionNo":"15143061","vnp_TransactionType":"02","vnp_TxnRef":"EMK20250822ZNNHFE","vnp_Version":"2.1.0","vnp_SecureHash":"5c4400032b9451c6a641f86b1b5c0264583bdf68086576d58d134d8697cc35954de1ce45e94060c9b7504617e4caf76bebd9fe280912c53a16b6f5f514ca4633"} 
+[2025-08-22 11:13:37] local.INFO: [API CALL] VNPay Refund Response:  {"{\"Message\":\"An_error_has_occurred_\"}":""} 
+[2025-08-22 11:13:37] local.ERROR: [API CALL] Phản hồi từ VNPay không hợp lệ. {"response_body":"{\"Message\":\"An error has occurred.\"}"} 
+[2025-08-22 12:40:22] local.INFO: Cart data fetched from DB. Number of rows: 0  
+[2025-08-22 12:40:22] local.INFO: Cart data structured successfully. Number of items: 0  
+[2025-08-22 12:40:23] local.INFO: Cart data fetched from DB. Number of rows: 0  
+[2025-08-22 12:40:23] local.INFO: Cart data structured successfully. Number of items: 0  
+[2025-08-22 12:40:40] local.INFO: Cart data fetched from DB. Number of rows: 1  
+[2025-08-22 12:40:40] local.INFO: Cart data structured successfully. Number of items: 1  
+[2025-08-22 12:40:52] local.INFO: Cart data fetched from DB. Number of rows: 2  
+[2025-08-22 12:40:52] local.INFO: Cart data structured successfully. Number of items: 2  
+[2025-08-22 12:41:28] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-22 12:41:28] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-22 12:42:44] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-22 12:42:44] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-22 12:42:45] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-22 12:42:45] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-22 12:43:03] local.INFO: Cart data fetched from DB. Number of rows: 4  
+[2025-08-22 12:43:03] local.INFO: Cart data structured successfully. Number of items: 4  
+[2025-08-22 12:43:12] local.INFO: Cart data fetched from DB. Number of rows: 4  
+[2025-08-22 12:43:12] local.INFO: Cart data structured successfully. Number of items: 4  
+[2025-08-22 12:43:13] local.INFO: Cart data fetched from DB. Number of rows: 4  
+[2025-08-22 12:43:13] local.INFO: Cart data structured successfully. Number of items: 4  
+[2025-08-22 12:43:49] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-22 12:43:49] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-22 12:43:50] local.INFO: Cart data fetched from DB. Number of rows: 3  
+[2025-08-22 12:43:50] local.INFO: Cart data structured successfully. Number of items: 3  
+[2025-08-22 12:44:37] local.INFO: --- Received request for placeOrder (FINAL LOGIC) --- {"shippingAddressId":18,"shopNotes":{"1":"Nhớ bỏ chống sốc","2":"Nhớ bỏ chống sốc a"},"paymentMethod":"VNPay","items":[{"variantId":14,"quantity":2},{"variantId":137,"quantity":1},{"variantId":108,"quantity":1}],"shopVoucherCodes":["BICHTECH10","ESHOPVOUCHER"],"platformVoucherCodes":["WELCOME50","FREESHIP40K"],"shippingFee":60000} 
+[2025-08-22 12:44:38] local.INFO: Voucher validation passed for UserID: 25  
+[2025-08-22 12:44:39] local.INFO: placeOrder (Full Allocation): Successfully created OrderID: 4121  
+[2025-08-22 12:44:55] local.INFO: Updated notes for draft OrderID 4121 ["Nhớ bỏ chống sốc","Nhớ bỏ chống sốc a"] 
+[2025-08-22 12:44:56] local.INFO: --- VNPAY PAYMENT CREATION: START ---  
+[2025-08-22 12:44:56] local.INFO: Attempting to create payment for OrderID: [4121]  
+[2025-08-22 12:44:56] local.INFO: Order found and validated successfully for UserID [25].  
+[2025-08-22 12:44:57] local.INFO: VNPAY PAYMENT CREATION: SUCCESS. Redirecting user.  
+[2025-08-22 12:45:17] local.INFO: --- [VNPAY_RETURN] Received callback from VNPay --- {"vnp_Amount":"700100000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP15143171","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan don hang EMK20250822Q0QPMX","vnp_PayDate":"20250822194625","vnp_ResponseCode":"00","vnp_TmnCode":"7VLCM12C","vnp_TransactionNo":"15143171","vnp_TransactionStatus":"00","vnp_TxnRef":"EMK20250822Q0QPMX","vnp_SecureHash":"0be5ef90dc99cbe6f4d66cb375ea961a406eaa84da2ac12b47b3995cdb057d92be12858cd37554758f38e2cb069f46727b0bebc396cb7a2245766c45e0768c68"} 
+[2025-08-22 12:45:17] local.INFO: [VNPAY_RETURN] SIGNATURE MATCH for order: EMK20250822Q0QPMX  
+[2025-08-22 12:45:17] local.INFO: [VNPAY_RETURN] Payment SUCCESS for order: EMK20250822Q0QPMX. Checking order status...  
+[2025-08-22 12:45:18] local.INFO: [VNPAY_RETURN_TRANSACTION] Updated order status for OrderID: 4121  
+[2025-08-22 12:45:19] local.INFO: [OrderProcessing] Decremented stock for OrderID: 4121  
+[2025-08-22 12:45:19] local.INFO: [OrderProcessing] Incremented SoldCount for products in OrderID: 4121 [2,1,1] 
+[2025-08-22 12:45:19] local.INFO: [OrderProcessing] Cleared cart items for UserID: 25  
+[2025-08-22 12:45:20] local.INFO: Successfully updated usage counters for vouchers in OrderID: 4121 ["WELCOME50","FREESHIP40K","BICHTECH10","ESHOPVOUCHER"] 
+[2025-08-22 12:45:21] local.INFO: [VNPAY_RETURN] Transaction for order EMK20250822Q0QPMX COMPLETED successfully.  
+[2025-08-22 13:15:54] local.ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ob.OverallStatus' in 'WHERE' (Connection: mysql, SQL: select `s`.`ShopID`, `s`.`ShopName`, COUNT(ob.OrderID) AS OrderNumber, SUM(oi.Subtotal) AS TotalRevenue, SUM(oi.Quantity) AS NumProductsSold from `OrdersBuyer` as `ob` inner join `OrderItems` as `oi` on `ob`.`OrderID` = `oi`.`OrderID` inner join `ProductVariants` as `pv` on `oi`.`VariantID` = `pv`.`VariantID` inner join `Products` as `p` on `pv`.`ProductID` = `p`.`ProductID` inner join `Shops` as `s` on `p`.`ShopID` = `s`.`ShopID` where `ob`.`OrderDate` between 2025-07-31 00:00:00 and 2025-08-22 23:59:59 and `s`.`ShopID` = 1 and `ob`.`OverallStatus` = Completed group by `s`.`ShopID`, `s`.`ShopName` order by `TotalRevenue` desc limit 1) {"userId":2,"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S22): SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ob.OverallStatus' in 'WHERE' (Connection: mysql, SQL: select `s`.`ShopID`, `s`.`ShopName`, COUNT(ob.OrderID) AS OrderNumber, SUM(oi.Subtotal) AS TotalRevenue, SUM(oi.Quantity) AS NumProductsSold from `OrdersBuyer` as `ob` inner join `OrderItems` as `oi` on `ob`.`OrderID` = `oi`.`OrderID` inner join `ProductVariants` as `pv` on `oi`.`VariantID` = `pv`.`VariantID` inner join `Products` as `p` on `pv`.`ProductID` = `p`.`ProductID` inner join `Shops` as `s` on `p`.`ShopID` = `s`.`ShopID` where `ob`.`OrderDate` between 2025-07-31 00:00:00 and 2025-08-22 23:59:59 and `s`.`ShopID` = 1 and `ob`.`OverallStatus` = Completed group by `s`.`ShopID`, `s`.`ShopName` order by `TotalRevenue` desc limit 1) at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:824)
+>>>>>>> mergemain
 [stacktrace]
 #0 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select `s`.`Sho...', Array, Object(Closure))
 #1 /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php(397): Illuminate\\Database\\Connection->run('select `s`.`Sho...', Array, Object(Closure))
@@ -363,6 +415,7 @@
 #66 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
 #67 {main}
 "} 
+<<<<<<< HEAD
 [2025-08-22 13:05:03] local.ERROR: Route [login] not defined. {"exception":"[object] (Symfony\\Component\\Routing\\Exception\\RouteNotFoundException(code: 0): Route [login] not defined. at /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/UrlGenerator.php:526)
 [stacktrace]
 #0 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/helpers.php(885): Illuminate\\Routing\\UrlGenerator->route('login', Array, true)
@@ -596,3 +649,5 @@
 #55 /var/www/html/public/index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
 #56 {main}
 "} 
+=======
+>>>>>>> mergemain

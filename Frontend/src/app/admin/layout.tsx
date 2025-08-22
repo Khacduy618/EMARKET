@@ -17,6 +17,7 @@ import {
 import { useRouter } from 'next/navigation';
 
 import Header from "@/app/seller/components/Header";
+import RoleGuard from '../components/auth/RoleGuard';
 
 export default function AdminLayout({
   children,
@@ -117,6 +118,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <RoleGuard allowedRoles = {['Admin']}>
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -199,6 +201,7 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
+      </RoleGuard>
     </div>
   );
 }
