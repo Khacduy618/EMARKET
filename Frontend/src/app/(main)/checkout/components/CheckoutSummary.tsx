@@ -1,5 +1,5 @@
 
-
+// checkout/components/CheckoutSummary.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -10,6 +10,7 @@ import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@pa
 import type { OrderResponseBody } from "@paypal/paypal-js";
 import { toast } from 'react-toastify';
 import { Loader, AlertTriangle, Loader2 } from 'lucide-react';
+import { formatVND } from '@/services/api';
 
 // --- Helper component cho các nút PayPal (để giữ cho code chính gọn gàng) ---
 const PaypalButtonWrapper = ({ currency, summary, onCompleteOrder }: { currency: string, summary: CheckoutData['summary'], onCompleteOrder: (details: OrderResponseBody) => void }) => {
@@ -88,6 +89,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMetho
   const [isProcessing, setIsProcessing] = useState(false);
 console.log("--- CheckoutSummary RENDERED ---");
     console.log("Props received: orderId =", orderId, ", paymentMethod.type =", paymentMethod.type);
+    
   const handleVnPayClick = async () => {
       setIsProcessing(true);
       try {
@@ -154,88 +156,48 @@ console.log("--- CheckoutSummary RENDERED ---");
 
   return (
     <div className='sticky bottom-0 mt-4'>
-      {/* Phần hiển thị chi tiết giữ nguyên */}
-      <div className=" bg-white rounded-ss-sm rounded-se-sm shadow-sm border border-gray-200">
+      <div className="bg-white rounded-t-sm shadow-sm border">
         <div className="p-4 space-y-2 text-sm border-b">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Chi tiết thanh toán</h3>
+          <h3 className="text-base font-semibold text-gray-800 mb-2">Chi tiết thanh toán</h3>
           <div className="flex justify-between">
             <span className="text-gray-600">Tổng tiền hàng</span>
-            <span className="text-gray-800">{formatPrice(summary.totalProductsPrice)}</span>
+            <span className="text-gray-800">{formatVND(summary.totalProductsPrice)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Phí vận chuyển</span>
-            <span className="text-gray-800">{formatPrice(summary.totalShippingFee)}</span>
+            <span className="text-gray-800">{formatVND(summary.totalShippingFee)}</span>
           </div>
-          {totalVoucherDiscount > 0 && (
-          <div className="flex justify-between">
-            <span>Tổng cộng Voucher giảm giá</span>
-            <span className="text-green-600">-{formatPrice(totalVoucherDiscount)}</span>
-          </div>
-        )}
+          {/* **SỬA LỖI: HIỂN THỊ CÁC LOẠI GIẢM GIÁ RIÊNG LẺ TỪ SUMMARY** */}
+          {summary.totalShopVoucherDiscount > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Tổng giảm giá Voucher Shop</span>
+              <span className="text-orange-500">- {formatVND(summary.totalShopVoucherDiscount)}</span>
+            </div>
+          )}
+          {summary.totalFreeship > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Giảm giá vận chuyển</span>
+              <span className="text-orange-500">- {formatVND(summary.totalFreeship)}</span>
+            </div>
+          )}
+          {summary.totalSaleoff > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Giảm giá E-Market</span>
+              <span className="text-orange-500">- {formatVND(summary.totalSaleoff)}</span>
+            </div>
+          )}
         </div>
         <div className="py-4 px-4 flex justify-between items-center">
           <span className="font-semibold text-gray-800">Tổng thanh toán:</span>
-          <span className="text-2xl font-bold text-orange-500">{formatPrice(summary.finalTotal)}</span>
+          <span className="text-2xl font-bold text-orange-500">{formatVND(summary.finalTotal)}</span>
         </div>
       </div>
-
       
-      {/* <div className=" bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
-        <p className="text-xs text-gray-500 max-w-md">
+      <div className="bg-white p-4 rounded-b-sm shadow-sm border-t-0 border flex justify-between items-center">
+        <p className="text-xs text-gray-500 max-w-[550px]">
           Nhấn "Đặt Hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
           <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
         </p>
-        
-        <div className="w-full max-w-[250px] text-end">
-         
-          {!orderId ? (
-            // TRẠNG THÁI 1: CHƯA CÓ ĐƠN HÀNG NHÁP
-            <button
-              onClick={onPlaceOrder} // Gọi hàm tạo đơn hàng nháp
-              className="bg-blue-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Tiến hành Thanh toán
-            </button>
-          ) : (
-            // TRẠNG THÁI 2: ĐÃ CÓ ĐƠN HÀNG NHÁP, HIỂN THỊ CÁC LỰA CHỌN CUỐI CÙNG
-            <>
-             
-                {paymentMethod.type === 'Paypal' && (
-                    <PayPalScriptProvider options={{ clientId: payPalClientID, currency: "USD" }}>
-                        <PaypalButtonWrapper 
-                            currency="USD"
-                            summary={summary}
-                            onCompleteOrder={onCompleteOrder}
-                        />
-                    </PayPalScriptProvider>
-                )}
-                
-                {paymentMethod.type === 'VNPay' && (
-                     <button
-                    onClick={handleVnPayClick}
-                    disabled={isProcessing}
-                    className="w-full bg-red-600 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-400"
-                >
-                    {isProcessing ? <Loader2 className="mx-auto animate-spin" /> : 'Thanh toán qua VNPay'}
-                </button>
-                )}
-                
-                {paymentMethod.type === 'COD' && (
-                    <button onClick={() => onCompleteOrder()} className="bg-orange-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-orange-700 transition-colors">
-                        Xác nhận Đặt hàng (COD)
-                    </button>
-                )}
-             
-            </>
-          )}
-        </div>
-      </div> */}
-      <div className="bg-white p-4 rounded-es-sm rounded-ee-sm shadow-sm border border-gray-200 flex justify-between items-center">
-        <p className="text-xs text-gray-500 max-w-md">
-          Nhấn "Đặt Hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
-          <Link href="/terms" className="text-blue-500"> Điều khoản E-Market</Link>.
-        </p>
-        
         <div className="w-full max-w-[250px] text-end">
           {actionButton}
         </div>

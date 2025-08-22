@@ -1,9 +1,9 @@
-// Các kiểu dữ liệu phụ, lồng nhau
 export interface ApiUser {
     UserID: number;
     FullName: string;
     Phone?: string;
 }
+
 
 export interface ApiOrder {
     OrderID: number;
@@ -11,10 +11,12 @@ export interface ApiOrder {
     PaymentMethod: 'COD' | 'VNPay' | string;
 }
 
+
 export interface ApiProduct {
     ProductID: number;
     Name: string;
 }
+
 
 export interface ApiVariant {
     VariantID: number;
@@ -23,12 +25,14 @@ export interface ApiVariant {
     product: ApiProduct;
 }
 
+
 export interface ApiOrderItem {
     OrderItemID: number;
     Quantity: number;
     PriceAtPurchase: number;
     variant: ApiVariant;
 }
+
 
 // Kiểu dữ liệu chính cho một yêu cầu trả hàng
 export interface ReturnRequest {
@@ -42,7 +46,7 @@ export interface ReturnRequest {
     EvidenceURLs: string | string[] | null;
     Status: string;
     SellerNote: string | null;
-    RefundAmount: string | null;
+    RefundAmount: string;
     RequestedAt: string;
     RefundBankName: string | null;
     RefundAccountNumber: string | null;
@@ -50,8 +54,25 @@ export interface ReturnRequest {
     user: ApiUser;
     order: ApiOrder;
     order_item: ApiOrderItem;
+    order_buyer: ApiOrder; // Thông tin đơn hàng của người mua
+    seller_order: SellerOrder;
 }
 
+
+interface OrderItem {
+    OrderItemID: number;
+    VariantID: number;
+    Quantity: number;
+    PriceAtPurchase: number;
+
+
+}
+
+
+interface SellerOrder {
+    SellerOrderID: number;
+    SellerOrderCode: string;
+}
 // Kiểu dữ liệu cho phản hồi API có phân trang
 export interface PaginatedResponse<T> {
     current_page: number;

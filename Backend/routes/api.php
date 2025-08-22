@@ -37,6 +37,30 @@ use App\Http\Controllers\ShopController as BuyerShopController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\SellerReturnRequestController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use App\Http\Controllers\StatisticsController as BuyerStatisticsController;
+use App\Http\Controllers\Admin\AdminReturnRequestController;
+
+Route::post('/login-token', function (Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required', 
+    ]);
+
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    $user = Auth::user();
+    
+    
+    $token = $user->createToken($request->device_name)->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user' => $user
+    ]);
+});
 
 Route::get('/user/shop-status', function (Request $request) {
     $user = $request->user();
@@ -185,6 +209,8 @@ Route::middleware('auth:sanctum')->group(function (){
     
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::get('/vouchers/platform-eligible', [VoucherController::class, 'getEligiblePlatformVouchers']);
+    Route::post('/vouchers/{voucher}/collect', [VoucherController::class, 'collectVoucher']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
 
      //checkout
@@ -198,12 +224,16 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::get('/orders', [OrderController::class, 'index']);
 
-    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
     // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
     Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+        Route::get('seller-orders/{sellerOrderId}', [OrderController::class, 'showSellerOrder']);
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
 
     Route::delete('/orders/{orderId}/cancel-draft', [OrderController::class, 'cancelDraft']);
     // Route MỚI để xác nhận và hoàn tất đơn hàng đã có
+     Route::put('/orders/{orderId}/update-draft', [OrderController::class, 'updateDraft']);
     Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
@@ -228,6 +258,22 @@ Route::middleware('auth:sanctum')->group(function (){
 
     // Xử lý tương tác Like / Dislike
     Route::post('/comments/{comment}/interaction', [CommentController::class, 'handleInteraction']);
+
+    Route::get('/statistics/overview', [BuyerStatisticsController::class, 'getSpendingOverview']);
+        
+    // Endpoint cho chi tiêu theo Danh mục
+    Route::get('/statistics/by-category', [BuyerStatisticsController::class, 'getSpendingByCategory']);
+    
+    // Endpoint cho chi tiêu theo Shop
+    Route::get('/statistics/by-shop', [BuyerStatisticsController::class, 'getSpendingByShop']);
+    
+    // Endpoint cho biểu đồ Xu hướng chi tiêu
+    Route::get('/statistics/trend', [BuyerStatisticsController::class, 'getSpendingTrend']);
+    
+    // Endpoint cho Modal danh sách đơn hàng (tái sử dụng từ OrderController hoặc tạo mới)
+    Route::get('/statistics/orders-summary', [BuyerStatisticsController::class, 'getOrdersSummary']);
+
+
 });
 
 Route::get('/shops/{shopId}/details', [BuyerShopController::class, 'getShopDetails']);
@@ -263,80 +309,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
     Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
 });
-
-// Route::middleware('auth:sanctum' )->group(function () {
-//     Route::get('/user', [AuthController::class, 'user']);
-//     Route::middleware('seller')->group(function () {
-//         Route::get('/platform-categories', [ShopCategoryController::class, 'getPlatformCategories']);
-//         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
-//         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
-//         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
-//         Route::get('/products', [ShopProductController::class, 'index']);
-//         Route::post('/shop/products', [ShopProductController::class, 'store']);
-//         Route::get('/shop/products/{productID}', [ShopProductController::class, 'show']);
-//         Route::post('/shop/products/{ProductID}', [ShopProductController::class, 'update']);
-//         Route::delete('/shop/products/{productID}', [ShopProductController::class, 'destroy']);
-//         Route::get('/attributes/{categoryID}', [ShopProductController::class, 'getAttributes']);
-//         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
-//     });
-// });
-
-
-/*____________________________________________________________________
-  |                            Admin route                           |
-  |__________________________________________________________________| */
-
-// Category route
-// Route::get('/admin/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
-// Route::get('/admin/categories/list', [AdminCategory::class, "index"]);
-// Route::post('/admin/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
-// Route::get('/admin/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-// Route::patch('/admin/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
-// Route::delete('/admin/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
-
-// // Shop route
-// Route::get('/admin/shops', [ShopController::class, "index"]);
-// Route::put('/admin/shops/{shopId}/status', [ShopController::class, 'changeStatus']);
-// Route::get('/admin/shops/{id}', [ShopController::class, 'shopDetail']);
-
-// // Product route
-// Route::get('/admin/products', [ProductControllers::class, "index"]);
-// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);
-// Route::get('/admin/products', [ProductControllers::class, "index"]);
-
-
-
-// // End product route
-
-// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-//     //ORDER ADMIN
-// Route::get('/orderadmin', [AdminOrderController::class, 'index']);
-// Route::get('/ordersadmin/{id}', [AdminOrderController::class, 'show']);
-
-// //ORDER ADMIN
-//     // routes/api.php
-// Route::get('/ordersadmin/{orderBuyer}', [AdminOrderController::class, 'show']);
-// Route::get('/ordersadmin/{order}/items', [OrderItemController::class, 'index']);
-// });
-
-// // Route để lấy thông tin CHI TIẾT của MỘT mục sản phẩm
-// // Ví dụ: GET /api/order-items/45
-// Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
-// Route::prefix('admin/reviews')->middleware('auth:sanctum')->name('admin.reviews.')->group(function () {
-//     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
-//     Route::get('stats', [ProductReviewController::class, 'stats'])->name('stats');
-//     Route::get('export', [ProductReviewController::class, 'export'])->name('export');
-
-//     // Các hành động được hỗ trợ
-//     Route::post('{review}/approve', [ProductReviewController::class, 'approve'])->name('approve');
-//     Route::post('{review}/reject', [ProductReviewController::class, 'reject'])->name('reject');
-//     Route::post('{review}/reply', [ProductReviewController::class, 'reply'])->name('reply');
-//     Route::delete('{review}', [ProductReviewController::class, 'destroy'])->name('delete');
-// });
-/* ___________________________________________________________________
-  |                            Seller route                           |
-  |___________________________________________________________________| */
 
 // Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
@@ -408,54 +380,6 @@ Route::post('/webhook', [SellerOrderController::class, 'handle']);
 
 
 
-//route chat;
-
-Route::middleware('auth:sanctum')->post('/auth/validate-socket-token', function (Request $request) {
-    Log::info('--- Socket Token Validation Endpoint Hit ---');
-    Log::info('Request Headers: ', $request->headers->all()); // Xem tất cả headers
-    Log::info('Authorization Header Content: ' . $request->header('Authorization'));
-    Log::info('Auth User (before check): ', ['user_id' => Auth::id(), 'user_object' => Auth::user() ? Auth::user() : null]);
-
-
-    $user = Auth::user(); // Thử lấy user sau khi middleware chạy
-
-    if ($user) {
-        Log::info('Token VALIDATED for user:', ['user_id' => $user->UserID, 'username' => $user->Username]);
-        return response()->json(['user' => [
-            'id' => $user->UserID,
-            'username' => $user->Username,
-            'avatar_url' => $user->avatar_url ?? null,
-        ]]);
-    } else {
-        Log::warning('Token VALIDATION FAILED: $request->user() is null or middleware did not authenticate.');
-        // Thử kiểm tra thủ công token nếu $request->user() là null
-        // (Phần này tùy thuộc vào cách bạn quản lý token - ví dụ với Sanctum Personal Access Tokens)
-        // $token = $request->bearerToken();
-        // if ($token) {
-        //     $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        //     if ($personalAccessToken && $personalAccessToken->tokenable) {
-        //          Log::info('Manual token check successful for user:', ['user_id' => $personalAccessToken->tokenable->UserID]);
-        //          // Logic trả về user info nếu muốn
-        //     } else {
-        //          Log::warning('Manual token check failed: Token not found or not valid.');
-        //     }
-        // } else {
-        //      Log::warning('Manual token check failed: No bearer token found.');
-        // }
-        return response()->json(['message' => 'Unauthenticated.'], 401);
-    }
-});
-
-    // Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations']);
-    Route::get('/chat/my-conversations', [ChatController::class, 'getMyConversations'])->middleware('auth:sanctum');
-
-// API Routes for Socket.IO Server (cần cơ chế bảo vệ riêng, ví dụ IP Whitelisting hoặc Secret Key)
-// Bạn có thể nhóm chúng lại với một middleware bảo vệ riêng.
-Route::prefix('internal-chat-api')->middleware(['auth.socketserver'])->group(function () { // 'auth.socketserver' là middleware bạn tự tạo
-    Route::post('/update-conversation-meta', [ChatController::class, 'updateConversationMeta']);
-    Route::post('/mark-meta-as-read', [ChatController::class, 'markMetaAsRead']);
-});
-
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
   Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
@@ -498,24 +422,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         
         Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     });
-
-    // Route này sẽ tự tạo:
-    // GET    /api/admin/users             -> index()
-    // POST   /api/admin/users             -> store()
-    // GET    /api/admin/users/{user}      -> show()
-    // PUT    /api/admin/users/{user}      -> update()
-    // DELETE /api/admin/users/{user}      -> destroy()
-    // Route::apiResource('users', AdminUserController::class)->except(['show']); // Bỏ show() nếu không cần
-
-    // // Route cập nhật trạng thái vẫn giữ riêng
-    // Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+    // === RETURN REQUEST MANAGEMENT ===
+    Route::get('/return-requests/pending-refunds', [AdminReturnRequestController::class, 'listPendingRefunds']);
 });
 
 Route::post('/check-phone-availability', [AuthController::class, 'checkPhone'])
     ->middleware('throttle:10,1'); // Giới hạn 10 request/phút mỗi IP
 Route::post('/check-username-availability', [AuthController::class, 'checkUsername']);
 Route::post('/check-email-availability', [AuthController::class, 'checkEmail']);
-// Product route
-// Route::get('/admin/products', [ProductControllers::class, "index"]);
-// Route::put('/admin/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
-// Route::get('/admin/products/{id}', [ProductControllers::class, 'detailProduct']);

@@ -31,16 +31,14 @@ export default function RegisterPage() {
     const router = useRouter();
 
     const [formData, setFormData] = useState({
-        FullName: '', Username: '', Email: '', Phone: '',
+        FullName: '', Email: '',
         Password: '', Password_confirmation: '',
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [status, setStatus] = useState<{ [key: string]: FieldStatus }>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [debouncedUsername] = useDebounce(formData.Username, 500);
     const [debouncedEmail] = useDebounce(formData.Email, 500);
-    const [debouncedPhone] = useDebounce(formData.Phone, 500);
 
     const [showPw, setShowPw] = useState(false)
     const [showPw2, setShowPw2] = useState(false)
@@ -48,16 +46,7 @@ export default function RegisterPage() {
     useEffect(() => { if (user) router.push('/'); }, [user, router]);
 
     // --- CÁC HÀM VALIDATION REAL-TIME ---
-    const checkUsername = useCallback(async (value: string) => {
-        if (!value.trim()) return;
-        if (value.length <= 3) { setErrors(p => ({ ...p, Username: "Phải dài hơn 3 ký tự." })); return; }
-        if (startsWithNumber(value)) { setErrors(p => ({ ...p, Username: "Không được bắt đầu bằng số." })); return; }
-
-        setStatus(p => ({ ...p, Username: 'checking' }));
-        const { isAvailable } = await checkUsernameAvailability(value);
-        if (isAvailable) { setStatus(p => ({ ...p, Username: 'valid' })); }
-        else { setErrors(p => ({ ...p, Username: "Tên đăng nhập đã tồn tại." })); setStatus(p => ({ ...p, Username: 'invalid' })); }
-    }, []);
+    
 
     const checkEmail = useCallback(async (value: string) => {
         if (!value.trim()) return;
@@ -70,19 +59,9 @@ export default function RegisterPage() {
         else { setErrors(p => ({ ...p, Email: "Email này đã được sử dụng." })); setStatus(p => ({ ...p, Email: 'invalid' })); }
     }, []);
 
-    const checkPhone = useCallback(async (value: string) => {
-        if (!value.trim()) return;
-        if (!isValidVietnamesePhone(value)) { setErrors(p => ({ ...p, Phone: "Số điện thoại không hợp lệ." })); return; }
+   
 
-        setStatus(p => ({ ...p, Phone: 'checking' }));
-        const { isAvailable } = await checkPhoneAvailability(value);
-        if (isAvailable) { setStatus(p => ({ ...p, Phone: 'valid' })); }
-        else { setErrors(p => ({ ...p, Phone: "Số điện thoại đã được sử dụng." })); setStatus(p => ({ ...p, Phone: 'invalid' })); }
-    }, []);
-
-    useEffect(() => { checkUsername(debouncedUsername); }, [debouncedUsername, checkUsername]);
     useEffect(() => { checkEmail(debouncedEmail); }, [debouncedEmail, checkEmail]);
-    useEffect(() => { checkPhone(debouncedPhone); }, [debouncedPhone, checkPhone]);
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

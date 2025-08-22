@@ -42,7 +42,10 @@ class OrderItem extends Model {
     {
         return is_numeric($value) ? (float) $value : 0.0;
     }
-
+    public function sellerOrder()
+    {
+        return $this->belongsTo(SellerOrder::class, 'SellerOrderID', 'SellerOrderID');
+    }
     public function getSubtotalAttribute($value)
     {
         return is_numeric($value) ? (float) $value : 0.0;

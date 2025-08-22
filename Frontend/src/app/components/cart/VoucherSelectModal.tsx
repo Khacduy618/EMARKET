@@ -7,7 +7,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Loader2, Tag, Store, Truck, DollarSign, XCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Voucher, VoucherCouponType, FetchVouchersResponse, AppliedVouchersCombined } from '@/types';
-import { fetchAvailableVouchers } from '@/services/voucher';
+import { fetchEligiblePlatformVouchers } from '@/services/voucher';
 
 interface VoucherSelectModalProps {
     isOpen: boolean;
@@ -27,7 +27,6 @@ const VoucherSelectModal: React.FC<VoucherSelectModalProps> = ({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [platformVouchers, setPlatformVouchers] = useState<Voucher[]>([]);
-    const [shopVouchers, setShopVouchers] = useState<Voucher[]>([]); // Vẫn fetch nhưng không hiển thị trong modal này
 
     // NEW: State cho ID của voucher FreeShip được chọn
     const [selectedFreeShipVoucherId, setSelectedFreeShipVoucherId] = useState<number | null>(null);
@@ -36,20 +35,7 @@ const VoucherSelectModal: React.FC<VoucherSelectModalProps> = ({
 
     const [manualVoucherCode, setManualVoucherCode] = useState<string>('');
 
-    useEffect(() => {
-        if (initialAppliedVouchers) {
-            setSelectedFreeShipVoucherId(initialAppliedVouchers.freeShipVoucher?.VoucherID || null);
-            setSelectedSaleOffVoucherId(initialAppliedVouchers.saleOffVoucher?.VoucherID || null);
-        } else {
-            setSelectedFreeShipVoucherId(null);
-            setSelectedSaleOffVoucherId(null);
-        }
-        if (isOpen) {
-             // Fetch vouchers every time modal opens to get fresh data
-            loadVouchers();
-        }
-    }, [isOpen, initialAppliedVouchers]);
-
+    
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
         switch (type) {
             case 'success':
@@ -73,9 +59,8 @@ const VoucherSelectModal: React.FC<VoucherSelectModalProps> = ({
         setLoading(true);
         setError(null);
         try {
-            const data: FetchVouchersResponse = await fetchAvailableVouchers();
-            setPlatformVouchers(data.platformVouchers);
-            setShopVouchers(data.shopVouchers); // Keep shop vouchers in state, though not used in this modal directly
+            const data = await fetchEligiblePlatformVouchers();
+            setPlatformVouchers(data.platformVouchers || []);
         } catch (err: any) {
             console.error("Failed to fetch vouchers:", err);
             const errorMessage = err.response?.data?.message || 'Không thể tải voucher. Vui lòng thử lại.';
@@ -86,16 +71,26 @@ const VoucherSelectModal: React.FC<VoucherSelectModalProps> = ({
         }
     }, [showNotification]);
 
+     useEffect(() => {
+        if (isOpen) {
+            // Đồng bộ state lựa chọn với giá trị ban đầu khi mở modal
+            setSelectedFreeShipVoucherId(initialAppliedVouchers?.freeShipVoucher?.VoucherID || null);
+            setSelectedSaleOffVoucherId(initialAppliedVouchers?.saleOffVoucher?.VoucherID || null);
+            setManualVoucherCode(''); // Luôn reset mã nhập tay khi mở modal
+            loadVouchers();
+        }
+    }, [isOpen, initialAppliedVouchers, loadVouchers]);
+
 
     // NEW: Hàm xử lý lựa chọn voucher theo từng loại
     const handleSelectVoucherOfType = (type: VoucherCouponType, voucherId: number) => {
         setManualVoucherCode(''); // Luôn xóa input thủ công khi chọn radio button
         if (type === 'FreeShip') {
             // Nếu click vào voucher FreeShip đang được chọn, thì bỏ chọn
-            setSelectedFreeShipVoucherId(prevId => prevId === voucherId ? null : voucherId);
+            setSelectedFreeShipVoucherId(prevId => (prevId === voucherId ? null : voucherId));
         } else if (type === 'SaleOff') {
             // Nếu click vào voucher SaleOff đang được chọn, thì bỏ chọn
-            setSelectedSaleOffVoucherId(prevId => prevId === voucherId ? null : voucherId);
+            setSelectedSaleOffVoucherId(prevId => (prevId === voucherId ? null : voucherId));
         }
         // KHÔNG CÒN DÒNG NÀO BỎ CHỌN LOẠI KHÁC.
     };
@@ -175,62 +170,60 @@ const VoucherSelectModal: React.FC<VoucherSelectModalProps> = ({
     };
 
 
-    // NEW: Hàm xử lý khi bấm nút "ÁP DỤNG"
     const handleApplyButtonClick = () => {
+        // Ưu tiên xử lý mã nhập tay NẾU có
+        if (manualVoucherCode.trim()) {
+            applyManualCode();
+            return;
+        }
+
+        // Nếu không có mã nhập tay, xử lý các lựa chọn radio
         let appliedFreeShip: Voucher | null = null;
         let appliedSaleOff: Voucher | null = null;
-        // Gom tất cả voucher để tìm kiếm, kể cả shopVouchers nếu sau này có logic phức tạp hơn
-        const allVouchers = [...platformVouchers, ...shopVouchers]; 
-        let hasInvalidSelection = false; // Cờ để theo dõi nếu có voucher đã chọn bị vô hiệu
+        let hasInvalidSelection = false;
 
         // Xử lý FreeShip Voucher đã chọn
         if (selectedFreeShipVoucherId) {
-            const freeShipVoucher = allVouchers.find(v => v.VoucherID === selectedFreeShipVoucherId && v.VoucherType === 'FreeShip');
-            if (freeShipVoucher && isVoucherSelectable(freeShipVoucher)) {
-                appliedFreeShip = freeShipVoucher; 
-            } else {
-                showNotification("Voucher FreeShip đã chọn không hợp lệ hoặc không đủ điều kiện.", 'error');
+            const voucher = platformVouchers.find(v => v.VoucherID === selectedFreeShipVoucherId);
+            if (voucher && isVoucherSelectable(voucher)) {
+                appliedFreeShip = voucher;
+            } else if (voucher) {
+                toast.error(`Voucher FreeShip "${voucher.Code}" không đủ điều kiện.`);
                 hasInvalidSelection = true;
             }
         }
-
+        
         // Xử lý SaleOff Voucher đã chọn
         if (selectedSaleOffVoucherId) {
-            const saleOffVoucher = allVouchers.find(v => v.VoucherID === selectedSaleOffVoucherId && v.VoucherType === 'SaleOff');
-            if (saleOffVoucher && isVoucherSelectable(saleOffVoucher)) {
-                appliedSaleOff = saleOffVoucher;
-            } else {
-                showNotification("Voucher Giảm Giá đã chọn không hợp lệ hoặc không đủ điều kiện.", 'error');
+            const voucher = platformVouchers.find(v => v.VoucherID === selectedSaleOffVoucherId);
+            if (voucher && isVoucherSelectable(voucher)) {
+                appliedSaleOff = voucher;
+            } else if (voucher) {
+                toast.error(`Voucher Giảm giá "${voucher.Code}" không đủ điều kiện.`);
                 hasInvalidSelection = true;
             }
         }
 
-        // Xử lý input mã thủ công (nếu có, nó sẽ ưu tiên hơn radio)
-        if (manualVoucherCode.trim()) {
-            applyManualCode(); // Gọi hàm xử lý mã thủ công riêng
-            return; // Dừng tại đây
+        // Nếu có lựa chọn không hợp lệ, dừng lại
+        if (hasInvalidSelection) {
+            return;
         }
 
-        // Nếu có ít nhất một voucher hợp lệ được chọn
-        if (appliedFreeShip || appliedSaleOff) {
-            onApplyVouchers({ freeShipVoucher: appliedFreeShip, saleOffVoucher: appliedSaleOff });
-            onClose();
-            let successMessage = "Đã áp dụng các voucher:";
-            if (appliedFreeShip) successMessage += ` ${appliedFreeShip.Code}`;
-            if (appliedSaleOff) successMessage += ` ${appliedSaleOff.Code}`;
-            showNotification(successMessage, 'success');
-        } else if (!hasInvalidSelection) {
-            // Nếu không có voucher nào được chọn VÀ không có lỗi từ lựa chọn trước đó
-            onApplyVouchers(null); // Gửi null để xóa voucher đã áp dụng
-            onClose();
-            showNotification("Đã hủy bỏ áp dụng voucher.", 'info');
+        // Nếu mọi thứ hợp lệ, áp dụng voucher và đóng modal
+        onApplyVouchers({ freeShipVoucher: appliedFreeShip, saleOffVoucher: appliedSaleOff });
+        
+        let message = "Đã cập nhật lựa chọn voucher.";
+        if (!appliedFreeShip && !appliedSaleOff) {
+            message = "Đã hủy bỏ tất cả voucher toàn sàn.";
         }
-        // Nếu có hasInvalidSelection, showNotification đã được gọi ở trên.
+        
+        toast.success(message);
+        onClose();
     };
-
+    
     const applyManualCode = () => {
         const codeToApply = manualVoucherCode.trim();
-        const allVouchers = [...platformVouchers, ...shopVouchers]; // Tìm trong tất cả voucher đã fetch
+        const allVouchers = [...platformVouchers]; // Tìm trong tất cả voucher đã fetch
         const foundVoucher = allVouchers.find(v => v.Code.toUpperCase() === codeToApply);
 
         if (!foundVoucher) {

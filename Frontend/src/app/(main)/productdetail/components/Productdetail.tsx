@@ -554,7 +554,7 @@ useEffect(() => {
             if (!response.ok) {
                 throw new Error(result.message || 'Lỗi xử lý Mua Ngay.');
             }
-            
+                
             localStorage.setItem('checkoutData', JSON.stringify(result as StoredCheckoutData));
             router.push('/checkout');
 

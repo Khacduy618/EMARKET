@@ -10,7 +10,7 @@ import Swal from "sweetalert2"
 import { getAuthToken } from "@/services/api" // Hàm helper của bạn để lấy token
 import Link from "next/link"
 import InfoBlock, { InfoRow } from "./components/InfoBlock" // Component của bạn
-import { API_URL } from "@/lib/config"
+import { API_URL, WEB_URL } from "@/lib/config"
 
 // --- CÁC COMPONENT GIAO DIỆN NHỎ ---
 const LoadingSpinner = () => (
@@ -355,7 +355,7 @@ export default function ReturnRequestDetailPage() {
                                 <img
                                     src={
                                         variant?.ImageURL
-                                            ? `http://localhost:8001${variant.ImageURL}`
+                                            ? `${WEB_URL}${variant.ImageURL}`
                                             : "/diverse-products-still-life.png"
                                     }
                                     alt={product?.Name || "Sản phẩm không có tên"}
@@ -396,12 +396,12 @@ export default function ReturnRequestDetailPage() {
                                         {EvidenceURLs.map((url: string, index: number) => (
                                             <a
                                                 key={index}
-                                                href={`http://localhost:8001${url.replace(/\\/g, "")}`}
+                                                href={`${WEB_URL}${url.replace(/\\/g, "")}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
                                                 <img
-                                                    src={`http://localhost:8001${url.replace(/\\/g, "")}`}
+                                                    src={`${WEB_URL}${url.replace(/\\/g, "")}`}
                                                     alt={`Bằng chứng ${index + 1}`}
                                                     className="w-full h-24 object-cover rounded-xl border-2 border-white/20 shadow-3d hover:shadow-3d-hover transform hover:scale-105 transition-all duration-300"
                                                 />

@@ -1,0 +1,640 @@
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:14:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:14:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:14:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:37] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:37] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:42] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:42] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:43] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:43] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:43] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:43] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:43] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:18:48] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:18:48] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:18:48] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:18:48] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:18:48] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-09-30 23:59:59  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-09-30 23:59:59  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-09-30 23:59:59"]} 
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-09-30 23:59:59"]} 
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-09-30 23:59:59  
+[2025-08-22 06:19:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-09-30 23:59:59"]} 
+[2025-08-22 06:19:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-09-30 23:59:59  
+[2025-08-22 06:19:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-09-30 23:59:59"]} 
+[2025-08-22 06:19:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:19:35] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:19:35] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-07-31 23:59:59  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-07-31 23:59:59  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-07-31 23:59:59"]} 
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-07-31 23:59:59  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-07-01 00:00:00, End: 2025-07-31 23:59:59  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-07-31 23:59:59"]} 
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-07-31 23:59:59"]} 
+[2025-08-22 06:19:39] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-07-01 00:00:00","2025-07-31 23:59:59"]} 
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:39] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-01-01 00:00:00, End: 2025-12-31 23:59:59  
+[2025-08-22 06:19:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-01-01 00:00:00","2025-12-31 23:59:59"]} 
+[2025-08-22 06:19:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:25] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:25] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:20:26] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:20:26] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:45] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:45] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:45] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:45] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:45] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:46] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:46] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:46] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:47] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:47] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:21:48] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:21:48] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:21:48] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:21:48] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:21:48] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:23:03] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:23:03] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:23:03] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:23:03] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:23:03] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:24:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:24:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:25:00] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:25:00] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:25:00] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:25:00] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:25:00] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:25:39] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:25:39] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:25:39] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:25:39] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:25:39] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:26:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:26:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:26:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:26:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:26:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:26:27] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:26:27] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:26:27] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:26:27] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:26:27] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:26:34] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:26:34] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:26:34] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:26:34] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:26:34] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:06] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:06] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:07] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:07] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:32] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:32] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:32] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:32] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:32] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:35] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:35] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:35] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:35] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:35] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:30:40] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:30:40] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:30:40] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:30:40] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:30:40] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:31:01] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:31:01] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:31:01] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:31:01] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:31:01] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:09] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:09] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:10] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:10] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:11] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:11] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:11] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:11] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:11] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:39:25] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:39:25] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:39:25] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:39:25] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:39:25] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:57] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:57] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:58] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:58] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:41:59] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:41:59] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:41:59] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:41:59] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:41:59] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:06] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:06] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:06] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:06] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:06] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:30] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:30] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:31] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:31] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:42:32] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:42:32] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:42:32] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:42:32] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:42:32] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:22] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:22] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 06:48:23] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 06:48:23] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:02] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:02] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:03] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:03] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:03] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:03] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:03] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:05] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:05] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:06] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:06] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:06] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:06] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:06] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:08] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:08] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:08] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:08] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:08] local.INFO: --- [getBaseOrderQuery] Finished ---  
+[2025-08-22 12:46:14] local.INFO: --- [getBaseOrderQuery] Starting ---  
+[2025-08-22 12:46:14] local.INFO: [getBaseOrderQuery] Authenticated UserID: 25  
+[2025-08-22 12:46:14] local.INFO: [getBaseOrderQuery] Date Range Parsed - Start: 2025-08-01 00:00:00, End: 2025-08-31 23:59:59  
+[2025-08-22 12:46:14] local.INFO: [getBaseOrderQuery] Final SQL Query: {"sql":"select * from `ordersbuyer` as `ob` inner join `ordersseller` as `os` on `ob`.`OrderID` = `os`.`OrderID` where `ob`.`UserID` = ? and `os`.`Status` in (?, ?, ?) and `ob`.`OrderDate` between ? and ?","bindings":[25,"Delivered","Completed","Rated","2025-08-01 00:00:00","2025-08-31 23:59:59"]} 
+[2025-08-22 12:46:14] local.INFO: --- [getBaseOrderQuery] Finished ---  

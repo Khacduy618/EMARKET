@@ -26,11 +26,18 @@ interface VoucherItemProps {
     voucher: Voucher; // Thêm reason để hiển thị lý do không hợp lệ
     isEligible: boolean;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (voucherCode: string | null) => void; 
     reason?: string
 }
 
 const VoucherItem: React.FC<VoucherItemProps> = ({ voucher, isEligible, isSelected, onSelect, reason }) => {
+    const handleItemClick = () => {
+        if (isEligible) {
+            // **LOGIC MỚI:** Nếu đang được chọn, gọi onSelect(null) để bỏ chọn.
+            // Nếu không, gọi onSelect(voucher.Code) để chọn.
+            onSelect(isSelected ? null : voucher.Code);
+        }
+    };
     // Tạo text mô tả giảm giá
     const discountText = voucher.DiscountType === 'Percentage'
         ? `Giảm ${voucher.DiscountValue}%` + (voucher.MaxValueForPercentage ? `, tối đa ${formatPrice(voucher.MaxValueForPercentage)}` : '')
@@ -40,7 +47,7 @@ const VoucherItem: React.FC<VoucherItemProps> = ({ voucher, isEligible, isSelect
     const voucherTypeText = voucher.VoucherType === 'FreeShip' ? 'Miễn phí vận chuyển' : 'Giảm giá';
 
     return (
-        <div className={`flex items-start gap-3 p-3 border-l-4 mb-3 bg-white rounded-r-md transition-opacity ${isEligible ? 'border-blue-500' : 'border-red-400 opacity-60'}`}>
+        <div className={`flex items-start gap-3 p-3 border-l-4 mb-3 bg-white rounded-r-md transition-opacity ${isEligible ? 'border-blue-500' : 'border-red-400 opacity-60'}`} onClick={handleItemClick}>
             <div className={`w-1/4 flex-shrink-0 text-center font-bold p-4 rounded-md flex flex-col justify-center items-center ${isEligible ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
                 <Ticket size={24}/>
                 <span className='mt-1 text-xs'>{voucherTypeText}</span>
@@ -62,7 +69,7 @@ const VoucherItem: React.FC<VoucherItemProps> = ({ voucher, isEligible, isSelect
                         type="radio"
                         name="shop-voucher"
                         checked={isSelected}
-                        onChange={onSelect}
+                        onChange={handleItemClick}
                         className="w-5 h-5 cursor-pointer accent-blue-600"
                     />
                 </div>
@@ -280,7 +287,7 @@ const VoucherSelectionModal: React.FC<VoucherSelectionModalProps> = ({
                                         voucher={voucher}
                                         isEligible={true}
                                         isSelected={selectedVoucherCode === voucher.Code}
-                                        onSelect={() => setSelectedVoucherCode(voucher.Code)}
+                                        onSelect={setSelectedVoucherCode} 
                                     />
                                 ))
                             ) : (

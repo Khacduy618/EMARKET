@@ -10,13 +10,23 @@ interface FetchVouchersResponse {
     message?: string;
 }
 
-export const fetchAvailableVouchers = async (): Promise<FetchVouchersResponse> => {
-    const token = getAuthToken();
+export const fetchAllVoucher = async (): Promise<FetchVouchersResponse> => {
     const response = await fetch(`${API_URL}/vouchers`, {
         headers: {
-            'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+    },
+        credentials: 'include', // Ensure cookies are sent if needed
+});
+return handleResponse(response);
+}
+
+export const fetchEligiblePlatformVouchers = async (): Promise<FetchVouchersResponse> => {
+
+    const response = await fetch(`${API_URL}/vouchers/platform-eligible`, {
+        headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'include', // Ensure cookies are sent if needed
     });
     return handleResponse(response);
 };

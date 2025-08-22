@@ -12,166 +12,129 @@ use App\Models\Voucher;
 class VoucherController extends Controller
 {
 
-    /**
-     * Get available vouchers for the authenticated user,
-     * specifically those they have in UserVouchers table.
-     * Includes user-specific usage counts and eligibility checks.
+   /**
+     * Lấy TẤT CẢ voucher (Platform & Shop) mà người dùng đã sưu tầm.
+     * Dùng cho trang "Kho Voucher".
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    // public function index(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     $now = Carbon::now();
-
-    //     // Get shop IDs from user's current cart items for more targeted shop vouchers
-    //     $cartShopIds = DB::table('Carts AS c')
-    //         ->join('CartItems AS ci', 'c.CartID', '=', 'ci.CartID')
-    //         ->where('c.UserID', $user->UserID)
-    //         ->distinct()
-    //         ->pluck('ci.ShopID');
-
-    //     try {
-    //         // Base query: JOIN Vouchers with UserVouchers to only get vouchers the user "owns"
-    //         $baseVoucherQuery = DB::table('Vouchers AS v')
-    //             ->join('UserVouchers AS uv_ownership', function ($join) use ($user) {
-    //                 $join->on('v.VoucherID', '=', 'uv_ownership.VoucherID')
-    //                      ->where('uv_ownership.UserID', '=', $user->UserID);
-    //             })
-    //             // LEFT JOIN again to count specific user usage for this voucher
-    //             ->leftJoin(DB::raw('(SELECT VoucherID, UserID, COUNT(*) as UserSpecificUsedCount FROM UserVouchers WHERE UserID = ' . $user->UserID . ' GROUP BY VoucherID, UserID) as uv_usage_count'),
-    //                 'v.VoucherID', '=', 'uv_usage_count.VoucherID' // Changed alias and condition
-    //             )
-    //             ->where('v.IsActive', 1) // Only active vouchers
-    //             ->where('v.StartDate', '<=', $now) // Not yet expired
-    //             ->where('v.EndDate', '>=', $now) // Not yet active
-    //             ->select(
-    //                 'v.VoucherID', 'v.Code', 'v.Description', 'v.VoucherType', 'v.DiscountType',
-    //                 'v.DiscountValue', 'v.MaxValueForPercentage', 'v.MinOrderValue', 'v.StartDate', 'v.EndDate',
-    //                 'v.UsageLimitPerUser', 'v.UsageLimitTotal', 'v.TimesUsed', // Total TimesUsed from Vouchers table
-    //                 'v.Scope', 'v.ShopID', 'v.IsActive', 'v.CreatedBy', 'v.UserID', // CreatedBy UserID (for seller)
-    //                 'v.CreatedAt', 'v.UpdatedAt',
-    //                 DB::raw('COALESCE(uv_usage_count.UserSpecificUsedCount, 0) as TimesUsedByUser') // Get count, default to 0 if null
-    //             )
-    //             ->groupBy(
-    //                 'v.VoucherID', 'v.Code', 'v.Description', 'v.VoucherType', 'v.DiscountType',
-    //                 'v.DiscountValue', 'v.MaxValueForPercentage', 'v.MinOrderValue', 'v.StartDate', 'v.EndDate',
-    //                 'v.UsageLimitPerUser', 'v.UsageLimitTotal', 'v.TimesUsed',
-    //                 'v.Scope', 'v.ShopID', 'v.IsActive', 'v.CreatedBy', 'v.UserID',
-    //                 'v.CreatedAt', 'v.UpdatedAt',
-    //                 'uv_usage_count.UserSpecificUsedCount' // Group by this too
-    //             );
-
-    //         // Platform Vouchers (from user's owned vouchers)
-    //         $platformVouchers = (clone $baseVoucherQuery)
-    //             ->where('v.Scope', 'Platform')
-    //             // Các điều kiện HAVING này đảm bảo voucher chỉ trả về nếu còn khả dụng
-    //             // Dòng này đã đúng trong các phiên bản trước
-    //             ->havingRaw('v.UsageLimitTotal IS NULL OR v.TimesUsed < v.UsageLimitTotal') // Kiểm tra tổng lượt dùng
-    //             ->havingRaw('v.UsageLimitPerUser IS NULL OR TimesUsedByUser < v.UsageLimitPerUser') // Kiểm tra lượt dùng của user
-    //             ->get();
-
-    //         // Shop Vouchers (from user's owned vouchers, filtered by shops in cart)
-    //         $shopVouchers = (clone $baseVoucherQuery)
-    //             ->leftJoin('Shops AS s', 'v.ShopID', '=', 's.ShopID')
-    //             ->where('v.Scope', 'Shop')
-    //             // Chỉ lấy voucher shop của những shop có trong giỏ hàng hiện tại của người dùng
-    //             ->whereIn('v.ShopID', $cartShopIds->toArray())
-    //             // Các điều kiện HAVING này đảm bảo voucher chỉ trả về nếu còn khả dụng
-    //             ->havingRaw('v.UsageLimitTotal IS NULL OR v.TimesUsed < v.UsageLimitTotal') // Kiểm tra tổng lượt dùng
-    //             ->havingRaw('v.UsageLimitPerUser IS NULL OR TimesUsedByUser < v.UsageLimitPerUser') // Kiểm tra lượt dùng của user
-    //             ->selectRaw('s.ShopName') // Select shop name
-    //             ->groupBy('s.ShopName')
-    //             ->get();
-
-    //         return response()->json([
-    //             'platformVouchers' => $platformVouchers,
-    //             'shopVouchers' => $shopVouchers,
-    //             'message' => 'Danh sách voucher đã được tải thành công.'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack(); // Assuming there might be a transaction started earlier if this is part of a larger flow.
-    //         Log::error('Error fetching vouchers: ' . $e->getMessage(), ['exception' => $e]);
-    //         return response()->json(['message' => 'Không thể tải danh sách voucher. Vui lòng thử lại sau.'], 500);
-    //     }
-    // }
-
     public function index(Request $request)
-{
-    $user = Auth::user();
-    if (!$user) {
-        return response()->json(['message' => 'Unauthorized'], 401);
-    }
-    $now = Carbon::now();
-
-    try {
-        $cartShopIds = DB::table('Carts AS c')
-            ->join('CartItems AS ci', 'c.CartID', '=', 'ci.CartID')
-            ->where('c.UserID', $user->UserID)
-            ->distinct()
-            ->pluck('ci.ShopID');
-
-        // BƯỚC 1: Subquery để đếm số lần sử dụng của user.
-        $userUsageSubQuery = DB::table('UserVouchers')
-            ->select('VoucherID', DB::raw('COUNT(*) as TimesUsedByUser'))
-            ->where('UserID', $user->UserID)
-            ->groupBy('VoucherID');
-
-        // BƯỚC 2: Câu truy vấn cơ bản KHÔNG CÓ GROUP BY
-        $baseVoucherQuery = DB::table('Vouchers as v')
-            ->leftJoinSub($userUsageSubQuery, 'usage', function ($join) {
-                $join->on('v.VoucherID', '=', 'usage.VoucherID');
-            })
-            ->where('v.IsActive', 1)
-            ->where('v.StartDate', '<=', $now)
-            ->where('v.EndDate', '>=', $now)
-            ->where(function ($query) {
-                $query->whereNull('v.UsageLimitTotal')->orWhereRaw('v.TimesUsed < v.UsageLimitTotal');
-            })
-            ->where(function ($query) {
-                $query->whereNull('v.UsageLimitPerUser')->orWhereRaw('COALESCE(usage.TimesUsedByUser, 0) < v.UsageLimitPerUser');
-            })
-            ->select(
-                'v.VoucherID', 'v.Code', 'v.Description', 'v.VoucherType', 'v.DiscountType',
-                'v.DiscountValue', 'v.MaxValueForPercentage', 'v.MinOrderValue', 'v.StartDate', 'v.EndDate',
-                'v.UsageLimitPerUser', 'v.UsageLimitTotal', 'v.TimesUsed',
-                'v.Scope', 'v.ShopID', 'v.IsActive', 'v.CreatedBy',
-                DB::raw('COALESCE(usage.TimesUsedByUser, 0) as TimesUsedByUser')
-            );
-
-        // Lấy platform vouchers
-        $platformVouchers = (clone $baseVoucherQuery)
-            ->where('v.Scope', 'Platform')
-            ->get();
-
-        // Lấy shop vouchers
-        $shopVouchers = [];
-        if ($cartShopIds->isNotEmpty()) {
-            $shopVouchers = (clone $baseVoucherQuery)
-                ->join('Shops as s', 'v.ShopID', '=', 's.ShopID') // Join để lấy ShopName
-                ->where('v.Scope', 'Shop')
-                ->whereIn('v.ShopID', $cartShopIds)
-                ->addSelect('s.ShopName') // Thêm ShopName mà không sợ lỗi
-                ->get();
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        return response()->json([
-            'platformVouchers' => $platformVouchers,
-            'shopVouchers' => $shopVouchers,
-            'message' => 'Danh sách voucher đã được tải thành công.'
-        ]);
+        try {
+            // Lấy tất cả voucher người dùng đã sưu tầm
+            $userCollectedVouchers = DB::table('uservouchers as uv')
+                ->join('vouchers as v', 'uv.VoucherID', '=', 'v.VoucherID')
+                // Join thêm với bảng shops để lấy tên shop, dùng LEFT JOIN
+                ->leftJoin('shops as s', 'v.ShopID', '=', 's.ShopID')
+                ->where('uv.UserID', $user->UserID)
+                ->select(
+                    'v.*', // Lấy tất cả thông tin từ bảng vouchers
+                    'uv.TimesUsedByUser', // Lấy số lần đã dùng
+                    's.ShopName' // Lấy tên shop nếu có
+                )
+                ->orderBy('v.EndDate', 'asc') // Ưu tiên hiển thị voucher sắp hết hạn
+                ->get();
+            
+            // Tách ra làm 2 mảng để tiện cho frontend xử lý nếu cần
+            $platformVouchers = $userCollectedVouchers->where('Scope', 'Platform')->values();
+            $shopVouchers = $userCollectedVouchers->where('Scope', 'Shop')->values();
 
-    } catch (\Exception $e) {
-        Log::error('Error fetching vouchers for UserID ' . ($user->UserID ?? 'null') . ': ' . $e->getMessage(), [
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-        return response()->json(['message' => 'Không thể tải danh sách voucher. Vui lòng thử lại sau.'], 500);
+            return response()->json([
+                'platformVouchers' => $platformVouchers,
+                'shopVouchers' => $shopVouchers,
+                'message' => 'Tải tất cả voucher đã lưu thành công.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching ALL user collected vouchers for UserID ' . $user->UserID . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Không thể tải danh sách voucher.'], 500);
+        }
     }
-}
 
+    /**
+     * Lấy các voucher PLATFORM đủ điều kiện cho người dùng.
+     * Dùng cho modal chọn voucher toàn sàn ở trang thanh toán.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getEligiblePlatformVouchers(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthorized'], 401);
+
+        $now = Carbon::now();
+
+        try {
+            $platformVouchers = DB::table('uservouchers as uv')
+                ->join('vouchers as v', 'uv.VoucherID', '=', 'v.VoucherID')
+                ->where('uv.UserID', $user->UserID)
+                ->where('v.Scope', 'Platform') // Chỉ lấy voucher Platform
+                // --- BỘ LỌC TÍNH HỢP LỆ ---
+                ->where('v.IsActive', 1)
+                ->where('v.StartDate', '<=', $now)
+                ->where('v.EndDate', '>=', $now)
+                ->where(fn($q) => $q->whereNull('v.UsageLimitTotal')->orWhereRaw('v.TimesUsed < v.UsageLimitTotal'))
+                ->where(fn($q) => $q->whereNull('v.UsageLimitPerUser')->orWhereRaw('uv.TimesUsedByUser < v.UsageLimitPerUser'))
+                // --- KẾT THÚC BỘ LỌC ---
+                ->select('v.*', 'uv.TimesUsedByUser')
+                ->orderBy('v.VoucherType', 'asc') // Ưu tiên FreeShip
+                ->orderBy('v.MinOrderValue', 'asc')
+                ->get();
+
+            return response()->json([
+                'platformVouchers' => $platformVouchers,
+                'message' => 'Tải các voucher platform hợp lệ thành công.'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching eligible PLATFORM vouchers for UserID ' . $user->UserID . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Không thể tải danh sách voucher.'], 500);
+        }
+    }
+
+
+/**
+     * Cho phép người dùng "sưu tầm" hoặc "lưu" một voucher vào ví của họ.
+     *
+     * @param Request $request
+     * @param Voucher $voucher
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function collectVoucher(Request $request, Voucher $voucher)
+    {
+        $user = Auth::user();
+
+        // Kiểm tra các điều kiện cơ bản của voucher
+        if (!$voucher->IsActive || Carbon::now()->gt($voucher->EndDate)) {
+            return response()->json(['message' => 'Voucher không hợp lệ hoặc đã hết hạn.'], 400);
+        }
+
+        // Kiểm tra xem người dùng đã sưu tầm voucher này chưa
+        $existing = DB::table('uservouchers')
+            ->where('UserID', $user->UserID)
+            ->where('VoucherID', $voucher->VoucherID)
+            ->exists();
+
+        if ($existing) {
+            return response()->json(['message' => 'Bạn đã lưu voucher này rồi.'], 409); // 409 Conflict
+        }
+
+        // Thêm voucher vào "ví" của người dùng
+        DB::table('uservouchers')->insert([
+            'UserID' => $user->UserID,
+            'VoucherID' => $voucher->VoucherID,
+            'TimesUsedByUser' => 0, // Bắt đầu với 0 lần sử dụng
+        ]);
+
+        return response()->json(['message' => 'Đã lưu voucher thành công!'], 201);
+    }
 
     /**
      * Get all collected vouchers for a specific shop for the authenticated user.

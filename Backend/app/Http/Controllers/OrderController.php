@@ -9,13 +9,17 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\ManagesOrderProcessing;
+use App\Traits\ManagesVoucherUsage;
 
 class OrderController extends Controller
 
 {
+    use ManagesOrderProcessing;
+     use ManagesVoucherUsage;
 
-    /**
-     * Lấy danh sách tất cả đơn hàng của người dùng hiện tại (ĐÃ TỐI ƯU HÓA).
+     /**
+     * LẤY DANH SÁCH ĐƠN HÀNG CỦA NGƯỜI DÙNG - HIỂN THỊ THEO TỪNG GÓI HÀNG (SELLER ORDER)
      *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -23,109 +27,105 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated.'], 401);
 
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
+        // 1. Lấy tất cả các đơn hàng CON (ordersseller) của người dùng này
+        // Join thêm ordersbuyer để lấy các thông tin chung của giao dịch
+        $sellerOrders = DB::table('ordersseller as os')
+            ->join('ordersbuyer as ob', 'os.OrderID', '=', 'ob.OrderID')
+            ->join('shops as s', 'os.ShopID', '=', 's.ShopID')
+            ->where('ob.UserID', $user->UserID)
+            ->select(
+                // Thông tin từ ordersseller
+                'os.SellerOrderID', 'os.SellerOrderCode', 'os.Status', 'os.TotalAmount',
+                'os.SubtotalAmount', 'os.ShippingFee', 'os.ShopVoucherDiscount',
+                'os.CreatedAt', 'os.UpdatedAt',
+                'os.Notes',
+                'os.DeliveredAt',
+                // Thông tin từ ordersbuyer (đơn hàng tổng)
+                'ob.OrderID', 'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
+                'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount', 'ob.shopvoucher',
+                'ob.ShippingAddressID', 
+                // Thông tin từ shop
+                's.ShopID', 's.ShopName', 's.Level as shopLevel'
+            )
+            ->orderBy('os.CreatedAt', 'desc')
+            ->get();
 
-        // 1. Lấy tất cả các OrderID của người dùng.
-        $orderIds = DB::table('ordersbuyer')
-            ->where('UserID', $user->UserID)
-            ->pluck('OrderID');
-
-        if ($orderIds->isEmpty()) {
+        if ($sellerOrders->isEmpty()) {
             return response()->json([]);
         }
 
-        // 2. Lấy toàn bộ thông tin đơn hàng và thông tin shop trong MỘT câu query
-        $ordersData = DB::table('ordersbuyer as ob')
-            ->join('addresses as addr', 'ob.ShippingAddressID', '=', 'addr.AddressID')
-            ->join('orderitems as oi_main', 'ob.OrderID', '=', 'oi_main.OrderID')
-            ->join('productvariants as pv_main', 'oi_main.VariantID', '=', 'pv_main.VariantID')
-            ->join('products as p_main', 'pv_main.ProductID', '=', 'p_main.ProductID')
-            ->join('shops as s', 'p_main.ShopID', '=', 's.ShopID')
-            ->whereIn('ob.OrderID', $orderIds)
-            // DISTINCT để tránh lặp lại đơn hàng nếu có nhiều sản phẩm
-            ->select(
-                'ob.OrderID', 'ob.OrderCode', 'ob.UserID', 'ob.OrderDate', 'ob.TotalAmount',
-                'ob.SubtotalAmount', 'ob.ShippingFee', 'ob.DiscountAmount', 'ob.ShippingAddressID',
-                'ob.ShippingFullName', 'ob.ShippingPhoneNumber', 'os.Notes', 'ob.PaymentMethod',
-                'ob.PaymentStatus', 'os.Status', 'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount',
-                'ob.CreatedAt', 'ob.UpdatedAt',
-                's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel'
-            )
-            ->distinct()
-            ->orderBy('ob.OrderDate', 'desc')
-            ->get()
-            ->keyBy('OrderID'); // Dùng OrderID làm key của mảng để dễ truy cập
+        $sellerOrderIds = $sellerOrders->pluck('SellerOrderID');
 
-        // 3. Lấy toàn bộ order items và thông tin sản phẩm liên quan trong MỘT câu query
+        // 2. Lấy tất cả items của các đơn hàng con này
         $allItems = DB::table('orderitems as oi')
             ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
             ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->leftJoin('productimages as pi', function ($join) {
-                $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', '=', 1);
-            })
-            ->whereIn('oi.OrderID', $orderIds)
+            ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
+            ->whereIn('oi.SellerOrderID', $sellerOrderIds)
             ->select(
-                'oi.OrderItemID', 'oi.OrderID', 'pv.VariantID', 'p.ProductID',
-                'oi.Quantity', 'oi.PriceAtPurchase',
-                DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'),
-                'oi.Subtotal', 'oi.IsFlashSaleItem', 'oi.FlashSaleDealID', 'oi.ReturnStatus', 'oi.CreatedAt',
-                'p.Name as productName',
-                DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL')
+                'oi.OrderItemID', 'oi.SellerOrderID', 'oi.VariantID', 'oi.Quantity', 'oi.PriceAtPurchase', 'oi.Subtotal', 'oi.ReturnStatus',
+                'p.ProductID', 'p.Name as productName',
+                DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'),
+                DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice')
             )
-            ->get()
-            ->groupBy('OrderID'); // Gom nhóm các item theo OrderID
-
-        // 4. Lấy toàn bộ thuộc tính của các variant trong các đơn hàng trong MỘT câu query
-        $allVariantIds = $allItems->flatten()->pluck('VariantID')->unique();
+            ->get();
+            
+        // 3. Lấy tất cả thuộc tính
+        $allVariantIds = $allItems->pluck('VariantID')->unique();
         $allAttributes = DB::table('productvariantattribute as pva')
             ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
             ->whereIn('pva.VariantID', $allVariantIds)
             ->select('pva.VariantID', 'av.Value')
-            ->get()
-            ->groupBy('VariantID'); // Gom nhóm thuộc tính theo VariantID
+            ->get()->groupBy('VariantID');
             
-        // 5. Lấy toàn bộ thông tin follow shop trong MỘT câu query
-        $followedShops = DB::table('shopfollows')
-            ->where('UserID', $user->UserID)
-            ->whereIn('ShopID', $ordersData->pluck('ShopID')->unique())
-            ->pluck('ShopID')
-            ->flip(); // Dùng để kiểm tra nhanh bằng isset()
-
-        // 6. Ghép tất cả dữ liệu lại bằng PHP (nhanh hơn rất nhiều so với query trong vòng lặp)
-        $finalOrders = [];
-        foreach ($ordersData as $orderId => $order) {
-            $orderItems = $allItems->get($orderId, collect());
-
-            if ($orderItems->isEmpty()) {
-                Log::warning("[OrderController@index OPTIMIZED] OrderID: {$orderId} không có items. Bỏ qua.");
-                continue;
-            }
-
-            // Gắn classification vào từng item
-            foreach ($orderItems as $item) {
-                $variantAttributes = $allAttributes->get($item->VariantID, collect());
-                $item->classification = $variantAttributes->pluck('Value')->implode(', ');
-                $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
-            }
-            
-            $order->items = $orderItems->values()->toArray(); // Chuyển về mảng index
-            $order->isFavoriteShop = isset($followedShops[$order->ShopID]);
-            
-            // Thêm các trường mock như cũ
-            $order->orderStatusHistory = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
-            $order->shippingTracking = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
-            $order->shippingProvider = 'Giao Hàng Nhanh';
-            $order->trackingNumber = 'SPXVN' . rand(100000000000, 999999999999);
-
-            $finalOrders[] = $order;
+        // Gắn classification vào từng item
+        foreach ($allItems as $item) {
+            $itemAttributes = $allAttributes->get($item->VariantID, collect());
+            $item->classification = $itemAttributes->pluck('Value')->implode(', ');
         }
+        
+        $allItemsGroupedBySellerOrder = $allItems->groupBy('SellerOrderID');
 
-        Log::info('[OrderController@index OPTIMIZED] Hoàn tất xử lý. Trả về ' . count($finalOrders) . ' đơn hàng.');
-        return response()->json(array_values($finalOrders)); // Trả về mảng index
+        // 4. Ghép items vào từng đơn hàng con
+        $finalSellerOrders = $sellerOrders->map(function ($sellerOrder) use ($allItemsGroupedBySellerOrder, $user) {
+            $items = $allItemsGroupedBySellerOrder->get($sellerOrder->SellerOrderID, collect());
+            
+            // Xác định xem item có thể review không
+            foreach($items as $item) {
+                $item->canReview = in_array($sellerOrder->Status, ['Completed', 'Delivered', 'Rated']);
+            }
+            
+            $sellerOrder->items = $items;
+            $sellerOrder->isFavoriteShop = DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $sellerOrder->ShopID)->exists();
+            
+            // Giữ tên 'Status' để logic lọc ở frontend đơn giản
+            // Đồng thời tạo 'OverallStatus' để khớp với type Order của frontend (nếu cần)
+            $sellerOrder->OverallStatus = $sellerOrder->Status; 
+            
+            // Thêm mock data
+            $sellerOrder->orderStatusHistory = $this->getMockOrderStatusHistory($sellerOrder->Status, $sellerOrder->OrderDate);
+            // ** LOGIC QUAN TRỌNG: Tính toán điều kiện trả hàng **
+            $isEligible = false;
+            // Điều kiện: Trạng thái phải là "Đã giao" hoặc "Hoàn thành" VÀ
+            // ngày giao hàng phải tồn tại VÀ
+            // ngày giao hàng cộng 3 ngày phải ở trong tương lai (tức là chưa hết hạn).
+            if (in_array($sellerOrder->Status, ['Delivered']) && $sellerOrder->DeliveredAt && Carbon::parse($sellerOrder->DeliveredAt)->addDays(3)->isFuture()) {
+                $isEligible = true;
+            }
+            $sellerOrder->is_return_eligible = $isEligible;
+            
+            // Đổi tên key `DeliveredAt` thành `deliveredAt` (camelCase) cho nhất quán với frontend
+            $sellerOrder->deliveredAt = $sellerOrder->DeliveredAt;
+            unset($sellerOrder->DeliveredAt); // Xóa key cũ để tránh dư thừa
+
+            return $sellerOrder;
+        });
+
+        return response()->json($finalSellerOrders);
     }
+
 
     /**
      * Hiển thị thông tin chi tiết của một đơn hàng.
@@ -145,298 +145,238 @@ class OrderController extends Controller
         // Nếu context là 'checkout', gọi hàm xử lý riêng
         if ($context == 'checkout') {
             return $this->showForCheckout($request, $orderId);
-        }else{
-        // Nếu không có context, xử lý như trang chi tiết đơn hàng
-        return $this->showForOrderDetail($request, $orderId);
         }
-
-        
     }
-
-    // /**
-    //  * Hàm private để lấy dữ liệu cho trang CHI TIẾT ĐƠN HÀNG (Order).
-    //  */
-    // private function showForOrderDetail(Request $request, $orderId)
-    // {
-    //     Log::info("--- [showForOrderDetail] Bắt đầu cho OrderID: {$orderId} ---");
-    //     $user = $request->user();
-        
-    //     $order = DB::table('ordersbuyer as ob')
-    //         ->leftJoin('orderitems as oi_main', 'ob.OrderID', '=', 'oi_main.OrderID')
-    //         ->leftJoin('productvariants as pv_main', 'oi_main.VariantID', '=', 'pv_main.VariantID')
-    //         ->leftJoin('products as p_main', 'pv_main.ProductID', '=', 'p_main.ProductID')
-    //         ->leftJoin('shops as s', 'p_main.ShopID', '=', 's.ShopID')
-    //         ->where('ob.OrderID', $orderId)
-    //         ->where('ob.UserID', $user->UserID)
-    //         ->select('ob.*', 's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel')
-    //         ->first();
-
-    //     if (!$order) {
-    //         Log::warning("[showForOrderDetail] Không tìm thấy OrderID: {$orderId} cho UserID: {$user->UserID}.");
-    //         return response()->json(['message' => 'Order not found.'], 404);
-    //     }
-
-    //     $orderItems = DB::table('orderitems as oi')
-    //         ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-    //         ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-    //         ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
-    //         ->where('oi.OrderID', $orderId)
-    //         ->select('oi.*', 'p.Name as productName', 'pv.VariantID as VariantID_alias', 'p.ProductID as ProductID_alias', DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'), DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'))
-    //         ->get();
-        
-    //     if ($orderItems->isNotEmpty()) {
-    //         $variantIds = $orderItems->pluck('VariantID')->unique();
-    //         $attributes = DB::table('productvariantattribute as pva')
-    //             ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
-    //             ->whereIn('pva.VariantID', $variantIds)
-    //             ->select('pva.VariantID', 'av.Value')
-    //             ->get()->groupBy('VariantID');
-
-    //         foreach ($orderItems as $item) {
-    //             $itemAttributes = $attributes->get($item->VariantID, collect());
-    //             $item->classification = $itemAttributes->pluck('Value')->implode(', ');
-    //             $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
-    //         }
-    //     }
-        
-    //     $order->items = $orderItems;
-    //     $order->isFavoriteShop = $order->ShopID ? DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $order->ShopID)->exists() : false;
-    //     $order->orderStatusHistory = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
-    //     $order->shippingTracking = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
-    //     $order->shippingProvider = 'Giao Hàng Nhanh';
-    //     $order->trackingNumber = 'SPXVN' . rand(100000000000, 999999999999);
-
-    //     Log::info("[showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: {$orderId}.");
-    //     return response()->json($order);
-    // }
-        /**
-     * Hàm private để lấy dữ liệu cho trang CHI TIẾT ĐƠN HÀNG (Order).
-     * SỬA ĐỔI: Dữ liệu trả về sẽ được gom nhóm theo từng shop (shopOrders)
-     * thay vì một danh sách items phẳng.
+   
+/**
+     * LẤY CHI TIẾT CỦA MỘT GÓI HÀNG (SELLER ORDER) CỤ THỂ
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $sellerOrderId
+     * @return \Illuminate\Http\JsonResponse
      */
-    private function showForOrderDetail(Request $request, $orderId)
-    {
-        Log::info("--- [showForOrderDetail] Bắt đầu cho OrderID: {$orderId} ---");
-        $user = $request->user();
+        public function showSellerOrder(Request $request, $sellerOrderId)
+        {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
 
-        // 1. Lấy thông tin chính của đơn hàng
-        $order = DB::table('ordersbuyer')
-            ->where('OrderID', $orderId)
-            ->where('UserID', $user->UserID)
-            ->first();
+            $sellerOrder = DB::table('ordersseller as os')
+                ->join('ordersbuyer as ob', 'os.OrderID', '=', 'ob.OrderID')
+                ->join('shops as s', 'os.ShopID', '=', 's.ShopID')
+                ->join('addresses as addr', 'ob.ShippingAddressID', '=', 'addr.AddressID')
+                ->where('os.SellerOrderID', $sellerOrderId)
+                ->where('ob.UserID', $user->UserID)
+                ->select(
+                    'os.*',
+                    'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
+                    'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount', 'ob.shopvoucher',
+                    'ob.ShippingFee as TotalShippingFee', // Lấy tổng phí ship của cả đơn
+                    's.ShopName', 's.Level as shopLevel',
+                    'addr.Street', 'addr.Ward', 'addr.District', 'addr.City', 
+                    'ob.ShippingFullName', 'ob.ShippingPhoneNumber'
+                )
+                ->first();
 
-        if (!$order) {
-            Log::warning("[showForOrderDetail] Không tìm thấy OrderID: {$orderId} cho UserID: {$user->UserID}.");
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
+            if (!$sellerOrder) {
+                return response()->json(['message' => 'Gói hàng không tồn tại hoặc bạn không có quyền truy cập.'], 404);
+            }
 
-        // 2. Lấy tất cả items của đơn hàng và join với thông tin sản phẩm, shop
-        $orderItemsWithDetails = DB::table('orderitems as oi')
-            ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->join('shops as s', 'p.ShopID', '=', 's.ShopID') // JOIN thêm bảng shops
-            ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
-            ->where('oi.OrderID', $orderId)
-            ->select(
-                'oi.OrderItemID', 'oi.OrderID', 'oi.VariantID', 'oi.Quantity', 
-                'oi.PriceAtPurchase', 'oi.Subtotal', 'oi.ReturnStatus',
-                'p.ProductID', 'p.Name as productName',
-                DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'),
-                DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice'),
-                // Lấy thông tin shop cho mỗi item
-                's.ShopID', 's.ShopName as shopName', 's.Level as shopLevel'
-            )
-            ->get();
-
-        // 3. Gom nhóm các item lại theo ShopID
-        $shopOrdersGrouped = [];
-        if ($orderItemsWithDetails->isNotEmpty()) {
-            $allVariantIds = $orderItemsWithDetails->pluck('VariantID')->unique();
-            $allAttributes = DB::table('productvariantattribute as pva')
-                ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
-                ->whereIn('pva.VariantID', $allVariantIds)
-                ->select('pva.VariantID', 'av.Value')
-                ->get()->groupBy('VariantID');
+            // === BƯỚC MỚI: TÍNH TOÁN PHÂN BỔ VOUCHER TOÀN SÀN ===
             
-            foreach ($orderItemsWithDetails as $item) {
-                // Thêm classification vào item
-                $itemAttributes = $allAttributes->get($item->VariantID, collect());
-                $item->classification = $itemAttributes->pluck('Value')->implode(', ');
-                $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
+            // 1. Lấy TẤT CẢ các gói hàng con để tính tổng
+            $allSellerOrdersInOrder = DB::table('ordersseller')
+                                        ->where('OrderID', $sellerOrder->OrderID)
+                                        ->get();
+            
+            $totalSubtotalOfAll = $allSellerOrdersInOrder->sum('SubtotalAmount');
+            $totalShippingFeeOfAll = $allSellerOrdersInOrder->sum('ShippingFee');
+
+            // 2. Lấy tổng giảm giá từ voucher toàn sàn
+            $platformDiscounts = json_decode($sellerOrder->PlatformDiscountAmount, true) ?: ['saleOff' => 0, 'freeShip' => 0];
+            $totalPlatformSaleOffDiscount = $platformDiscounts['saleOff'] ?? 0;
+            $totalPlatformFreeshipDiscount = $platformDiscounts['freeShip'] ?? 0;
+            
+            // 3. Khởi tạo giá trị phân bổ
+            $allocatedPlatformSaleOff = 0;
+            $allocatedPlatformFreeship = 0;
+
+            // 4. Phân bổ giảm giá SaleOff
+            if ($totalSubtotalOfAll > 0 && $totalPlatformSaleOffDiscount > 0) {
+                $ratio = $sellerOrder->SubtotalAmount / $totalSubtotalOfAll;
+                $allocatedPlatformSaleOff = floor($totalPlatformSaleOffDiscount * $ratio);
+            }
+            
+            // 5. Phân bổ giảm giá Freeship
+            if ($totalShippingFeeOfAll > 0 && $totalPlatformFreeshipDiscount > 0) {
+                $ratio = $sellerOrder->ShippingFee / $totalShippingFeeOfAll;
+                $allocatedPlatformFreeship = floor($totalPlatformFreeshipDiscount * $ratio);
+            }
+            
+            // 6. Gán các giá trị đã phân bổ vào đối tượng trả về
+            $sellerOrder->AllocatedPlatformSaleOff = $allocatedPlatformSaleOff;
+            $sellerOrder->AllocatedPlatformFreeship = $allocatedPlatformFreeship;
+
+            // === KẾT THÚC BƯỚC MỚI ===
+
+            // Phần lấy items và attributes không thay đổi
+            $items = DB::table('orderitems as oi')
+                ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+                ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+                ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
+                ->where('oi.SellerOrderID', $sellerOrderId)
+                ->select('oi.*', 'p.Name as productName',
+                    DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'),
+                    DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice')
+                )->get();
+
+            if ($items->isNotEmpty()) {
+                $allVariantIds = $items->pluck('VariantID')->unique();
+                $allAttributes = DB::table('productvariantattribute as pva')
+                    ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
+                    ->whereIn('pva.VariantID', $allVariantIds)
+                    ->select('pva.VariantID', 'av.Value')->get()->groupBy('VariantID');
                 
-                $shopId = $item->ShopID;
-                if (!isset($shopOrdersGrouped[$shopId])) {
-                    // Nếu shop này chưa có trong group, khởi tạo
-                    $shopOrdersGrouped[$shopId] = [
-                        'shopId' => $shopId,
-                        'shopName' => $item->shopName,
-                        'shopLevel' => $item->shopLevel,
-                        'isFavoriteShop' => DB::table('shopfollows')->where('UserID', $user->UserID)->where('ShopID', $shopId)->exists(),
-                        'items' => []
-                    ];
+                foreach ($items as $item) {
+                    $itemAttributes = $allAttributes->get($item->VariantID, collect());
+                    $item->classification = $itemAttributes->pluck('Value')->implode(', ');
+                    $item->canReview = in_array($sellerOrder->Status, ['Completed', 'Delivered', 'Rated']);
                 }
-                // Thêm item vào shop tương ứng
-                $shopOrdersGrouped[$shopId]['items'][] = $item;
             }
-        }
-        
-        // 4. Tạo cấu trúc payload trả về
-        $responsePayload = (array)$order; // Chuyển object $order thành mảng
-        $responsePayload['shopOrders'] = array_values($shopOrdersGrouped); // Thêm mảng shopOrders đã gom nhóm
-        // Xóa thuộc tính items phẳng không cần thiết nữa
-        // (tạm thời giữ lại để không làm crash các component khác nếu có dùng)
-        // unset($responsePayload['items']);
-        $responsePayload['items'] = $orderItemsWithDetails; // Vẫn trả về items phẳng để không làm ảnh hưởng các chỗ khác
-
-        // Thêm các dữ liệu mock
-        $responsePayload['orderStatusHistory'] = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
-        $responsePayload['shippingTracking'] = ($order->OverallStatus === 'Shipped' || $order->OverallStatus === 'Completed') ? $this->getMockShippingTracking() : [];
-        $responsePayload['shippingProvider'] = 'Giao Hàng Nhanh';
-        $responsePayload['trackingNumber'] = 'SPXVN' . rand(100000000000, 999999999999);
-
-        // Map các cột voucher của order vào shopOrder đầu tiên (giả định chỉ có 1 shop voucher/đơn hàng)
-        // Đây là cách làm đơn giản, nếu 1 đơn hàng có nhiều shop thì cần logic phức tạp hơn
-        if (!empty($responsePayload['shopOrders'])) {
-             $responsePayload['shopOrders'][0]['appliedShopVoucherCode'] = $order->shopvoucher;
-             $responsePayload['shopOrders'][0]['shopVoucherDiscountAmount'] = $order->shopdiscountamount;
-        }
-
-        Log::info("[showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: {$orderId}.");
-        return response()->json($responsePayload);
-    }
-    /**
-     * Hàm private để lấy dữ liệu cho trang CHECKOUT (CheckoutData).
-     */
-    private function showForCheckout(Request $request, $orderId)
-    {
-        $user = $request->user();
-
-        // 1. Lấy thông tin chính của đơn hàng
-        $order = DB::table('ordersbuyer')
-            ->where('OrderID', $orderId)
-            ->where('UserID', $user->UserID)
-            ->first();
-
-        if (!$order) {
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
-
-        // 2. Lấy thông tin địa chỉ giao hàng
-        $address = DB::table('addresses')->where('AddressID', $order->ShippingAddressID)->first();
-
-        // 3. Lấy danh sách các sản phẩm trong đơn hàng (order items)
-        $orderItems = DB::table('orderitems as oi')
-            ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
-            ->select(
-                'oi.OrderItemID',
-                'oi.VariantID as variantId',
-                'oi.Quantity as quantity',
-                'oi.PriceAtPurchase as price',
-                'oi.Subtotal as subtotal',
-                 // --- CÁC TRƯỜNG BỔ SUNG QUAN TRỌNG ---
-                'pv.CompareAtPrice as originalPrice', // Lấy giá gốc để gạch ngang
-                'pv.ImageURL as imageUrl',             // Lấy ảnh từ variant
-                'p.ProductID as productId',
-                'p.Name as name',
-                'p.Discount',                          // Lấy % giảm giá của sản phẩm
-                // --- Thông tin shop ---
-                'p.ShopID as shopId',
-                's.ShopName as shopName',
-                's.Level as shopLevel'
-            )
-            ->where('oi.OrderID', $orderId)
-            ->get();
-
-
-        // --- Xử lý Platform Vouchers ---
-        $platformVoucherCodes = json_decode($order->PlatformVoucherCode, true) ?: [];
-        $platformVouchersInfo = [];
-        if (!empty($platformVoucherCodes)) {
-             $platformVouchersInfo = DB::table('vouchers')->whereIn('Code', $platformVoucherCodes)->get();
-        }
-        
-       $appliedPlatformSaleOffVoucher = null;
-        $appliedPlatformFreeShipVoucher = null;
-
-        foreach ($platformVouchersInfo as $voucher) {
-            if ($voucher->VoucherType === 'SaleOff') {
-                $appliedPlatformSaleOffVoucher = $voucher;
-            } elseif ($voucher->VoucherType === 'FreeShip') {
-                $appliedPlatformFreeShipVoucher = $voucher;
-            }
-        }
-
-        // Đọc và phân tích JSON từ cột PlatformDiscountAmount
-        $platformDiscounts = json_decode($order->PlatformDiscountAmount, true) ?: ['saleOff' => 0, 'freeShip' => 0];
-        $platformSaleOffDiscount = $platformDiscounts['saleOff'] ?? 0;
-        $platformFreeshipDiscount = $platformDiscounts['freeShip'] ?? 0;
-        
-        // --- Xử lý Shop Vouchers (không đổi) ---
-        $appliedShopVoucherCodes = $order->shopvoucher ? explode(', ', $order->shopvoucher) : [];
-        $appliedShopVouchers = DB::table('vouchers')->whereIn('Code', $appliedShopVoucherCodes)->get()->keyBy('ShopID');
-
-        // 4. (Quan trọng) Gom nhóm các sản phẩm lại theo từng cửa hàng (shop)
-        $shopOrders = [];
-        foreach ($orderItems as $item) {
-            // Lấy classification cho từng item
-            $attributes = DB::table('productvariantattribute as pva')->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')->where('pva.VariantID', $item->variantId)->select('av.Value')->get();
-            $item->classification = $attributes->pluck('Value')->implode(', ');
-            $item->product = (object)['ProductID' => $item->productId, 'Name' => $item->name, 'Discount'  => $item->Discount];
-
-            if (!isset($shopOrders[$item->shopId])) {
-                $shopOrders[$item->shopId] = [
-                    'shopId' => $item->shopId,
-                    'shopName' => $item->shopName,
-                    'shopLevel' => $item->shopLevel,
-                    'items' => [],
-                    'shippingMethod' => 'Nhanh',
-                    'shippingFee' => 30000, // << LƯU Ý: Lấy giá trị thực tế nếu có
-                    'deliveryEstimate' => '2-3 ngày',
-                    // Gắn voucher của shop vào đây
-                    'appliedVoucher' => $appliedShopVouchers->get($item->shopId) ?? null,
-                    'messageToSeller' => '',
-                ];
-            }
-            $shopOrders[$item->shopId]['items'][] = $item;
-        }
-
-        // 5. Tạo cấu trúc dữ liệu trả về giống với `checkoutData` của frontend
-        $responsePayload = [
-            'OrderID' => $order->OrderID,
-            'OrderCode' => $order->OrderCode,
-            'SubtotalAmount' => (int) $order->SubtotalAmount,
-            'ShippingFee' => (int) $order->ShippingFee,
-            'DiscountAmount' => (int) $order->DiscountAmount,
-            'appliedPlatformVouchers' => [
-                'saleOffVoucher' => $appliedPlatformSaleOffVoucher, 
-                'freeShipVoucher' => $appliedPlatformFreeShipVoucher
-            ],
-            'TotalAmount' => (int) $order->TotalAmount,
-            'PaymentMethod' => $order->PaymentMethod,
-            'address' => $address,
-            'shopOrders' => array_values($shopOrders), // Chuyển từ associative array sang indexed array
-             'summary' => [
-                'totalProductsPrice' => (int) $order->SubtotalAmount,
-                'totalShippingFee' => (int) $order->ShippingFee,
-                'totalShopVoucherDiscount' => (int) $order->shopdiscountamount,
-                // Giá trị này từ DB là của voucher sale-off
-               'totalPlatformVoucherDiscount' => (int) $platformSaleOffDiscount, // Giảm giá sale-off
-                'totalFreeship' => (int) $platformFreeshipDiscount,           // Giảm giá freeship
-                'totalDiscount' => (int) $order->DiscountAmount,
-                'finalTotal' => (int) $order->TotalAmount,
-            ]
             
-        ];
-        
-        return response()->json($responsePayload);
+            $sellerOrder->items = $items;
+            $sellerOrder->orderStatusHistory = $this->getMockOrderStatusHistory($sellerOrder->Status, $sellerOrder->OrderDate);
+            $sellerOrder->shippingTracking = $this->getMockShippingTracking();
+
+            return response()->json($sellerOrder);
+        }
+
+
+    
+    // In app/Http/Controllers/OrderController.php
+
+private function showForCheckout(Request $request, $orderId)
+{
+    $user = $request->user();
+    
+    // 1. Lấy thông tin đơn hàng tổng và kiểm tra quyền sở hữu
+    $order = DB::table('ordersbuyer')
+        ->where('OrderID', $orderId)
+        ->where('UserID', $user->UserID)
+        ->first();
+    
+    if (!$order) {
+        return response()->json(['message' => 'Order not found or you do not have permission to view it.'], 404);
     }
 
+    // 2. Lấy các thông tin liên quan
+    $address = DB::table('addresses')->where('AddressID', $order->ShippingAddressID)->first();
+    $sellerOrders = DB::table('ordersseller')->where('OrderID', $orderId)->get();
 
-     // --- CÁC HÀM HELPER ĐỂ TẠO DỮ LIỆU MOCK CHO GIAO DIỆN ---
-    private function getMockOrderStatusHistory($status, $orderDate) {
-        // Hàm này tạo dữ liệu giả cho timeline, bạn sẽ cần thay thế bằng logic thật
+    if ($sellerOrders->isEmpty()) {
+        return response()->json(['message' => 'This order contains no items.'], 404);
+    }
+    
+    $sellerOrderIds = $sellerOrders->pluck('SellerOrderID');
+    
+    // 3. Lấy tất cả items, attributes, và vouchers trong các câu query hiệu quả
+    $orderItems = DB::table('orderitems as oi')
+        ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
+        ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+        ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
+        ->select(
+            'oi.OrderItemID', 'oi.SellerOrderID', 'oi.VariantID as variantId', 'oi.Quantity as quantity',
+            'oi.PriceAtPurchase as price', 'oi.Subtotal as subtotal', 'p.ProductID as productId', 
+            'p.Name as name', 'p.Discount', 'p.ShopID as shopId', 'pv.CompareAtPrice as originalPrice', 
+            'pv.ImageURL as imageUrl', 's.ShopName as shopName', 's.Level as shopLevel'
+        )
+        ->whereIn('oi.SellerOrderID', $sellerOrderIds)
+        ->get();
+
+    $allVariantIds = $orderItems->pluck('variantId')->unique();
+    $allAttributes = DB::table('productvariantattribute as pva')
+        ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
+        ->whereIn('pva.VariantID', $allVariantIds)
+        ->select('pva.VariantID', 'av.Value')->get()->groupBy('VariantID');
+    
+    $platformVoucherCodes = json_decode($order->PlatformVoucherCode, true) ?: [];
+    $shopVouchersDetails = json_decode($order->shopvoucher, true) ?: [];
+    $allVoucherCodes = array_filter(array_merge(
+        array_values($platformVoucherCodes),
+        array_column($shopVouchersDetails, 'code')
+    ));
+    $vouchersInfo = DB::table('vouchers')->whereIn('Code', $allVoucherCodes)->get()->keyBy('Code');
+
+    // 4. Xây dựng cấu trúc shopOrders cho frontend
+    $itemsGroupedByShop = $orderItems->groupBy('shopId');
+    $checkoutShopOrders = [];
+    foreach ($itemsGroupedByShop as $shopId => $items) {
+        $firstItem = $items->first();
+        $sellerOrder = $sellerOrders->firstWhere('ShopID', $shopId);
+        
+        $checkoutItems = $items->map(function ($item) use ($allAttributes) {
+            $attributes = $allAttributes->get($item->variantId, collect());
+            return [
+                'variantId' => $item->variantId, 'productId' => $item->productId, 'shopId' => $item->shopId,
+                'name' => $item->name, 'imageUrl' => $item->imageUrl, 'classification' => $attributes->pluck('Value')->implode(', '),
+                'price' => $item->price, 'originalPrice' => $item->originalPrice, 'quantity' => $item->quantity,
+                'subtotal' => $item->subtotal, 'product' => ['ProductID' => $item->productId, 'Name' => $item->name, 'Discount' => $item->Discount],
+            ];
+        });
+
+        $appliedVoucherInfo = null;
+        $voucherDetail = collect($shopVouchersDetails)->firstWhere('shopId', $shopId);
+        if ($voucherDetail) {
+            $appliedVoucherInfo = $vouchersInfo->get($voucherDetail['code']);
+        }
+
+        $checkoutShopOrders[] = [
+            'shopId' => $shopId, 'shopName' => $firstItem->shopName, 'shopLevel' => $firstItem->shopLevel,
+            'items' => $checkoutItems->values()->all(), 'shippingMethod' => 'Nhanh', 
+            'shippingFee' => $sellerOrder->ShippingFee ?? 0, 'deliveryEstimate' => '2-3 ngày', 
+            'appliedVoucher' => $appliedVoucherInfo, 'messageToSeller' => $sellerOrder->Notes ?? '',
+        ];
+    }
+
+    // 5. Xây dựng đối tượng summary chính xác từ database
+    $platformDiscounts = json_decode($order->PlatformDiscountAmount, true) ?: ['saleOff' => 0, 'freeShip' => 0];
+    $totalSaleoff = $platformDiscounts['saleOff'] ?? 0;
+    $totalFreeship = $platformDiscounts['freeShip'] ?? 0;
+    
+    $shopDiscounts = json_decode($order->shopdiscountamount, true) ?: [];
+    $totalShopVoucherDiscount = array_sum(array_values($shopDiscounts));
+
+    $summary = [
+        'totalProductsPrice' => (int) $order->SubtotalAmount,
+        'totalShippingFee' => (int) $order->ShippingFee,
+        'totalShopVoucherDiscount' => (int) $totalShopVoucherDiscount,
+        'totalPlatformVoucherDiscount' => (int) ($totalSaleoff + $totalFreeship),
+        'totalFreeship' => (int) $totalFreeship,
+        'totalSaleoff' => (int) $totalSaleoff,
+        'totalDiscount' => (int) $order->DiscountAmount,
+        'finalTotal' => (int) $order->TotalAmount,
+    ];
+
+    // 6. Tạo payload cuối cùng để trả về
+    $responsePayload = [
+        'OrderID' => $order->OrderID,
+        'OrderCode' => $order->OrderCode,
+        'address' => $address,
+        'shopOrders' => $checkoutShopOrders,
+        'appliedPlatformVouchers' => [
+            'saleOffVoucher' => $vouchersInfo->get($platformVoucherCodes['saleOff'] ?? null),
+            'freeShipVoucher' => $vouchersInfo->get($platformVoucherCodes['freeShip'] ?? null),
+        ],
+        'summary' => $summary,
+        'PaymentMethod' => $order->PaymentMethod,
+    ];
+    
+    return response()->json($responsePayload);
+}
+    
+
+     private function getMockOrderStatusHistory($status, $orderDate) {
         $history = [
             ['status' => 'Đơn Hàng Đã Đặt', 'isCompleted' => false, 'isActive' => false, 'date' => Carbon::parse($orderDate)->format('d-m-Y'), 'time' => Carbon::parse($orderDate)->format('H:i')],
             ['status' => 'Đã Xác Nhận Thông Tin Thanh Toán', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
@@ -446,379 +386,395 @@ class OrderController extends Controller
         ];
 
         switch ($status) {
-            case 'Completed':
-                $history[0]['isCompleted'] = true; $history[0]['isActive'] = false;
-                $history[1]['isCompleted'] = true; $history[1]['isActive'] = false;
-                $history[2]['isCompleted'] = true; $history[2]['isActive'] = false;
-                $history[3]['isCompleted'] = true; $history[3]['isActive'] = false;
-                $history[4]['isActive'] = true;
-                break;
-            case 'Shipped':
-                $history[0]['isCompleted'] = true; $history[0]['isActive'] = false;
-                $history[1]['isCompleted'] = true; $history[1]['isActive'] = false;
-                $history[2]['isCompleted'] = true; $history[2]['isActive'] = true;
-                break;
-            case 'Processing':
-                 $history[0]['isCompleted'] = true; $history[0]['isActive'] = false;
-                 $history[1]['isCompleted'] = true; $history[1]['isActive'] = true;
-                break;
-            case 'Pending':
-            default:
-                $history[0]['isActive'] = true;
-                break;
+            case 'Completed': case 'Rated': $history[4]['isCompleted'] = true; $history[4]['isActive'] = true; // Fall-through
+            case 'Delivered': $history[3]['isCompleted'] = true; // Fall-through
+            case 'Shipped': case 'OutForDelivery': $history[2]['isCompleted'] = true; // Fall-through
+            case 'Processing': $history[1]['isCompleted'] = true; // Fall-through
+            case 'Pending': $history[0]['isCompleted'] = true; break;
         }
         return $history;
     }
-    
+
     private function getMockShippingTracking() {
-        return [
-            ['status' => 'Đã giao', 'date' => '03-06-2025', 'time' => '08:57', 'location' => 'Giao hàng thành công'],
-            ['status' => 'Đang vận chuyển', 'date' => '03-06-2025', 'time' => '07:36', 'location' => 'Đơn hàng sẽ sớm được giao'],
-        ];
+        return [['status' => 'Đã giao', 'date' => '03-06-2025', 'time' => '08:57', 'location' => 'Giao hàng thành công'], ['status' => 'Đang vận chuyển', 'date' => '03-06-2025', 'time' => '07:36', 'location' => 'Đơn hàng sẽ sớm được giao']];
     }
 
+
     /**
-     * Tạo một đơn hàng ở trạng thái "Pending" (khi người dùng nhấn Place Order).
+     * Tạo đơn hàng CHỈ DỰA VÀO CÁC ID TỪ CLIENT.
+     * Toàn bộ logic tính toán được thực hiện ở Server.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function placeOrder(Request $request)
-    {
-        Log::info('--- Received request for placeOrder ---', $request->all());
-        // Validation tương tự như hàm create, nhưng không cần thông tin thanh toán
-        $validator = Validator::make($request->all(), [
-            'shippingAddressId'     => 'required|integer|exists:addresses,AddressID',
-            'shippingFullName'      => 'required|string|max:255',
-            'shippingPhoneNumber'   => 'required|string|max:20',
-            'notes'                 => 'nullable|string',
-            'totalAmount'           => 'required|numeric|min:0',
-            'subtotalAmount'        => 'required|numeric|min:0',
-            'shippingFee'           => 'required|numeric|min:0',
-            'discountAmount'        => 'required|numeric|min:0',
-            'paymentMethod'         => 'required|string|in:COD,Paypal,VNPay', // Chỉ chấp nhận 2 loại này từ frontend
-            // Items và cấu trúc của nó
-            'items'                 => 'required|array|min:1',
-            'items.*.variantId'     => 'required|integer|exists:productvariants,VariantID',
-            'items.*.quantity'      => 'required|integer|min:1',
-            'items.*.priceAtPurchase' => 'required|numeric|min:0', // Giá từ client để so sánh
-            'items.*.subtotal'      => 'required|numeric|min:0',      // Subtotal từ client để so sánh
 
-            // Các giá trị tổng từ client để so sánh
-            'totalAmount'           => 'required|numeric|min:0',
-            'subtotalAmount'        => 'required|numeric|min:0',
-            'shippingFee'           => 'required|numeric|min:0',
-            'discountAmount'        => 'required|numeric|min:0',
+public function placeOrder(Request $request)
+{
+    Log::info('--- Received request for placeOrder (FINAL LOGIC) ---', $request->all());
+    
+    $validator = Validator::make($request->all(), [
+        'shippingAddressId'     => 'required|integer|exists:addresses,AddressID',
+        'shopNotes'             => 'nullable|array', 
+        'shopNotes.*'           => 'nullable|string',
+        'paymentMethod'         => 'required|string|in:COD,Paypal,VNPay',
+        'items'                 => 'required|array|min:1',
+        'items.*.variantId'     => 'required|integer|exists:productvariants,VariantID',
+        'items.*.quantity'      => 'required|integer|min:1',
+        'platformVoucherCodes'  => 'nullable|array',
+        'platformVoucherCodes.*'=> 'sometimes|string|exists:vouchers,Code',
+        'shopVoucherCodes'      => 'nullable|array',
+        'shopVoucherCodes.*'    => 'sometimes|string|exists:vouchers,Code',
+        'shippingFee'           => 'required|numeric|min:0',
+    ]);
 
-             'platformVoucherData'               => 'nullable|array',
-            'platformVoucherData.codes'         => 'sometimes|array',
-            'platformVoucherData.codes.saleOff' => 'nullable|string',
-            'platformVoucherData.codes.freeShip'=> 'nullable|string',
-            'platformVoucherData.discounts'     => 'sometimes|array',
-            'platformVoucherData.discounts.saleOff' => 'nullable|numeric',
-            'platformVoucherData.discounts.freeShip'  => 'nullable|numeric',
-            
-            'totalShopVoucherDiscount'  => 'required|numeric|min:0',
-            'shopVouchersApplied'       => 'nullable|array',
-            'shopVouchersApplied.*.code' => 'required_with:shopVouchersApplied|string',
-        ]);
-
-        if ($validator->fails()) {
-             Log::warning('placeOrder validation failed:', $validator->errors()->toArray());
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $validatedData = $validator->validated();
-        $user = $request->user();
-
-        try {
-            // Dùng transaction để đảm bảo toàn vẹn
-            $order = DB::transaction(function () use ($validatedData, $user) {
-                
-                // 2. LẤY DỮ LIỆU GỐC TỪ DATABASE ĐỂ TÍNH TOÁN PHÍA SERVER
-                $variantIds = array_column($validatedData['items'], 'variantId');
-                $variantsInfo = DB::table('productvariants as pv')
-                    ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-                    ->whereIn('pv.VariantID', $variantIds)
-                    ->select('pv.VariantID', 'p.Discount', 'pv.Price', 'pv.CompareAtPrice', 'pv.StockQuantity')
-                    ->get()
-                    ->keyBy('VariantID');
-
-                // 3. TÍNH TOÁN VÀ XÁC THỰC LẠI Ở SERVER
-                $serverCalculatedItems = [];
-                $serverTotalProductDiscount = 0;
-                $serverSubtotalAmount = 0;
-
-                foreach ($validatedData['items'] as $item) {
-                    $variant = $variantsInfo->get($item['variantId']);
-                    if (!$variant || $variant->StockQuantity < $item['quantity']) {
-                        throw new \Exception("Sản phẩm ID {$item['variantId']} không tồn tại hoặc không đủ số lượng.");
-                    }
-
-                    // Tính giá gốc của sản phẩm (ưu tiên CompareAtPrice)
-                    $basePrice = $variant->CompareAtPrice ?? $variant->Price;
-                    
-                    // Tính giá cuối cùng của 1 sản phẩm (sau khi trừ discount của sản phẩm)
-                    $priceAtPurchaseServer = floor($basePrice * (1 - ($variant->Discount ?? 0) / 100));
-
-                    // Tính thành tiền của dòng item này
-                    $subtotalServer = $priceAtPurchaseServer * $item['quantity'];
-
-                    // Tính tổng số tiền được giảm giá từ chính sản phẩm (không phải voucher)
-                    $itemProductDiscount = ($basePrice - $priceAtPurchaseServer) * $item['quantity'];
-                    $serverTotalProductDiscount += $itemProductDiscount;
-
-                    // Cộng dồn vào tổng tiền hàng (sau khi đã trừ discount sản phẩm)
-                    $serverSubtotalAmount += $subtotalServer;
-
-                    // Lưu lại thông tin đã được tính toán ở server
-                    $serverCalculatedItems[] = [
-                        'VariantID'       => $item['variantId'],
-                        'Quantity'        => $item['quantity'],
-                        'PriceAtPurchase' => $priceAtPurchaseServer,
-                        'Subtotal'        => $subtotalServer,
-                        'CreatedAt'       => now(),
-                    ];
-                }
-
-                // Lấy các giá trị discount từ voucher
-                 $serverShopVoucherDiscount = $validatedData['totalShopVoucherDiscount'] ?? 0;
-                
-                // Sử dụng Null Coalescing Operator (??) để cung cấp giá trị mặc định an toàn
-                $platformVoucherData = $validatedData['platformVoucherData'] ?? [];
-                $platformSaleOffDiscount = $platformVoucherData['discounts']['saleOff'] ?? 0;
-                $platformFreeshipDiscount = $platformVoucherData['discounts']['freeShip'] ?? 0;
-                $serverPlatformVoucherDiscount = $platformSaleOffDiscount + $platformFreeshipDiscount;
-                // TÍNH TOÁN TỔNG GIẢM GIÁ
-                // $serverTotalDiscount = $serverTotalProductDiscount + $serverShopVoucherDiscount + $serverPlatformVoucherDiscount;
-
-                // TÍNH TOÁN TỔNG TIỀN CUỐI CÙNG
-                $shippingFee = $validatedData['shippingFee'];
-                $serverTotalAmount = $serverSubtotalAmount + $shippingFee - $serverShopVoucherDiscount - $serverPlatformVoucherDiscount;
-                // Lấy giá trị giảm giá từ payload
-                
-
-                // SO SÁNH GIÁ TRỊ TỪ CLIENT VÀ SERVER (để an toàn)
-                // (Có thể bỏ qua nếu bạn tin tưởng client, nhưng không khuyến khích)
-                if (abs($serverTotalAmount - $validatedData['totalAmount']) > 1) { // Cho phép sai số 1 đồng
-                    Log::warning('TotalAmount mismatch', ['client' => $validatedData['totalAmount'], 'server' => $serverTotalAmount]);
-                    // throw new \Exception("Tổng giá trị đơn hàng không khớp. Vui lòng thử lại.");
-                }
-
-
-                $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
-
-                $paymentMethodEnum = $validatedData['paymentMethod'];
-                $platformVoucherCodesJson = json_encode($platformVoucherData['codes'] ?? []);
-                // Encode mảng voucher discounts thành chuỗi JSON
-               $platformDiscountAmountsJson = json_encode($platformVoucherData['discounts'] ?? []);
-                
-               $shopVoucherCodes = !empty($validatedData['shopVouchersApplied']) 
-                    ? implode(', ', array_column($validatedData['shopVouchersApplied'], 'code')) 
-                    : null;
-             // Dữ liệu cho bảng `ordersbuyer`
-                $orderData = [
-                    'OrderCode'           => $orderCode,
-                    'UserID'              => $user->UserID,
-                    'TotalAmount'         => $serverTotalAmount,
-                    'SubtotalAmount'      => $serverSubtotalAmount, // Tổng tiền hàng đã trừ discount sản phẩm
-                    'ShippingFee'         => $shippingFee,
-                    'DiscountAmount'      => $serverTotalProductDiscount,    // Tổng tất cả các loại giảm giá
-                    'ShippingAddressID'   => $validatedData['shippingAddressId'],
-                    'ShippingFullName'    => $validatedData['shippingFullName'],
-                    'ShippingPhoneNumber' => $validatedData['shippingPhoneNumber'],
-                    'Notes'               => $validatedData['notes'],
-                    'PaymentMethod'       => $paymentMethodEnum,
-                    'PaymentStatus'       => 'Pending',
-                    'OverallStatus'       => 'Pending',
-                    // LƯU CHUỖI JSON
-                    'PlatformVoucherCode'    => $platformVoucherCodesJson,
-                    'PlatformDiscountAmount' => $platformDiscountAmountsJson,
-                    
-                    'shopvoucher'            => $shopVoucherCodes,
-                    'shopdiscountamount'     => $serverShopVoucherDiscount,
-                    'CreatedAt'              => now(),
-                    'UpdatedAt'              => now(),
-                ];
-                
-                Log::info('placeOrder: Creating order with server-calculated data:', $orderData);
-                
-                $orderId = DB::table('ordersbuyer')->insertGetId($orderData);
-
-                // Gán OrderID cho các order items
-                foreach ($serverCalculatedItems as &$item) {
-                    $item['OrderID'] = $orderId;
-                }
-                
-                DB::table('orderitems')->insert($serverCalculatedItems);
-                Log::info("placeOrder: Successfully created OrderID: {$orderId}");
-
-                return ['orderId' => $orderId, 'orderCode' => $orderCode];
-            });
-
-            return response()->json([
-                'message'   => 'Order placed successfully in pending state!',
-                'orderId'   => $order['orderId'],
-                'orderCode' => $order['orderCode'],
-            ], 201);
-
-
-        } catch (\Exception $e) {
-            Log::error('Placing order failed: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'An error occurred while placing the order.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+    if ($validator->fails()) {
+        Log::warning('placeOrder validation failed:', $validator->errors()->toArray());
+        return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    /**
-     * Hoàn tất một đơn hàng đã tồn tại (sau khi thanh toán).
+    $validatedData = $validator->validated();
+    $user = $request->user();
+
+    try {
+        $order = DB::transaction(function () use ($validatedData, $user) {
+            
+            // === STEP 1: Lấy dữ liệu gốc ===
+            $variantIds = array_column($validatedData['items'], 'variantId');
+            $variantsInfo = DB::table('productvariants as pv')
+                ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
+                ->whereIn('pv.VariantID', $variantIds)
+                ->select('pv.VariantID', 'p.Discount as ProductDiscount', 'pv.Price', 'pv.CompareAtPrice', 'pv.StockQuantity', 'p.ShopID')
+                ->get()->keyBy('VariantID');
+
+            $allVoucherCodes = array_merge($validatedData['platformVoucherCodes'] ?? [], $validatedData['shopVoucherCodes'] ?? []);
+            $vouchersInfo = DB::table('vouchers')->whereIn('Code', array_filter($allVoucherCodes))->get()->keyBy('Code');
+            $address = DB::table('addresses')->where('AddressID', $validatedData['shippingAddressId'])->first();
+
+            $allAppliedCodes = collect(array_filter($allVoucherCodes));
+            $userVoucherUsage = DB::table('uservouchers')
+                ->where('UserID', $user->UserID)
+                ->whereIn('VoucherID', $vouchersInfo->pluck('VoucherID'))
+                ->select('VoucherID', DB::raw('COUNT(*) as times_used'))
+                ->groupBy('VoucherID')
+                ->get()->keyBy('VoucherID');
+
+            foreach ($allAppliedCodes as $code) {
+                $voucher = $vouchersInfo->get($code);
+                if (!$voucher) continue; // Bỏ qua nếu voucher không tồn tại
+
+                // Kiểm tra tổng lượt sử dụng
+                if ($voucher->UsageLimitTotal !== null && $voucher->TimesUsed >= $voucher->UsageLimitTotal) {
+                    throw new \Exception("Rất tiếc, mã voucher '{$code}' đã hết lượt sử dụng.");
+                }
+
+                // Kiểm tra lượt sử dụng của riêng user này
+                $userUsage = $userVoucherUsage->get($voucher->VoucherID);
+                $timesUsedByUser = $userUsage ? $userUsage->times_used : 0;
+                if ($voucher->UsageLimitPerUser !== null && $timesUsedByUser >= $voucher->UsageLimitPerUser) {
+                    throw new \Exception("Bạn đã sử dụng hết số lần cho phép đối với mã voucher '{$code}'.");
+                }
+            }
+             Log::info("Voucher validation passed for UserID: {$user->UserID}");
+
+            // === STEP 2: Gom nhóm sản phẩm và tính Subtotal ban đầu ===
+            $itemsByShop = [];
+            $serverTotalSubtotal = 0;
+
+            foreach ($validatedData['items'] as $item) {
+                $variant = $variantsInfo->get($item['variantId']);
+                if (!$variant || $variant->StockQuantity < $item['quantity']) throw new \Exception("Sản phẩm có ID biến thể {$item['variantId']} không đủ số lượng.");
+                
+                $basePrice = $variant->CompareAtPrice ?? $variant->Price;
+                $priceAtPurchase = floor($basePrice * (1 - ($variant->ProductDiscount / 100)));
+                $subtotal = $priceAtPurchase * $item['quantity'];
+                $serverTotalSubtotal += $subtotal;
+                $shopId = $variant->ShopID;
+                
+                if (!isset($itemsByShop[$shopId])) $itemsByShop[$shopId] = ['items' => [], 'subtotal' => 0];
+                $itemsByShop[$shopId]['items'][] = ['VariantID' => $item['variantId'], 'Quantity' => $item['quantity'], 'PriceAtPurchase' => $priceAtPurchase, 'Subtotal' => $subtotal];
+                $itemsByShop[$shopId]['subtotal'] += $subtotal;
+            }
+            
+            // === STEP 3: Phân bổ phí vận chuyển ===
+            $totalShippingFeeFromClient = $validatedData['shippingFee'];
+            $shopCount = count($itemsByShop);
+            if ($shopCount > 0) {
+                $shippingFeePerShop = floor($totalShippingFeeFromClient / $shopCount);
+                $firstShopId = array_key_first($itemsByShop);
+                foreach ($itemsByShop as $shopId => &$shopData) $shopData['shippingFee'] = $shippingFeePerShop;
+                $itemsByShop[$firstShopId]['shippingFee'] += $totalShippingFeeFromClient % $shopCount;
+            }
+            
+            // === STEP 4: Tính toán & Phân bổ tất cả các loại giảm giá ===
+            $totalShopVoucherDiscount = 0;
+            $platformSaleOffDiscount = 0;
+            $platformFreeshipDiscount = 0;
+            $shopVouchersAppliedDetails = []; 
+            $shopDiscountAmountsById = []; 
+            $platformVoucherCodesApplied = ['saleOff' => null, 'freeShip' => null];
+
+            // 4.1 Tính giảm giá của từng shop
+            foreach ($itemsByShop as $shopId => &$shopData) {
+                $shopSubtotal = $shopData['subtotal'];
+                $appliedCode = collect($validatedData['shopVoucherCodes'])->first(fn($code) => $vouchersInfo->get($code) && $vouchersInfo->get($code)->ShopID == $shopId);
+                $shopData['voucherDiscount'] = 0;
+                if ($appliedCode && ($v = $vouchersInfo->get($appliedCode)) && $shopSubtotal >= $v->MinOrderValue) {
+                    $discount = ($v->DiscountType === 'FixedAmount') ? $v->DiscountValue : $shopSubtotal * ($v->DiscountValue / 100);
+                    if ($v->DiscountType === 'Percentage' && $v->MaxValueForPercentage) $discount = min($discount, $v->MaxValueForPercentage);
+                    $shopVoucherDiscountForThisShop = floor($discount);
+                    $totalShopVoucherDiscount += $shopVoucherDiscountForThisShop;
+                    $shopVouchersAppliedDetails[] = ['shopId' => $shopId, 'code' => $v->Code, 'discount' => $shopVoucherDiscountForThisShop];
+                    $shopDiscountAmountsById[(string)$shopId] = $shopVoucherDiscountForThisShop;
+                    $shopData['voucherDiscount'] = $shopVoucherDiscountForThisShop;
+                }
+            }
+            unset($shopData);
+
+            // 4.2 Tính giảm giá của sàn
+            foreach ($validatedData['platformVoucherCodes'] ?? [] as $code) {
+                if ($v = $vouchersInfo->get($code)) {
+                    if ($v->VoucherType === 'SaleOff' && $serverTotalSubtotal >= $v->MinOrderValue) {
+                         $discount = ($v->DiscountType === 'FixedAmount') ? $v->DiscountValue : $serverTotalSubtotal * ($v->DiscountValue / 100);
+                         if ($v->DiscountType === 'Percentage' && $v->MaxValueForPercentage) $discount = min($discount, $v->MaxValueForPercentage);
+                         $platformSaleOffDiscount = floor($discount);
+                         $platformVoucherCodesApplied['saleOff'] = $v->Code;
+                    } elseif ($v->VoucherType === 'FreeShip' && $serverTotalSubtotal >= $v->MinOrderValue) {
+                        $platformFreeshipDiscount = min($totalShippingFeeFromClient, $v->DiscountValue);
+                        $platformVoucherCodesApplied['freeShip'] = $v->Code;
+                    }
+                }
+            }
+            
+            // 4.3 Phân bổ giảm giá toàn sàn cho từng shop
+            foreach ($itemsByShop as $shopId => &$shopData) {
+                $shopData['allocatedSaleOff'] = 0;
+                $shopData['allocatedFreeship'] = 0;
+                if ($serverTotalSubtotal > 0 && $platformSaleOffDiscount > 0) {
+                    $shopData['allocatedSaleOff'] = floor(($shopData['subtotal'] / $serverTotalSubtotal) * $platformSaleOffDiscount);
+                }
+                if ($totalShippingFeeFromClient > 0 && $platformFreeshipDiscount > 0) {
+                    $shopData['allocatedFreeship'] = floor(($shopData['shippingFee'] / $totalShippingFeeFromClient) * $platformFreeshipDiscount);
+                }
+            }
+            unset($shopData);
+
+            $serverTotalDiscount = $totalShopVoucherDiscount + $platformSaleOffDiscount + $platformFreeshipDiscount;
+            $serverTotalAmount = $serverTotalSubtotal + $totalShippingFeeFromClient - $serverTotalDiscount;
+
+
+
+            // === STEP 5: Tạo các bản ghi Database ===
+
+            $paymentMethod = $validatedData['paymentMethod'];
+            $isCOD = ($paymentMethod === 'COD');
+
+            $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
+
+            $orderId = DB::table('ordersbuyer')->insertGetId([
+                'OrderCode' => $orderCode, 'UserID' => $user->UserID,
+                'TotalAmount' => $serverTotalAmount, 'SubtotalAmount' => $serverTotalSubtotal,
+                'ShippingFee' => $totalShippingFeeFromClient, 'DiscountAmount' => $serverTotalDiscount,
+                'ShippingAddressID' => $validatedData['shippingAddressId'], 'ShippingFullName' => $address->FullName,
+                'ShippingPhoneNumber' => $address->PhoneNumber, 
+                'PaymentMethod' => $paymentMethod,
+                    // **LOGIC MỚI: Quyết định trạng thái dựa trên phương thức thanh toán**
+                'PaymentStatus' => $isCOD ? 'Pending' : 'Pending', // COD là pending, Online là Paid sau khi xác nhận
+                'PlatformVoucherCode' => json_encode($platformVoucherCodesApplied),
+                'PlatformDiscountAmount' => json_encode(['saleOff' => $platformSaleOffDiscount, 'freeShip' => $platformFreeshipDiscount]),
+                'shopvoucher' => json_encode($shopVouchersAppliedDetails),
+                'shopdiscountamount' => json_encode($shopDiscountAmountsById),
+                'CreatedAt' => now(), 'UpdatedAt' => now(),
+            ]);
+
+            foreach ($itemsByShop as $shopId => $shopData) {
+                // TÍNH TOÁN LẠI TỔNG TIỀN CHO TỪNG SHOP SAU KHI ĐÃ PHÂN BỔ
+                $shopTotalAmount = $shopData['subtotal'] 
+                                 + $shopData['shippingFee'] 
+                                 - $shopData['voucherDiscount'] 
+                                 - $shopData['allocatedSaleOff'] 
+                                 - $shopData['allocatedFreeship'];
+
+                $sellerOrderId = DB::table('ordersseller')->insertGetId([
+                    'SellerOrderCode' => $orderCode . '-' . $shopId, 'OrderID' => $orderId,
+                    'ShopID' => $shopId, 'Status' => $isCOD ? 'Processing' : 'Pending', // Trạng thái gói hàng con cũng thay đổi theo, 
+                    'SubtotalAmount' => $shopData['subtotal'],
+                    'ShippingFee' => $shopData['shippingFee'], 'ShopVoucherDiscount' => $shopData['voucherDiscount'],
+                    'TotalAmount' => $shopTotalAmount, // LƯU GIÁ TRỊ ĐÃ TÍNH TOÁN LẠI
+                    'Notes' => $validatedData['shopNotes'][$shopId] ?? null,
+                    'TrackingCode' => 'PENDING_' . strtoupper(Str::random(8)),
+                    'CreatedAt' => now(), 'UpdatedAt' => now(),
+                ]);
+
+                $itemsToInsert = collect($shopData['items'])->map(fn($item) => array_merge($item, ['SellerOrderID' => $sellerOrderId, 'CreatedAt' => now()]))->all();
+                DB::table('orderitems')->insert($itemsToInsert);
+            }
+                if ($isCOD) {
+                    Log::info("Processing COD Order immediately. OrderID: {$orderId}");
+                    $fullOrderDetails = DB::table('ordersbuyer')->where('OrderID', $orderId)->first();
+                    $this->processConfirmedOrder($fullOrderDetails);
+                    $this->updateUserVoucherUsage($fullOrderDetails);
+                }
+
+
+            Log::info("placeOrder (Full Allocation): Successfully created OrderID: {$orderId}");
+            return ['orderId' => $orderId, 'orderCode' => $orderCode];
+        });
+
+        return response()->json(['message' => 'Order created!', 'orderId' => $order['orderId'], 'orderCode' => $order['orderCode']], 201);
+
+    } catch (\Exception $e) {
+        Log::error('Placing order failed (Full Allocation): ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
+        return response()->json(['message' => 'An error occurred.', 'error' => $e->getMessage()], 500);
+    }
+}
+
+
+/**
+ * Hoàn tất một đơn hàng đã tồn tại (sau khi thanh toán).
+ * SỬA ĐỔI: Cập nhật trạng thái cho cả ordersbuyer và các ordersseller liên quan.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @param  int  $orderId
+ * @return \Illuminate\Http\JsonResponse
+ */
+public function completeOrder(Request $request, $orderId)
+{
+
+    $user = $request->user();
+    $validator = Validator::make($request->all(), [
+        'paymentMethod'      => 'required|string|in:Paypal,COD,VNPay',
+        'paymentDetails'     => 'nullable|array',
+        'paymentDetails.transactionId' => 'required_if:paymentMethod,Paypal|string',
+        'paymentDetails.status' => 'required_if:paymentMethod,Paypal|string',
+        'paymentDetails.vnp_TxnRef'      => 'required_if:paymentMethod,VNPay|string',
+        'paymentDetails.vnp_ResponseCode'=> 'required_if:paymentMethod,VNPay|string',
+        'shopNotes' => 'nullable|array',
+        'shopNotes.*' => 'nullable|string|max:255',
+    ]);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+    $validatedData = $validator->validated();
+
+    $order = DB::table('ordersbuyer')
+        ->where('OrderID', $orderId)
+        ->where('UserID', $user->UserID)
+        ->where('PaymentStatus', 'Pending')
+        ->first();
+
+    if (!$order) {
+        return response()->json(['message' => 'Order not found or already processed.'], 404);
+    }
+
+    try {
+        $completedOrderDetails = DB::transaction(function () use ($validatedData, $order, $orderId, $user) {
+
+            // **BƯỚC 1: CẬP NHẬT LỜI NHẮN (NẾU CÓ)**
+            if (!empty($validatedData['shopNotes'])) {
+                foreach ($validatedData['shopNotes'] as $shopId => $note) {
+                    DB::table('ordersseller')
+                        ->where('OrderID', $orderId)
+                        ->where('ShopID', $shopId)
+                        ->update(['Notes' => $note]);
+                }
+                Log::info("Updated notes for OrderID {$orderId}", $validatedData['shopNotes']);
+            }
+            
+
+            $updates = ['UpdatedAt' => now()];
+            $paymentMethod = $validatedData['paymentMethod'];
+             $shouldProcessOrder = false;
+
+           if (($paymentMethod === 'Paypal' && ($validatedData['paymentDetails']['status'] ?? '') === 'COMPLETED') || $paymentMethod === 'COD') {
+                    
+                    if ($paymentMethod !== 'COD') {
+                        $updates['PaymentStatus'] = 'Paid';
+                        $updates['paidAt'] = now();
+                    }
+                    $shouldProcessOrder = true;
+                }
+                
+                if ($shouldProcessOrder) {
+                    DB::table('ordersbuyer')->where('OrderID', $orderId)->update($updates);
+                    DB::table('ordersseller')->where('OrderID', $orderId)->update(['Status' => 'Processing', 'UpdatedAt' => now()]);
+                    Log::info("Order {$orderId} status updated to Processing.");
+                    
+                    $fullOrderDetails = DB::table('ordersbuyer')->where('OrderID', $orderId)->first();
+                    
+                    $this->processConfirmedOrder($fullOrderDetails);
+                    $this->updateUserVoucherUsage($fullOrderDetails);
+                }
+
+            return response()->json([
+                'message' => 'Đơn hàng đã được xác nhận thành công!',
+                'orderCode' => $order->OrderCode,
+            ]);
+        });
+
+        if (!$completedOrderDetails) {
+            throw new \Exception("Transaction failed without throwing an exception.");
+        }
+        
+        return response()->json([
+            'message' => 'Order completed successfully!',
+            'orderCode' => $completedOrderDetails['orderCode'],
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Order completion failed for OrderID ' . $orderId . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+        return response()->json(['message' => 'An error occurred during order completion.', 'error' => $e->getMessage()], 500);
+    }
+}
+
+
+/**
+     * Cập nhật thông tin của một đơn hàng nháp (chủ yếu là lời nhắn).
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $orderId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function completeOrder(Request $request, $orderId)
+    public function updateDraft(Request $request, $orderId)
     {
         $user = $request->user();
-
-        // Validate dữ liệu thanh toán
+        
         $validator = Validator::make($request->all(), [
-            'paymentMethod'      => 'required|string|in:Paypal,COD,VNPay',
-            'paymentDetails'     => 'nullable|array',
-            'paymentDetails.transactionId' => 'required_if:paymentMethod,Paypal|string',
-            'paymentDetails.status' => 'required_if:paymentMethod,Paypal|string',
-            'paymentDetails.vnp_TxnRef'      => 'required_if:paymentMethod,VNPay|string',
-            'paymentDetails.vnp_ResponseCode'=> 'required_if:paymentMethod,VNPay|string',
+            'shopNotes' => 'nullable|array',
+            'shopNotes.*' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-        $validatedData = $validator->validated();
-
-        // Tìm đơn hàng nháp
+        
+        // Tìm đơn hàng nháp thuộc sở hữu của user
         $order = DB::table('ordersbuyer')
             ->where('OrderID', $orderId)
             ->where('UserID', $user->UserID)
-            ->where('PaymentStatus', 'Pending')
-            ->where('OverallStatus', 'Pending')
             ->first();
 
         if (!$order) {
-            return response()->json(['message' => 'Order not found or already processed.'], 404);
+            return response()->json(['message' => 'Đơn hàng không tồn tại hoặc không thể cập nhật.'], 404);
         }
 
-        try {
-            // === SỬA LỖI: Gán kết quả của transaction cho một biến mới ===
-            $completedOrderDetails = DB::transaction(function () use ($validatedData, $order, $orderId, $user) {
-                $updates = [
-                    'UpdatedAt' => now(),
-                ];
-                // Xác định trạng thái mới
-                $paymentStatus = $order->PaymentStatus;
-                $overallStatus = $order->OverallStatus;
-                $paymentMethod = $validatedData['paymentMethod'];
+        $shopNotes = $request->input('shopNotes', []);
 
-                if ($paymentMethod === 'Paypal' && isset($validatedData['paymentDetails']['status']) && $validatedData['paymentDetails']['status'] === 'COMPLETED') {
-                    $updates['PaymentStatus'] = 'Paid';
-                    $updates['OverallStatus'] = 'Processing';
-                    $updates['paidAt'] = now();
-                }elseif ($paymentMethod === 'VNPay') {
-                    // Logic này thường được gọi từ webhook để đảm bảo an toàn.
-                    // Ở đây, chúng ta tạm giả định nếu frontend gọi completeOrder với VNPay thì là thành công.
-                    $updates['PaymentStatus'] = 'Paid';
-                    $updates['OverallStatus'] = 'Processing';
-                    $updates['paidAt'] = now();
-                } 
-                elseif ($paymentMethod === 'COD') {
-                    // Đối với COD, trạng thái thanh toán vẫn là 'Pending'
-                    $updates['PaymentStatus'] = 'Pending';
-                    $updates['OverallStatus'] = 'Processing'; // COD cũng chuyển sang Processing để shop chuẩn bị hàng
+        if (!empty($shopNotes)) {
+            DB::transaction(function () use ($orderId, $shopNotes) {
+                foreach ($shopNotes as $shopId => $note) {
+                    DB::table('ordersseller')
+                        ->where('OrderID', $orderId)
+                        ->where('ShopID', $shopId)
+                        ->update(['Notes' => $note]);
                 }
-
-
-                if (isset($updates['OverallStatus']) && $updates['OverallStatus'] === 'Processing') {
-                    // 1. Cập nhật đơn hàng
-                    DB::table('ordersbuyer')->where('OrderID', $orderId)->update($updates);
-                    Log::info("Order {$orderId} status updated to Processing.");
-                    
-                    // Lấy lại các items trong đơn hàng để cập nhật kho và sold count
-                    $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
-
-                    // 2. Cập nhật tồn kho (decrement)
-                    foreach ($orderItems as $item) {
-                        DB::table('productvariants')
-                            ->where('VariantID', $item->VariantID)
-                            ->decrement('StockQuantity', $item->Quantity);
-                    }
-                    Log::info("Stock quantity updated for order {$orderId}.");
-                    
-                    // --- BƯỚC 3: CẬP NHẬT SOLDCOUNT CHO SẢN PHẨM ---
-                    // Lấy danh sách ProductID duy nhất từ các order items
-                    $productIdsToUpdate = DB::table('productvariants')
-                        ->whereIn('VariantID', $orderItems->pluck('VariantID'))
-                        ->distinct()
-                        ->pluck('ProductID', 'VariantID'); // Lấy mảng [VariantID => ProductID]
-
-                    // Tạo mảng để gom số lượng bán ra cho mỗi ProductID
-                    $productSoldCount = [];
-                    foreach ($orderItems as $item) {
-                        $productId = $productIdsToUpdate->get($item->VariantID);
-                        if ($productId) {
-                            if (!isset($productSoldCount[$productId])) {
-                                $productSoldCount[$productId] = 0;
-                            }
-                            $productSoldCount[$productId] += $item->Quantity;
-                        }
-                    }
-
-                    // Cập nhật SoldCount cho từng sản phẩm trong một vòng lặp
-                    foreach ($productSoldCount as $productId => $quantitySold) {
-                        DB::table('products')
-                            ->where('ProductID', $productId)
-                            ->increment('SoldCount', $quantitySold);
-                    }
-                    Log::info("SoldCount updated for products in order {$orderId}.", $productSoldCount);
-                    // --- KẾT THÚC BƯỚC 3 ---
-
-                    // 4. Xóa khỏi giỏ hàng
-                    $cart = DB::table('carts')->where('UserID', $user->UserID)->first();
-                    if ($cart) {
-                        $variantIdsToRemove = $orderItems->pluck('VariantID')->all();
-                        DB::table('cartitems')
-                            ->where('CartID', $cart->CartID)
-                            ->whereIn('VariantID', $variantIdsToRemove)
-                            ->delete();
-                        Log::info("Items removed from cart for user {$user->UserID}.");
-                    }
-                } else {
-                    // Trường hợp không có gì thay đổi (ví dụ: gọi API complete cho đơn COD nhiều lần)
-                    Log::info("No status change for order {$orderId}. No further action taken.");
-                }
-                // === SỬA LỖI: Trả về dữ liệu cần thiết từ closure ===
-                return [
-                    'orderCode' => $order->OrderCode,
-                ];
             });
-
-            // Nếu transaction không trả về gì (có lỗi nhưng không throw exception), thì báo lỗi
-            if (!$completedOrderDetails) {
-                 throw new \Exception("Transaction failed without throwing an exception.");
-            }
-            
-            // Sử dụng kết quả từ transaction để trả về response
-            return response()->json([
-                'message' => 'Order completed successfully!',
-                'orderCode' => $completedOrderDetails['orderCode'],
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Order completion failed for OrderID ' . $orderId . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
-            return response()->json(['message' => 'An error occurred during order completion.', 'error' => $e->getMessage()], 500);
+            Log::info("Updated notes for draft OrderID {$orderId}", $shopNotes);
         }
+
+        return response()->json(['message' => 'Ghi chú đơn hàng đã được cập nhật.']);
     }
+
+
 
     /**
      * Hủy một đơn hàng nháp để người dùng có thể tạo lại.
@@ -833,17 +789,19 @@ class OrderController extends Controller
                 $order = DB::table('ordersbuyer')
                     ->where('OrderID', $orderId)
                     ->where('UserID', $user->UserID)
-                    // Chỉ hủy được đơn hàng đang ở trạng thái nháp
-                    ->where('OverallStatus', 'Pending') 
                     ->first();
 
                 // Nếu không tìm thấy đơn hàng hoặc đơn đã được xử lý, không làm gì cả
                 if (!$order) {
                     return;
                 }
+                // Lấy SellerOrderID từ đơn hàng chính
+                $SellerOrderID = DB::table('ordersseller')
+                    ->where('OrderID', $orderId)
+                    ->value('SellerOrderID');
 
                 // Lấy lại các items đã đặt để khôi phục tồn kho
-                $orderItems = DB::table('orderitems')->where('OrderID', $orderId)->get();
+                $orderItems = DB::table('orderitems')->where('SellerOrderID', $SellerOrderID)->get();
 
                 // 1. Khôi phục số lượng tồn kho (dùng increment)
                 foreach ($orderItems as $item) {

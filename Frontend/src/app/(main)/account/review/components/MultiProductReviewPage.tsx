@@ -45,18 +45,18 @@ export default function MultiProductReviewPage() {
 
   // Lấy orderId từ query
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
+  const sellerOrderID = searchParams.get('SellerOrderID');
 
   
   useEffect(() => {
-    if (!orderId) {
+    if (!sellerOrderID) {
       setLoading(false);
       setError('Mã đơn hàng không hợp lệ.');
       return;
     }
     setLoading(true);
     setError(null);
-    fetch(`${API_URL}/orders/${orderId}`,{
+    fetch(`${API_URL}/seller-orders/${sellerOrderID}`,{
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
                     credentials: 'include', // Quan trọng để gửi cookie
@@ -70,40 +70,40 @@ export default function MultiProductReviewPage() {
       .then((data: Order) => {
         // Nếu đơn hàng đã đánh giá thì chuyển hướng
         
-        if (data.OverallStatus === 'Rated') {
+        if (data.Status === 'Rated') {
           toast.info('Đơn hàng này đã được đánh giá trước đó.', { autoClose: 3000 });
           window.location.href = '/account/purchase';
           return;
         }
         setOrderInfo({
-          id: data.OrderCode,
+          id: data.SellerOrderCode,
           date: data.OrderDate,
-          status: data.OverallStatus,
+          status: data.Status,
           total: `${data.TotalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}`
         });
         console.log('Order info:', {
-          id: data.OrderCode,
+          id: data.SellerOrderCode,
           date: data.OrderDate,
-          status: data.OverallStatus,
+          status: data.Status,
           total: `${data.TotalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}`
         });
         // Lấy tất cả items từ các shopOrders
-        const allItems: OrderItem[] = [];
-        data.shopOrders.forEach(shopOrder => {
-          shopOrder.items.forEach(item => {
-            allItems.push(item);
-          });
-        });
+        const allItems: OrderItem[] = data.items || []; 
+        
         setItems(allItems);
-        setProductReviews(allItems.reduce((acc, item) => ({
-          ...acc,
-          [item.OrderItemID]: {
-            rating: 0,
-            reviewText: "",
-            images: [],
-            videos: []
-          }
-        }), {}));
+        
+        // Khởi tạo state cho reviews
+        if (allItems.length > 0) {
+            setProductReviews(allItems.reduce((acc, item) => ({
+              ...acc,
+              [item.OrderItemID]: {
+                rating: 0,
+                reviewText: "",
+                images: [],
+                videos: []
+              }
+            }), {}));
+        }
       })
       .catch((err: any) => {
         setError(err.message);
@@ -111,7 +111,7 @@ export default function MultiProductReviewPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [orderId]);
+  }, [sellerOrderID]);
 
   const updateProfanityStatus = (productId: string, isProfane: boolean) => {
     setProfanityStatus(prev => ({
@@ -148,7 +148,7 @@ export default function MultiProductReviewPage() {
     try {
       // Chuẩn bị FormData để gửi file thật
       const formData = new FormData();
-      formData.append('orderId', orderId || '');
+      formData.append('SellerOrderID', sellerOrderID || '');
       const reviewsArr: Array<{
         productId: string | number;
         rating: number;
@@ -213,8 +213,10 @@ export default function MultiProductReviewPage() {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json' 
+          'Accept': 'application/json',
+          // 'Content-Type': 'multipart/form-data' // Không cần thiết, fetch sẽ tự động xử lý          
         },
+       
         body: formData
       });
       const result = await res.json();
