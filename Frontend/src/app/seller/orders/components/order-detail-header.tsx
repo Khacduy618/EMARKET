@@ -8,6 +8,7 @@ interface OrderDetailHeaderProps {
         orderDate: string
         overallStatus: string
     }
+    sellerOrderId: number; 
     formatDate: (date: string) => string
 }
 

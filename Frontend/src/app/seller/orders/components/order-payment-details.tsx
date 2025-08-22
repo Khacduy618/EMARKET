@@ -5,7 +5,7 @@ interface OrderPaymentDetailsProps {
     order: {
         shopSubtotal: number
         shippingFee: number
-        discountAmount: number
+        ShopVoucherDiscount: number
         totalAmount: number
         paymentMethod: string
         paymentStatus: string
@@ -34,7 +34,7 @@ export default function OrderPaymentDetails({ order, formatCurrency }: OrderPaym
                     </div>
                     <div className="flex justify-between items-center py-2">
                         <span className="text-gray-600">Giảm giá của shop:</span>
-                        <span className="font-medium text-green-600">-{formatCurrency(order.discountAmount)}</span>
+                        <span className="font-medium text-green-600">-{formatCurrency(order.ShopVoucherDiscount)}</span>
                     </div>
                     <div className="border-t border-gray-200 my-4"></div>
                     <div className="flex justify-between items-center py-2">

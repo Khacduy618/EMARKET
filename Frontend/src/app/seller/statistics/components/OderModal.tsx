@@ -47,7 +47,7 @@ export default function OrderModal({ show, date, onClose }: OrderModalProps) {
         .then((data) => {
           setOrders(data)
           setLoading(false)
-        
+
         })
         .catch((err) => {
           setError(err.message)

@@ -10,21 +10,22 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
     remotePatterns: [
-      // Cho phép ảnh từ backend local
+      // Cho phép ảnh từ backend local (Laravel)
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '8001',
-        pathname: '/**',
-
+        port: '80', // Đảm bảo port khớp với server Laravel
+        pathname: '/storage/**', // Cho phép tất cả các đường dẫn bên trong /storage
       },
       {
         protocol: 'http',
-        hostname: 'localhost',
-        port: '8001',
-        pathname: '/images/**', // Cho phép tất cả các đường dẫn bên trong /images
+        hostname: '127.0.0.1',
+        port: '80', // Thêm port 8000 cho 127.0.0.1 nếu cần
+        pathname: '/storage/**',
       },
       // Cho phép ảnh từ các nguồn bên ngoài khác
+    
+      { protocol: 'https', hostname: 'store.sony.com.vn' },
       { protocol: 'https', hostname: 'store.sony.com.vn' },
       { protocol: 'https', hostname: 'theson.vn' },
       { protocol: 'https', hostname: 'cdn.hoanghamobile.com' },
@@ -35,8 +36,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'down-vn.img.susercontent.com' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: 'picsum.photos' },
-      { protocol: 'https', hostname: 'cdn2.cellphones.com.vn' },
-
+      //webhook img url ; 
     ],
   },
   

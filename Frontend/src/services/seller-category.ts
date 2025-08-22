@@ -158,7 +158,7 @@ export async function getProduct(productID: number): Promise<ProductData> {
 
 export async function updateProduct(productID: number, productFormData: FormData): Promise<any> {
   console.log("Attempting to update product with ID:", productID);
-  
+
   // THÊM DÒNG NÀY ĐỂ GIẢ LẬP PUT
   productFormData.append('_method', 'POST');
 

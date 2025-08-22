@@ -1,9 +1,8 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { useParams } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { getProduct, updateProduct, getShopCategories, getAttributes } from "@/services/seller-category"
 import Swal from "sweetalert2"
 import { WEB_URL } from "@/lib/config"
@@ -21,6 +20,7 @@ interface ImageFile {
   isPrimary: boolean
   sortOrder: number
   ImageID?: number
+  existingUrl?: string | null
 }
 
 interface Attribute {
@@ -36,6 +36,7 @@ interface Variant {
   CompareAtPrice: number | null
   StockQuantity: number
   SKU: string
+  AttributeValues: { [key: number]: string }
 }
 
 interface ProductData {
@@ -58,10 +59,9 @@ interface ProductData {
     IsActive: boolean
     attribute_values: { AttributeValueID: number; AttributeID: number; Value: string }[]
   }[]
-  AttributeValues: { AttributeValueID: number; AttributeID: number; Value: string }[]
 }
 
-// Category Dropdown Component
+// --- Category Dropdown Component ---
 interface CategoryDropdownProps {
   categories: ShopCategory[]
   selectedCategoryID: number | null
@@ -74,28 +74,22 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
   const [searchTerm, setSearchTerm] = useState("")
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   const filteredCategories = categories.filter((category) =>
-    category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase()),
+    category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const getSelectedCategoryName = () => {
-    const selectedCategory = categories.find((cat) => cat.CategoryID === selectedCategoryID)
-    return selectedCategory ? selectedCategory.CategoryName : "Chọn ngành hàng"
-  }
+  const getSelectedCategoryName = () =>
+    categories.find((cat) => cat.CategoryID === selectedCategoryID)?.CategoryName || "Chọn ngành hàng"
 
   const handleCategoryClick = (category: ShopCategory) => {
     onCategorySelect(category.CategoryID, category.CategoryName)
@@ -105,7 +99,6 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Dropdown Trigger */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -122,37 +115,8 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-96 overflow-hidden">
-          {/* Search Header */}
-          {/* <div className="p-3 border-b border-gray-200">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Tìm kiếm ngành hàng..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-              />
-              <svg
-                className="absolute left-2 top-2.5 w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-          </div> */}
-
-          {/* Categories List */}
           <div className="max-h-80 overflow-y-auto">
             {filteredCategories.length === 0 ? (
               <div className="p-4 text-center text-gray-500 text-sm">Không tìm thấy ngành hàng nào</div>
@@ -162,9 +126,7 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
                   key={category.CategoryID}
                   type="button"
                   onClick={() => handleCategoryClick(category)}
-                  className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID
-                      ? "bg-orange-50 text-orange-600 font-medium"
-                      : "text-gray-700"
+                  className={`w-full p-3 text-left hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedCategoryID === category.CategoryID ? "bg-orange-50 text-orange-600 font-medium" : "text-gray-700"
                     }`}
                 >
                   <div className="flex items-center justify-between">
@@ -183,8 +145,6 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
               ))
             )}
           </div>
-
-          {/* Footer with breadcrumb style */}
           <div className="p-3 bg-gray-50 border-t border-gray-200">
             <div className="flex items-center text-xs text-gray-500">
               <span>Đã chọn:</span>
@@ -204,7 +164,6 @@ export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
   const productID = Number(params.productID)
-  console.log(">>>> productID from useParams:", productID, typeof productID)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const variantFileInputs = useRef<(HTMLInputElement | null)[]>([])
@@ -213,15 +172,14 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState({ overall: true, attributes: false })
   const [shopCategories, setShopCategories] = useState<ShopCategory[]>([])
   const [attributes, setAttributes] = useState<Attribute[]>([])
-  const [attributeValues, setAttributeValues] = useState<{ [key: number]: string }>({})
   const [categoryID, setCategoryID] = useState<number | null>(null)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [images, setImages] = useState<ImageFile[]>([])
   const [discount, setDiscount] = useState(0)
-  const [hasVariants, setHasVariants] = useState(false)
-  const [variants, setVariants] = useState<Variant[]>([])
-  const [singleVariant, setSingleVariant] = useState({ Price: 0, StockQuantity: 0, SKU: "" })
+  const [variants, setVariants] = useState<Variant[]>([
+    { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} },
+  ])
   const [initialProduct, setInitialProduct] = useState<ProductData | null>(null)
   const [activeTab, setActiveTab] = useState("basic")
   const [dragActive, setDragActive] = useState(false)
@@ -247,7 +205,7 @@ export default function EditProductPage() {
       variants.forEach((variant) =>
         variant.Images.forEach((img) => {
           if (img.preview && img.preview.startsWith("blob:")) URL.revokeObjectURL(img.preview)
-        }),
+        })
       )
     }
   }, [images, variants])
@@ -262,7 +220,6 @@ export default function EditProductPage() {
       }
 
       const productData = await getProduct(productID)
-      
       setInitialProduct(productData)
       setName(productData.Name || "")
       setDescription(productData.Description || "")
@@ -275,50 +232,34 @@ export default function EditProductPage() {
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
-        })),
+          existingUrl: img.ImageURL
+        }))
       )
 
-      setHasVariants(Array.isArray(productData.variants) && productData.variants.length > 0)
-
-      if (productData.variants.length > 0) {
-        setVariants(
-          productData.variants.map((v) => ({
-            VariantID: v.VariantID,
-            Images: v.ImageURL
-              ? [{ preview: `${WEB_URL}/storage/${v.ImageURL}`, isPrimary: true, sortOrder: 0 }]
-              : [],
-            Price: v.Price || 0,
-            CompareAtPrice: v.CompareAtPrice || null,
-            StockQuantity: v.StockQuantity || 0,
-            SKU: v.SKU || "",
-          })),
-        )
-      } else {
-        setSingleVariant({
-          Price: productData.StockQuantity > 0 ? productData.variants[0]?.Price || 0 : 0,
-          StockQuantity: productData.StockQuantity || 0,
-          SKU: productData.variants[0]?.SKU || "",
-        })
-      }
-
-      console.log(">>>>>> Product Variant :", productData.variants)
-
-      let productAttrValues: { [key: number]: string } = {}
-      if (Array.isArray(productData.variants)) {
-        const allAttributeValues = productData.variants.flatMap((variant) => variant.attribute_values || [])
-        productAttrValues = allAttributeValues.reduce((acc: { [key: number]: string }, attr) => {
+      const variantsData = productData.variants.map((v) => ({
+        VariantID: v.VariantID,
+        Images: v.ImageURL
+          ? [{
+            preview: `${WEB_URL}/storage/${v.ImageURL}`,
+            isPrimary: true,
+            sortOrder: 0,
+            existingUrl: v.ImageURL
+          }]
+          : [],
+        Price: v.Price || 0,
+        CompareAtPrice: v.CompareAtPrice || null,
+        StockQuantity: v.StockQuantity || 0,
+        SKU: v.SKU || "",
+        AttributeValues: (v.attribute_values || []).reduce((acc: { [key: number]: string }, attr) => {
           if (attr && attr.AttributeID != null) {
             acc[attr.AttributeID] = attr.Value || ""
           }
           return acc
-        }, {})
-      }
-
-      console.log(">>>>>> Product Attribute Values:", productAttrValues)
-      setAttributeValues(productAttrValues)
+        }, {}),
+      }))
+      setVariants(variantsData.length > 0 ? variantsData : [{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} }])
 
       const categoriesData = await getShopCategories()
-      console.log(">>>>>> categoriesData:", categoriesData)
       setShopCategories(categoriesData)
     } catch (err: any) {
       console.error("Fetch Initial Data Error:", err.response?.data)
@@ -331,7 +272,6 @@ export default function EditProductPage() {
   const fetchAttributesForCategory = async (catID: number) => {
     setLoading({ ...loading, attributes: true })
     try {
-      console.log("Fetching attributes for CategoryID:", catID)
       const attributesData = await getAttributes(catID)
       if (Array.isArray(attributesData)) {
         const formattedAttributes = attributesData.map((attr: any) => ({
@@ -340,8 +280,17 @@ export default function EditProductPage() {
           CategoryID: catID,
         }))
         setAttributes(formattedAttributes)
+
+        setVariants((prev) =>
+          prev.map((v) => ({
+            ...v,
+            AttributeValues: formattedAttributes.reduce((acc: { [key: number]: string }, attr) => {
+              acc[attr.AttributeID] = v.AttributeValues[attr.AttributeID] || ""
+              return acc
+            }, {}),
+          }))
+        )
       } else {
-        console.warn("Unexpected attributes data format:", attributesData)
         setAttributes([])
       }
     } catch (err: any) {
@@ -356,13 +305,8 @@ export default function EditProductPage() {
   // --- HANDLERS ---
   const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
     setCategoryID(newCategoryID)
-    setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
-    if (newCategoryID) {
-      fetchAttributesForCategory(newCategoryID)
-    } else {
-      setAttributes([])
-      setAttributeValues({})
-    }
+    setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} }])
+    setAttributes([])
   }
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -404,17 +348,15 @@ export default function EditProductPage() {
       setImages((prev) => [...prev, ...newImageFiles])
       if (event.target) event.target.value = ""
     },
-    [images.length],
+    [images.length]
   )
 
   const handleRemoveImage = useCallback((indexToRemove: number) => {
     setImages((prev) => {
       const imageToRemove = prev[indexToRemove]
       if (imageToRemove.preview && imageToRemove.preview.startsWith("blob:")) URL.revokeObjectURL(imageToRemove.preview)
-
       const remainingImages = prev.filter((_, index) => index !== indexToRemove)
       if (imageToRemove.isPrimary && remainingImages.length > 0) remainingImages[0].isPrimary = true
-
       return remainingImages.map((img, idx) => ({ ...img, sortOrder: idx }))
     })
   }, [])
@@ -428,25 +370,25 @@ export default function EditProductPage() {
       const files = event.target.files
       if (!files) return
 
-      if (variants[variantIndex].Images.length + files.length > 3) {
-        Swal.fire("Limit Reached!", "Each variant can have a maximum of 3 images.", "warning")
+      if (variants[variantIndex].Images.length + files.length > 1) {
+        Swal.fire("Limit Reached!", "Each variant can have only one image.", "warning")
         return
       }
 
       const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
         file,
         preview: URL.createObjectURL(file),
-        isPrimary: variants[variantIndex].Images.length === 0 && index === 0,
-        sortOrder: variants[variantIndex].Images.length + index,
+        isPrimary: true,
+        sortOrder: 0,
       }))
 
       setVariants((prev) =>
-        prev.map((v, i) => (i === variantIndex ? { ...v, Images: [...v.Images, ...newImageFiles] } : v)),
+        prev.map((v, i) => (i === variantIndex ? { ...v, Images: newImageFiles } : v))
       )
 
       if (event.target) event.target.value = ""
     },
-    [variants],
+    [variants]
   )
 
   const handleRemoveVariantImage = (variantIndex: number, imageIndex: number) => {
@@ -455,18 +397,18 @@ export default function EditProductPage() {
         i === variantIndex
           ? {
             ...v,
-            Images: v.Images.filter((_, idx) => idx !== imageIndex).map((img, idx) => ({
-              ...img,
-              sortOrder: idx,
-              isPrimary: idx === 0 && v.Images[imageIndex].isPrimary,
-            })),
+            Images: [],
           }
-          : v,
-      ),
+          : v
+      )
     )
   }
 
-  const handleVariantChange = (index: number, field: keyof Omit<Variant, "Images">, value: string | number | null) => {
+  const handleVariantChange = (
+    index: number,
+    field: keyof Omit<Variant, "Images" | "AttributeValues">,
+    value: string | number | null
+  ) => {
     setVariants((prev) =>
       prev.map((v, i) =>
         i === index
@@ -481,27 +423,32 @@ export default function EditProductPage() {
                     : Number(value)
                   : value,
           }
-          : v,
-      ),
+          : v
+      )
     )
   }
 
-  const handleSingleVariantChange = (field: keyof typeof singleVariant, value: string | number) => {
-    setSingleVariant((prev) => ({
-      ...prev,
-      [field]: field === "Price" || field === "StockQuantity" ? Number(value) : value,
-    }))
-  }
-
-  const handleAttributeValueChange = (attributeID: number, value: string) => {
-    setAttributeValues((prev) => ({
-      ...prev,
-      [attributeID]: value,
-    }))
+  const handleVariantAttributeChange = (variantIndex: number, attributeID: number, value: string) => {
+    setVariants((prev) =>
+      prev.map((v, i) =>
+        i === variantIndex
+          ? {
+            ...v,
+            AttributeValues: {
+              ...v.AttributeValues,
+              [attributeID]: value,
+            },
+          }
+          : v
+      )
+    )
   }
 
   const addVariant = () => {
-    setVariants((prev) => [...prev, { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "" }])
+    setVariants((prev) => [
+      ...prev,
+      { Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} },
+    ])
     variantFileInputs.current = [...variantFileInputs.current, null]
   }
 
@@ -533,18 +480,13 @@ export default function EditProductPage() {
       return
     }
 
-    if (hasVariants && variants.length === 0) {
+    if (variants.length === 0) {
       Swal.fire("Error!", "Please add at least one variant.", "error")
       return
     }
 
-    if (hasVariants && variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
-      Swal.fire("Error!", "Price and stock quantity must be valid for all variants.", "error")
-      return
-    }
-
-    if (!hasVariants && singleVariant.Price <= 0) {
-      Swal.fire("Error!", "Price must be greater than 0 for single variant.", "error")
+    if (variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
+      Swal.fire("Error!", "Price must be greater than 0 and stock quantity must be valid for all variants.", "error")
       return
     }
 
@@ -553,10 +495,15 @@ export default function EditProductPage() {
       return
     }
 
+    const skus = variants.map((v) => v.SKU).filter((sku) => sku)
+    if (new Set(skus).size !== skus.length) {
+      Swal.fire("Error!", "SKUs must be unique across variants.", "error")
+      return
+    }
+
     setLoading({ ...loading, overall: true })
 
     const productFormData = new FormData()
-    productFormData.append("ProductID", String(productID))
     productFormData.append("CategoryID", String(categoryID))
     productFormData.append("Name", name)
     productFormData.append("Description", description)
@@ -566,37 +513,52 @@ export default function EditProductPage() {
       ImageID: img.ImageID,
       IsPrimary: img.isPrimary,
       SortOrder: img.sortOrder,
+      name: img.file?.name,
+      existingUrl: img.existingUrl
     }))
     productFormData.append("ImageData", JSON.stringify(imageData))
+    images.forEach((img, index) => {
+      if (img.file) {
+        productFormData.append(`Images[${index}]`, img.file)
+      }
+    })
 
-    images.forEach((img) => img.file && productFormData.append("Images[]", img.file))
+    const variantData = variants.map((v) => ({
+      VariantID: v.VariantID,
+      Price: v.Price,
+      CompareAtPrice: v.CompareAtPrice,
+      StockQuantity: v.StockQuantity,
+      SKU: v.SKU,
+      AttributeValues: v.AttributeValues,
+      existingImageUrl: v.Images[0]?.existingUrl || null,
+    }))
+    productFormData.append("Variants", JSON.stringify(variantData))
 
-    if (hasVariants) {
-      const variantData = variants.map((v) => ({
-        VariantID: v.VariantID,
-        Price: v.Price,
-        CompareAtPrice: v.CompareAtPrice,
-        StockQuantity: v.StockQuantity,
-        SKU: v.SKU,
-      }))
-      productFormData.append("Variants", JSON.stringify(variantData))
+    const fetchPromises = variants.map(async (variant, variantIndex) => {
+      if (variant.Images[0]?.file) {
+        productFormData.append(`VariantImages[${variantIndex}]`, variant.Images[0].file)
+      } else if (variant.Images.length > 0 && variant.Images[0].preview.startsWith('http')) {
+        try {
+          const response = await fetch(variant.Images[0].preview)
+          if (response.ok) {
+            const blob = await response.blob()
+            const fileName = variant.Images[0].existingUrl?.split('/').pop() || `variant_${variantIndex}.jpg`
+            const file = new File([blob], fileName, { type: blob.type })
+            productFormData.append(`VariantImages[${variantIndex}]`, file)
+          } else {
+            console.error(`Failed to fetch old image for variant ${variantIndex}`)
+          }
+        } catch (error) {
+          console.error(`Error fetching old image for variant ${variantIndex}:`, error)
+        }
+      }
+    })
 
-      variants.forEach((v, index) =>
-        v.Images.forEach((img) => img.file && productFormData.append(`VariantImages[${index}][]`, img.file)),
-      )
-    } else {
-      productFormData.append("Price", String(singleVariant.Price))
-      productFormData.append("StockQuantity", String(singleVariant.StockQuantity))
-      productFormData.append("SKU", singleVariant.SKU)
-    }
-
-    productFormData.append("AttributeValues", JSON.stringify(attributeValues))
+    await Promise.all(fetchPromises)
 
     try {
       await updateProduct(productID, productFormData)
-      Swal.fire("Success!", "Product updated successfully.", "success").then(() =>
-        router.push("/seller/products"),
-      )
+      Swal.fire("Success!", "Product updated successfully.", "success").then(() => router.push("/seller/products"))
     } catch (err: any) {
       console.error("Update Product Error:", err.response?.data)
       Swal.fire("Error!", err.response?.data?.message || "Failed to update product.", "error")
@@ -605,17 +567,11 @@ export default function EditProductPage() {
     }
   }
 
-  // Helper function để lấy primary image
-  const getPrimaryImage = () => {
-    return images.find((img) => img.isPrimary) || images[0] || null
-  }
+  const getPrimaryImage = () => images.find((img) => img.isPrimary) || images[0] || null
 
   // --- RENDER ---
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Shopee Header */}
-     
-
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Left Sidebar - Tips */}
@@ -627,7 +583,7 @@ export default function EditProductPage() {
               <div className="p-4 space-y-3">
                 <div className="flex items-start space-x-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${images.length >= 3 ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
+                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${images.length >= 3 ? "bg-green-500" : "bg-gray-200"}`}
                   >
                     {images.length >= 3 && (
                       <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
@@ -641,15 +597,13 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Thêm ít nhất 3 hình ảnh</span>
                 </div>
-
                 <div className="flex items-start space-x-3">
                   <div className="w-5 h-5 rounded-full bg-gray-200 flex-shrink-0 mt-0.5"></div>
                   <span className="text-sm text-gray-600">Thêm video sản phẩm</span>
                 </div>
-
                 <div className="flex items-start space-x-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${name.length >= 25 && name.length <= 100 ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
+                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${name.length >= 25 && name.length <= 100 ? "bg-green-500" : "bg-gray-200"}`}
                   >
                     {name.length >= 25 && name.length <= 100 && (
                       <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
@@ -663,10 +617,9 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Tên sản phẩm có 25-100 ký tự</span>
                 </div>
-
                 <div className="flex items-start space-x-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${description.length >= 100 ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
+                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${description.length >= 100 ? "bg-green-500" : "bg-gray-200"}`}
                   >
                     {description.length >= 100 && (
                       <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
@@ -680,23 +633,21 @@ export default function EditProductPage() {
                   </div>
                   <span className="text-sm text-gray-600">Mô tả tối thiểu 100 ký tự</span>
                 </div>
-
                 <div className="flex items-start space-x-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${!hasVariants || (hasVariants && variants.every((v) => v.Price > 0)) ? "bg-green-500" : "bg-gray-200"} transition-all duration-300`}
+                    className={`w-5 h-5 rounded-full flex-shrink-0 mt-0.5 ${variants.every((v) => v.Price > 0) ? "bg-green-500" : "bg-gray-200"}`}
                   >
-                    {!hasVariants ||
-                      (hasVariants && variants.every((v) => v.Price > 0) && (
-                        <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      ))}
+                    {variants.every((v) => v.Price > 0) && (
+                      <svg className="w-3 h-3 text-white m-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
                   </div>
-                  <span className="text-sm text-gray-600">Giá hợp lệ </span>
+                  <span className="text-sm text-gray-600">Giá hợp lệ</span>
                 </div>
               </div>
             </div>
@@ -710,9 +661,7 @@ export default function EditProductPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
-                        ? "border-orange-500 text-orange-600 bg-orange-50"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? "border-orange-500 text-orange-600 bg-orange-50" : "border-transparent text-gray-500 hover:text-gray-700"
                       }`}
                   >
                     {tab === "basic" && "Thông tin cơ bản"}
@@ -724,426 +673,366 @@ export default function EditProductPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {activeTab === "basic" && (
+                <div hidden={activeTab !== "basic"}>
+                  <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin cơ bản</h3>
+
+                  {/* Product Images */}
                   <div>
-                    <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin cơ bản</h3>
-
-                    {/* Product Images */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <span className="text-red-500">*</span> Hình ảnh sản phẩm
-                      </label>
-                      <div className="flex items-center space-x-4 mb-4">
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" id="ratio-1-1" name="ratio" defaultChecked className="text-orange-500" />
-                          <label htmlFor="ratio-1-1" className="text-sm">
-                            Hình ảnh tỷ lệ 1:1
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input type="radio" id="ratio-3-4" name="ratio" className="text-orange-500" />
-                          <label htmlFor="ratio-3-4" className="text-sm">
-                            Hình ảnh tỷ lệ 3:4
-                          </label>
-                        </div>
-                        <a href="#" className="text-blue-500 text-sm hover:underline">
-                          Ví dụ
-                        </a>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Hình ảnh sản phẩm
+                    </label>
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <input type="radio" id="ratio-1-1" name="ratio" defaultChecked className="text-orange-500" />
+                        <label htmlFor="ratio-1-1" className="text-sm">Hình ảnh tỷ lệ 1:1</label>
                       </div>
-
-                      <div
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        className={`grid grid-cols-5 gap-4 mb-4 ${dragActive
-                            ? "border-2 border-orange-500 bg-orange-50"
-                            : "border-2 border-dashed border-gray-300"
-                          } p-4 rounded-lg transition-all duration-300`}
-                      >
-                        {images.map((image, index) => (
-                          <div key={image.preview} className="relative aspect-square overflow-hidden rounded-lg group">
-                            <img
-                              src={image.preview || "/placeholder.svg"}
-                              alt={`preview ${index}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute top-1 right-1">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            {!image.isPrimary && (
-                              <div
-                                className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs text-center py-1 cursor-pointer hover:bg-opacity-70 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => setPrimaryImage(index)}
-                              >
-                                Đặt làm ảnh bìa
-                              </div>
-                            )}
-                            {image.isPrimary && (
-                              <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-br-md">
-                                Ảnh bìa
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        {images.length < 9 && (
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="aspect-square border-2 border-dashed border-orange-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-colors"
-                          >
-                            <svg
-                              className="w-8 h-8 text-orange-400 mb-2"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span className="text-xs text-orange-600">Thêm hình ảnh ({images.length}/9)</span>
-                          </div>
-                        )}
+                      <div className="flex items-center space-x-2">
+                        <input type="radio" id="ratio-3-4" name="ratio" className="text-orange-500" />
+                        <label htmlFor="ratio-3-4" className="text-sm">Hình ảnh tỷ lệ 3:4</label>
                       </div>
-
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageSelect}
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                      />
+                      <a href="#" className="text-blue-500 text-sm hover:underline">Ví dụ</a>
                     </div>
 
-                    {/* Cover Image */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <span className="text-red-500">*</span> Ảnh bìa
-                      </label>
-                      <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <div
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                      className={`grid grid-cols-5 gap-4 mb-4 ${dragActive ? "border-2 border-orange-500 bg-orange-50" : "border-2 border-dashed border-gray-300"} p-4 rounded-lg transition-all duration-300`}
+                    >
+                      {images.map((image, index) => (
+                        <div key={image.preview} className="relative aspect-square overflow-hidden rounded-lg group">
+                          <img
+                            src={image.preview || "/placeholder.svg"}
+                            alt={`preview ${index}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.currentTarget
+                              if (!target.dataset.retried) {
+                                target.dataset.retried = "true"
+                                setTimeout(() => {
+                                  if (target.src !== "/placeholder.svg?height=150&width=150") {
+                                    target.src = "/placeholder.svg?height=150&width=150"
+                                  }
+                                }, 100)
+                              }
+                            }}
+                          />
+                          <div className="absolute top-1 right-1">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(index)}
+                              className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {!image.isPrimary && (
+                            <div
+                              className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs text-center py-1 cursor-pointer hover:bg-opacity-70 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => setPrimaryImage(index)}
+                            >
+                              Đặt làm ảnh bìa
+                            </div>
+                          )}
+                          {image.isPrimary && (
+                            <div className="absolute top-0 left-0 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-br-md">
+                              Ảnh bìa
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {images.length < 9 && (
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="aspect-square border-2 border-dashed border-orange-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-colors"
+                        >
                           <svg
-                            className="w-8 h-8 text-orange-400"
+                            className="w-8 h-8 text-orange-400 mb-2"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4v16m8-8H4" />
                           </svg>
+                          <span className="text-xs text-orange-600">Thêm hình ảnh ({images.length}/9)</span>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          <p>Tải lên hình ảnh 1:1.</p>
-                          <p>Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý hôm nay...</p>
-                        </div>
-                      </div>
+                      )}
                     </div>
-
-                    {/* Video Section */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Video sản phẩm</label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <p>Kích thước tối đa 30Mb, độ phân giải ≤ 1280x1280px</p>
-                          <p>Độ dài: 10s-60s, định dạng: MP4</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="mt-3 px-4 py-2 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors"
-                      >
-                        Thêm video
-                      </button>
-                    </div>
-
-                    {/* Product Name */}
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        <span className="text-red-500">*</span> Tên sản phẩm
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        maxLength={120}
-                        placeholder="Tên sản phẩm + Thương hiệu + Model + Thông số kỹ thuật"
-                        required
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                      <div className="text-right text-sm text-gray-500 mt-1">{name.length}/120</div>
-                    </div>
-
-                    {/* Category - Updated to use custom dropdown */}
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                        <span className="text-red-500">*</span> Ngành hàng
-                      </label>
-                      <CategoryDropdown
-                        categories={shopCategories}
-                        selectedCategoryID={categoryID}
-                        onCategorySelect={handleCategoryChange}
-                        loading={loading.overall || loading.attributes}
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                        Mô tả Sản phẩm
-                      </label>
-                      <textarea
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={6}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Nhập mô tả chi tiết về sản phẩm..."
-                      />
-                      <div className="text-right text-sm text-gray-500 mt-1">{description.length} ký tự</div>
-                    </div>
-
-                    {/* Attributes */}
-                    {categoryID && attributes.length > 0 && (
-                      <div>
-                        <h4 className="text-md font-medium text-gray-700 mb-3">Thông số Thuộc tính</h4>
-                        <div className="space-y-4">
-                          {attributes.map((attr) => (
-                            <div key={attr.AttributeID}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">{attr.Name}</label>
-                              <input
-                                type="text"
-                                value={attributeValues[attr.AttributeID] || ""}
-                                onChange={(e) => handleAttributeValueChange(attr.AttributeID, e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                placeholder={`Nhập giá trị cho ${attr.Name}`}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageSelect}
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                    />
                   </div>
-                )}
 
-                {activeTab === "sales" && (
+                  {/* Cover Image */}
                   <div>
-                    <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin bán hàng</h3>
-
-                    {/* Variant Toggle */}
-                    <div className="flex items-center mb-6">
-                      <label className="mr-4 text-gray-700 font-medium">Phân loại hàng</label>
-                      <button
-                        type="button"
-                        onClick={() => setHasVariants(!hasVariants)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${hasVariants ? "bg-orange-500" : "bg-gray-200"
-                          }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${hasVariants ? "translate-x-6" : "translate-x-1"
-                            }`}
-                        />
-                      </button>
-                    </div>
-
-                    {!hasVariants ? (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <span className="text-red-500">*</span> Giá
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={singleVariant.Price}
-                            onChange={(e) => handleSingleVariantChange("Price", e.target.value)}
-                            required
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Ảnh bìa
+                    </label>
+                    <div className="border-2 border-dashed border-orange-300 rounded-lg p-4 flex items-center space-x-4">
+                      <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <svg
+                          className="w-8 h-8 text-orange-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <span className="text-red-500">*</span> Kho hàng
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={singleVariant.StockQuantity}
-                            onChange={(e) => handleSingleVariantChange("StockQuantity", e.target.value)}
-                            required
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">SKU (Tùy chọn)</label>
-                          <input
-                            type="text"
-                            value={singleVariant.SKU}
-                            onChange={(e) => handleSingleVariantChange("SKU", e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          />
-                        </div>
+                        </svg>
                       </div>
-                    ) : (
-                      <div className="border-t pt-6 space-y-6">
-                        {variants.map((variant, index) => (
-                          <div key={index} className="border border-gray-200 p-4 rounded-lg">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="text-lg font-medium">Phân loại {index + 1}</h4>
-                              {variants.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveVariant(index)}
-                                  className="text-red-500 hover:text-red-700 text-sm"
+                      <div className="text-sm text-gray-600">
+                        <p>Tải lên hình ảnh 1:1.</p>
+                        <p>Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý hôm nay...</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Video Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Video sản phẩm</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center space-x-4">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <p>Kích thước tối đa 30Mb, độ phân giải ≤ 1280x1280px</p>
+                        <p>Độ dài: 10s-60s, định dạng: MP4</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-3 px-4 py-2 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors"
+                    >
+                      Thêm video
+                    </button>
+                  </div>
+
+                  {/* Product Name */}
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Tên sản phẩm
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      maxLength={120}
+                      placeholder="Tên sản phẩm + Thương hiệu + Model + Thông số kỹ thuật"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                    <div className="text-right text-sm text-gray-500 mt-1">{name.length}/120</div>
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Ngành hàng
+                    </label>
+                    <CategoryDropdown
+                      categories={shopCategories}
+                      selectedCategoryID={categoryID}
+                      onCategorySelect={handleCategoryChange}
+                      loading={loading.overall || loading.attributes}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                      Mô tả Sản phẩm
+                    </label>
+                    <textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={6}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Nhập mô tả chi tiết về sản phẩm..."
+                    />
+                    <div className="text-right text-sm text-gray-500 mt-1">{description.length} ký tự</div>
+                  </div>
+                </div>
+
+                <div hidden={activeTab !== "sales"}>
+                  <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin bán hàng</h3>
+                  <div className="space-y-6">
+                    {variants.map((variant, index) => (
+                      <div key={index} className="border border-gray-200 p-4 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-lg font-medium">Phân loại {index + 1}</h4>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveVariant(index)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Xóa phân loại
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
+                            <input
+                              type="file"
+                              ref={(el) => {
+                                variantFileInputs.current[index] = el
+                              }}
+                              onChange={(e) => handleVariantImageSelect(e, index)}
+                              accept="image/*"
+                              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                            />
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {variant.Images.map((img, imgIndex) => (
+                                <div
+                                  key={imgIndex}
+                                  className="relative w-16 h-16 border rounded-md overflow-hidden"
                                 >
-                                  Xóa phân loại
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
-                                <input
-                                  type="file"
-                                  ref={(el) => {
-                                    variantFileInputs.current[index] = el
-                                  }}
-                                  onChange={(e) => handleVariantImageSelect(e, index)}
-                                  multiple
-                                  accept="image/*"
-                                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                />
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {variant.Images.map((img, imgIndex) => (
-                                    <div
-                                      key={imgIndex}
-                                      className="relative w-16 h-16 border rounded-md overflow-hidden"
-                                    >
-                                      <img
-                                        src={img.preview || "/placeholder.svg"}
-                                        alt={`variant ${index} preview ${imgIndex}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => handleRemoveVariantImage(index, imgIndex)}
-                                        className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
-                                      >
-                                        ×
-                                      </button>
-                                      {img.isPrimary && (
-                                        <div className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-xs text-center">
-                                          Chính
-                                        </div>
-                                      )}
+                                  <img
+                                    src={img.preview || "/placeholder.svg"}
+                                    alt={`variant ${index} preview ${imgIndex}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.currentTarget
+                                      if (!target.dataset.retried) {
+                                        target.dataset.retried = "true"
+                                        setTimeout(() => {
+                                          if (target.src !== "/placeholder.svg?height=64&width=64") {
+                                            target.src = "/placeholder.svg?height=64&width=64"
+                                          }
+                                        }, 100)
+                                      }
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveVariantImage(index, imgIndex)}
+                                    className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                                  >
+                                    ×
+                                  </button>
+                                  {img.isPrimary && (
+                                    <div className="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-xs text-center">
+                                      Chính
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  <span className="text-red-500">*</span> Giá
-                                </label>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={variant.Price}
-                                  onChange={(e) => handleVariantChange(index, "Price", e.target.value)}
-                                  required
-                                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={variant.CompareAtPrice ?? ""}
-                                  onChange={(e) => handleVariantChange(index, "CompareAtPrice", e.target.value || null)}
-                                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  <span className="text-red-500">*</span> SKU
-                                </label>
-                                <input
-                                  type="text"
-                                  value={variant.SKU}
-                                  onChange={(e) => handleVariantChange(index, "SKU", e.target.value)}
-                                  required
-                                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  <span className="text-red-500">*</span> Số lượng
-                                </label>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={variant.StockQuantity}
-                                  onChange={(e) => handleVariantChange(index, "StockQuantity", e.target.value)}
-                                  required
-                                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                />
-                              </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
 
-                        <button
-                          type="button"
-                          onClick={addVariant}
-                          className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
-                        >
-                          Thêm Phân loại
-                        </button>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <span className="text-red-500">*</span> Giá
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.Price}
+                              onChange={(e) => handleVariantChange(index, "Price", e.target.value)}
+                              required
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.CompareAtPrice ?? ""}
+                              onChange={(e) => handleVariantChange(index, "CompareAtPrice", e.target.value || null)}
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <span className="text-red-500">*</span> SKU
+                            </label>
+                            <input
+                              type="text"
+                              value={variant.SKU}
+                              onChange={(e) => handleVariantChange(index, "SKU", e.target.value)}
+                              required
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <span className="text-red-500">*</span> Số lượng
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.StockQuantity}
+                              onChange={(e) => handleVariantChange(index, "StockQuantity", e.target.value)}
+                              required
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Variant Attributes */}
+                        {attributes.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="text-md font-medium text-gray-700 mb-3">Thông số Phân loại</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              {attributes.map((attr) => (
+                                <div key={attr.AttributeID}>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">{attr.Name}</label>
+                                  <input
+                                    type="text"
+                                    value={variant.AttributeValues[attr.AttributeID] || ""}
+                                    onChange={(e) => handleVariantAttributeChange(index, attr.AttributeID, e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    placeholder={`Nhập giá trị cho ${attr.Name}`}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
+                    >
+                      Thêm Phân loại
+                    </button>
                   </div>
-                )}
+                </div>
 
-                {activeTab === "shipping" && (
-                  <div className="p-6">
-                    <h3 className="text-lg font-medium text-orange-600 mb-4">Vận chuyển</h3>
-                    <p className="text-gray-500">Nội dung vận chuyển sẽ được thêm vào đây...</p>
-                  </div>
-                )}
+                <div hidden={activeTab !== "shipping"}>
+                  <h3 className="text-lg font-medium text-orange-600 mb-4">Vận chuyển</h3>
+                  <p className="text-gray-500">Nội dung vận chuyển sẽ được thêm vào đây...</p>
+                </div>
 
-                {activeTab === "other" && (
-                  <div className="p-6">
-                    <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin khác</h3>
-                    <p className="text-gray-500">Nội dung thông tin khác sẽ được thêm vào đây...</p>
-                  </div>
-                )}
+                <div hidden={activeTab !== "other"}>
+                  <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin khác</h3>
+                  <p className="text-gray-600">Nội dung thông tin khác sẽ được thêm vào đây...</p>
+                </div>
 
                 <div className="border-t p-6 flex justify-end space-x-4">
                   <button
@@ -1189,6 +1078,12 @@ export default function EditProductPage() {
                       src={getPrimaryImage()?.preview || "/placeholder.svg"}
                       alt="Preview"
                       className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        if (target.src !== "/placeholder.svg?height=200&width=200") {
+                          target.src = "/placeholder.svg?height=200&width=200"
+                        }
+                      }}
                     />
                   ) : (
                     <div className="text-center text-gray-400">
@@ -1200,20 +1095,13 @@ export default function EditProductPage() {
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <p className="text-sm">0 phân loại có sẵn</p>
+                      <p className="text-sm">{variants.length} phân loại có sẵn</p>
                     </div>
                   )}
                 </div>
-
                 <div className="text-center text-gray-500 text-sm mb-4">
-                  ₫
-                  {hasVariants
-                    ? variants.length > 0
-                      ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(...variants.map((v) => v.Price))}`
-                      : "0 - ₫0"
-                    : singleVariant.Price}
+                  ₫{variants.length > 0 ? `${Math.min(...variants.map((v) => v.Price))} - ₫${Math.max(...variants.map((v) => v.Price))}` : "0"}
                 </div>
-
                 <div className="flex items-center space-x-2 mb-4">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -1224,12 +1112,11 @@ export default function EditProductPage() {
                       />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium">duynguykhc8</span>
+                  <span className="text-sm font-medium">Tên cửa hàng</span>
                   <button className="ml-auto px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
                     Xem
                   </button>
                 </div>
-
                 <div className="flex space-x-2">
                   <button className="flex-1 py-2 bg-orange-100 text-orange-600 rounded flex items-center justify-center hover:bg-orange-200 transition-colors">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1245,7 +1132,6 @@ export default function EditProductPage() {
                     Mua Ngay
                   </button>
                 </div>
-
                 <p className="text-xs text-gray-500 mt-4 text-center">
                   Hình ảnh có tính chất minh họa, không phải hình ảnh cuối cùng Người mua thấy.
                 </p>

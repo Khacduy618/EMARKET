@@ -21,7 +21,7 @@ export interface UpdateAddressResponse {
 export const fetchUserAddresses = async (): Promise<FetchAddressesResponse> => {
     const response = await fetch(`${API_URL}/addresses`, {
         headers: {
-            
+
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },

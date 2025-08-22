@@ -7,13 +7,17 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { getAuthToken } from "@/services/api";
 import { API_URL } from "@/lib/config";
+import { useRouter } from "next/navigation";
 
 interface OrderActionsProps {
     status: string;
-    orderId: string; // Thêm orderId để gọi API
+    orderId: number | string; // Thêm orderId để gọi API
+    onConfirm?: () => void; // Callback khi xác nhận đơn hàng
+    onCancel?: () => void; // Callback khi hủy đơn hàng
 }
 
-export default function OrderActions({ status, orderId }: OrderActionsProps) {
+export default function OrderActions({ status, orderId,onConfirm, onCancel }: OrderActionsProps) {
+    const router = useRouter();
     const handleConfirmOrder = async () => {
         if (!orderId) {
             Swal.fire({
@@ -37,8 +41,6 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
         if (result.isConfirmed) {
             try {
                 const token = getAuthToken();
-                if (!token) throw new Error("Authentication token not found.");
-
                 await axios.put(
                     `${API_URL}/seller/orders/${orderId}/confirm`,
                     {},
@@ -47,13 +49,13 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                         withCredentials: true,
                     }
                 );
+
                 Swal.fire({
                     icon: "success",
                     title: "Thành công!",
                     text: "Đơn hàng đã được xác nhận và đang chuẩn bị.",
                     confirmButtonText: "OK",
-                });
-                // Có thể làm mới trạng thái ở đây nếu cần
+                })
             } catch (err: any) {
                 Swal.fire({
                     icon: "error",
@@ -63,6 +65,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 });
             }
         }
+        
     };
 
     const handlePrintShipping = async () => {

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,6 +13,15 @@ interface OrderSearchProps {
 }
 
 export default function OrderSearch({ searchTerm, onSearch, onRefresh }: OrderSearchProps) {
+    const [inputValue, setInputValue] = useState(searchTerm)
+
+    // Handle Enter key press to trigger search
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            onSearch(inputValue)
+        }
+    }
+
     return (
         <Card className="mb-6">
             <CardContent className="p-4">
@@ -21,8 +31,9 @@ export default function OrderSearch({ searchTerm, onSearch, onRefresh }: OrderSe
                         <Input
                             type="text"
                             placeholder="Tìm theo mã đơn hàng, tên khách hàng..."
-                            value={searchTerm}
-                            onChange={(e) => onSearch(e.target.value)}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)} // Update local state
+                            onKeyDown={handleKeyDown} // Trigger search on Enter
                             className="pl-10 h-12"
                         />
                     </div>

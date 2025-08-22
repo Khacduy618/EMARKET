@@ -33,6 +33,8 @@ class Shop extends Model
         'ShopPhone',
         'Level', // Added Level from schema
         'Status',
+        'Cccd_front',
+        'Cccd_back',
     ];
 
     protected $casts = [

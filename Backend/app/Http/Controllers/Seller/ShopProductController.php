@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
@@ -12,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Log;
 class ShopProductController extends Controller
 {
     /**
@@ -49,21 +48,20 @@ class ShopProductController extends Controller
      */
     public function updateProduct(Request $request, $productId)
     {
+         Log::info('Update Product Request Data', [
+        'all' => $request->all(),
+        'files' => $request->allFiles(),
+        'user' => Auth::user()
+       ]);
         $validatedData = $request->validate([
-            'ProductID' => 'required|integer|exists:products,ProductID',
             'Name' => 'required|string|max:255',
             'Description' => 'nullable|string',
             'CategoryID' => 'required|integer|exists:platformcategories,CategoryID',
             'Discount' => 'nullable|numeric|min:0|max:100',
             'ImageData' => 'required|json',
             'Images.*' => 'nullable|image|max:2048',
-            'Variants' => 'nullable|json',
-            'Price' => 'required_without:Variants|numeric|min:0',
-            'StockQuantity' => 'required_without:Variants|integer|min:0',
-            'SKU' => 'nullable|string',
-            'AttributeValues' => 'required|json',
-            'VariantImages.*' => 'nullable|array',
-            'VariantImages.*.*' => 'image|max:2048',
+            'Variants' => 'required|json',
+            'VariantImages.*' => 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -78,61 +76,34 @@ class ShopProductController extends Controller
                 ->where('ProductID', $productId)
                 ->firstOrFail();
 
+            $variantsData = json_decode($validatedData['Variants'], true);
             $product->update([
                 'Name' => $validatedData['Name'],
                 'Description' => $validatedData['Description'],
                 'CategoryID' => $validatedData['CategoryID'],
                 'Discount' => $validatedData['Discount'] ?? 0,
                 'AdminApprovalStatus' => 'Pending',
-                'StockQuantity' => isset($validatedData['Variants'])
-                    ? collect(json_decode($validatedData['Variants'], true))->sum('StockQuantity')
-                    : $validatedData['StockQuantity'],
+                'StockQuantity' => collect($variantsData)->sum('StockQuantity'),
             ]);
 
             $this->syncProductImages($request, $product);
-
-            if (isset($validatedData['Variants'])) {
-                $variantsData = json_decode($validatedData['Variants'], true);
-                $attributeValuesData = json_decode($validatedData['AttributeValues'], true);
-                $this->syncProductVariantsAndAttributes($request, $product, $variantsData, $attributeValuesData);
-            } else {
-                $variant = ProductVariant::updateOrCreate(
-                    [
-                        'ProductID' => $product->ProductID,
-                        'VariantID' => $product->variants()->first()?->VariantID,
-                    ],
-                    [
-                        'Price' => $validatedData['Price'],
-                        'StockQuantity' => $validatedData['StockQuantity'],
-                        'SKU' => $validatedData['SKU'] ?? '',
-                        'CompareAtPrice' => null,
-                        'ImageURL' => null,
-                        'IsActive' => 1,
-                    ]
-                );
-
-                $attributeValuesData = json_decode($validatedData['AttributeValues'], true);
-                $attributeValueIdsToSync = [];
-                foreach ($attributeValuesData as $attrID => $attrValue) {
-                    if (!empty($attrValue)) {
-                        $attributeValueRecord = AttributeValue::firstOrCreate(
-                            ['AttributeID' => $attrID, 'Value' => $attrValue]
-                        );
-                        $attributeValueIdsToSync[] = $attributeValueRecord->AttributeValueID;
-                    }
-                }
-                $variant->attributeValues()->sync($attributeValueIdsToSync);
-            }
+            $this->syncProductVariantsAndAttributes($request, $product, $variantsData);
 
             DB::commit();
             return response()->json([
                 'message' => 'Product updated successfully and is pending approval.',
-                'data' => $product->load('images', 'variants')
+                'data' => $product->load(['images', 'variants.attributeValues'])
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
             return response()->json(['message' => 'Product or shop not found'], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -156,12 +127,16 @@ class ShopProductController extends Controller
             $product = Product::where('ShopID', $shop->ShopID)
                 ->with([
                     'images' => function ($query) {
-                        $query->select('ImageID', 'ProductID', 'ImageURL', 'IsPrimary', 'SortOrder');
+                        $query->select('ImageID', 'ProductID', 'ImageURL', 'IsPrimary', 'SortOrder')
+                            ->whereNull('VariantID');
                     },
                     'variants' => function ($query) {
                         $query->select('VariantID', 'ProductID', 'SKU', 'Price', 'CompareAtPrice', 'StockQuantity', 'ImageURL', 'IsActive')
                             ->with(['attributeValues' => function ($query) {
-                                $query->select('attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value');
+                                $query->select('attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value')
+                                    ->with(['attribute' => function ($query) {
+                                        $query->select('AttributeID', 'Name');
+                                    }]);
                             }]);
                     }
                 ])
@@ -203,10 +178,16 @@ class ShopProductController extends Controller
                             ->where('ProductID', $productID);
                     });
             })
+            ->with(['attribute' => function ($query) {
+                $query->select('AttributeID', 'Name');
+            }])
             ->get()
             ->groupBy('AttributeID')
             ->map(function ($group) {
-                return $group->pluck('Value')->toArray();
+                return [
+                    'name' => $group->first()->attribute->Name,
+                    'values' => $group->pluck('Value')->toArray()
+                ];
             });
 
             return response()->json(['data' => $attributeValues], 200);
@@ -223,17 +204,37 @@ class ShopProductController extends Controller
      */
     public function destroy($productID)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            $shop = Shop::where('UserID', $user->UserID)->firstOrFail();
+            $product = Product::where('ShopID', $shop->ShopID)->where('ProductID', $productID)->firstOrFail();
+
+            // Delete associated images
+            foreach ($product->images as $image) {
+                Storage::disk('public')->delete($image->ImageURL);
+                $image->delete();
+            }
+            // Delete associated variants and their images
+            foreach ($product->variants as $variant) {
+                if ($variant->ImageURL) {
+                    Storage::disk('public')->delete($variant->ImageURL);
+                }
+                $variant->attributeValues()->detach();
+                $variant->delete();
+            }
+
+            $product->delete();
+
+            return response()->json(['message' => 'Product deleted successfully'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Product not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting product: ' . $e->getMessage()], 500);
         }
-
-        $shop = Shop::where('UserID', $user->UserID)->firstOrFail();
-        $product = Product::where('ShopID', $shop->ShopID)->where('ProductID', $productID)->firstOrFail();
-
-        $product->delete();
-
-        return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 
     /**
@@ -244,8 +245,8 @@ class ShopProductController extends Controller
      */
     public function getAttributes($categoryID)
     {
-        if (!$categoryID) {
-            return response()->json(['message' => 'CategoryID is required'], 400);
+        if (!is_numeric($categoryID)) {
+            return response()->json(['message' => 'Invalid CategoryID'], 400);
         }
 
         $attributes = DB::table('attributes')
@@ -266,6 +267,7 @@ class ShopProductController extends Controller
      */
     public function addProduct(Request $request)
     {
+        
         $validatedData = $request->validate([
             'Name' => 'required|string|max:255',
             'Description' => 'nullable|string',
@@ -275,74 +277,41 @@ class ShopProductController extends Controller
             'Images' => 'nullable|array',
             'Images.*' => 'image|max:2048',
             'Variants' => 'required|json',
-            'AttributeValues' => 'required|json',
-            'VariantImages.*' => 'nullable|array',
             'VariantImages.*.*' => 'image|max:2048',
         ]);
-
         DB::beginTransaction();
         try {
             $shop = Shop::where('UserID', Auth::id())->firstOrFail();
             $variantsData = json_decode($validatedData['Variants'], true);
-            $attributeValuesData = json_decode($validatedData['AttributeValues'], true);
 
             $product = Product::create([
                 'ShopID' => $shop->ShopID,
                 'Name' => $validatedData['Name'],
                 'Description' => $validatedData['Description'],
                 'CategoryID' => $validatedData['CategoryID'],
-                'discount' => $validatedData['Discount'] ?? 0,
+                'Discount' => $validatedData['Discount'] ?? 0,
                 'AdminApprovalStatus' => 'Pending',
                 'StockQuantity' => collect($variantsData)->sum('StockQuantity'),
             ]);
 
-            $imageData = json_decode($validatedData['ImageData'], true);
-            if ($request->hasFile('Images')) {
-                foreach ($request->file('Images') as $index => $file) {
-                    $path = $file->store('product_images', 'public');
-                    ProductImage::create([
-                        'ProductID' => $product->ProductID,
-                        'ImageURL' => $path,
-                        'IsPrimary' => $imageData[$index]['IsPrimary'] ?? ($index === 0),
-                        'SortOrder' => $imageData[$index]['SortOrder'] ?? $index,
-                    ]);
-                }
-            }
-
-            $variantFiles = $request->file('VariantImages', []);
-            foreach ($variantsData as $index => $variantInfo) {
-                $variant = ProductVariant::create([
-                    'ProductID' => $product->ProductID,
-                    'Price' => $variantInfo['Price'],
-                    'StockQuantity' => $variantInfo['StockQuantity'],
-                    'SKU' => $variantInfo['SKU'],
-                    'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
-                    'ImageURL' => null,
-                    'IsActive' => 1,
-                ]);
-
-                if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
-                    foreach ($variantFiles[$index] as $imageIndex => $imageFile) {
-                        $path = $imageFile->store('variant_images', 'public');
-                        if ($imageIndex === 0) {
-                            $variant->update(['ImageURL' => $path]);
-                        }
-                    }
-                }
-
-                foreach ($attributeValuesData as $attrID => $attrValue) {
-                    if (!empty($attrValue)) {
-                        $attributeValueRecord = AttributeValue::firstOrCreate(
-                            ['AttributeID' => $attrID, 'Value' => $attrValue]
-                        );
-                        $variant->attributeValues()->attach($attributeValueRecord->AttributeValueID);
-                    }
-                }
-            }
+            $this->syncProductImages($request, $product);
+            $this->syncProductVariantsAndAttribute($request, $product, $variantsData);
 
             DB::commit();
-            return response()->json(['message' => 'Product added successfully and is pending approval.', 'data' => $product->load('images', 'variants')], 201);
+            return response()->json([
+                'message' => 'Product added successfully and is pending approval.',
+                'data' => $product->load(['images', 'variants.attributeValues'])
+            ], 201);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Shop not found'], 404);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -365,101 +334,177 @@ class ShopProductController extends Controller
         $imageData = json_decode($request->input('ImageData'), true);
         $newImageFiles = $request->file('Images', []);
 
-        $currentImageIds = $product->images()->pluck('ImageID')->toArray();
-        $submittedImageIds = collect($imageData)->pluck('ImageID')->filter()->values()->toArray();
-
-        $imagesToDeleteIds = array_diff($currentImageIds, $submittedImageIds);
-        if (!empty($imagesToDeleteIds)) {
-            $imagesToDelete = ProductImage::whereIn('ImageID', $imagesToDeleteIds)->get();
-            foreach ($imagesToDelete as $img) {
-                Storage::disk('public')->delete($img->ImageURL);
-                $img->delete();
-            }
+        // Delete images not in the new request
+        $newSortOrders = collect($imageData)->pluck('SortOrder')->toArray();
+        $imagesToDelete = $product->images()->whereNotIn('SortOrder', $newSortOrders)->get();
+        foreach ($imagesToDelete as $img) {
+            Storage::disk('public')->delete($img->ImageURL);
+            $img->delete();
         }
 
-        $newFileIndex = 0;
-        foreach ($imageData as $imgInfo) {
-            if (isset($imgInfo['ImageID'])) {
+        // Update or create images
+        foreach ($imageData as $index => $imgInfo) {
+            if (isset($newImageFiles[$index])) {
+                $path = $newImageFiles[$index]->store('product_images', 'public');
+                ProductImage::updateOrCreate(
+                    [
+                        'ProductID' => $product->ProductID,
+                        'SortOrder' => $imgInfo['SortOrder'],
+                    ],
+                    [
+                        'ImageURL' => $path,
+                        'IsPrimary' => $imgInfo['IsPrimary'],
+                    ]
+                );
+            } else if (isset($imgInfo['ImageID'])) {
                 ProductImage::where('ImageID', $imgInfo['ImageID'])->update([
                     'IsPrimary' => $imgInfo['IsPrimary'],
                     'SortOrder' => $imgInfo['SortOrder'],
                 ]);
-            } else {
-                if (isset($newImageFiles[$newFileIndex])) {
-                    $path = $newImageFiles[$newFileIndex]->store('product_images', 'public');
-                    $product->images()->create([
-                        'ImageURL' => $path,
-                        'IsPrimary' => $imgInfo['IsPrimary'],
-                        'SortOrder' => $imgInfo['SortOrder'],
-                    ]);
-                    $newFileIndex++;
-                }
             }
         }
     }
 
-    /**
-     * Sync product variants and attributes.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Product $product
-     * @param array $variantsData
-     * @param array $attributeValuesData
-     * @return void
-     */
-    private function syncProductVariantsAndAttributes(Request $request, Product $product, array $variantsData, array $attributeValuesData)
-    {
-        $currentVariantIds = $product->variants()->pluck('VariantID')->toArray();
-        $submittedVariantIds = collect($variantsData)->pluck('VariantID')->filter()->values()->toArray();
+   private function syncProductVariantsAndAttribute(Request $request, Product $product, array $variantsData)
+{
+$currentVariantIds = $product->variants()->pluck('VariantID')->toArray();
+$newVariantIds = [];
+$variantFiles = $request->file('VariantImages', []);
 
-        // Delete variants that are no longer in the submitted data
-        $variantsToDeleteIds = array_diff($currentVariantIds, $submittedVariantIds);
-        if (!empty($variantsToDeleteIds)) {
-            $variantsToDelete = ProductVariant::whereIn('VariantID', $variantsToDeleteIds)->get();
-            foreach ($variantsToDelete as $variant) {
-                // Detach attribute relationships
-                $variant->attributeValues()->detach();
-                // Delete variant image if it exists
-                if ($variant->ImageURL) {
-                    Storage::disk('public')->delete($variant->ImageURL);
-                }
-                $variant->delete();
-            }
+foreach ($variantsData as $index => $variantInfo) {
+    // Kiểm tra SKU trùng
+    if (!empty($variantInfo['SKU'])) {
+        $existingVariant = ProductVariant::where('ProductID', $product->ProductID)
+            ->where('SKU', $variantInfo['SKU'])
+            ->where('VariantID', '!=', $variantInfo['VariantID'] ?? null)
+            ->first();
+        if ($existingVariant) {
+            throw new \Exception("SKU '{$variantInfo['SKU']}' is already used for another variant in this product.");
+        }
+    }
+
+    // Xử lý ảnh variant
+    $imagePath = null;
+    if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
+        $file = $variantFiles[$index];
+        if (is_array($file)) {
+            $file = $file[0]; // chỉ lấy ảnh đầu tiên
+        }
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            $imagePath = $file->store('variant_images', 'public');
+        }
+    }
+
+    $variant = ProductVariant::updateOrCreate(
+        [
+            'ProductID' => $product->ProductID,
+            'VariantID' => $variantInfo['VariantID'] ?? null,
+        ],
+        [
+            'Price' => $variantInfo['Price'],
+            'StockQuantity' => $variantInfo['StockQuantity'],
+            'SKU' => $variantInfo['SKU'] ?? null,
+            'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
+            'ImageURL' => $imagePath ?? ($variantInfo['ImageURL'] ?? null),
+            'IsActive' => 1,
+        ]
+    );
+
+    $newVariantIds[] = $variant->VariantID;
+
+    // Đồng bộ Attribute Values
+    $attributeValueIdsToSync = [];
+    foreach ($variantInfo['AttributeValues'] as $attrID => $attrValue) {
+        if (!empty($attrValue)) {
+            $attributeValueRecord = AttributeValue::firstOrCreate(
+                ['AttributeID' => $attrID, 'Value' => $attrValue]
+            );
+            $attributeValueIdsToSync[] = $attributeValueRecord->AttributeValueID;
+        }
+    }
+    $variant->attributeValues()->sync($attributeValueIdsToSync);
+}
+
+// Xóa variant không còn
+$variantsToDelete = array_diff($currentVariantIds, $newVariantIds);
+if (!empty($variantsToDelete)) {
+    $variants = ProductVariant::whereIn('VariantID', $variantsToDelete)->get();
+    foreach ($variants as $variant) {
+        if ($variant->ImageURL) {
+            Storage::disk('public')->delete($variant->ImageURL);
+        }
+        $variant->attributeValues()->detach();
+        $variant->delete();
+    }
+}
+}
+
+private function syncProductVariantsAndAttributes(Request $request, Product $product, array $variantsData)
+{
+    $currentVariantIds = $product->variants()->pluck('VariantID')->toArray();
+    $newVariantIds = [];
+    $variantFiles = $request->file('VariantImages', []); // Lấy mảng file ảnh
+
+    foreach ($variantsData as $index => $variantInfo) {
+        // --- Bắt đầu phần sửa logic quan trọng ---
+
+        // 1. Tìm variant hiện có hoặc tạo mới nếu không có VariantID
+        $variant = ProductVariant::findOrNew($variantInfo['VariantID'] ?? null);
+        if (!$variant->exists) {
+            $variant->ProductID = $product->ProductID;
         }
 
-        // Handle variant images
-        $variantFiles = $request->file('VariantImages', []);
+        // 2. Cập nhật các trường dữ liệu cơ bản
+        $variant->Price = $variantInfo['Price'];
+        $variant->StockQuantity = $variantInfo['StockQuantity'];
+        $variant->SKU = $variantInfo['SKU'] ?? null;
+        $variant->CompareAtPrice = $variantInfo['CompareAtPrice'] ?? null;
+        $variant->IsActive = 1;
 
-        // Update or create variants
-        foreach ($variantsData as $index => $variantInfo) {
-            $variant = ProductVariant::updateOrCreate(
-                [
-                    'VariantID' => $variantInfo['VariantID'] ?? null,
-                    'ProductID' => $product->ProductID,
-                ],
-                [
-                    'Price' => $variantInfo['Price'],
-                    'StockQuantity' => $variantInfo['StockQuantity'],
-                    'SKU' => $variantInfo['SKU'],
-                    'CompareAtPrice' => $variantInfo['CompareAtPrice'] ?? null,
-                    'IsActive' => 1,
-                ]
-            );
+        // 3. Xử lý ImageURL với logic ĐÚNG
+        $oldImagePath = $variant->ImageURL; // Lấy đường dẫn ảnh cũ từ DB (nếu có)
 
-            // Handle variant images
-            if (isset($variantFiles[$index]) && !empty($variantFiles[$index])) {
-                // Delete old image if it exists
-                if ($variant->ImageURL) {
-                    Storage::disk('public')->delete($variant->ImageURL);
-                }
-                // Store new primary image (first image in the array)
-                $path = $variantFiles[$index][0]->store('variant_images', 'public');
-                $variant->update(['ImageURL' => $path]);
+        // Case 1: CÓ ảnh mới được gửi lên cho variant này
+        if (isset($variantFiles[$index]) && $variantFiles[$index] instanceof \Illuminate\Http\UploadedFile) {
+            Log::info("Variant index {$index}: Có file mới. Xử lý lưu ảnh.");
+            
+            // Xóa ảnh cũ khỏi storage nếu có
+            if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
             }
+            
+            // Lưu ảnh mới và cập nhật đường dẫn
+            $path = $variantFiles[$index]->store('variant_images', 'public');
+            $variant->ImageURL = $path;
+        }
+        // Case 2: KHÔNG có ảnh mới, nhưng FE báo "giữ lại ảnh cũ"
+        // Chú ý: dùng đúng key 'existingImageUrl' mà FE gửi
+        elseif (!empty($variantInfo['existingImageUrl'])) {
+            Log::info("Variant index {$index}: Không có file mới, FE yêu cầu giữ lại ảnh '{$variantInfo['existingImageUrl']}'. Không làm gì.");
+            // Không làm gì cả, giữ nguyên giá trị $variant->ImageURL hiện tại
+        }
+        // Case 3: KHÔNG có ảnh mới VÀ cũng KHÔNG giữ lại (tức là người dùng đã xóa ảnh trên FE)
+        else {
+            Log::info("Variant index {$index}: Không có file mới và không có existingImageUrl. Xóa ảnh cũ.");
 
-            // Sync attribute values
-            $attributeValueIdsToSync = [];
-            foreach ($attributeValuesData as $attrID => $attrValue) {
+            // Xóa ảnh cũ khỏi storage nếu có
+            if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+            // Cập nhật đường dẫn là null trong DB
+            $variant->ImageURL = null;
+        }
+
+        // 4. Lưu lại variant sau khi đã xử lý xong
+        $variant->save();
+
+        // 5. Thêm ID của variant vừa xử lý vào danh sách để giữ lại
+        $newVariantIds[] = $variant->VariantID;
+
+        // 6. Đồng bộ Attribute Values (giữ nguyên logic cũ của bạn)
+        $attributeValueIdsToSync = [];
+        if (!empty($variantInfo['AttributeValues'])) {
+            foreach ($variantInfo['AttributeValues'] as $attrID => $attrValue) {
                 if (!empty($attrValue)) {
                     $attributeValueRecord = AttributeValue::firstOrCreate(
                         ['AttributeID' => $attrID, 'Value' => $attrValue]
@@ -467,7 +512,25 @@ class ShopProductController extends Controller
                     $attributeValueIdsToSync[] = $attributeValueRecord->AttributeValueID;
                 }
             }
-            $variant->attributeValues()->sync($attributeValueIdsToSync);
+        }
+        $variant->attributeValues()->sync($attributeValueIdsToSync);
+
+        // --- Kết thúc phần sửa logic ---
+    }
+
+    // Xóa các variant không còn tồn tại (giữ nguyên logic cũ của bạn)
+    $variantsToDeleteIds = array_diff($currentVariantIds, $newVariantIds);
+    if (!empty($variantsToDeleteIds)) {
+        $variantsToDelete = ProductVariant::whereIn('VariantID', $variantsToDeleteIds)->get();
+        foreach ($variantsToDelete as $variant) {
+            if ($variant->ImageURL) {
+                Storage::disk('public')->delete($variant->ImageURL);
+            }
+            $variant->attributeValues()->detach();
+            $variant->delete();
         }
     }
+}
+  
+
 }

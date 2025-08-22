@@ -5,7 +5,7 @@ import Link from "next/link"
 import { getProducts, deleteProduct } from "@/services/seller-category"
 import Swal from "sweetalert2"
 import { getAuthToken } from "@/services/api"
-import { BACKEND_URL, WEB_URL } from "@/lib/config"
+import { WEB_URL } from "@/lib/config"
 
 // --- INTERFACES ---
 interface ProductImage {
@@ -115,13 +115,13 @@ export default function ShopeeProductsPage() {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount)
   }
 
- 
+  
   const getPrimaryImage = (product: Product): string => {
     const primaryImg = product.images.find((img) => img.IsPrimary)
     const imagePath = primaryImg?.ImageURL || product.images[0]?.ImageURL
 
     if (imagePath) {
-      return `${BACKEND_URL}/storage/${imagePath}`
+      return `${WEB_URL}/storage/${imagePath}`
     }
 
     return "https://via.placeholder.com/150/f0f0f0/999999?text=No+Image"
@@ -214,8 +214,8 @@ export default function ShopeeProductsPage() {
                     setCurrentPage(1)
                   }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                      ? "border-orange-500 text-orange-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-orange-500 text-orange-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                 >
                   {tab.label}
@@ -406,10 +406,10 @@ export default function ShopeeProductsPage() {
                         <td className="px-6 py-4 text-center">
                           <span
                             className={`text-sm font-medium ${product.StockQuantity > 10
-                                ? "text-green-600"
-                                : product.StockQuantity > 0
-                                  ? "text-yellow-600"
-                                  : "text-red-600"
+                              ? "text-green-600"
+                              : product.StockQuantity > 0
+                                ? "text-yellow-600"
+                                : "text-red-600"
                               }`}
                           >
                             {product.StockQuantity}
@@ -469,8 +469,8 @@ export default function ShopeeProductsPage() {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
-                          ? "bg-orange-500 text-white"
-                          : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                        ? "bg-orange-500 text-white"
+                        : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                         }`}
                     >
                       {page}

@@ -304,17 +304,10 @@ Route::get('/products/{product_id}/variants/filter',[ProductController::class, '
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
-    Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
-});
-
 // Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/seller/register', [SellerRegisterController::class, 'showRegistrationForm']);
     Route::post('/seller/register', [SellerRegisterController::class, 'register']);
-    Route::get('/seller/dashboard', [SellerRegisterController::class, 'dashboard']);
     Route::get('/user', [AuthController::class, 'user']);
 
     // Seller protected routes (must be seller)
@@ -335,12 +328,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/shop/products/{productID}/attribute-values', [ShopProductController::class, 'getProductAttributeValues']);
 
         // Orders
-        Route::get('/seller/orders', [SellerOrderController::class, 'index']);
+       
         // Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show']);
+        
+        Route::get('/seller/orders', [SellerOrderController::class, 'index']); 
+        Route::get('/seller/orders/{SellerOrderID}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
         Route::put('/seller/orders/{id}/status', [SellerOrderController::class, 'updateStatus']);
-
-        Route::get('/seller/orders/{id}', [SellerOrderController::class, 'show'])->name('seller.orders.show');
+       
+     
         Route::put('/seller/orders/{orderId}/confirm', [SellerOrderController::class, 'confirmOrder']);
+        Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
         

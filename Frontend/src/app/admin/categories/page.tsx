@@ -47,13 +47,21 @@ export default function CategoryPage() {
     setLoading(true)
     try { 
       const res = await fetch(
+<<<<<<< HEAD:Frontend/src/app/admin/categories/page.tsx
         `${API_URL}/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
+=======
+        `http://localhost:8001/api/admin/categories/list?page=${page}&display_quantity=${displayQuantity}&keyword=${encodeURIComponent(keyword)}`,
+>>>>>>> V2:Frontend/src/app/(admin)/admin/categories/page.tsx
         {
           credentials: 'include', 
         },
       )
 
+<<<<<<< HEAD:Frontend/src/app/admin/categories/page.tsx
       const res2 = await fetch(`${API_URL}/admin/categories/getAllCategory`, {
+=======
+      const res2 = await fetch("http://localhost:8001/api/admin/categories/getAllCategory", {
+>>>>>>> V2:Frontend/src/app/(admin)/admin/categories/page.tsx
         headers: {
             "Content-Type": "application/json",
           },
@@ -100,7 +108,11 @@ export default function CategoryPage() {
 
     if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
       try {
+<<<<<<< HEAD:Frontend/src/app/admin/categories/page.tsx
           const res = await fetch(`${API_URL}/admin/categories/delete/${id}`, {
+=======
+        const res = await fetch(`http://localhost:8001/api/admin/categories/delete/${id}`, {
+>>>>>>> V2:Frontend/src/app/(admin)/admin/categories/page.tsx
           method: "POST",
           headers: {
             "Content-Type": "application/json",
