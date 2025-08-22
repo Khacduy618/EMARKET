@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
-class PlatformCategory extends Model {
+class PlatformCategory extends Model
+{
     use HasFactory;
 
     protected $table = 'PlatformCategories';
@@ -48,22 +49,37 @@ class PlatformCategory extends Model {
     {
         return $this->hasMany(PlatformCategory::class, 'ParentCategoryID', 'CategoryID');
     }
-    
+
     protected static function createUniqueSlug($name, $ignoreId = null)
     {
         $slug = Str::slug($name);
         $originalSlug = $slug;
         $counter = 1;
 
-        while (static::where('Slug', $slug)
-            ->when($ignoreId, function ($query) use ($ignoreId) {
-                return $query->where('CategoryID', '!=', $ignoreId);
-            })
-            ->exists()) {
+        while (
+            static::where('Slug', $slug)
+                ->when($ignoreId, function ($query) use ($ignoreId) {
+                    return $query->where('CategoryID', '!=', $ignoreId);
+                })
+                ->exists()
+        ) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
         }
 
         return $slug;
+    }
+
+    // PlatformCategory.php
+    public function attributes()
+    {
+        return $this->belongsToMany(
+            Attribute::class,
+            'categoryattribute',
+            'CategoryID',
+            'AttributeID',
+            'CategoryID',
+            'AttributeID'
+        );
     }
 }

@@ -1,10 +1,23 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { OverlayTrigger, Tooltip, Spinner } from 'react-bootstrap';
-import Swal from 'sweetalert2';
-import ShopDetailModal from './components/ShopDetailModal'; // Đảm bảo đúng đường dẫn
-import { getFullImageUrl } from '@/services/api';
-import { API_URL } from '@/lib/config';
+'use client'
+
+import { useEffect, useState } from 'react'
+import Swal from 'sweetalert2'
+import ShopDetailModal from './components/ShopDetailModal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { API_URL } from "@/lib/config"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 
 type Shop = {
   ShopID: number
@@ -77,7 +90,6 @@ export default function ShopTable() {
   const [totalPage, setTotalPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [selectedShopId, setSelectedShopId] = useState<number | null>(null)
-  const authToken = getAuthToken()
 
   const fetchShops = async () => {
     setLoading(true)
@@ -90,7 +102,7 @@ export default function ShopTable() {
         display_quantity: limitItem.toString(),
       })
 
-      const res = await fetch(`${API_URL}/admin/shops?${params.toString()}`, {
+      const res = await fetch(API_URL + `/admin/shops?${params.toString()}`, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -138,8 +150,8 @@ export default function ShopTable() {
     if (!result.isConfirmed) return
 
     try {
-      const res = await fetch(`${API_URL}/admin/shops/${shopId}/status`, {
-        method: 'POST',
+      const res = await fetch(API_URL + `/admin/shops/${shopId}/status`, {
+        method: 'POST', // Or PUT, depending on your API
         headers: {
           "Content-Type": "application/json",
         },

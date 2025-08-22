@@ -78,10 +78,9 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
             <div className="space-y-4">
               {/* Cover Image */}
               <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                <Image
+                <img
                   src={shop.CoverImageURL || "/placeholder.svg?height=200&width=400&query=shop cover image"}
                   alt="Cover"
-                  fill
                   className="object-cover"
                 />
               </div>
@@ -89,10 +88,9 @@ export default function ShopDetailModal({ show, onHide, shopId }: Props) {
               {/* Shop Info Header */}
               <div className="flex items-center space-x-4">
                 <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                  <Image
+                  <img
                     src={shop.LogoURL || "/placeholder.svg?height=64&width=64&query=shop logo"}
                     alt="Logo"
-                    fill
                     className="object-cover"
                   />
                 </div>

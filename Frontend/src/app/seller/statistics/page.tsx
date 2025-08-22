@@ -62,7 +62,7 @@ type OrderAction = "orderCompleted" | "orderReturn" | "orderCancel"
 export default function ComponentRevenue() {
   const [arrRevenue, setArrRevenue] = useState<Revenue[]>([])
   const [startDate, setStartDate] = useState<string>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
+    new Date(new Date().getFullYear(), new Date().getMonth(), 2).toISOString().split("T")[0],
   )
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split("T")[0])
   const [showModal, setShowModal] = useState<boolean>(false)
@@ -82,13 +82,14 @@ export default function ComponentRevenue() {
 
   const today = new Date()
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-
+  
+  const lastDay = new Date(today);
+  
   const [dateRange, setDateRange] = useState({
     from: firstDay,
     to: lastDay,
   })
-
+  
   const params = useMemo(() => {
     if (!startDate || !endDate) return ""
     const p = new URLSearchParams({

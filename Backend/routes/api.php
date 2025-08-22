@@ -395,9 +395,9 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // === CATEGORY MANAGEMENT ===
     Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);
     Route::get('/categories/list', [AdminCategory::class, "index"]);
-    Route::post('/categories/create', [AdminCategory::class, "createPost"])->middleware(HandleImage::class);
+    Route::post('/categories/create', [AdminCategory::class, "createPost"]);
     Route::get('/categories/edit/{id}', [AdminCategory::class, "editGet"]);
-    Route::patch('/categories/update', [AdminCategory::class, "updateCategory"])->middleware(HandleImage::class);
+    Route::patch('/categories/update', [AdminCategory::class, "updateCategory"]);
     Route::delete('/categories/delete/{id}', [AdminCategory::class, 'deleteCategory']);
 
     // === SHOP MANAGEMENT ===

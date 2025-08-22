@@ -4,26 +4,33 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformCategory;
+use App\Models\CategoryAttribute;
+use App\Models\Attribute;
 use Illuminate\Http\Request;
 use App\utils\CategoryUtil;
+use App\utils\UploadImage;
+use Illuminate\Support\Facades\DB;
 
 
-class CategoryController extends Controller {
- 
-  public function getAllCategory() {
+class CategoryController extends Controller
+{
+
+  public function getAllCategory()
+  {
     $allCategories = PlatformCategory::where('Deleted', 0)->get()->toArray();
     $tree = CategoryUtil::createTree($allCategories, null);
     return response()->json(['status' => 'success', 'data' => $tree]);
   }
 
-  public function index(Request $req) {
+  public function index(Request $req)
+  {
 
     $find = [
       ['Deleted', '=', '0'],
     ];
 
     // Search
-    if($req->keyword){
+    if ($req->keyword) {
       $find[] = ['Name', 'like', '%' . $req->keyword . '%'];
     }
     //End search
@@ -31,7 +38,7 @@ class CategoryController extends Controller {
     //pagination 
     $quantityDisplay = 5;
 
-    if($req->display_quantity){
+    if ($req->display_quantity) {
       $quantityDisplay = $req->display_quantity;
     }
 
@@ -53,45 +60,68 @@ class CategoryController extends Controller {
       ->get();
 
     return response()->json([
-      'status' => 'success',   
+      'status' => 'success',
       'data' => $allCategories,
       'pagination' => $pagination,
       'keyword' => $req->keyword,
     ]);
   }
 
-  public function createPost(Request $req) {
+  public function createPost(Request $req)
+  {
     $validated = $req->validate([
-        'Name' => 'required|string|max:255',
-        // Thêm các rule khác nếu cần, ví dụ:
-        // 'image_name' => 'required|string',
-        // 'Parent' => 'nullable|integer|exists:platform_categories,id'
+      'Name' => 'required|string|max:255',
     ], [
-        'Name.required' => 'Tên danh mục không được để trống',
-        'Name.string' => 'Tên danh mục phải là chuỗi',
-        'Name.max' => 'Tên danh mục không được vượt quá 255 ký tự',
+      'Name.required' => 'Tên danh mục không được để trống',
+      'Name.string' => 'Tên danh mục phải là chuỗi',
+      'Name.max' => 'Tên danh mục không được vượt quá 255 ký tự',
     ]);
+    $imageUrl = UploadImage::uploadImage($req, 'image');
 
     try {
-        $category = new PlatformCategory();
-        $category->Name = $req->Name;
-        $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
-        $category->ImageURL = $req->image_name;
-        $category->IsActive = true;
+      DB::beginTransaction();
+      // Add category
+      $category = new PlatformCategory();
+      $category->Name = $req->Name;
+      $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
+      $category->ImageURL = $imageUrl;
+      $category->IsActive = true;
+      $category->save();
 
-        if ($category->save()) {
-            return response()->json(['status' => 'success', 'message' => 'Thêm danh mục thành công']);
-        } else {
-            return response()->json(['status' => 'error', 'message' => 'Không thể lưu danh mục, vui lòng thử lại'], 500);
-        }
+      // Add attribute category
+      $existingAttributes = Attribute::whereIn('Name', $req->Attributes)->get();
+      $existingIds = $existingAttributes->pluck('AttributeID')->toArray();
+
+      // filter id not existed
+      $existingNames = $existingAttributes->pluck('Name')->toArray();
+      $newNames = array_diff($req->Attributes, $existingNames);
+
+      $newIds = [];
+      foreach ($newNames as $name) {
+        $newIds[] = Attribute::create(['Name' => $name])->AttributeID;
+      }
+
+      $allIds = array_merge($existingIds, $newIds);
+
+      foreach ($allIds as $attrId) {
+        CategoryAttribute::create([
+          'CategoryID' => $category->CategoryID,
+          'AttributeID' => $attrId,
+        ]);
+      }
+      DB::commit();
+
+      return response()->json(['status' => 'success', 'message' => 'Thêm danh mục thành công']);
 
     } catch (\Exception $e) {
-        return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
+      DB::rollBack();
+      return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
     }
-}
+  }
 
 
-  public function deleteCategory(Request $req){
+  public function deleteCategory(Request $req)
+  {
     try {
       PlatformCategory::where('CategoryID', $req->id)->update(['Deleted' => true]);
       return response()->json(['status' => 'success', 'message' => 'Xóa danh mục thành công']);
@@ -100,39 +130,105 @@ class CategoryController extends Controller {
     }
   }
 
-  public function editGet(Request $req){
-    $category = PlatformCategory::where('Deleted', 0)->where('CategoryID', $req->id)->first(); 
+  public function editGet(Request $req)
+  {
+    $category = PlatformCategory::with([
+      'attributes' => function ($q) {
+        $q->select('Attributes.AttributeID', 'Attributes.Name');
+      }
+    ])
+      ->where('Deleted', 0)
+      ->where('CategoryID', $req->id)
+      ->first();
+
     if ($category) {
-      return response()->json(['status' => 'success', 'data' => $category]);
+      return response()->json([
+        'status' => 'success',
+        'data' => [
+          'CategoryID' => $category->CategoryID,
+          'Name' => $category->Name,
+          'ParentCategoryID' => $category->ParentCategoryID,
+          'ImageURL' => $category->ImageURL,
+          'Attributes' => $category->attributes
+        ]
+      ]);
     } else {
       return response()->json(['status' => 'error', 'message' => 'Không tìm thấy danh mục'], 404);
     }
   }
+  public function updateCategory(Request $req)
+  {
+    $validated = $req->validate([
+      'CategoryID' => 'required|integer',
+      'Name' => 'required|string|max:255',
+    ], [
+      'CategoryID.required' => 'Danh mục cần có ID',
+      'Name.required' => 'Tên danh mục không được để trống',
+      'Name.string' => 'Tên danh mục phải là chuỗi',
+      'Name.max' => 'Tên danh mục không được vượt quá 255 ký tự',
+    ]);
 
-  // Cập nhật danh mục
-  public function updateCategory(Request $req) {
     try {
+      DB::beginTransaction();
+
       $category = PlatformCategory::find($req->CategoryID);
 
       if (!$category) {
         return response()->json(['status' => 'error', 'message' => 'Không tìm thấy danh mục cần cập nhật'], 404);
       }
 
+      // Update category info
+      $imageUrl = UploadImage::uploadImage($req, 'image');
       $category->Name = $req->Name;
       $category->ParentCategoryID = $req->Parent == 0 ? null : $req->Parent;
-      $category->ImageURL = $req->image_name ?? $category->ImageURL;
+      $category->ImageURL = $imageUrl ?? $category->ImageURL;
       $category->IsActive = true;
+      $category->save();
 
-      if ($category->save()) {
-        return response()->json(['status' => 'success', 'message' => 'Cập nhật danh mục thành công']);
+      // Xử lý attributes nếu có gửi kèm
+      if ($req->has('Attributes')) {
+        $attributes = $req->Attributes;
+
+        // lấy thuộc tính đã tồn tại
+        $existingAttributes = Attribute::whereIn('Name', $attributes)->get();
+        $existingIds = $existingAttributes->pluck('AttributeID')->toArray();
+
+        // lấy thuộc tính chưa tồn tại
+        $existingNames = $existingAttributes->pluck('Name')->toArray();
+        $newNames = array_diff($attributes, $existingNames);
+
+        $newIds = [];
+        foreach ($newNames as $name) {
+          $newIds[] = Attribute::create(['Name' => $name])->AttributeID;
+        }
+
+        $allIds = array_merge($existingIds, $newIds);
+
+        // clear mối quan hệ cũ
+        CategoryAttribute::where('CategoryID', $category->CategoryID)->delete();
+
+        // insert lại mối quan hệ
+        foreach ($allIds as $attrId) {
+          CategoryAttribute::create([
+            'CategoryID' => $category->CategoryID,
+            'AttributeID' => $attrId,
+          ]);
+        }
       } else {
-        return response()->json(['status' => 'error', 'message' => 'Không thể cập nhật danh mục, vui lòng thử lại'], 500);
+        // Attributes có nhưng rỗng => xóa hết quan hệ
+        CategoryAttribute::where('CategoryID', $category->CategoryID)->delete();
       }
 
+      DB::commit();
+
+      return response()->json(['status' => 'success', 'message' => 'Cập nhật danh mục thành công']);
+
     } catch (\Exception $e) {
+      DB::rollBack();
       return response()->json(['status' => 'error', 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()], 500);
     }
   }
 
-  
+
+
 }

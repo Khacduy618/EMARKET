@@ -10,13 +10,10 @@ class Attribute extends Model
     use HasFactory;
     protected $table = "Attributes";
     protected $primaryKey = 'AttributeID';
-
+    public $timestamps = false;
     protected $fillable = [
-        // Add fillable fields here if needed
-        // e.g., 'name', 'type', etc.
         'AttributeID',
         'Name'
-
     ];
 
     /**

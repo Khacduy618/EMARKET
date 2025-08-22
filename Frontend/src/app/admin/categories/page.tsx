@@ -362,7 +362,7 @@ export default function CategoryPage() {
 
         {editCategory && (
           <EditCategoryModal
-            category={editCategory}
+            categoryId={editCategory.CategoryID}
             categoryTree={categoryTree}
             onClose={() => setEditCategory(null)}
             onUpdated={() => {
