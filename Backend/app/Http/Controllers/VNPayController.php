@@ -40,7 +40,7 @@ public function createPayment(Request $request, $orderId)
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
     
-    if ($order->OverallStatus !== 'Pending' || $order->PaymentStatus !== 'Pending') {
+    if ( $order->PaymentStatus !== 'Pending') {
         Log::warning("VNPAY_WARNING: Payment attempt on an already processed order [{$orderId}].");
         return response()->json(['message' => 'Đơn hàng này đã được xử lý.'], 400);
     }
@@ -160,7 +160,7 @@ public function handleReturn(Request $request)
         
         if ($responseCode == '00') {
             Log::info("[VNPAY_RETURN] Payment SUCCESS for order: {$orderCode}. Checking order status...");
-            if ($order && $order->OverallStatus === 'Pending') {
+            if ($order && $order->PaymentStatus == 'Pending') {
                 try {
                     DB::transaction(function () use ($order, $inputData) {
                         $vnpayTxnRef = $inputData['vnp_TxnRef'];
@@ -171,7 +171,6 @@ public function handleReturn(Request $request)
                         DB::table('ordersbuyer')->where('OrderID', $order->OrderID)
                             ->update([
                                 'PaymentStatus' => 'Paid', 
-                                'OverallStatus' => 'Processing', 
                                 'UpdatedAt' => now(),
                                 'paidAt' => $paidAtTimestamp,
                                 'VnpayTxnRef' => $vnpayTxnRef,
@@ -198,7 +197,6 @@ public function handleReturn(Request $request)
                     return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}{$orderQueryParam}&error=processing_failed");
                 }
             } else {
-                 Log::warning("[VNPAY_RETURN] Order {$orderCode} was already processed or not found. Status: " . ($order->OverallStatus ?? 'NOT_FOUND'));
                  return redirect()->away("{$frontendReturnUrl}?success=true&orderCode={$orderCode}");
             }
         } else {

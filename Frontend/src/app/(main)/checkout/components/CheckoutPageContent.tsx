@@ -15,6 +15,7 @@ import CheckoutPlatformVoucherSection from './CheckoutPlatformVoucherSection';
 import CheckoutPaymentSection from './CheckoutPaymentSection';
 import CheckoutSummary from './CheckoutSummary';
 import { fetchUserAddresses } from '@/services/user';
+
 import AddressSelectionModal from './AddressSelectionModal';
 import UpdateAddressModal from './UpdateAddressModal'; // Import modal mới
 
@@ -39,72 +40,20 @@ import { calculateFinalItemPrice,calculateDiscountForVoucher, recalculateSummary
 
 import VoucherSelectionModal from '@/app/components/cart/VoucherSelectionModal';
 import VoucherSelectModal from '@/app/components/cart/VoucherSelectModal';
+import { useCheckoutData } from '@/hooks/useCheckoutData';
 
-// HÀM HELPER 1: TÍNH GIÁ CUỐI CÙNG CỦA SẢN PHẨM (SAU KHI TRỪ DISCOUNT GỐC)
-// const calculateFinalItemPrice = (price: number, originalPrice: number | null, discount: number | undefined): number => {
-//     const basePrice = originalPrice ?? price;
-//     return Math.floor(basePrice * (1 - (discount ?? 0) / 100));
-// };
-
-// HÀM HELPER 2: TÍNH GIẢM GIÁ TỪ MỘT VOUCHER CỤ THỂ
-// const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number => {
-//     if (!voucher || subtotal < voucher.MinOrderValue) return 0;
-//     let discount = 0;
-//     if (voucher.DiscountType === 'FixedAmount') {
-//         discount = voucher.DiscountValue;
-//     } else if (voucher.DiscountType === 'Percentage') {
-//         discount = subtotal * (voucher.DiscountValue / 100);
-//         if (voucher.MaxValueForPercentage != null && discount > voucher.MaxValueForPercentage) {
-//             discount = voucher.MaxValueForPercentage;
-//         }
-//     }
-//     return Math.round(discount);
-// };
-
-// HÀM HELPER 3 (QUAN TRỌNG): TÍNH TOÁN LẠI TOÀN BỘ SUMMARY
-// Đây là "nguồn chân lý duy nhất" cho việc tính toán
-// const recalculateSummary = (shopOrders: CheckoutShopOrder[], platformVouchers: AppliedVouchersCombined): CheckoutSummaryDetails => {
-//     const totalProductsPrice = shopOrders.reduce((sum, so) => sum + so.items.reduce((itemSum, item) => itemSum + item.subtotal, 0), 0);
-//     const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
-
-//     const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
-//         if (!so.appliedVoucher) return sum;
-//         const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
-//         return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
-//     }, 0);
-
-//     let totalSaleoff = 0;
-//     if (platformVouchers.saleOffVoucher) {
-//         totalSaleoff = calculateDiscountForVoucher(platformVouchers.saleOffVoucher, totalProductsPrice);
-//     }
     
-//     let totalFreeship = 0;
-//     if (platformVouchers.freeShipVoucher) {
-//         const freeshipDiscount = calculateDiscountForVoucher(platformVouchers.freeShipVoucher, totalShippingFee);
-//         totalFreeship = Math.min(freeshipDiscount, totalShippingFee);
-//     }
-    
-//     const totalPlatformVoucherDiscount = totalSaleoff + totalFreeship;
-//     const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
-//     const finalTotal = totalProductsPrice + totalShippingFee - totalDiscount;
-
-//     return {
-//         totalProductsPrice, totalShippingFee, totalShopVoucherDiscount,
-//         totalPlatformVoucherDiscount, totalFreeship, totalSaleoff,
-//         totalDiscount, finalTotal, address: null
-//     };
-// };
 
 const CheckoutPageContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+    // const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [orderId, setOrderId] = useState<number | null>(null);
     const [orderCode, setOrderCode] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // const [loading, setLoading] = useState(true);
+    // const [error, setError] = useState<string | null>(null);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [allUserAddresses, setAllUserAddresses] = useState<Address[]>([]);
+    // const [allUserAddresses, setAllUserAddresses] = useState<Address[]>([]);
     const [isUpdateAddressModalOpen, setIsUpdateAddressModalOpen] = useState(false);
     const [addressToUpdateId, setAddressToUpdateId] = useState<number | null>(null);
     const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
@@ -114,40 +63,26 @@ const CheckoutPageContent = () => {
     const [isShopVoucherModalOpen, setIsShopVoucherModalOpen] = useState(false);
     const [selectedShopIdForVoucher, setSelectedShopIdForVoucher] = useState<number | null>(null);
 
-
-
+    const { checkoutData, loading, error, allUserAddresses, updateCheckoutData, setAllUserAddresses } = useCheckoutData();
     console.log("--- COMPONENT RE-RENDERED ---");
     console.log("Current Order ID State:", orderId);
     console.log("Current Payment Method State:", checkoutData?.paymentMethod);
+    console.log("Current Checkout Data State:", checkoutData);
 
-useEffect(() => {
-    const orderIdFromUrl = searchParams.get('orderId');
-    setOrderId(orderIdFromUrl ? Number(orderIdFromUrl) : null);
 
-    const loadData = async () => {
-        setLoading(true);
-        setError(null);
-    console.log(`[useEffect] Found orderId in URL: ${orderIdFromUrl}. Fetching order details...`);
-        if (orderIdFromUrl) {
-            // === TRƯỜNG HỢP 2: ĐÃ CÓ ĐƠN HÀNG NHÁP ===
-            try {
-                console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
-                // Bạn cần tạo một API endpoint mới để lấy chi tiết đơn hàng
-                const response = await fetch(`${API_URL}/orders/${orderIdFromUrl}?context=checkout`, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' },
-                    credentials: 'include', // Quan trọng để gửi cookie
-                });
-                console.log(`api: /api/orders/${orderIdFromUrl}?context=checkout`);
-                if (!response.ok) throw new Error("Không tìm thấy thông tin đơn hàng.");
-                
-                const orderDetails = await response.json();
-               
-                // const summary = recalculateSummary(orderDetails.shopOrders, orderDetails.appliedPlatformVouchers);
-                
-                // Chuyển đổi dữ liệu từ API về định dạng CheckoutData để hiển thị lại
-                // (Phần này cần bạn tự viết logic chuyển đổi, dưới đây là ví dụ)
-               const reconstructedCheckoutData: CheckoutData = {
+
+ useEffect(() => {
+        const orderIdFromUrl = searchParams.get('orderId');
+        if (orderIdFromUrl && !checkoutData?.orderId) { // Chỉ fetch nếu chưa có dữ liệu cho orderId này
+            const id = Number(orderIdFromUrl);
+            setOrderId(id);
+            const fetchDraftOrder = async () => {
+                try {
+                    const response = await fetch(`${API_URL}/orders/${id}?context=checkout`, { credentials: 'include' });
+                    if (!response.ok) throw new Error("Không tìm thấy đơn hàng nháp.");
+                    const orderDetails = await response.json();
+                    
+                    const reconstructedData: CheckoutData = {
                         orderId: orderDetails.OrderID,
                         address: orderDetails.address,
                         shopOrders: orderDetails.shopOrders,
@@ -160,102 +95,15 @@ useEffect(() => {
                         },
                     };
                     setOrderCode(orderDetails.OrderCode);
-                    setCheckoutData(reconstructedCheckoutData);
-
-            } catch (e: any) {
-                console.error("Failed to fetch pending order:", e);
-                setError('Không thể tải thông tin đơn hàng. Vui lòng thử lại.');
-            }
-
-        } else {
-           console.log("[useEffect] No orderId in URL. Building data from localStorage...");
-            const buildCheckoutData = async () => {
-                    const storedDataString = localStorage.getItem('checkoutData');
-                    if (!storedDataString) {
-                        setError('Không tìm thấy dữ liệu thanh toán.'); return;
-                    }
-                    try {
-                        const storedData: StoredCheckoutData = JSON.parse(storedDataString);
-                        const addressData = await fetchUserAddresses();
-                        const defaultAddress = addressData.default_address;
-                        setAllUserAddresses(addressData.addresses || []);
-
-                        const groupedItems = storedData.selectedItems.reduce((acc, item) => {
-                            (acc[item.ShopID] = acc[item.ShopID] || []).push(item);
-                            return acc;
-                        }, {} as Record<number, CartItem[]>);
-
-                        let calculatedTotalProductsPrice = 0;
-                        const shopOrders: CheckoutShopOrder[] = [];
-
-                        for (const shopIdStr in groupedItems) {
-                            const shopId = parseInt(shopIdStr);
-                            const itemsInShop = groupedItems[shopId];
-                            const firstItem = itemsInShop[0];
-
-                            let shopSubtotal = 0;
-                            const checkoutItems: CheckoutProductItem[] = itemsInShop.map(cartItem => {
-                                const finalPrice = calculateFinalItemPrice(
-                                    cartItem.productVariant.Price, 
-                                    cartItem.productVariant.CompareAtPrice, 
-                                    cartItem.productVariant.product?.Discount
-                                );
-                                const itemSubtotal = finalPrice * cartItem.Quantity;
-                                shopSubtotal += itemSubtotal;
-                                return {
-                                    variantId: cartItem.VariantID, productId: cartItem.productVariant.product.ProductID,
-                                    shopId: cartItem.ShopID, name: cartItem.productVariant.product.Name,
-                                    imageUrl: cartItem.productVariant.ImageURL, classification: cartItem.productVariant.attributeValues.map(v => v.Value).join(', '),
-                                    price: finalPrice, originalPrice: cartItem.productVariant.CompareAtPrice ?? (cartItem.productVariant.product?.Discount > 0 ? cartItem.productVariant.Price : null),
-                                    quantity: cartItem.Quantity, subtotal: itemSubtotal,
-                                    hasInsurance: false, product: cartItem.productVariant.product
-                                };
-                            });
-                            
-                            calculatedTotalProductsPrice += shopSubtotal;
-                            shopOrders.push({
-                                shopId, shopName: firstItem.shop.ShopName, shopLevel: firstItem.shop.Level,
-                                items: checkoutItems, shippingMethod: 'Nhanh', shippingFee: 30000, 
-                                deliveryEstimate: '2-3 ngày', appliedVoucher: storedData.appliedShopVouchers[shopId] || null,
-                                messageToSeller: '', // Khởi tạo message rỗng
-                            });
-                        }
-
-                        const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
-                        const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
-                            if (!so.appliedVoucher) return sum;
-                            const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
-                            return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
-                        }, 0);
-                        
-                        const totalFreeshipDiscount = storedData.summary.totalFreeship ?? 0;
-                        const totalSaleoffDiscount = storedData.summary.totalSaleoff ?? 0;
-                        const totalPlatformVoucherDiscount = totalFreeshipDiscount + totalSaleoffDiscount;
-                        const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
-                        const finalTotal = calculatedTotalProductsPrice + totalShippingFee - totalDiscount;
-                        //  const summary = recalculateSummary(shopOrders, storedData.appliedPlatformVouchers);
-                        setCheckoutData({
-                            orderId: storedData.orderId, address: defaultAddress, shopOrders,
-                            appliedPlatformVouchers: storedData.appliedPlatformVouchers,
-                            summary: {
-                                totalProductsPrice: calculatedTotalProductsPrice, totalShippingFee, totalShopVoucherDiscount,
-                                totalPlatformVoucherDiscount, totalFreeship: totalFreeshipDiscount, totalSaleoff: totalSaleoffDiscount,
-                                totalDiscount, finalTotal,
-                                // ...summary,
-                                 address: defaultAddress
-                            },
-                            paymentMethod: { method: 'Thanh toán khi nhận hàng', type: 'COD', canChange: true },
-                        });
-                    } catch (e) { setError('Dữ liệu thanh toán không hợp lệ.'); }
-                };
-                buildCheckoutData();
+                    updateCheckoutData(reconstructedData);
+                } catch (e) {
+                    console.error("Failed to fetch pending order:", e);
+                    // setError('Không thể tải thông tin đơn hàng.'); // Lỗi đã được quản lý trong hook
+                }
+            };
+            fetchDraftOrder();
         }
-        setLoading(false);
-    };
-
-    loadData();
-
-    }, [searchParams]);
+    }, [searchParams, updateCheckoutData, checkoutData?.orderId]);
     
     const handleSelectPlatformVoucher = () => {
         setIsPlatformVoucherModalOpen(true);
@@ -268,51 +116,52 @@ useEffect(() => {
     };
 
     // Callback khi áp dụng voucher toàn sàn
-    const handleApplyPlatformVouchers = useCallback((vouchers: AppliedVouchersCombined | null) => {
-        setCheckoutData(prevData => {
-            if (!prevData) return null;
+    // const handleApplyPlatformVouchers = useCallback((vouchers: AppliedVouchersCombined | null) => {
+    //     setCheckoutData(prevData => {
+    //         if (!prevData) return null;
             
-            // Cập nhật voucher đã áp dụng
-            const newAppliedVouchers = vouchers || { freeShipVoucher: null, saleOffVoucher: null };
+    //         // Cập nhật voucher đã áp dụng
+    //         const newAppliedVouchers = vouchers || { freeShipVoucher: null, saleOffVoucher: null };
             
-            // Tính toán lại toàn bộ summary với voucher mới
-            const newSummary = recalculateSummary(prevData.shopOrders, newAppliedVouchers);
+    //         // Tính toán lại toàn bộ summary với voucher mới
+    //         const newSummary = recalculateSummary(prevData.shopOrders, newAppliedVouchers);
 
-            return {
-                ...prevData,
-                appliedPlatformVouchers: newAppliedVouchers,
-                summary: { ...newSummary, address: prevData.address },
-            };
-        });
+    //         return {
+    //             ...prevData,
+    //             appliedPlatformVouchers: newAppliedVouchers,
+    //             summary: { ...newSummary, address: prevData.address },
+    //         };
+    //     });
+    //     setIsPlatformVoucherModalOpen(false);
+    // }, []);
+const handleApplyPlatformVouchers = useCallback((vouchers: AppliedVouchersCombined | null) => {
+        if (!checkoutData) return;
+        const newAppliedVouchers = vouchers || { freeShipVoucher: null, saleOffVoucher: null };
+        const newSummary = recalculateSummary(checkoutData.shopOrders, newAppliedVouchers);
+        const newState: CheckoutData = {
+            ...checkoutData,
+            appliedPlatformVouchers: newAppliedVouchers,
+            summary: { ...newSummary, address: checkoutData.address },
+        };
+        updateCheckoutData(newState);
         setIsPlatformVoucherModalOpen(false);
-    }, []);
+    }, [checkoutData, updateCheckoutData]);
 
-    // Callback khi áp dụng voucher của shop
     const handleApplyShopVoucher = useCallback((voucher: Voucher | null) => {
-        if (selectedShopIdForVoucher === null) return;
-        
-        setCheckoutData(prevData => {
-            if (!prevData) return null;
-
-            // Cập nhật voucher cho shop cụ thể
-            const updatedShopOrders = prevData.shopOrders.map(so => {
-                if (so.shopId === selectedShopIdForVoucher) {
-                    return { ...so, appliedVoucher: voucher };
-                }
-                return so;
-            });
-
-            // Tính toán lại toàn bộ summary với shop order đã được cập nhật
-            const newSummary = recalculateSummary(updatedShopOrders, prevData.appliedPlatformVouchers);
-
-            return {
-                ...prevData,
-                shopOrders: updatedShopOrders,
-                summary: { ...newSummary, address: prevData.address },
-            };
-        });
+        if (selectedShopIdForVoucher === null || !checkoutData) return;
+        const updatedShopOrders = checkoutData.shopOrders.map(so =>
+            so.shopId === selectedShopIdForVoucher ? { ...so, appliedVoucher: voucher } : so
+        );
+        const newSummary = recalculateSummary(updatedShopOrders, checkoutData.appliedPlatformVouchers);
+        const newState: CheckoutData = {
+            ...checkoutData,
+            shopOrders: updatedShopOrders,
+            summary: { ...newSummary, address: checkoutData.address },
+        };
+        updateCheckoutData(newState);
         setIsShopVoucherModalOpen(false);
-    }, [selectedShopIdForVoucher]);
+    }, [checkoutData, selectedShopIdForVoucher, updateCheckoutData]);
+
 
 
     const updateNotesBeforePayment = async (): Promise<boolean> => {
@@ -399,16 +248,15 @@ useEffect(() => {
 
     const handleConfirmNewAddress = (selectedAddress: Address) => {
         if (!checkoutData) return;
-
-        // Cập nhật lại state checkoutData với địa chỉ mới được chọn
-        setCheckoutData({
+        const newState = {
             ...checkoutData,
             address: selectedAddress,
-        });
-        
-        // Đóng modal
+            summary: { ...checkoutData.summary, address: selectedAddress },
+        };
+        updateCheckoutData(newState);
         setIsAddressModalOpen(false);
     };
+    
 
     // --- CẬP NHẬT HÀM NÀY ĐỂ MỞ MODAL Ở CHẾ ĐỘ SỬA ---
     const handleOpenUpdateAddressModal = (addressId: number) => {
@@ -467,9 +315,9 @@ useEffect(() => {
     if (error) return <div className="text-center py-20 text-red-500">{error} <Link href="/cart" className="text-blue-500 hover:underline ml-2">Quay lại giỏ hàng</Link></div>;
     if (!checkoutData) return <div className="text-center py-20">Không có dữ liệu để hiển thị.</div>;
 
-  const handleAddressChange = () => alert('Thay đổi địa chỉ đang được phát triển!');
-  const handleMessageChange = (shopId: number, message: string) => {
-        setCheckoutData(prev => {
+   const handleMessageChange = (shopId: number, message: string) => {
+        // **SỬA Ở ĐÂY:** Dùng `updateCheckoutData` thay vì `setCheckoutData`
+        updateCheckoutData(prev => {
             if (!prev) return null;
             const updatedShopOrders = prev.shopOrders.map(so =>
                 so.shopId === shopId ? { ...so, messageToSeller: message } : so
@@ -477,6 +325,7 @@ useEffect(() => {
             return { ...prev, shopOrders: updatedShopOrders };
         });
     };
+
   const handleShippingMethodChange = (shopId: number) => alert(`Thay đổi phương thức vận chuyển cho shop ${shopId} đang được phát triển!`);
 
 const handlePaymentMethodChange = () => {
@@ -506,10 +355,8 @@ const handlePaymentMethodChange = () => {
                 break;
         }
 
-        setCheckoutData(prev => {
+        updateCheckoutData(prev => {
             if (!prev) return null;
-            console.log("Updating payment method to:", selectedType); // <--- THÊM DÒNG NÀY ĐỂ DEBUG
-            
             const newState = {
                 ...prev,
                 paymentMethod: {
@@ -518,7 +365,6 @@ const handlePaymentMethodChange = () => {
                     method: methodName,
                 },
             };
-             console.log("[handleConfirmPaymentMethod] Updating state to:", newState.paymentMethod);
             return newState;
         });
         

@@ -19,7 +19,8 @@ const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
     Processing: ['Processing'],
     Shipped: ['Shipped', 'OutForDelivery'], // Gộp cả hai vào tab Vận chuyển
     Delivered: ['Delivered'],
-    Completed: ['Completed', 'Rated'], // Gộp cả hai vào tab Hoàn thành
+    Completed: ['Completed'], // Gộp cả hai vào tab Hoàn thành
+    Rated: ['Rated'],
     Cancelled: ['CancelledByBuyer', 'CancelledBySeller'],
     ReturnedRefunded: ['Returned', 'ReturnInProgress'],
 };
@@ -158,7 +159,7 @@ export default function ProfileOrderHistory() {
 
             {/* Tabs UI - Giữ nguyên giao diện của bạn */}
             <div className="overflow-x-auto no-scrollbar pb-2">
-                <div className="flex border-b border-gray-200 mb-6 whitespace-nowrap">
+                <div className="flex justify-around border-b border-gray-200 mb-6 whitespace-nowrap">
                     {statusTabs.map(tab => (
                         <button key={tab.id} className={`flex-shrink-0 py-2 px-4 text-sm font-semibold ${activeTab === tab.id ? 'border-b-2 border-orange-500 text-orange-500' : 'text-gray-700 hover:text-orange-500'}`} onClick={() => handleTabClick(tab.id)}>
                             {tab.name} {tab.count > 0 && <span className="font-normal text-gray-500 ml-1">({tab.count})</span>}

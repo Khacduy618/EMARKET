@@ -177,19 +177,6 @@ export interface Order {
   
 }
 
-// --- INTERFACE CheckoutData (CHO TRANG THANH TOÁN) ---
-// export interface CheckoutProductItem {
-//     variantId: number;
-//     productId: number;
-//     shopId: number;
-//     name: string;
-//     imageUrl: string | null;
-//     classification: string;
-//     price: number; // Giá bán sau khi đã tính discount của sản phẩm
-//     originalPrice?: number; // Giá gốc để gạch ngang
-//     quantity: number;
-//     subtotal: number;
-// }
 
 export interface CheckoutShopOrder {
   shopId: number;
@@ -209,7 +196,7 @@ export interface StoredCheckoutData {
   appliedShopVouchers: AppliedShopVouchers;
   appliedPlatformVouchers: AppliedVouchersCombined;
   summary: { // Đảm bảo cấu trúc summary khớp
-    totalSubtotal: number;
+    totalProductsPrice: number;
     totalDiscount: number;
     finalTotal: number;
     totalSaleoff: number;
@@ -224,10 +211,10 @@ export interface CheckoutSummaryDetails {
   totalShippingFee: number;
   totalSaleoff: number;
   totalFreeship: number;
-  totalShopVoucherDiscount: number; // Giảm giá từ voucher của các shop
-  totalPlatformVoucherDiscount: number; // Giảm giá từ voucher toàn sàn
-  totalDiscount: number; // Tổng giảm giá (shop + platform)
-  finalTotal: number;     // Tổng thanh toán
+  totalShopVoucherDiscount: number;
+  totalPlatformVoucherDiscount: number;
+  totalDiscount: number;
+  finalTotal: number;
   address: Address | null;
 }
 
@@ -307,42 +294,6 @@ export interface PaginatedOrders {
   totalPages: number;
   totalItems: number;
 }
-
-// export type SellerOrder = {
-//   SellerOrderID: number;
-//   SellerOrderCode: string;
-//   OrderID: number;      // ID của đơn hàng tổng
-//   OrderCode: string;    // Code của đơn hàng tổng
-//   ShopID: number;
-//   ShopName: string;
-//   shopLevel: ShopLevel;
-//   Status: OrderStatus;  // TRẠNG THÁI RIÊNG CỦA GÓI HÀNG NÀY
-//   TotalAmount: number;
-//   SubtotalAmount: number;
-//   ShippingFee: number;
-//   ShopVoucherDiscount: number;
-//   ReasonForRejection?: string;
-//   Notes: string | null;
-//   TrackingCode: string | null;
-//   items: OrderItem[];
-//   isFavoriteShop: boolean;
-//   OrderDate: string;
-//   CreatedAt: string;
-//   PaymentMethod: PaymentMethodType;
-//   PaymentStatus: PaymentStatusType;
-
-//   // Các trường này có thể có hoặc không tùy vào context
-//   orderStatusHistory?: OrderStatusHistory[]; 
-//   // Các trường địa chỉ sẽ được thêm vào khi gọi API chi tiết
-  
-//   ShippingAddressID?: number;
-//   ShippingFullName?: string;
-//   ShippingPhoneNumber?: string;
-//   Street?: string;
-//   Ward?: string;
-//   District?: string;
-//   City?: string;
-// };
 
 export type BuyerOrder = {
     OrderID: number;

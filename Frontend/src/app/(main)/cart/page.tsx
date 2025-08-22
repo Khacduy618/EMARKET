@@ -14,7 +14,7 @@ import axios from 'axios';
 import { Loader2, Tag, ShoppingCart, Ticket, ChevronRight, Minus, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import VoucherSelectionModal from '@/app/components/cart/VoucherSelectionModal';
-import { fetchAvailableVouchers } from '@/services/voucher';
+import { fetchAllVoucher, fetchEligiblePlatformVouchers } from '@/services/voucher';
 import { API_URL } from '@/lib/config';
 
 //format giá
@@ -119,7 +119,7 @@ const CartPage: React.FC = () => {
             // const cartData = await fetchCart();
             const [cartData, voucherData] = await Promise.all([
                 fetchCart(),
-                fetchAvailableVouchers()
+                fetchAllVoucher()
             ]);
             setAllShopVouchers(voucherData.shopVouchers || []);
             const hardLimit = 10;
@@ -679,67 +679,56 @@ const CartPage: React.FC = () => {
 
     //Tính tổn thanh toán đã áp mã voucher
     const calculationResults = useMemo(() => {
-        let totalSubtotal = 0;
+         const totalSubtotal = calculateTotalAmount();
+
+        // 2. Tính tổng phí vận chuyển của các shop có sản phẩm được CHỌN
+        const selectedShopIds = new Set(
+            cart?.cartItems
+                .filter(item => selectedCartItemIds.has(item.CartItemID))
+                .map(item => item.ShopID) || []
+        );
+        const totalShippingFee = selectedShopIds.size * 30000; // Giả định phí ship, bạn cần thay bằng logic thực tế
+
+        // 3. Tính tổng giảm giá từ VOUCHER CỦA TỪNG SHOP có sản phẩm được chọn
         let totalShopVoucherDiscount = 0;
-        let totalPlatformVoucherDiscount = 0;
-        let platformSaleOffDiscount = 0;
-        let platformFreeShipDiscount= 0;
-
-        // 1. Tính tổng tiền hàng (totalSubtotal)
-        // Object.values(subtotalByShop).forEach(shopSubtotal => {
-        //     totalSubtotal += shopSubtotal;
-        // });
-        totalSubtotal = calculateTotalAmount();
-        
-        // 2. Tính tổng giảm giá từ VOUCHER CỦA TỪNG SHOP
-        for (const shopId in appliedShopVouchers) {
-            const voucher = appliedShopVouchers[shopId];
-            const shopSubtotal = subtotalByShop[shopId] || 0;
-            if (voucher && shopSubtotal > 0) {
-                totalShopVoucherDiscount += calculateDiscountForVoucher(voucher, shopSubtotal);
-                console.log(totalShopVoucherDiscount);
+        for (const shopIdStr in appliedShopVouchers) {
+            const shopId = parseInt(shopIdStr);
+            if (selectedShopIds.has(shopId)) { // Chỉ tính voucher cho shop được chọn
+                const voucher = appliedShopVouchers[shopId];
+                const shopSubtotal = subtotalByShop[shopId] || 0;
+                if (voucher && shopSubtotal > 0) {
+                    totalShopVoucherDiscount += calculateDiscountForVoucher(voucher, shopSubtotal);
+                }
             }
-             platformSaleOffDiscount = (appliedVouchers.saleOffVoucher)
-            ? calculateDiscountForVoucher(appliedVouchers.saleOffVoucher, shopSubtotal)
+        }
+
+        // 4. Tính giảm giá từ VOUCHER TOÀN SÀN (PLATFORM) - ĐƯỢC ĐƯA RA NGOÀI VÒNG LẶP
+        const subtotalForPlatformCalc = totalSubtotal - totalShopVoucherDiscount;
+
+        const platformSaleOffDiscount = (appliedVouchers.saleOffVoucher && subtotalForPlatformCalc > 0)
+            ? calculateDiscountForVoucher(appliedVouchers.saleOffVoucher, subtotalForPlatformCalc)
             : 0;
 
-             platformFreeShipDiscount = (appliedVouchers.freeShipVoucher)
-            ? calculateDiscountForVoucher(appliedVouchers.freeShipVoucher, shopSubtotal)
+        const platformFreeShipDiscount = (appliedVouchers.freeShipVoucher && totalShippingFee > 0)
+            ? Math.min(calculateDiscountForVoucher(appliedVouchers.freeShipVoucher, totalSubtotal), totalShippingFee)
             : 0;
-            
-        }
         
-        // 3. Tính giảm giá từ VOUCHER TOÀN SÀN
-        // Voucher giảm giá của sàn được tính trên tổng tiền hàng SAU KHI đã áp dụng voucher của shop
-        const subtotalAfterShopVouchers = totalSubtotal - totalShopVoucherDiscount;
+        // 5. Tính toán các giá trị tổng cuối cùng
+        const totalPlatformDiscount = platformSaleOffDiscount + platformFreeShipDiscount;
+        const totalDiscount = totalShopVoucherDiscount + totalPlatformDiscount;
+        const finalTotal = totalSubtotal + totalShippingFee - totalDiscount;
 
-        if (appliedVouchers.saleOffVoucher && subtotalAfterShopVouchers > 0) {
-            totalPlatformVoucherDiscount = calculateDiscountForVoucher(appliedVouchers.saleOffVoucher, subtotalAfterShopVouchers);
-            
-        }
-        // const totalFreeShip = getVoucherDiscountDisplay() ;
-        // 4. Xử lý voucher FreeShip
-        if (appliedVouchers.freeShipVoucher && subtotalAfterShopVouchers > 0) {
-            totalPlatformVoucherDiscount += calculateDiscountForVoucher(appliedVouchers.freeShipVoucher, subtotalAfterShopVouchers); 
-            console.log(totalPlatformVoucherDiscount);
-        }
-
-        // 5. Tính toán cuối cùng
-        const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount ;
-        const finalTotal = totalSubtotal - totalDiscount;
-
-        return { 
-            totalSubtotal, 
-            totalDiscount,
-            finalTotal: finalTotal > 0 ? finalTotal : 0,
-            // --- GIÁ TRỊ MỚI ĐỂ HIỂN THỊ ---
+        return {
+            totalSubtotal,
+            totalShippingFee,
+            totalShopVoucherDiscount,
             platformSaleOffDiscount,
             platformFreeShipDiscount,
-            totalPlatformDiscount: totalPlatformVoucherDiscount,
-            totalShopVoucherDiscount,      // Đảm bảo có giá trị này
-            totalPlatformVoucherDiscount,
+            totalPlatformDiscount,
+            totalDiscount,
+            finalTotal: finalTotal > 0 ? finalTotal : 0,
         };
-    }, [subtotalByShop, appliedShopVouchers, appliedVouchers]);
+    }, [cart, selectedCartItemIds, subtotalByShop, appliedShopVouchers, appliedVouchers]);
 
 
     // Determine the state of the "Select All" checkbox (global)
@@ -800,7 +789,7 @@ const CartPage: React.FC = () => {
                 totalFreeship: calculationResults.platformFreeShipDiscount,
                 totalSaleoff: calculationResults.platformSaleOffDiscount,
                 totalShopVoucherDiscount: calculationResults.totalShopVoucherDiscount,
-                totalPlatformVoucherDiscount: calculationResults.totalPlatformVoucherDiscount,
+                totalPlatformVoucherDiscount: calculationResults.totalPlatformDiscount,
                 
             }
         };

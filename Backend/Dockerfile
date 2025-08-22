@@ -47,6 +47,7 @@ RUN composer dump-autoload --optimize
 
 # 3. Sao chép Entrypoint Script và cấp quyền thực thi
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY php.ini /usr/local/etc/php/php.ini
 
 USER root
 RUN chmod +x /usr/local/bin/entrypoint.sh

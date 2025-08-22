@@ -37,6 +37,7 @@ use App\Http\Controllers\ShopController as BuyerShopController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Seller\SellerReturnRequestController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use App\Http\Controllers\StatisticsController as BuyerStatisticsController;
 
 
 Route::post('/login-token', function (Request $request) {
@@ -208,7 +209,7 @@ Route::middleware('auth:sanctum')->group(function (){
     
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
-    Route::get('/vouchers/platform-eligible', [App\Http\Controllers\VoucherController::class, 'getEligiblePlatformVouchers']);
+    Route::get('/vouchers/platform-eligible', [VoucherController::class, 'getEligiblePlatformVouchers']);
     Route::post('/vouchers/{voucher}/collect', [VoucherController::class, 'collectVoucher']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
 
@@ -257,6 +258,22 @@ Route::middleware('auth:sanctum')->group(function (){
 
     // Xử lý tương tác Like / Dislike
     Route::post('/comments/{comment}/interaction', [CommentController::class, 'handleInteraction']);
+
+    Route::get('/statistics/overview', [BuyerStatisticsController::class, 'getSpendingOverview']);
+        
+    // Endpoint cho chi tiêu theo Danh mục
+    Route::get('/statistics/by-category', [BuyerStatisticsController::class, 'getSpendingByCategory']);
+    
+    // Endpoint cho chi tiêu theo Shop
+    Route::get('/statistics/by-shop', [BuyerStatisticsController::class, 'getSpendingByShop']);
+    
+    // Endpoint cho biểu đồ Xu hướng chi tiêu
+    Route::get('/statistics/trend', [BuyerStatisticsController::class, 'getSpendingTrend']);
+    
+    // Endpoint cho Modal danh sách đơn hàng (tái sử dụng từ OrderController hoặc tạo mới)
+    Route::get('/statistics/orders-summary', [BuyerStatisticsController::class, 'getOrdersSummary']);
+
+
 });
 
 Route::get('/shops/{shopId}/details', [BuyerShopController::class, 'getShopDetails']);

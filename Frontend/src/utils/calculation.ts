@@ -40,41 +40,45 @@ export const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number):
  */
 export const recalculateSummary = (
     shopOrders: CheckoutShopOrder[], 
-    platformVouchers: AppliedVouchersCombined
+    platformVouchers: AppliedVouchersCombined | null // Cho phép null
 ): CheckoutSummaryDetails => {
     
-    // 1. Tính tổng tiền hàng ban đầu từ các item
     const totalProductsPrice = shopOrders.reduce((sum, so) => 
         sum + so.items.reduce((itemSum, item) => itemSum + item.subtotal, 0), 0);
 
-    // 2. Tính tổng phí vận chuyển
     const totalShippingFee = shopOrders.reduce((sum, so) => sum + so.shippingFee, 0);
 
-    // 3. Tính tổng giảm giá từ VOUCHER CỦA TỪNG SHOP
     const totalShopVoucherDiscount = shopOrders.reduce((sum, so) => {
         if (!so.appliedVoucher) return sum;
         const shopSubtotal = so.items.reduce((s, item) => s + item.subtotal, 0);
         return sum + calculateDiscountForVoucher(so.appliedVoucher, shopSubtotal);
     }, 0);
 
-    // 4. Tính giảm giá từ VOUCHER TOÀN SÀN
+    // --- LOGIC TÍNH TOÁN VOUCHER TOÀN SÀN ĐÃ SỬA ---
+    const subtotalForPlatformCalc = totalProductsPrice - totalShopVoucherDiscount;
+
     let totalSaleoff = 0;
-    if (platformVouchers.saleOffVoucher) {
-        // Voucher giảm giá của sàn được tính trên tổng tiền hàng
-        totalSaleoff = calculateDiscountForVoucher(platformVouchers.saleOffVoucher, totalProductsPrice);
+    if (platformVouchers?.saleOffVoucher && subtotalForPlatformCalc > 0) {
+        // Voucher giảm giá của sàn được tính trên tổng tiền hàng (sau khi trừ voucher shop)
+        totalSaleoff = calculateDiscountForVoucher(platformVouchers.saleOffVoucher, subtotalForPlatformCalc);
     }
     
     let totalFreeship = 0;
-    if (platformVouchers.freeShipVoucher) {
-        // Voucher freeship được tính trên tổng phí vận chuyển
-        const freeshipDiscount = calculateDiscountForVoucher(platformVouchers.freeShipVoucher, totalShippingFee);
-        // Đảm bảo không giảm nhiều hơn phí vận chuyển thực tế
-        totalFreeship = Math.min(freeshipDiscount, totalShippingFee);
+    if (platformVouchers?.freeShipVoucher && totalProductsPrice > 0) {
+        // **SỬA LỖI Ở ĐÂY:**
+        // Điều kiện MinOrderValue của voucher freeship được kiểm tra với `totalProductsPrice`.
+        // Nhưng giá trị giảm giá của nó được áp dụng cho `totalShippingFee`.
+        const potentialFreeshipDiscount = calculateDiscountForVoucher(
+            platformVouchers.freeShipVoucher, 
+            totalProductsPrice // Dùng tổng tiền hàng để check điều kiện
+        );
+        
+        // Giảm giá không thể lớn hơn phí vận chuyển thực tế
+        totalFreeship = Math.min(potentialFreeshipDiscount, totalShippingFee);
     }
     
     const totalPlatformVoucherDiscount = totalSaleoff + totalFreeship;
     
-    // 5. Tính toán các giá trị tổng cuối cùng
     const totalDiscount = totalShopVoucherDiscount + totalPlatformVoucherDiscount;
     const finalTotal = totalProductsPrice + totalShippingFee - totalDiscount;
 
@@ -83,10 +87,10 @@ export const recalculateSummary = (
         totalShippingFee,
         totalShopVoucherDiscount,
         totalPlatformVoucherDiscount,
-        totalFreeship,
+        totalFreeship, // <-- Giá trị này giờ sẽ đúng
         totalSaleoff,
         totalDiscount,
-        finalTotal: finalTotal > 0 ? finalTotal : 0, // Đảm bảo tổng tiền không bị âm
-        address: null // address sẽ được thêm vào sau
+        finalTotal: finalTotal > 0 ? finalTotal : 0,
+        address: null 
     };
 };

@@ -11,18 +11,11 @@ import TimePeriodFilter from './components/TimePeriodFilter';
 import ShopSpendingList from './components/ShopSpendingList';
 import OrderListModal from './components/OrderListModal'; // Sử dụng lại modal đã có
 import CategorySpendingList from './components/CategorySpendingChart';
+import { toast } from 'react-toastify';
+import { fetchCategorySpending, fetchOrdersSummary, fetchOverviewData, fetchShopSpending, fetchSpendingTrend } from '@/services/statistics';
+import { CategoryData, OverviewData, ShopData, SummaryOrder, TrendDataPoint } from '@/types';
 
-// ... (Định nghĩa kiểu dữ liệu như trước: OverviewData, CategoryData, ShopData, TrendDataPoint, SummaryOrder)
-interface OverviewData { totalSpent: number; orderCount: number; }
-interface CategoryData { categoryId: string | number; categoryName: string; amountSpent: number; orderCountInCategory: number; }
-interface ShopData { shopId: string | number; shopName: string; amountSpent: number; orderCountInShop: number; }
-interface TrendDataPoint { datePeriod: string; amountSpent: number; }
-interface SummaryOrder {
-  orderCode: string;
-  productNames: string[];
-  totalAmount: number;
-  orderDate: string;
-}
+
 
 
 const SpendingPage = () => {
@@ -40,6 +33,8 @@ const SpendingPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
   const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
   const [ordersForModal, setOrdersForModal] = useState<SummaryOrder[]>([]);
   const [modalTitle, setModalTitle] = useState<string>("Danh sách Đơn hàng"); // Tiêu đề cho modal
@@ -48,56 +43,64 @@ const SpendingPage = () => {
   const fetchData = useCallback(async (sDate: string | null, eDate: string | null, periodKey?: string, groupBy?: string) => {
     setLoading(true);
     setError(null);
+    setDebugInfo(null);
+    
+    const params = {
+      startDate: sDate,
+      endDate: eDate,
+      period: periodKey,
+      groupBy: groupBy,
+    };
+
     try {
-      // API call cho overviewData, categorySpending, shopSpending, spendingTrend
-      // (Giữ nguyên logic API call hoặc dữ liệu mẫu như trước)
-       await new Promise(resolve => setTimeout(resolve, 1000));
-      const totalSpentExample = periodKey === 'this_month' ? 5250000 : (periodKey === 'last_3_months' ? 15800000 : (sDate && eDate ? 20000000 : 45000000));
-      setOverviewData({
-        totalSpent: totalSpentExample,
-        orderCount: periodKey === 'this_month' ? 5 : (periodKey === 'last_3_months' ? 18 : (sDate && eDate ? 22 : 55)),
-      });
-      setCategorySpending([
-        { categoryId: 'cat1', categoryName: 'Điện tử', amountSpent: totalSpentExample * 0.4, orderCountInCategory: 2 },
-        { categoryId: 'cat2', categoryName: 'Thời trang', amountSpent: totalSpentExample * 0.3, orderCountInCategory: 8 },
-        { categoryId: 'cat3', categoryName: 'Gia dụng', amountSpent: totalSpentExample * 0.2, orderCountInCategory: 5 },
+      // Gọi tất cả các API song song để tăng tốc độ tải
+      const [overview, categories, shops, trend] = await Promise.all([
+        fetchOverviewData(params),
+        fetchCategorySpending(params),
+        fetchShopSpending(params),
+        fetchSpendingTrend(params),
       ]);
-      setShopSpending([
-        { shopId: 'shop1', shopName: 'Bích Kiều Tech World', amountSpent: totalSpentExample * 0.5, orderCountInShop: 3 },
-        { shopId: 'shop2', shopName: 'E-Style Fashion', amountSpent: totalSpentExample * 0.25, orderCountInShop: 10 },
-      ]);
-       let trendMockData: TrendDataPoint[] = [];
-      if (groupBy === 'monthly' || !groupBy) {
-        trendMockData = [ { datePeriod: 'Thg 3, 2025', amountSpent: 8000000 }, { datePeriod: 'Thg 4, 2025', amountSpent: 5500000 }, { datePeriod: 'Thg 5, 2025', amountSpent: totalSpentExample } ];
-      } else if (groupBy === 'daily') {
-         for(let i=6; i>=0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            trendMockData.push({datePeriod: d.toLocaleDateString('vi-VN'), amountSpent: Math.floor(Math.random() * (totalSpentExample/7)) })
-         }
+
+      setOverviewData(overview);
+      setCategorySpending(categories);
+      setShopSpending(shops);
+      setSpendingTrend(trend);
+      // const overview = await fetchOverviewData(params);
+      // setOverviewData(overview);
+
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra khi tải dữ liệu.');
+      if (err.response) { // Nếu lỗi đến từ axios hoặc fetch có response
+        const errorData = await err.response.json();
+        setDebugInfo({
+          status: err.response.status,
+          url: err.response.url,
+          errorData: errorData,
+        });
+      } else {
+        setDebugInfo({ message: err.message });
       }
-      setSpendingTrend(trendMockData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchData(null, null, predefinedPeriod, trendGroupBy);
-  }, [fetchData, predefinedPeriod, trendGroupBy]);
+   useEffect(() => {
+    // Gọi fetchData lần đầu
+    fetchData(startDate, endDate, predefinedPeriod, trendGroupBy);
+  }, [fetchData, predefinedPeriod, trendGroupBy]); // Thêm startDate, endDate vào dependency nếu muốn custom date hoạt động ngay
 
   const handlePeriodChange = (sDate: string | null, eDate: string | null, periodKey?: string) => {
     setStartDate(sDate);
     setEndDate(eDate);
     if (periodKey) setPredefinedPeriod(periodKey);
-    fetchData(sDate, eDate, periodKey, trendGroupBy);
+    // Không cần gọi fetchData ở đây vì useEffect ở trên sẽ tự động gọi lại
   };
+  
 
    const handleTrendGroupByChange = (newGroupBy: 'daily' | 'monthly' | 'quarterly' | 'yearly') => {
     setTrendGroupBy(newGroupBy);
-    fetchData(startDate, endDate, predefinedPeriod, newGroupBy);
+    // Không cần gọi fetchData ở đây vì useEffect ở trên sẽ tự động gọi lại
   };
 
   // Hàm mới để mở modal và lấy đơn hàng theo categoryId hoặc shopId
@@ -105,44 +108,21 @@ const SpendingPage = () => {
     setLoadingModalOrders(true);
     setModalTitle(`Đơn hàng cho: ${filterName}`);
     setIsOrderModalOpen(true);
+    
+    const params = {
+      startDate,
+      endDate,
+      period: predefinedPeriod,
+      filterType,
+      filterId
+    };
+
     try {
-      
-      // Dữ liệu mẫu cho modal
-      await new Promise(resolve => setTimeout(resolve, 500));
-      let mockModalOrders: SummaryOrder[] = [];
-      if (filterType === 'category' && filterId === 'cat1') { // Giả sử 'Điện tử'
-        mockModalOrders = [
-            { orderCode: 'EMK2025001', productNames: ['Smartphone X Pro Max', 'Áo Thun ABC'], totalAmount: 16175000, orderDate: '2025-05-15' },
-            { orderCode: 'EMK2025004', productNames: ['Tai Nghe DEF'], totalAmount: 800000, orderDate: '2025-05-20' },
-            { orderCode: 'EMK2025005', productNames: ['Laptop Z Series'], totalAmount: 25000000, orderDate: '2025-05-28' },
-            { orderCode: 'EMK2025006', productNames: ['Laptop X Series'], totalAmount: 28000000, orderDate: '2025-05-28' },
-            { orderCode: 'EMK2025007', productNames: ['Laptop C Series'], totalAmount: 29000000, orderDate: '2025-05-28' },        
-        ];
-      } else if (filterType === 'category' && filterId === 'cat2') { // Giả sử 'Thời trang'
-         mockModalOrders = [
-          { orderCode: 'EMK-TT001', productNames: ['Áo Thun ABC', 'Quần Jean XYZ'], totalAmount: 850000, orderDate: '2025-05-05' },
-        ];
-      } else if (filterType === 'shop' && filterId === 'shop1') { // Giả sử Bích Kiều Tech
-         mockModalOrders = [
-          { orderCode: 'EMK-BK001', productNames: ['Smartphone X Pro Max'], totalAmount: 15990000, orderDate: '2025-05-10' },
-          { orderCode: 'EMK-BK002', productNames: ['Tai nghe Z Buds 3'], totalAmount: 2490000, orderDate: '2025-05-12' },
-        ];
-      }
-      else { // 'all' hoặc category/shop không có data mẫu
-        mockModalOrders = [
-          { orderCode: 'EMK-ALL001', productNames: ['Sản phẩm A', 'Sản phẩm B'], totalAmount: 1000000, orderDate: '2025-05-01' },
-          { orderCode: 'EMK-ALL002', productNames: ['Sản phẩm C'], totalAmount: 500000, orderDate: '2025-05-03' },
-        ];
-      }
-       const currentOrderCount = filterType === 'all' ? overviewData?.orderCount || 0
-                               : (filterType === 'category' ? categorySpending.find(c=>c.categoryId === filterId)?.orderCountInCategory || 0
-                                 : shopSpending.find(s=>s.shopId === filterId)?.orderCountInShop || 0);
-
-      setOrdersForModal(mockModalOrders.slice(0, currentOrderCount));
-
-
+      const modalOrders = await fetchOrdersSummary(params);
+      setOrdersForModal(modalOrders);
     } catch (err) {
       console.error("Error fetching orders for modal:", err);
+      toast.error("Không thể tải danh sách đơn hàng.");
       setOrdersForModal([]);
     } finally {
       setLoadingModalOrders(false);
@@ -170,6 +150,22 @@ const SpendingPage = () => {
   return (
     <>
       <div className="p-4 md:p-6 space-y-8 min-h-screen text-black">
+
+        {/* **KHỐI DEBUG INFO** */}
+        {debugInfo && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6">
+            <strong className="font-bold">Debug Information:</strong>
+            <pre className="mt-2 text-xs bg-white p-2 rounded overflow-x-auto">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
+        
+        {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6">
+                <strong className="font-bold">Lỗi Frontend:</strong> {error}
+            </div>
+        )}
         <TimePeriodFilter onPeriodChange={handlePeriodChange} initialPeriod={predefinedPeriod} />
 
         <SpendingOverview

@@ -13,7 +13,7 @@ class ReviewController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'sellerorderid' => 'required|integer|exists:ordersseller,SellerOrderID',
+            'SellerOrderID' => 'required|integer|exists:ordersseller,SellerOrderID',
             'reviews' => 'required|string',
             'images' => 'nullable|array',
             'images.*' => 'nullable|array',
@@ -27,7 +27,7 @@ class ReviewController extends Controller
             return response()->json(['success' => false, 'error' => 'Dữ liệu không hợp lệ.', 'details' => $validator->errors()], 422);
         }
 
-        $SellerOrderID = $request->input('SellerOrderID');
+        $sellerOrderID = $request->input('SellerOrderID');
         $reviewsData = json_decode($request->input('reviews'), true);
         $userId = Auth::id();
 
@@ -35,11 +35,19 @@ class ReviewController extends Controller
             return response()->json(['success' => false, 'error' => 'Định dạng dữ liệu đánh giá không hợp lệ.'], 400);
         }
 
-        $order = DB::table('ordersseller')->where('SellerOrderID', $SellerOrderID)->where('UserID', $userId)->first();
+        $order = DB::table('ordersseller as os')
+        ->join('ordersbuyer as ob', 'os.OrderID', '=', 'ob.OrderID')
+        ->where('os.SellerOrderID', $sellerOrderID)
+        ->where('ob.UserID', $userId) // Kiểm tra UserID từ bảng ordersbuyer
+        ->select('os.Status') // Chỉ cần lấy trạng thái
+        ->first();
         if (!$order) {
             return response()->json(['success' => false, 'error' => 'Đơn hàng không tồn tại hoặc bạn không có quyền đánh giá.'], 403);
         }
-
+        // Kiểm tra xem đơn hàng đã được đánh giá chưa
+            if ($order->Status === 'Rated') {
+                return response()->json(['success' => false, 'error' => 'Đơn hàng này đã được đánh giá.'], 409); // 409 Conflict
+            }
         DB::beginTransaction();
         try {
             $allUploadedImages = $request->file('images', []);
@@ -51,10 +59,11 @@ class ReviewController extends Controller
                 // Kiểm tra bảo mật: đảm bảo item này thuộc về đơn hàng đang được đánh giá
                 $orderItem = DB::table('orderitems')
                     ->where('OrderItemID', $orderItemId)
-                    ->where('SellerOrderID', $SellerOrderID)
+                    ->where('SellerOrderID', $sellerOrderID)
                     ->first();
 
                 if (!$orderItem) {
+                    Log::warning("Attempt to review invalid OrderItemID {$orderItemId} for SellerOrderID {$sellerOrderID}");
                     continue; // Bỏ qua nếu item không hợp lệ
                 }
 
@@ -86,7 +95,7 @@ class ReviewController extends Controller
 
                 // Lưu vào database
                 DB::table('productreviews')->insert([
-                    'SellerOrderID' => $SellerOrderID,
+                    'SellerOrderID' => $sellerOrderID,
                     'OrderItemID' => $orderItem->OrderItemID, // <-- Lưu lại liên kết quan trọng này
                     'VariantID' => $orderItem->VariantID,
                     'UserID' => $userId,
@@ -100,14 +109,14 @@ class ReviewController extends Controller
                 ]);
             }
             // Nếu tất cả đánh giá đã được lưu thành công
-            Log::info('All reviews saved successfully for SellerOrderID: ' . $SellerOrderID,
+            Log::info('All reviews saved successfully for SellerOrderID: ' . $sellerOrderID,
                 ['userId' => $userId, 'reviewsCount' => count($reviewsData)]
             );
             //Change OverallStatus of order to 'Rated'
             DB::table('ordersseller')
-                ->where('SellerOrderID', $SellerOrderID)
+                ->where('SellerOrderID', $sellerOrderID)
                 ->update(['Status' => 'Rated', 'UpdatedAt' => now()]);
-            Log::info('Order status updated to Reviewed for SellerOrderID: ' . $SellerOrderID, ['userId' => $userId]);
+            Log::info('Order status updated to Reviewed for SellerOrderID: ' .$sellerOrderID , ['userId' => $userId]);
 
             // Commit transaction
             DB::commit();

@@ -40,6 +40,7 @@ class OrderController extends Controller
                 'os.SellerOrderID', 'os.SellerOrderCode', 'os.Status', 'os.TotalAmount',
                 'os.SubtotalAmount', 'os.ShippingFee', 'os.ShopVoucherDiscount',
                 'os.CreatedAt', 'os.UpdatedAt',
+                
                 // Thông tin từ ordersbuyer (đơn hàng tổng)
                 'ob.OrderID', 'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
                 // Thông tin từ shop
@@ -128,12 +129,7 @@ class OrderController extends Controller
         // Nếu context là 'checkout', gọi hàm xử lý riêng
         if ($context == 'checkout') {
             return $this->showForCheckout($request, $orderId);
-        }else{
-        // Nếu không có context, xử lý như trang chi tiết đơn hàng
-        return $this->showForOrderDetail($request, $orderId);
         }
-
-        
     }
     
 
@@ -487,72 +483,6 @@ class OrderController extends Controller
         }
 
 
-    private function showForOrderDetail(Request $request, $orderId)
-    {
-        Log::info("--- [showForOrderDetail NEW LOGIC] Bắt đầu cho OrderID: {$orderId} ---");
-        $user = $request->user();
-
-        $order = DB::table('ordersbuyer as ob')
-            ->join('addresses as addr', 'ob.ShippingAddressID', '=', 'addr.AddressID')
-            ->where('ob.OrderID', $orderId)
-            ->where('ob.UserID', $user->UserID)
-            ->select('ob.*', 'addr.Street', 'addr.Ward', 'addr.District', 'addr.City')
-            ->first();
-
-        if (!$order) {
-            Log::warning("[showForOrderDetail] Không tìm thấy OrderID: {$orderId} cho UserID: {$user->UserID}.");
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
-
-        $sellerOrders = DB::table('ordersseller as os')
-            ->join('shops as s', 'os.ShopID', '=', 's.ShopID')
-            ->where('os.OrderID', $orderId)
-            ->select('os.*', 's.ShopName', 's.Level as shopLevel')
-            ->get();
-            
-        if ($sellerOrders->isEmpty()) {
-            $order->shopOrders = [];
-            return response()->json($order);
-        }
-
-        $sellerOrderIds = $sellerOrders->pluck('SellerOrderID');
-        $allItems = DB::table('orderitems as oi')
-            ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->leftJoin('productimages as pi', fn($join) => $join->on('p.ProductID', '=', 'pi.ProductID')->where('pi.IsPrimary', 1))
-            ->whereIn('oi.SellerOrderID', $sellerOrderIds)
-            ->select(
-                'oi.*', 'p.Name as productName',
-                DB::raw('COALESCE(pv.ImageURL, pi.ImageURL, "/images/placeholder.png") as productImageURL'),
-                DB::raw('COALESCE(pv.CompareAtPrice, oi.PriceAtPurchase) as OriginalPrice')
-            )
-            ->get();
-            
-        $allVariantIds = $allItems->pluck('VariantID')->unique();
-        $allAttributes = DB::table('productvariantattribute as pva')
-            ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
-            ->whereIn('pva.VariantID', $allVariantIds)
-            ->select('pva.VariantID', 'av.Value')
-            ->get()->groupBy('VariantID');
-
-        foreach ($allItems as $item) {
-            $itemAttributes = $allAttributes->get($item->VariantID, collect());
-            $item->classification = $itemAttributes->pluck('Value')->implode(', ');
-            $item->canReview = in_array($order->OverallStatus, ['Completed', 'Delivered']);
-        }
-        
-        $allItemsGrouped = $allItems->groupBy('SellerOrderID');
-
-        $order->shopOrders = $sellerOrders->map(function ($sellerOrder) use ($allItemsGrouped) {
-            $sellerOrder->items = $allItemsGrouped->get($sellerOrder->SellerOrderID, collect());
-            return $sellerOrder;
-        });
-
-        $order->orderStatusHistory = $this->getMockOrderStatusHistory($order->OverallStatus, $order->OrderDate);
-
-        Log::info("[showForOrderDetail] Hoàn tất và trả về dữ liệu cho Order Detail Page, OrderID: {$orderId}.");
-        return response()->json($order);
-    }
     
     // In app/Http/Controllers/OrderController.php
 
@@ -879,7 +809,6 @@ public function placeOrder(Request $request)
                 'PaymentMethod' => $paymentMethod,
                     // **LOGIC MỚI: Quyết định trạng thái dựa trên phương thức thanh toán**
                 'PaymentStatus' => $isCOD ? 'Pending' : 'Pending', // COD là pending, Online là Paid sau khi xác nhận
-                'OverallStatus' => $isCOD ? 'Processing' : 'Pending', // COD xử lý ngay, Online chờ thanh toán
                 'PlatformVoucherCode' => json_encode($platformVoucherCodesApplied),
                 'PlatformDiscountAmount' => json_encode(['saleOff' => $platformSaleOffDiscount, 'freeShip' => $platformFreeshipDiscount]),
                 'shopvoucher' => json_encode($shopVouchersAppliedDetails),
@@ -961,7 +890,6 @@ public function completeOrder(Request $request, $orderId)
         ->where('OrderID', $orderId)
         ->where('UserID', $user->UserID)
         ->where('PaymentStatus', 'Pending')
-        ->where('OverallStatus', 'Pending')
         ->first();
 
     if (!$order) {
@@ -988,7 +916,7 @@ public function completeOrder(Request $request, $orderId)
              $shouldProcessOrder = false;
 
            if (($paymentMethod === 'Paypal' && ($validatedData['paymentDetails']['status'] ?? '') === 'COMPLETED') || $paymentMethod === 'COD') {
-                    $updates['OverallStatus'] = 'Processing';
+                    
                     if ($paymentMethod !== 'COD') {
                         $updates['PaymentStatus'] = 'Paid';
                         $updates['paidAt'] = now();
@@ -1053,7 +981,6 @@ public function completeOrder(Request $request, $orderId)
         $order = DB::table('ordersbuyer')
             ->where('OrderID', $orderId)
             ->where('UserID', $user->UserID)
-            ->where('OverallStatus', 'Pending')
             ->first();
 
         if (!$order) {
@@ -1092,8 +1019,6 @@ public function completeOrder(Request $request, $orderId)
                 $order = DB::table('ordersbuyer')
                     ->where('OrderID', $orderId)
                     ->where('UserID', $user->UserID)
-                    // Chỉ hủy được đơn hàng đang ở trạng thái nháp
-                    ->where('OverallStatus', 'Pending') 
                     ->first();
 
                 // Nếu không tìm thấy đơn hàng hoặc đơn đã được xử lý, không làm gì cả

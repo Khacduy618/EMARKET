@@ -34,7 +34,6 @@ export interface Voucher {
 
 export interface FetchVouchersResponse {
     platformVouchers: Voucher[];
-    shopVouchers: Voucher[];
     message?: string;
 }
 

@@ -88,22 +88,22 @@ export default function MultiProductReviewPage() {
           total: `${data.TotalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}`
         });
         // Lấy tất cả items từ các shopOrders
-        const allItems: OrderItem[] = [];
-        data.shopOrders.forEach(shopOrder => {
-          shopOrder.items.forEach(item => {
-            allItems.push(item);
-          });
-        });
+        const allItems: OrderItem[] = data.items || []; 
+        
         setItems(allItems);
-        setProductReviews(allItems.reduce((acc, item) => ({
-          ...acc,
-          [item.OrderItemID]: {
-            rating: 0,
-            reviewText: "",
-            images: [],
-            videos: []
-          }
-        }), {}));
+        
+        // Khởi tạo state cho reviews
+        if (allItems.length > 0) {
+            setProductReviews(allItems.reduce((acc, item) => ({
+              ...acc,
+              [item.OrderItemID]: {
+                rating: 0,
+                reviewText: "",
+                images: [],
+                videos: []
+              }
+            }), {}));
+        }
       })
       .catch((err: any) => {
         setError(err.message);
@@ -213,8 +213,10 @@ export default function MultiProductReviewPage() {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json' 
+          
+          'Content-Type': 'multipart/form-data' // Không cần thiết, browser sẽ tự động set
         },
+       
         body: formData
       });
       const result = await res.json();

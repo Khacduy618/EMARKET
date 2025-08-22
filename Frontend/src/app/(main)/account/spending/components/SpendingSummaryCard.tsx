@@ -1,29 +1,3 @@
-// // (account)/spending/components/SpendingSummaryCard.tsx
-// import React from 'react';
-
-// interface SpendingSummaryCardProps {
-//   title: string;
-//   value: string;
-//   icon?: React.ReactNode;
-//   description?: string;
-// }
-
-// const SpendingSummaryCard: React.FC<SpendingSummaryCardProps> = ({ title, value, icon, description }) => {
-//   return (
-//     <div className="bg-white p-4 md:p-6 rounded-lg shadow hover:shadow-md transition-shadow duration-300">
-//       <div className="flex items-center space-x-4">
-//         {icon && <div className="text-3xl text-gray-400">{icon}</div>}
-//         <div>
-//           <p className="text-sm text-gray-500 font-medium">{title}</p>
-//           <p className="text-2xl font-semibold text-gray-800">{value}</p>
-//         </div>
-//       </div>
-//       {description && <p className="text-xs text-gray-400 mt-2">{description}</p>}
-//     </div>
-//   );
-// };
-
-// export default SpendingSummaryCard;
 
 // (account)/spending/components/SpendingSummaryCard.tsx
 import React from 'react';

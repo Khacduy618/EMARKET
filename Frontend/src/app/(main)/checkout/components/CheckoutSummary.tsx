@@ -89,6 +89,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ summary, paymentMetho
   const [isProcessing, setIsProcessing] = useState(false);
 console.log("--- CheckoutSummary RENDERED ---");
     console.log("Props received: orderId =", orderId, ", paymentMethod.type =", paymentMethod.type);
+    
   const handleVnPayClick = async () => {
       setIsProcessing(true);
       try {
