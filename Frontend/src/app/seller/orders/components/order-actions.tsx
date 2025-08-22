@@ -43,7 +43,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                     `${API_URL}/seller/orders/${orderId}/confirm`,
                     {},
                     {
-                        headers: { Authorization: `Bearer ${token}` },
+                        headers: { 'Content-Type' : 'application/json' },
                         withCredentials: true,
                     }
                 );
@@ -93,7 +93,9 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                 const response = await axios.put(
                     `${API_URL}/seller/orders/${orderId}/print`,
                     {},
-                    { headers: { Authorization: `Bearer ${token}` }, withCredentials: true, responseType: "blob" } // Giả định trả về file PDF
+                    { headers: { 'Content-Type' 
+                 : 'application/json'
+                     }, withCredentials: true, responseType: "blob" } // Giả định trả về file PDF
                 );
                 // Tạo URL cho file và mở trong tab mới
                 const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -151,7 +153,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                     `${API_URL}/seller/orders/${orderId}/cancel`,
                     {},
                     {
-                        headers: { Authorization: `Bearer ${token}` },
+                        headers: { 'Content-Type': 'application/json' },
                         withCredentials: true,
                     }
                 );
@@ -203,7 +205,7 @@ export default function OrderActions({ status, orderId }: OrderActionsProps) {
                     `${API_URL}/seller/orders/${orderId}/ship`,
                     {},
                     {
-                        headers: { Authorization: `Bearer ${token}` },
+                        headers: { 'Content-Type': 'application/json' },
                         withCredentials: true,
                     }
                 );

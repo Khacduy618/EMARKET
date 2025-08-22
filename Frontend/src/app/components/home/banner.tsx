@@ -155,12 +155,7 @@ const HeroBannerSlider: React.FC = () => {
                                         className="transition-transform duration-500 ease-in-out group-hover:scale-105"
                                         // Unoptimize nếu ảnh là GIF hoặc từ localhost (nếu không muốn Next.js xử lý)
                                         unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.onerror = null;
-                                            target.src = '/images/placeholder-banner-error.jpg'; // Cần có ảnh này
-                                            target.srcset = "";
-                                        }}
+                                        
                                     />
                                 </Link>
                             ) : (
@@ -172,12 +167,7 @@ const HeroBannerSlider: React.FC = () => {
                                     priority={index === 0}
                                     className="transition-transform duration-500 ease-in-out group-hover:scale-105"
                                     unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.onerror = null;
-                                        target.src = '/images/placeholder-banner-error.jpg';
-                                        target.srcset = "";
-                                    }}
+                                    
                                 />
                             )}
                             {banner.Title && (

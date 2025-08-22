@@ -8,6 +8,7 @@ import { FaCircleQuestion, FaCommentDots } from 'react-icons/fa6';
 import { Building, MessageSquare } from 'lucide-react';
 import { CheckoutShopOrder } from '@/types';
 import { getFullImageUrl } from '@/services/api';
+import Link from 'next/link';
 
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -33,7 +34,7 @@ const CheckoutProductSection: React.FC<CheckoutProductSectionProps> = ({ shopOrd
          <div className="flex items-center gap-2 text-gray-800 text-sm flex-1">
            {shopOrder.shopLevel === 'Mall' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Mall</span>}
            {shopOrder.shopLevel === 'Favorite' && <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">Yêu thích+</span>}
-           <span className="font-semibold">{shopOrder.shopName}</span>
+           <Link href={`/shop/${shopOrder.shopId}`} ><span className="font-semibold">{shopOrder.shopName}</span></Link>
            <button className="flex items-center text-blue-500 hover:text-blue-600 whitespace-nowrap">
              <FaCommentDots className="mr-1" /> Chat ngay
            </button>

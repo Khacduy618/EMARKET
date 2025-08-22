@@ -41,6 +41,19 @@ services:
     depends_on:
       - frontend
       - backend
+  worker:
+    image: khduy555/backend:latest
+    container_name: ecommerce_worker # Thêm container_name cho dễ quản lý
+    volumes:
+      - ../Backend:/var/www/html
+      - backend_storage:/var/www/html/storage
+    env_file:
+      - ./backend.env
+
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=0
+    restart: unless-stopped
+    networks:
+      - app-network
 
 networks:
   app-network:

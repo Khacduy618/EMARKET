@@ -64,7 +64,7 @@ interface TransformedOrderDetail {
 
 export default function OrderDetailsPage() {
     const params = useParams();
-    const orderId = params.orderId as string; 
+    const orderId = params.orderId as string;
     const [order, setOrder] = useState<TransformedOrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -76,8 +76,6 @@ export default function OrderDetailsPage() {
                 setLoading(true);
                 setError(null);
                 try {
-                    const token = getAuthToken();
-                    if (!token) throw new Error("Authentication token not found.");
 
                     const response = await axios.get(`${API_URL}/seller/orders/${orderId}`, {
                         headers: {"Content-Type": "application/json"},
@@ -109,8 +107,7 @@ export default function OrderDetailsPage() {
 
             await axios.put(
                 `${API_URL}/seller/orders/${orderId}/confirm`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
+                {  headers: {'Content-type' : 'application/json'}, withCredentials: true }
             );
             setOrder((prev) => prev ? { ...prev, overallStatus: "Preparing" } : null);
             Swal.fire({
@@ -137,8 +134,12 @@ export default function OrderDetailsPage() {
 
             await axios.put(
                 `${API_URL}/seller/orders/${orderId}/cancel`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
+               
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    withCredentials: true
+                }
+
             );
             setOrder((prev) => prev ? { ...prev, overallStatus: "Cancelled" } : null);
             Swal.fire({

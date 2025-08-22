@@ -187,27 +187,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     }, [productId]);
 
 
-
-    // const attributeStructure = useMemo(() => {
-    //     if (!product) return {};
-    //     const attributes: Record<string, Set<string>> = {};
-    //     product.variants.forEach(variant => {
-    //         variant.attribute_values.forEach(attrValue => {
-    //             const attrName = attrValue.attribute?.Name;
-    //             if (attrName) {
-    //                 if (!attributes[attrName]) {
-    //                     attributes[attrName] = new Set();
-    //                 }
-    //                 attributes[attrName].add(attrValue.Value);
-    //             }
-    //         });
-    //     });
-    //     const result: Record<string, string[]> = {};
-    //     for (const key in attributes) {
-    //         result[key] = Array.from(attributes[key]);
-    //     }
-    //     return result;
-    // }, [product]);
     // THAY THẾ useMemo 'attributeStructure' HIỆN TẠI BẰNG ĐOẠN NÀY
     const attributeData = useMemo(() => {
         if (!product) return { structure: {}, idToNameMap: new Map() };
@@ -286,34 +265,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
 
 
 
-    // useEffect(() => {
-    //     if (!product || !availableOptionsAndTheirStatus.allSelected) {
-    //         setSelectedVariant(null); // Not enough options selected, so no specific variant
-    //         return;
-    //     }
-
-    //     // Find the single variant that exactly matches the complete set of selected options
-    //     const finalVariant = product.variants.find(variant =>
-    //         Object.entries(selectedOptions).length === variant.attribute_values.length &&
-    //         Object.entries(selectedOptions).every(([attrName, attrValue]) =>
-    //             variant.attribute_values.some(v_attr =>
-    //                 v_attr.attribute?.Name === attrName && v_attr.Value === attrValue
-    //             )
-    //         )
-    //     );
-
-    //     if (finalVariant) {
-    //         setSelectedVariant(finalVariant);
-    //         if (finalVariant.ImageURL) {
-    //             setSelectedImage(finalVariant.ImageURL);
-    //         }
-    //         // Reset quantity to 1 unless the selected variant is out of stock
-    //         setQuantity(finalVariant.StockQuantity > 0 ? 1 : 0);
-    //     } else {
-    //         setSelectedVariant(null);
-    //     }
-
-    // }, [product, selectedOptions, availableOptionsAndTheirStatus.allSelected]);
+    
 // THAY THẾ useEffect tìm kiếm variant HIỆN TẠI BẰNG ĐOẠN NÀY
 useEffect(() => {
     // Chỉ tìm kiếm khi đã chọn đủ tất cả các loại thuộc tính
@@ -368,88 +320,7 @@ useEffect(() => {
         if (!selectedVariant || selectedVariant.StockQuantity <= 0) return 0; // If no variant or out of stock
         return Math.min(selectedVariant.StockQuantity, hardLimit);
     }, [selectedVariant]);
-    // const pricingInfo = useMemo(() => {
-    //     // Giá trị mặc định
-    //     if (!product) {
-    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
-    //     }
-
-    //     let basePrice: number | null = null;
-    //     let stockText = `${product.total_overall_stock_quantity} sản phẩm có sẵn`;
-
-    //     // Xác định giá bán gốc và tồn kho dựa trên việc đã chọn biến thể hay chưa
-    //     if (selectedVariant) {
-    //         basePrice = selectedVariant.CompareAtPrice;
-    //         stockText = `${selectedVariant.StockQuantity} sản phẩm có sẵn`;
-    //     } else {
-    //         basePrice = product.min_overall_compare_at_price;
-    //     }
-
-    //     // Nếu không có giá bán gốc (dữ liệu lỗi hoặc sản phẩm chưa có giá)
-    //     if (!basePrice || basePrice <= 0) {
-    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText };
-    //     }
-
-    //     // Áp dụng logic giảm giá
-    //     const discountPercent = product.Discount;
-    //     let finalPrice = basePrice;
-    //     let originalPrice: number | null = null;
-
-    //     if (discountPercent > 0) {
-    //         // Nếu có giảm giá, giá gốc chính là giá bán niêm yết
-    //         originalPrice = basePrice;
-    //         // Giá cuối cùng là giá sau khi đã trừ đi % giảm giá
-    //         finalPrice = basePrice * (1 - discountPercent / 100);
-    //     }
-
-    //     return { finalPrice, originalPrice, discountPercent, stockText };
-
-    // }, [product, selectedVariant]);
-    // const pricingInfo = useMemo(() => {
-    //     if (!product) {
-    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
-    //     }
-        
-    //     let basePrice: number | null = null;
-    //     let stockText = `${product.total_overall_stock_quantity} sản phẩm có sẵn`;
-
-    //     if (selectedVariant) {
-    //         // Sửa lỗi logic: basePrice phải là giá gốc (CompareAtPrice) nếu có
-    //         basePrice = selectedVariant.Price;
-    //         stockText = `${selectedVariant.StockQuantity} sản phẩm có sẵn`;
-    //     } else {
-    //         // Lấy giá bán thấp nhất của tất cả các variant
-    //         const allPrices = product.variants.map(v => v.Price).filter(p => p > 0);
-    //         basePrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
-    //     }
-
-    //     if (!basePrice || basePrice <= 0) {
-    //         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText };
-    //     }
-
-    //     const discountPercent = product.Discount;
-    //     let finalPrice = basePrice;
-    //     let originalPrice: number | null = null;
-        
-    //     // Logic giảm giá này có thể cần xem lại. Giả sử:
-    //     // CompareAtPrice là giá gốc, Price là giá niêm yết
-    //     // Discount là giảm giá thêm trên Price
-    //     if (selectedVariant?.CompareAtPrice && selectedVariant.CompareAtPrice > selectedVariant.Price) {
-    //         originalPrice = selectedVariant.CompareAtPrice;
-    //         basePrice = selectedVariant.Price; // Giá để tính discount % tiếp theo
-    //     }
-
-    //     if (discountPercent > 0) {
-    //         if (!originalPrice) originalPrice = basePrice;
-    //         finalPrice = basePrice * (1 - discountPercent / 100);
-    //     } else {
-    //         finalPrice = basePrice;
-    //     }
-
-
-    //     return { finalPrice, originalPrice, discountPercent, stockText };
-
-    // }, [product, selectedVariant]);
+    
     const pricingInfo = useMemo(() => {
     if (!product) {
         return { finalPrice: null, originalPrice: null, discountPercent: 0, stockText: 'Đang tải...' };
@@ -583,51 +454,7 @@ useEffect(() => {
             setIsProcessingAddToCart(false);
             return;
         }
-        // try {
-        //     const variantID = selectedVariant.VariantID;
-        //     const shopID = product.ShopID;
-
-        //     if (!variantID || !shopID) {
-        //         showNotification("Thiếu thông tin cần thiết để thêm vào giỏ hàng. Vui lòng thử lại.", 'error');
-        //         return;
-        //     }
-
-        //     // Call addCartItem service
-        //     const response = await addCartItem(variantID, quantity, shopID);
-
-        //     // Check backend response for large quantity prompt
-        //     if (response.shouldShowLargeQuantityPrompt && response.productName && response.shopPhone) {
-        //         setLargeQuantityPromptInfo({
-        //             productName: response.productName,
-        //             shopPhone: response.shopPhone
-        //         });
-        //         setShowLargeQuantityConfirm(true);
-        //     } else {
-        //         showNotification(response.message || "Sản phẩm đã được thêm vào giỏ hàng!", 'success');
-        //     }
-
-        //     // Update quantity input after successful addition (reset to 1 or clamped value)
-        //     if (response.finalQuantityInCart !== undefined) {
-        //         if (response.finalQuantityInCart < quantity && response.finalQuantityInCart > 0) {
-        //             setQuantity(response.finalQuantityInCart); // If backend clamped quantity, update UI
-        //         } else {
-        //             setQuantity(1); // Reset to 1 after successful addition
-        //         }
-        //     } else {
-        //         setQuantity(1); // Default reset to 1
-        //     }
-
-
-        // } catch (error: any) {
-        //     console.error("Lỗi khi thêm vào giỏ hàng:", error);
-        //     const errorMessage = error.response?.data?.message || "Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.";
-        //     if (error.response?.data?.available_stock !== undefined) {
-        //         showNotification(`${errorMessage} (Tồn kho: ${error.response.data.available_stock})`, 'error');
-        //         setQuantity(error.response.data.available_stock > 0 ? error.response.data.available_stock : 0);
-        //     } else {
-        //         showNotification(errorMessage, 'error');
-        //     }
-        // }
+       
         setIsProcessingAddToCart(true); // Đặt trạng thái "đang xử lý"
 
     try {
@@ -727,7 +554,7 @@ useEffect(() => {
             if (!response.ok) {
                 throw new Error(result.message || 'Lỗi xử lý Mua Ngay.');
             }
-            
+                
             localStorage.setItem('checkoutData', JSON.stringify(result as StoredCheckoutData));
             router.push('/checkout');
 
@@ -1008,8 +835,6 @@ useEffect(() => {
             <RelatedProductsSidebar currentProductId={productId} />
             </aside>
             </div>
-            
-            
         </div>
     );
 };

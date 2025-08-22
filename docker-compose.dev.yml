@@ -10,6 +10,7 @@ services:
       - ./Backend:/var/www/html
       # Dùng volume để composer cache không bị chậm trên Mac/Windows
       - composer_cache:/root/.composer/cache
+      # - ./Backend/php.ini:/usr/local/etc/php/php.ini
     env_file:
       - ./Backend/.env # Đọc file .env trực tiếp từ thư mục backend
     networks:
@@ -51,6 +52,22 @@ services:
     depends_on:
       - frontend
       - backend
+  worker:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.dev
+    container_name: dev-worker-app
+    volumes:
+      - ./Backend:/var/www/html
+      # Dùng volume để composer cache không bị chậm trên Mac/Windows
+      - composer_cache:/root/.composer/cache
+    env_file:
+      - ./Backend/.env
+
+    command: php artisan queue:work --tries=3 --timeout=60
+    restart: unless-stopped
+    networks:
+      - app-network
 
 networks:
   app-network:

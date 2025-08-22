@@ -48,6 +48,7 @@ class AddressController extends Controller
             'default_address' => $default_address // Có thể là null nếu không có địa chỉ mặc định nào được thiết lập
         ]);
     }
+    
 
     public function show($addressId)
     {
@@ -67,6 +68,20 @@ class AddressController extends Controller
 
         return response()->json($address);
     }
+    public function showReturn(Address $address)
+{
+    // Lấy ID của người dùng đang đăng nhập
+    $userId = Auth::id();
+
+    // Kiểm tra xem UserID của địa chỉ có khớp với ID của người dùng không
+    if ($address->UserID !== $userId) {
+        // Nếu không khớp, trả về lỗi 403 Forbidden (Từ chối truy cập)
+        return response()->json(['message' => 'Bạn không có quyền truy cập địa chỉ này.'], 403);
+    }
+
+    // Nếu khớp, trả về thông tin địa chỉ
+    return response()->json($address);
+}
 
     /**
      * Update the specified address in storage using Query Builder.

@@ -1,7 +1,7 @@
 // app/(main)/(account)/orders/[orderId]/components/modals/ReturnRequestFormModal.tsx
 import React, { useState } from 'react';
 import { Order, OrderItem } from '@/types';
-import { getFullImageUrl } from '@/services/api';
+import { formatVND, getFullImageUrl } from '@/services/api';
 import Modal from './Modal';
 
 interface ReturnRequestFormModalProps {
@@ -16,10 +16,7 @@ const ReturnRequestFormModal: React.FC<ReturnRequestFormModalProps> = ({ isOpen,
     const [details, setDetails] = useState('');
     const [evidenceFiles, setEvidenceFiles] = useState<FileList | null>(null);
     // src/utils/format.ts
-    const formatVND = (price: number): string => {
-        if (typeof price !== 'number') return '0 ₫';
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-    };
+    
     // Ghép tất cả sản phẩm từ các shop order lại thành một mảng
     const allItems: OrderItem[] = order.shopOrders.flatMap(shop => shop.items);
 

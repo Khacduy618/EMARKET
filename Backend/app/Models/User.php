@@ -25,7 +25,7 @@ use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, HasApiTokens, TwoFactorAuthenticatable ;
 
     protected $table = 'Users';
     protected $primaryKey = 'UserID';
@@ -189,7 +189,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function productReviews(): HasMany
     {
-        return $this->hasMany(Review::class, 'UserID', 'UserID');
+        return $this->hasMany(ProductReview::class, 'UserID', 'UserID');
     }
 
     /**

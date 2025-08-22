@@ -1,4 +1,4 @@
-import { ProductVariant,ProductImage } from "@/types";
+import { ProductVariant, ProductImage } from "@/types";
 import { getCookie } from "./auth";
 import { API_URL, WEB_URL } from "@/lib/config";
 
@@ -6,16 +6,21 @@ interface ProductWithImages {
     images?: ProductImage[] | null;
 }
 
+export const formatVND = (price: number): string => {
+  if (typeof price !== 'number' || isNaN(price)) return '0 ₫';
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+};
+
 export const getAuthToken = (): string | null => {
-    
+
     const xsrfToken = getCookie('XSRF-TOKEN');
 
-        if (!xsrfToken) {
-            // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
-            console.warn('CSRF token not found in cookies.');
-            return '';
-        }
-        return decodeURIComponent(xsrfToken);
+    if (!xsrfToken) {
+        // Có thể ném lỗi hoặc trả về chuỗi rỗng và để API xử lý
+        console.warn('CSRF token not found in cookies.');
+        return '';
+    }
+    return decodeURIComponent(xsrfToken);
 };
 // export const handleResponse = async (response: Response) => {
 //     if (!response.ok) {
@@ -62,7 +67,7 @@ export const handleResponse = async (response: Response) => {
         // Nếu không có body JSON (ví dụ: status 204 No Content, hoặc chỉ là text)
         // trả về một giá trị thành công mà không cần parse.
         // Bạn có thể trả về `true` hoặc một đối tượng cho biết thành công.
-        return { success: true, message: "Operation successful" }; 
+        return { success: true, message: "Operation successful" };
     }
 };
 
@@ -95,6 +100,7 @@ export const api = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
+            credentials: 'include', // Include cookies for CSRF protection
         });
         return handleResponse(response);
     },
@@ -124,13 +130,13 @@ export const getStorageImageUrl = (storagePath: string | null | undefined): stri
  */
 export const getPublicImageUrl = (publicPath: string | null | undefined): string => {
     if (!publicPath) {
-        return '/placeholder.png'; 
+        return '/placeholder.png';
     }
-    
+
     if (publicPath.startsWith('http')) {
         return publicPath;
     }
-    
+
     // File trong public được truy cập trực tiếp từ URL gốc
     const path = publicPath.startsWith('/') ? publicPath.substring(1) : publicPath;
     return `${WEB_URL}/${path}`;
@@ -147,7 +153,7 @@ export const getPrimaryImage = (product: ProductWithImages): string => {
     const primaryImg = product.images?.find((img) => img.IsPrimary);
     const imagePath = primaryImg?.ImageURL || product.images?.[0]?.ImageURL;
     // Ảnh sản phẩm do người dùng tải lên, nên dùng getStorageImageUrl
-    return getStorageImageUrl(imagePath); 
+    return getStorageImageUrl(imagePath);
 }
 
 export const getVariantImage = (variant: ProductVariant, product: ProductWithImages): string => {

@@ -6,38 +6,63 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
+use App\Http\Controllers\OrderController;
+use App\Traits\ManagesOrderProcessing;
+use App\Traits\ManagesVoucherUsage;
 
 class VNPayController extends Controller
 {
-    /**
-     * Tạo URL thanh toán VNPay cho một đơn hàng.
-     */
-    public function createPayment(Request $request, $orderId)
+    protected $orderController;
+    use ManagesOrderProcessing;
+    use ManagesVoucherUsage;
+    // **INJECT OrderController QUA CONSTRUCTOR**
+    public function __construct(OrderController $orderController)
     {
-        Log::info("--- Received request for VnPay createPayment for OrderID: {$orderId} ---");
-        $user = $request->user();
-        $order = DB::table('ordersbuyer')->where('OrderID', $orderId)->where('UserID', $user->UserID)->first();
+        $this->orderController = $orderController;
+    }
 
-        if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
+public function createPayment(Request $request, $orderId)
+{
+    Log::info("--- VNPAY PAYMENT CREATION: START ---");
+    Log::info("Attempting to create payment for OrderID: [{$orderId}]");
 
-        // === BẮT ĐẦU LOGIC TẠO URL VNPAY ===
+    $user = $request->user();
+    if (!$user) {
+        Log::error("VNPAY_ERROR: User is not authenticated.");
+        return response()->json(['message' => 'Người dùng chưa được xác thực.'], 401);
+    }
 
+    $order = DB::table('ordersbuyer')->where('OrderID', $orderId)->where('UserID', $user->UserID)->first();
+
+    if (!$order) {
+        Log::error("VNPAY_ERROR: Order [{$orderId}] not found for UserID [{$user->UserID}].");
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    
+    if ( $order->PaymentStatus !== 'Pending') {
+        Log::warning("VNPAY_WARNING: Payment attempt on an already processed order [{$orderId}].");
+        return response()->json(['message' => 'Đơn hàng này đã được xử lý.'], 400);
+    }
+
+    Log::info("Order found and validated successfully for UserID [{$user->UserID}].");
+    
+    try {
         $vnp_TmnCode = config('services.vnpay.tmn_code');
         $vnp_HashSecret = config('services.vnpay.hash_secret');
         $vnp_Url = config('services.vnpay.url');
-        // Log::info("--- Received request for VnPay createPayment for OrderID: {$orderId} ---");
-        // URL trả về này sẽ được VNPay gọi, nên nó phải là một URL public mà server của bạn có thể truy cập.
-        // route('vnpay.return') sẽ tạo ra URL đầy đủ, ví dụ: http://your-laravel-app.com/api/vnpay/return
-        $vnp_Returnurl = route('vnpay.return'); 
-        
-        $vnp_TxnRef = $order->OrderCode; // Mã đơn hàng.
+        $vnp_Returnurl = route('vnpay.return');
+
+        if (!$vnp_TmnCode || !$vnp_HashSecret) {
+            Log::critical('VNPAY_CONFIG_ERROR: VNPAY_TMN_CODE or VNPAY_HASH_SECRET is not configured.');
+            return response()->json(['message' => 'Lỗi cấu hình hệ thống thanh toán.'], 500);
+        }
+
+        $vnp_TxnRef = $order->OrderCode;
         $vnp_OrderInfo = "Thanh toan don hang " . $order->OrderCode;
-        $vnp_OrderType = 'billpayment'; // Loại hàng hóa
-        $vnp_Amount = $order->TotalAmount * 100; // Số tiền thanh toán, nhân 100
-        $vnp_Locale = 'vn'; // Ngôn ngữ
-        $vnp_BankCode = ''; // Để trống để khách hàng tự chọn ngân hàng
+        $vnp_OrderType = 'billpayment';
+        $vnp_Amount = $order->TotalAmount * 100;
+        $vnp_Locale = 'vn';
         $vnp_IpAddr = $request->ip();
 
         $inputData = [
@@ -55,17 +80,17 @@ class VNPayController extends Controller
             "vnp_TxnRef" => $vnp_TxnRef,
         ];
 
-        if (isset($vnp_BankCode) && $vnp_BankCode != "") {
-            $inputData['vnp_BankCode'] = $vnp_BankCode;
+        // Thêm trường bill_email nếu có thông tin email của user
+        if (isset($user->Email)) {
+            $inputData['vnp_Bill_Email'] = $user->Email;
         }
-    Log::info('[VNPay] Preparing to send data:', $inputData);
 
-        // Sắp xếp dữ liệu theo key
         ksort($inputData);
         
+        // **SỬA LỖI TẠO HASHDATA**
+        $hashdata = "";
         $query = "";
         $i = 0;
-        $hashdata = "";
         foreach ($inputData as $key => $value) {
             if ($i == 1) {
                 $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
@@ -75,98 +100,113 @@ class VNPayController extends Controller
             }
             $query .= urlencode($key) . "=" . urlencode($value) . '&';
         }
-
+        
         $vnp_Url = $vnp_Url . "?" . $query;
-        if (isset($vnp_HashSecret)) {
-            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
-        }
-        
-        
-        // Cập nhật phương thức thanh toán trong đơn hàng nháp
-        DB::table('ordersbuyer')
-            ->where('OrderID', $orderId)
-            ->update(['PaymentMethod' => 'VNPay']);
-            Log::info("VnPay createPayment: Generated payment URL successfully.", ['url' => $vnp_Url]);
-            Log::info('VNPay Input Data:', $inputData);
+        $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+        $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
+
+        DB::table('ordersbuyer')->where('OrderID', $orderId)->update(['PaymentMethod' => 'VNPay']);
+
+        Log::info("VNPAY PAYMENT CREATION: SUCCESS. Redirecting user.");
         return response()->json(['payment_url' => $vnp_Url]);
+
+    } catch (\Exception $e) {
+        Log::error("VNPAY_FATAL_ERROR: URL generation failed.", ['error' => $e->getMessage()]);
+        return response()->json(['message' => 'Đã có lỗi không mong muốn xảy ra.'], 500);
+    }
+}
+
+public function handleReturn(Request $request)
+{
+    $inputData = $request->all();
+    Log::info('--- [VNPAY_RETURN] Received callback from VNPay ---', $inputData);
+
+    $vnp_HashSecret = config('services.vnpay.hash_secret');
+    $frontendReturnUrl = config('services.vnpay.return_url');
+
+    // Lấy chữ ký từ VNPay
+    $vnp_SecureHash = $inputData['vnp_SecureHash'];
+    
+    // Xóa trường chữ ký và loại mã ngân hàng không cần thiết khỏi mảng dữ liệu
+    unset($inputData['vnp_SecureHashType']);
+    unset($inputData['vnp_SecureHash']);
+
+    // Sắp xếp lại dữ liệu theo thứ tự alphabet của key
+    ksort($inputData);
+
+    // **PHẦN SỬA LỖI TẠO CHUỖI HASH**
+    // Tạo chuỗi hash theo đúng quy định của VNPay
+    $hashData = "";
+    $i = 0;
+    foreach ($inputData as $key => $value) {
+        if ($i == 1) {
+            $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+        } else {
+            $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+            $i = 1;
+        }
     }
 
-    /**
-     * Xử lý kết quả VNPay trả về.
-     */
-    public function handleReturn(Request $request)
-    {
-        $inputData = $request->all();
-       
-        Log::info('--- Received return callback from VNPay ---', $inputData);
+    $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+    
+    $orderCode = $inputData['vnp_TxnRef'];
+    $responseCode = $inputData['vnp_ResponseCode'] ?? '99';
+    $order = DB::table('ordersbuyer')->where('OrderCode', $orderCode)->first();
+    $orderQueryParam = $order ? "&orderId={$order->OrderID}" : "";
 
-        // === SỬA LỖI: KIỂM TRA SỰ TỒN TẠI CỦA CÁC KEY QUAN TRỌNG ===
+    // So sánh chữ ký
+    if ($secureHash == $vnp_SecureHash) {
+        Log::info("[VNPAY_RETURN] SIGNATURE MATCH for order: {$orderCode}");
         
-        // Nếu không có các key cơ bản này, coi như là một callback không hợp lệ hoặc đã bị hủy
-        if (!isset($inputData['vnp_TxnRef']) || !isset($inputData['vnp_SecureHash'])) {
-            $frontendReturnUrl = config('services.vnpay.return_url');
-            Log::warning("VNPay return with missing required parameters.", $inputData);
-            return redirect()->away("{$frontendReturnUrl}?success=false&error=invalid_params");
-        }
+        if ($responseCode == '00') {
+            Log::info("[VNPAY_RETURN] Payment SUCCESS for order: {$orderCode}. Checking order status...");
+            if ($order && $order->PaymentStatus == 'Pending') {
+                try {
+                    DB::transaction(function () use ($order, $inputData) {
+                        $vnpayTxnRef = $inputData['vnp_TxnRef'];
+                        $vnpayTransactionNo = $inputData['vnp_TransactionNo'];
+                        $vnpayPayDateStr = $inputData['vnp_PayDate'];
+                        $paidAtTimestamp = Carbon::createFromFormat('YmdHis', $vnpayPayDateStr)->toDateTimeString();
 
-        $vnp_SecureHash = $inputData['vnp_SecureHash'];
-        unset($inputData['vnp_SecureHash']);
-
-        ksort($inputData);
-        $hashData = "";
-        $i = 0;
-        foreach ($inputData as $key => $value) {
-            if ($i == 1) {
-                $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
-            } else {
-                $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
-                $i = 1;
-            }
-        }
-        $secureHash = hash_hmac('sha512', $hashData, config('services.vnpay.hash_secret'));
-
-        $orderCode = $inputData['vnp_TxnRef'];
-        // Sử dụng toán tử ?? để gán giá trị mặc định nếu key không tồn tại
-        $responseCode = $inputData['vnp_ResponseCode'] ?? '99'; // Mặc định là lỗi nếu không có
-        $frontendReturnUrl = config('services.vnpay.return_url');
-
-        $order = DB::table('ordersbuyer')->where('OrderCode', $orderCode)->first();
-        $orderQueryParam = $order ? "&orderId={$order->OrderID}" : "";
-
-        if ($secureHash == $vnp_SecureHash) {
-            if ($responseCode == '00') {
-                // Thanh toán thành công
-                if ($order && $order->OverallStatus === 'Pending') {
-                    // Dùng transaction để đảm bảo toàn vẹn
-                    DB::transaction(function () use ($order) {
                         DB::table('ordersbuyer')->where('OrderID', $order->OrderID)
-                            ->update(['PaymentStatus' => 'Paid', 'OverallStatus' => 'Processing', 'UpdatedAt' => now()]);
+                            ->update([
+                                'PaymentStatus' => 'Paid', 
+                                'UpdatedAt' => now(),
+                                'paidAt' => $paidAtTimestamp,
+                                'VnpayTxnRef' => $vnpayTxnRef,
+                                'VnpayTransactionNo' => $vnpayTransactionNo,
+                                'VnpayTransactionDate' => $vnpayPayDateStr,
+                            ]);
                         
-                        $orderItems = DB::table('orderitems')->where('OrderID', $order->OrderID)->get();
-                        foreach ($orderItems as $item) {
-                            DB::table('productvariants')->where('VariantID', $item->VariantID)->decrement('StockQuantity', $item->Quantity);
-                        }
-                        $cart = DB::table('carts')->where('UserID', '
-                        ', $order->UserID)->first();
-                        if ($cart) {
-                            $variantIdsToRemove = $orderItems->pluck('VariantID')->all();
-                            DB::table('cartitems')->where('CartID', $cart->CartID)->whereIn('VariantID', $variantIdsToRemove)->delete();
-                        }
+                        DB::table('ordersseller')->where('OrderID', $order->OrderID)
+                            ->update(['Status' => 'Processing', 'UpdatedAt' => now()]);
+
+                        Log::info("[VNPAY_RETURN_TRANSACTION] Updated order status for OrderID: {$order->OrderID}");
+                             $fullOrderDetails = DB::table('ordersbuyer')->where('OrderID', $order->OrderID)->first();
+                       
+                        $this->processConfirmedOrder($fullOrderDetails);
+                        // Cập nhật trạng thái voucher nếu có
+                        $this->updateUserVoucherUsage($fullOrderDetails);
                     });
+                    
+                    Log::info("[VNPAY_RETURN] Transaction for order {$orderCode} COMPLETED successfully.");
+                    return redirect()->away("{$frontendReturnUrl}?success=true&orderCode={$orderCode}");
+
+                } catch (\Exception $e) {
+                    Log::error("[VNPAY_RETURN] TRANSACTION FAILED for order {$orderCode}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                    return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}{$orderQueryParam}&error=processing_failed");
                 }
-                // Điều hướng về frontend thành công
-               return redirect()->away("{$frontendReturnUrl}?success=true&orderCode={$orderCode}");
             } else {
-                // Thanh toán thất bại hoặc bị hủy (responseCode khác 00)
-                Log::warning("VNPay payment failed or was cancelled for order: {$orderCode}", $inputData);
-                return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}{$orderQueryParam}");
+                 return redirect()->away("{$frontendReturnUrl}?success=true&orderCode={$orderCode}");
             }
         } else {
-            // Chữ ký không hợp lệ
-            Log::error("VNPay INVALID SIGNATURE for order: {$orderCode}", $inputData);
-            return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}&error=invalid_signature");
+            Log::warning("[VNPAY_RETURN] Payment FAILED or CANCELLED for order: {$orderCode}", $inputData);
+            return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}{$orderQueryParam}");
         }
+    } else {
+        Log::error("[VNPAY_RETURN] INVALID SIGNATURE for order: {$orderCode}. Expected: {$secureHash}, Received: {$vnp_SecureHash}");
+        return redirect()->away("{$frontendReturnUrl}?success=false&orderCode={$orderCode}&error=invalid_signature");
     }
+}
 
 }

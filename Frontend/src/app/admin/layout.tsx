@@ -58,6 +58,12 @@ export default function AdminLayout({
       description: 'Quản lý đơn hàng'
     },
     {
+      href: '/admin/refunds',
+      label: 'Giao dịch',
+      icon: ShoppingBag,
+      description: 'Quản lý giao dịch'
+    },
+    {
       href: '/admin/customers',
       label: 'Khách hàng',
       icon: Users,

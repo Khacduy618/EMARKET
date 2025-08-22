@@ -246,7 +246,7 @@ export default function LoginPage() {
 
                 <p className="text-sm text-center text-gray-600">
                 Chưa có tài khoản?{" "}
-                <Link href="/register" className="text-orange-600 hover:text-orange-700 font-medium">
+                <Link href="/signup" className="text-orange-600 hover:text-orange-700 font-medium">
                     Tạo tài khoản
                 </Link>
                 </p>
