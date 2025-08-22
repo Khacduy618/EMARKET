@@ -60,8 +60,8 @@ class StatisticsController extends Controller
         $baseQuery = $this->getBaseOrderQuery($request);
         
         $overviewData = $baseQuery->select(
-            DB::raw('SUM(os.TotalAmount) as totalSpent'), // Tính tổng tiền của các gói hàng đã hoàn thành
-            DB::raw('COUNT(DISTINCT ob.OrderID) as orderCount') // Đếm số đơn hàng tổng duy nhất
+            DB::raw('CAST(SUM(os.TotalAmount) AS UNSIGNED) as totalSpent'), 
+            DB::raw('COUNT(DISTINCT ob.OrderID) as orderCount')
         )->first();
 
         // Xử lý trường hợp không có đơn hàng nào

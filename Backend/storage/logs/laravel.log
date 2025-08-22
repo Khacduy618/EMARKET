@@ -4309,3 +4309,5 @@
 [2025-08-22 06:13:05] local.INFO: [OrderProcessing] Cleared cart items for UserID: 25  
 [2025-08-22 06:13:06] local.INFO: Successfully updated usage counters for vouchers in OrderID: 4119 ["WELCOME50","FREESHIP40K","BICHTECH10","ESHOPVOUCHER"] 
 [2025-08-22 06:13:06] local.INFO: [VNPAY_RETURN] Transaction for order EMK20250822O6QFWO COMPLETED successfully.  
+[2025-08-22 06:54:23] local.INFO: All reviews saved successfully for SellerOrderID: 5124 {"userId":25,"reviewsCount":1} 
+[2025-08-22 06:54:23] local.INFO: Order status updated to Reviewed for SellerOrderID: 5124 {"userId":25} 

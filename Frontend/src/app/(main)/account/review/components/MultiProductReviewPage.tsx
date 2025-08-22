@@ -213,8 +213,8 @@ export default function MultiProductReviewPage() {
         method: 'POST',
         credentials: 'include',
         headers: {
-          
-          'Content-Type': 'multipart/form-data' // Không cần thiết, browser sẽ tự động set
+          'Accept': 'application/json',
+          // 'Content-Type': 'multipart/form-data' // Không cần thiết, fetch sẽ tự động xử lý          
         },
        
         body: formData

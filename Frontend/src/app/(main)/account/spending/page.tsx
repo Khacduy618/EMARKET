@@ -19,7 +19,6 @@ import { CategoryData, OverviewData, ShopData, SummaryOrder, TrendDataPoint } fr
 
 
 const SpendingPage = () => {
-  // ... (các state đã có)
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
   const [categorySpending, setCategorySpending] = useState<CategoryData[]>([]);
   const [shopSpending, setShopSpending] = useState<ShopData[]>([]);
@@ -210,6 +209,7 @@ const SpendingPage = () => {
       </div>
 
       <OrderListModal
+      
         isOpen={isOrderModalOpen}
         onClose={handleCloseOrderListModal}
         orders={loadingModalOrders ? [] : ordersForModal}

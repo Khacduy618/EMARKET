@@ -4,15 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaTruckFast, FaCircleQuestion, FaCommentDots, FaStore, FaChevronDown } from 'react-icons/fa6';
 import { Order, OrderStatus, OrderItem } from '@/types'; // Import thêm OrderItem nếu cần
-import { getFullImageUrl } from '@/services/api';
+import { formatVND, getFullImageUrl } from '@/services/api';
 import ReturnRequestModal from './modals/ReturnRequestModal';
 
 // --- Helper Functions ---
 
-const formatVND = (price: number): string => {
-  if (isNaN(price)) return '0 ₫';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
 
 const formatDate = (isoString: string): string => {
   if (!isoString) return '';

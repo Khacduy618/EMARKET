@@ -12,6 +12,8 @@ interface SpendingOverviewProps {
 }
 
 const SpendingOverview: React.FC<SpendingOverviewProps> = ({ totalSpent, orderCount, onOrderCountClick }) => {
+    console.log('SpendingOverview received totalSpent:', totalSpent, 'Type:', typeof totalSpent);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6">
       <SpendingSummaryCard
