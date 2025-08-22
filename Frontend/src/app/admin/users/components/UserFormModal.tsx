@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { User, UserPayload } from '@/types';
 import { X } from 'lucide-react';
 import { createUser, updateUser } from '@/services/admin';
+import { checkEmailAvailability, checkPhoneAvailability, checkUsernameAvailability } from '@/services/auth';
 
 interface UserFormModalProps {
     isOpen: boolean;
@@ -60,11 +61,121 @@ export default function UserFormModal({ isOpen, onClose, userToEdit, onSaveSucce
         }
     };
 
+    const validateFullName = (value: string) => {
+        if (/\d/.test(value)) {
+            return "Họ và tên không được chứa số";
+        }
+        return undefined;
+    };
+
+    const validateEmailLocal = (value: string) => {
+        if (/^\d/.test(value)) {
+            return "Email không được bắt đầu bằng số";
+        }
+        return undefined;
+    };
+
+    const validatePhoneLocal = (value: string) => {
+        if (value && !/^0\d{9}$/.test(value)) {
+            return "Số điện thoại phải là 10 số và bắt đầu bằng 0";
+        }
+        return undefined;
+    };
+
+    const handleBlur = async (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        let error: string | undefined = undefined;
+
+        switch (name) {
+            case 'FullName':
+                error = validateFullName(value);
+                break;
+            case 'Email':
+                error = validateEmailLocal(value);
+                if (!error && value && (!userToEdit || value !== userToEdit.Email)) {
+                    try {
+                        const { isAvailable } = await checkEmailAvailability(value);
+                        if (!isAvailable) {
+                            error = "Email này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra email. Vui lòng thử lại.";
+                    }
+                }
+                break;
+            case 'Phone':
+                error = validatePhoneLocal(value);
+                if (!error && value && (!userToEdit || value !== userToEdit.Phone)) {
+                    try {
+                        const { isAvailable } = await checkPhoneAvailability(value);
+                        if (!isAvailable) {
+                            error = "Số điện thoại này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra số điện thoại. Vui lòng thử lại.";
+                    }
+                }
+                break;
+            case 'Username':
+                if (value && (!userToEdit || value !== userToEdit.Username)) {
+                    try {
+                        const { isAvailable } = await checkUsernameAvailability(value);
+                        if (!isAvailable) {
+                            error = "Tên đăng nhập này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra tên đăng nhập. Vui lòng thử lại.";
+                    }
+                }
+                break;
+        }
+
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
+
     // Hàm submit form
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const newErrors: { [key: string]: string | undefined } = {};
+
+            newErrors.FullName = validateFullName(formData.FullName || '');
+            newErrors.Email = validateEmailLocal(formData.Email || '');
+            newErrors.Phone = validatePhoneLocal(formData.Phone || '');
+
+            // Kiểm tra availability nếu thay đổi hoặc tạo mới
+            if (formData.Username && (!userToEdit || formData.Username !== userToEdit.Username)) {
+                const { isAvailable } = await checkUsernameAvailability(formData.Username);
+                if (!isAvailable) {
+                    newErrors.Username = "Tên đăng nhập này đã được sử dụng";
+                }
+            }
+            if (formData.Email && (!userToEdit || formData.Email !== userToEdit.Email)) {
+                const { isAvailable } = await checkEmailAvailability(formData.Email);
+                if (!isAvailable) {
+                    newErrors.Email = "Email này đã được sử dụng";
+                }
+            }
+            if (formData.Phone && (!userToEdit || formData.Phone !== userToEdit.Phone)) {
+                const { isAvailable } = await checkPhoneAvailability(formData.Phone);
+                if (!isAvailable) {
+                    newErrors.Phone = "Số điện thoại này đã được sử dụng";
+                }
+            }
+
+            // Nếu tạo mới, kiểm tra password
+            if (!userToEdit && !formData.Password) {
+                newErrors.Password = "Mật khẩu là bắt buộc khi tạo mới";
+            }
+
+            setErrors(newErrors);
+
+            if (Object.values(newErrors).some(err => err)) {
+                toast.error("Vui lòng sửa các lỗi trước khi lưu.");
+                return;
+            }
+
             // Loại bỏ các trường mật khẩu rỗng trước khi gửi đi (trong trường hợp Sửa)
             const payload = { ...formData };
             if (isEditing && !payload.Password) {
@@ -85,7 +196,7 @@ export default function UserFormModal({ isOpen, onClose, userToEdit, onSaveSucce
         } catch (error: any) {
             // Xử lý lỗi validation từ backend
             if (error.response && error.response.data && error.response.data.errors) {
-                setErrors(error.response.data.errors);
+                setErrors(prev => ({ ...prev, ...error.response.data.errors }));
                 toast.error("Vui lòng kiểm tra lại các lỗi trong form.");
             } else {
                 toast.error(error.response?.data?.message || "Đã có lỗi xảy ra.");
@@ -116,24 +227,24 @@ export default function UserFormModal({ isOpen, onClose, userToEdit, onSaveSucce
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-sm font-medium">Họ và Tên</label>
-                                <input name="FullName" value={formData.FullName || ''} onChange={handleChange} className="mt-1 w-full p-2 border rounded-md" />
-                                {errors.FullName && <p className="text-xs text-red-500 mt-1">{errors.FullName[0]}</p>}
+                                <input name="FullName" value={formData.FullName || ''} onChange={handleChange} onBlur={handleBlur} className="mt-1 w-full p-2 border rounded-md" />
+                                {errors.FullName && <p className="text-xs text-red-500 mt-1">{errors.FullName}</p>}
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Tên đăng nhập</label>
-                                <input name="Username" value={formData.Username || ''} onChange={handleChange} className="mt-1 w-full p-2 border rounded-md" />
-                                {errors.Username && <p className="text-xs text-red-500 mt-1">{errors.Username[0]}</p>}
+                                <input name="Username" value={formData.Username || ''} onChange={handleChange} onBlur={handleBlur} className="mt-1 w-full p-2 border rounded-md" />
+                                {errors.Username && <p className="text-xs text-red-500 mt-1">{errors.Username}</p>}
                             </div>
                         </div>
                         <div>
                             <label className="text-sm font-medium">Email</label>
-                            <input name="Email" type="email" value={formData.Email || ''} onChange={handleChange} className="mt-1 w-full p-2 border rounded-md" />
-                            {errors.Email && <p className="text-xs text-red-500 mt-1">{errors.Email[0]}</p>}
+                            <input name="Email" type="email" value={formData.Email || ''} onChange={handleChange} onBlur={handleBlur} className="mt-1 w-full p-2 border rounded-md" />
+                            {errors.Email && <p className="text-xs text-red-500 mt-1">{errors.Email}</p>}
                         </div>
                         <div>
                             <label className="text-sm font-medium">Số điện thoại</label>
-                            <input name="Phone" type="tel" value={formData.Phone || ''} onChange={handleChange} className="mt-1 w-full p-2 border rounded-md" />
-                            {errors.Phone && <p className="text-xs text-red-500 mt-1">{errors.Phone[0]}</p>}
+                            <input name="Phone" type="tel" value={formData.Phone || ''} onChange={handleChange} onBlur={handleBlur} className="mt-1 w-full p-2 border rounded-md" />
+                            {errors.Phone && <p className="text-xs text-red-500 mt-1">{errors.Phone}</p>}
                         </div>
 
                         <div className="border-t pt-4">
@@ -142,7 +253,7 @@ export default function UserFormModal({ isOpen, onClose, userToEdit, onSaveSucce
                                 <input name="Password" type="password" placeholder="Mật khẩu mới" value={formData.Password || ''} onChange={handleChange} className="w-full p-2 border rounded-md" />
                                 <input name="Password_confirmation" type="password" placeholder="Xác nhận mật khẩu" value={formData.Password_confirmation || ''} onChange={handleChange} className="w-full p-2 border rounded-md" />
                             </div>
-                            {errors.Password && <p className="text-xs text-red-500 mt-1">{errors.Password[0]}</p>}
+                            {errors.Password && <p className="text-xs text-red-500 mt-1">{errors.Password}</p>}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

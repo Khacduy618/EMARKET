@@ -6,6 +6,7 @@ import { UpdateProfilePayload } from '@/types';
 import { toast } from 'react-toastify';
 import { User, Loader2, ImagePlus } from 'lucide-react';
 import { CldUploadWidget, CldImage } from 'next-cloudinary';
+import { checkEmailAvailability, checkPhoneAvailability, checkUsernameAvailability } from '@/services/auth';
 
 interface CloudinaryUploadResult {
     info?: {
@@ -26,6 +27,7 @@ export default function ProfileDetailsPage() {
         Avatar: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     // useEffect này CHỈ chạy khi user (từ context) thay đổi.
     // Nó đảm bảo form luôn được đồng bộ với state toàn cục mới nhất.
@@ -39,6 +41,7 @@ export default function ProfileDetailsPage() {
                 Phone: user.Phone || '',
                 Avatar: user.Avatar || '',
             });
+            setErrors({});
         }
     }, [user]);
 
@@ -56,7 +59,82 @@ export default function ProfileDetailsPage() {
     }, [formData, user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        // Xóa lỗi khi người dùng bắt đầu chỉnh sửa
+        setErrors(prev => ({ ...prev, [name]: '' }));
+    };
+
+    const validateFullName = (value: string) => {
+        if (/\d/.test(value)) {
+            return "Họ và tên không được chứa số";
+        }
+        return "";
+    };
+
+    const validateEmailLocal = (value: string) => {
+        if (/^\d/.test(value)) {
+            return "Email không được bắt đầu bằng số";
+        }
+        return "";
+    };
+
+    const validatePhoneLocal = (value: string) => {
+        if (value && !/^0\d{9}$/.test(value)) {
+            return "Số điện thoại phải là 10 số và bắt đầu bằng 0";
+        }
+        return "";
+    };
+
+    const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        let error = '';
+
+        switch (name) {
+            case 'FullName':
+                error = validateFullName(value);
+                break;
+            case 'Email':
+                error = validateEmailLocal(value);
+                if (!error && user && value !== user.Email) {
+                    try {
+                        const { isAvailable } = await checkEmailAvailability(value);
+                        if (!isAvailable) {
+                            error = "Email này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra email. Vui lòng thử lại.";
+                    }
+                }
+                break;
+            case 'Phone':
+                error = validatePhoneLocal(value);
+                if (!error && user && value !== user.Phone) {
+                    try {
+                        const { isAvailable } = await checkPhoneAvailability(value);
+                        if (!isAvailable) {
+                            error = "Số điện thoại này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra số điện thoại. Vui lòng thử lại.";
+                    }
+                }
+                break;
+            case 'Username':
+                if (user && value !== user.Username) {
+                    try {
+                        const { isAvailable } = await checkUsernameAvailability(value);
+                        if (!isAvailable) {
+                            error = "Tên đăng nhập này đã được sử dụng";
+                        }
+                    } catch {
+                        error = "Lỗi kiểm tra tên đăng nhập. Vui lòng thử lại.";
+                    }
+                }
+                break;
+        }
+
+        setErrors(prev => ({ ...prev, [name]: error }));
     };
 
     const handleUploadSuccess = (result: any) => {
@@ -74,12 +152,50 @@ export default function ProfileDetailsPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!user) return;
+
         setIsSubmitting(true);
         try {
+            const newErrors: { [key: string]: string } = {};
+
+            newErrors.FullName = validateFullName(formData.FullName || '');
+            newErrors.Email = validateEmailLocal(formData.Email || '');
+            newErrors.Phone = validatePhoneLocal(formData.Phone || '');
+
+            // Kiểm tra availability nếu thay đổi
+            if (formData.Username && formData.Username !== user.Username) {
+                const { isAvailable } = await checkUsernameAvailability(formData.Username);
+                if (!isAvailable) {
+                    newErrors.Username = "Tên đăng nhập này đã được sử dụng";
+                }
+            }
+            if (formData.Email && formData.Email !== user.Email) {
+                const { isAvailable } = await checkEmailAvailability(formData.Email);
+                if (!isAvailable) {
+                    newErrors.Email = "Email này đã được sử dụng";
+                }
+            }
+            if (formData.Phone && formData.Phone !== user.Phone) {
+                const { isAvailable } = await checkPhoneAvailability(formData.Phone);
+                if (!isAvailable) {
+                    newErrors.Phone = "Số điện thoại này đã được sử dụng";
+                }
+            }
+
+            setErrors(newErrors);
+
+            if (Object.values(newErrors).some(err => err)) {
+                toast.error("Vui lòng sửa các lỗi trước khi lưu.");
+                return;
+            }
+
             await updateProfile(formData as UpdateProfilePayload);
             // Sau khi update thành công, AuthContext sẽ fetchUser.
             // `user` state trong context thay đổi.
             // `useEffect` ở trên sẽ chạy và đồng bộ lại `formData` một cách an toàn.
+        } catch (error) {
+            console.error("Lỗi khi lưu thay đổi:", error);
+            toast.error("Đã xảy ra lỗi khi lưu thay đổi.");
         } finally {
             setIsSubmitting(false);
         }
@@ -141,19 +257,23 @@ export default function ProfileDetailsPage() {
                 <div className="flex-grow space-y-4">
                     <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="FullName">Họ và Tên</label>
-                        <input id="FullName" name="FullName" type="text" required value={formData.FullName || ''} onChange={handleChange} className="w-full p-2.5 mt-1 border rounded-md" />
+                        <input id="FullName" name="FullName" type="text" required value={formData.FullName || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
+                        {errors.FullName && <p className="mt-1 text-sm text-red-600">{errors.FullName}</p>}
                     </div>
                     <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="Username">Tên đăng nhập</label>
-                        <input id="Username" name="Username" type="text" required value={formData.Username || ''} onChange={handleChange} className="w-full p-2.5 mt-1 border rounded-md" />
+                        <input id="Username" name="Username" type="text" required value={formData.Username || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
+                        {errors.Username && <p className="mt-1 text-sm text-red-600">{errors.Username}</p>}
                     </div>
                     <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="Email">Email</label>
-                        <input id="Email" name="Email" type="email" required value={formData.Email || ''} onChange={handleChange} className="w-full p-2.5 mt-1 border rounded-md" />
+                        <input id="Email" name="Email" type="email" required value={formData.Email || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
+                        {errors.Email && <p className="mt-1 text-sm text-red-600">{errors.Email}</p>}
                     </div>
                     <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="Phone">Số điện thoại</label>
-                        <input id="Phone" name="Phone" type="tel" value={formData.Phone || ''} onChange={handleChange} className="w-full p-2.5 mt-1 border rounded-md" />
+                        <input id="Phone" name="Phone" type="tel" value={formData.Phone || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
+                        {errors.Phone && <p className="mt-1 text-sm text-red-600">{errors.Phone}</p>}
                     </div>
                     <div className="pt-2">
                         <button
