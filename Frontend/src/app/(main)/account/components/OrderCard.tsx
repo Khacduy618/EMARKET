@@ -182,14 +182,15 @@ const detailPageUrl = `/account/purchase/seller-order/${order.SellerOrderID}`;
                     Đánh Giá
                   </Link>
                 )}
-                <button
-                  className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0"
-                  onClick={() => {
-                      setIsReturnModalOpen(true);
-                  }}
-                >
-                  Yêu Cầu Trả Hàng
-                </button>
+                {order.is_return_eligible && (
+                  <button
+                    className="bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors flex-shrink-0"
+                    onClick={() => setIsReturnModalOpen(true)}
+                  >
+                    Yêu Cầu Trả Hàng
+                  </button>
+                )}
+
                 <div className="relative">
                   <button
                     className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"

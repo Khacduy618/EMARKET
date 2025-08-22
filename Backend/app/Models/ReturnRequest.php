@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Models;
+
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +13,7 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\Models\Shop;
 
+
 class ReturnRequest extends Model
 {
     use HasFactory;
@@ -18,21 +21,24 @@ class ReturnRequest extends Model
     protected $primaryKey = 'ReturnRequestID';
      const CREATED_AT = 'RequestedAt';
 
+
     /**
      * Định nghĩa lại tên cột 'updated_at' mặc định của Laravel.
      */
     const UPDATED_AT = 'LastUpdatedAt';
     protected $fillable = [
         'OrderID', // Changed from ShopOrderID
+         'SellerOrderID',
         'OrderItemID',
         'UserID', // Changed from UserID_Buyer
         'ShopID',
         'RequestType',
-        'ReasonCode',
+         'RequestCode',
         'ReasonDescription',
         'EvidenceURLs',
         'Status',
         'SellerNote',
+        'RefundMethod',
         'AdminNote',
         'ResolutionType',
         'RefundAmount',
@@ -43,13 +49,20 @@ class ReturnRequest extends Model
         'RefundAccountHolderName',
     ];
 
+
     protected $casts = [
         'EvidenceURLs' => 'array',
         'RequestType' => 'string', // Cast enums to string
         'Status' => 'string',
         'ResolutionType' => 'string',
+         'BuyerShippingInfoForReturn' => 'array',
         'RefundAmount' => 'decimal:2',
     ];
+
+
+
+
+
 
     /**
      * Get the order that the return request belongs to.
@@ -58,6 +71,13 @@ class ReturnRequest extends Model
     {
         return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
     }
+      public function orderBuyer()
+    {
+        // 'OrderID' là khóa ngoại trong bảng 'returnrequests'
+        // 'OrderID' là khóa chính trong bảng 'ordersbuyer'
+        return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
+    }
+
 
     /**
      * Get the order item associated with the return request.
@@ -66,6 +86,12 @@ class ReturnRequest extends Model
     {
         return $this->belongsTo(OrderItem::class, 'OrderItemID', 'OrderItemID');
     }
+    public function sellerOrder()
+{
+    // Giả sử ReturnRequest có cột SellerOrderID để liên kết tới bảng seller_orders
+    return $this->belongsTo(SellerOrder::class, 'SellerOrderID');
+}
+
 
     /**
      * Get the user who made the return request.
@@ -74,16 +100,20 @@ class ReturnRequest extends Model
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
     }
+   
+
 
     /**
      * Get the shop associated with the return request.
      */
-    public function shop(): BelongsTo
-    {
-        return $this->belongsTo(Shop::class, 'ShopID', 'ShopID');
+    public function shop()
+{
+    // Chỉ định rõ ràng khóa ngoại là 'ShopID'
+    return $this->belongsTo(Shop::class, 'ShopID');
     }
-
+   
+   
     // Removed shopOrder relationship as it's not in the schema
      public $timestamps = false;
-    
+   
 }

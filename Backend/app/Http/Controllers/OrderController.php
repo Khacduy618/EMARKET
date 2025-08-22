@@ -40,7 +40,7 @@ class OrderController extends Controller
                 'os.SellerOrderID', 'os.SellerOrderCode', 'os.Status', 'os.TotalAmount',
                 'os.SubtotalAmount', 'os.ShippingFee', 'os.ShopVoucherDiscount',
                 'os.CreatedAt', 'os.UpdatedAt',
-                
+                'os.DeliveredAt',
                 // Thông tin từ ordersbuyer (đơn hàng tổng)
                 'ob.OrderID', 'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
                 // Thông tin từ shop
