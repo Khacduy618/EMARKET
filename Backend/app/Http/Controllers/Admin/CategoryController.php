@@ -214,6 +214,9 @@ class CategoryController extends Controller
             'AttributeID' => $attrId,
           ]);
         }
+      } else {
+        // Attributes có nhưng rỗng => xóa hết quan hệ
+        CategoryAttribute::where('CategoryID', $category->CategoryID)->delete();
       }
 
       DB::commit();
