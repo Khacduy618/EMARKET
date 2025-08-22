@@ -1,21 +1,21 @@
 <?php
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\FeaturedProductController;
-use App\Http\Controllers\NewArrivalController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\FlashSaleController;
-use App\Http\Controllers\ProductDetailController;
-use App\Http\Controllers\ReturnRequestController;
-use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Buyer\CategoryController;
+use App\Http\Controllers\Buyer\AuthController;
+use App\Http\Controllers\Buyer\ProductController;
+use App\Http\Controllers\Buyer\FeaturedProductController;
+use App\Http\Controllers\Buyer\NewArrivalController;
+use App\Http\Controllers\Buyer\BannerController;
+use App\Http\Controllers\Buyer\FlashSaleController;
+use App\Http\Controllers\Buyer\ProductDetailController;
+use App\Http\Controllers\Buyer\ReturnRequestController;
+use App\Http\Controllers\Buyer\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\AddressController;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Buyer\CartController;
+use App\Http\Controllers\Buyer\AddressController;
+use App\Http\Controllers\Buyer\OrderController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\Buyer\VoucherController;
 use App\Http\Middleware\HandleImage;
 use App\Http\Controllers\Seller\ShopProductController;
 use App\Http\Controllers\ChatController;
@@ -27,17 +27,17 @@ use App\Http\Controllers\Admin\ShopController as ShopController;
 use App\Http\Controllers\Admin\ProductControllers;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Seller\ShopCategoryController; 
-use App\Http\Controllers\VNPayController;
+use App\Http\Controllers\Buyer\VNPayController;
 use App\Http\Controllers\Admin\OrderItemController;
 use App\Http\Controllers\Admin\ProductReviewController;
 use App\Http\Controllers\Seller\SellerOrderController;
-use App\Http\Controllers\CommentController;
+use App\Http\Controllers\Buyer\CommentController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\ShopController as BuyerShopController;
-use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Buyer\ShopController as BuyerShopController;
+use App\Http\Controllers\Buyer\ReviewController;
 use App\Http\Controllers\Seller\SellerReturnRequestController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
-use App\Http\Controllers\StatisticsController as BuyerStatisticsController;
+use App\Http\Controllers\Buyer\StatisticsController as BuyerStatisticsController;
 use App\Http\Controllers\Admin\AdminReturnRequestController;
 
 Route::post('/login-token', function (Request $request) {
@@ -169,32 +169,6 @@ Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard
 });
 
 
-// Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-//     Route::get('/admin/users', function () {
-//         $users = [
-//             [
-//                 'id' => 1,
-//                 'name' => 'Admin Test',
-//                 'email' => 'admin@test.com',
-//                 'role' => 'Admin'
-//             ],
-//             [
-//                 'id' => 2,
-//                 'name' => 'Seller Test',
-//                 'email' => 'seller@test.com',
-//                 'role' => 'Seller'
-//             ]
-//         ];
-//         return response()->json($users);
-//     });
-// });
-
-// Route::middleware('auth:sanctum')->group(function () {
-//     // Route để đặt làm mặc định
-//     Route::post('/addresses/{address}/set-default', [AddressController::class, 'setDefault']);
-//     // Route Resource cho các hành động CRUD khác
-//     Route::apiResource('addresses', AddressController::class);
-// });
 
 Route::middleware('auth:sanctum')->group(function (){
 

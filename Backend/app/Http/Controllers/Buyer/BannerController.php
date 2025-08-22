@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Buyer;
 
 use App\Http\Controllers\Controller;
+
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;

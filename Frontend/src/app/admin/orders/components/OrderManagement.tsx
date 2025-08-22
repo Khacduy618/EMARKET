@@ -9,10 +9,6 @@ import Link from "next/link"
 import {
   ChevronDown, ChevronsUpDown, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw,
   ChevronUp,
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
-=======
-
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
 } from "lucide-react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
@@ -97,7 +93,6 @@ export default function OrderManagement() {
         params.set("status", filterStatus);
       }
 
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
       if (dateFilter.start_date) {
         params.set('start_date', dateFilter.start_date);
       }
@@ -115,19 +110,6 @@ export default function OrderManagement() {
       const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, {
          headers: { "Accept": "application/json" },
          credentials: 'include', 
-=======
-      const authToken = getAuthToken()
-      if (!authToken) {
-        toast.error("Không tìm thấy token xác thực")
-        return
-      }
-
-      const res = await fetch(`http://localhost:8001/api/admin/orders?${params.toString()}`, {
-        headers: {
-          "Accept": "application/json",
-        },
-        credentials: 'include',
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
       });
 
       if (!res.ok) {
@@ -208,24 +190,15 @@ export default function OrderManagement() {
       setSortColumn(col);
       setSortType("desc");
     }
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
      setCurrentPage(1);
-=======
-    setCurrentPage(1); // Reset về trang 1 khi sort
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
   };
 
   const renderSortIcon = (col: string) => {
     if (sortColumn !== col) return <ChevronsUpDown className="w-4 h-4 text-gray-300" />;
     return sortType === "asc" ? <ChevronUp className="w-4 h-4 text-orange-600" /> : <ChevronDown className="w-4 h-4 text-orange-600" />;
   };
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
   
   const orderStatuses: { value: string; label: string }[] = [
-=======
-
-  const orderStatuses: { value: Order["OverallStatus"] | 'all'; label: string }[] = [
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
     { value: "all", label: "Tất cả trạng thái" },
     { value: "Pending", label: "Chờ xử lý" },
     { value: "Processing", label: "Đang xử lý" },
@@ -258,7 +231,6 @@ export default function OrderManagement() {
             <CardHeader>
               <CardTitle>Bộ lọc và tìm kiếm</CardTitle>
             </CardHeader>
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
             <CardContent className="flex flex-col gap-4">
                 {/* Dòng 1: Tìm kiếm, Trạng thái, Số mục/trang */}
                 <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
@@ -342,51 +314,6 @@ export default function OrderManagement() {
                         </div>
                     )}
                 </div>
-=======
-            <CardContent className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="flex-grow">
-                <label className="text-sm font-medium">Tìm kiếm</label>
-                <Input
-                  placeholder="Mã đơn, tên khách hàng..."
-                  value={keyword}
-                  onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Trạng thái</label>
-                <Select
-                  value={filterStatus}
-                  onValueChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
-                >
-                  <SelectTrigger className="w-full md:w-[180px]">
-                    <SelectValue placeholder="Chọn trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {orderStatuses.map(status => (
-                      <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Mục/Trang</label>
-                <Select
-                  value={limitItem.toString()}
-                  onValueChange={(value) => { setLimitItem(Number(value)); setCurrentPage(1); }}
-                >
-                  <SelectTrigger className="w-full md:w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 20, 50].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={() => fetchOrders()}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Làm mới
-              </Button>
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
             </CardContent>
           </Card>
 
@@ -440,12 +367,7 @@ export default function OrderManagement() {
                       </TableBody>
                     </Table>
                   </div>
-<<<<<<< HEAD:Frontend/src/app/admin/orders/components/OrderManagement.tsx
                   
-=======
-
-                  {/* Pagination */}
->>>>>>> V2:Frontend/src/app/(admin)/admin/orders/components/OrderManagement.tsx
                   <div className="flex items-center justify-between mt-4">
                     <p className="text-sm text-gray-600">Hiển thị {orders.length} trên tổng số {totalOrders} đơn hàng</p>
                     <div className="flex items-center gap-2">

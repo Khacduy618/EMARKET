@@ -110,12 +110,8 @@ const formatPrice = (price: number) => {
 };
 
 // --- MAIN COMPONENT ---
-<<<<<<< HEAD
 const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const router = useRouter();
-=======
-const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
->>>>>>> V2
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -160,7 +156,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             setLoading(true);
             setError(null);
             try {
-<<<<<<< HEAD
                 const response = await axios.get(`${API_URL}/productDetail/${productId}`,
                     {
                     headers: {
@@ -169,9 +164,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                     withCredentials: true,
                 }
                 );
-=======
-                const response = await axios.get(`http://localhost:8001/api/productDetail/${productId}`);
->>>>>>> V2
                 const productData: Product = response.data;
                 setProduct(productData);
 
@@ -843,11 +835,6 @@ useEffect(() => {
                     <RelatedProductsSidebar currentProductId={productId} />
                 </aside>
             </div>
-<<<<<<< HEAD
-=======
-
-
->>>>>>> V2
         </div>
     );
 };
