@@ -54,7 +54,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost:8001'),
+    'url' => env('APP_URL', 'https://minhweb.click'),
 
     /*
     |--------------------------------------------------------------------------
@@ -127,5 +127,5 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'UTC'),
 
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+    'frontend_url' => env('FRONTEND_URL', 'https://minhweb.click'),
 ];

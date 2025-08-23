@@ -48,6 +48,11 @@ class OrderItem extends Model {
         return is_numeric($value) ? (float) $value : 0.0;
     }
 
+    public function sellerOrder()
+    {
+        return $this->belongsTo(SellerOrder::class, 'SellerOrderID', 'SellerOrderID');
+    }
+
     /**
      * Liên kết với đơn hàng.
      */

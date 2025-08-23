@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita64313eabaa5623e576835b3db0430ad
+class ComposerStaticInit102f27516c7f2510d2ac9be24bd209fc
 {
     public static $files = array (
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
@@ -7012,6 +7012,7 @@ class ComposerStaticInita64313eabaa5623e576835b3db0430ad
         'Ramsey\\Uuid\\UuidInterface' => __DIR__ . '/..' . '/ramsey/uuid/src/UuidInterface.php',
         'Ramsey\\Uuid\\Validator\\GenericValidator' => __DIR__ . '/..' . '/ramsey/uuid/src/Validator/GenericValidator.php',
         'Ramsey\\Uuid\\Validator\\ValidatorInterface' => __DIR__ . '/..' . '/ramsey/uuid/src/Validator/ValidatorInterface.php',
+        'ReflectionConstant' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/ReflectionConstant.php',
         'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
         'Sabberworm\\CSS\\CSSElement' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSElement.php',
         'Sabberworm\\CSS\\CSSList\\AtRuleBlockList' => __DIR__ . '/..' . '/sabberworm/php-css-parser/src/CSSList/AtRuleBlockList.php',
@@ -8391,6 +8392,7 @@ class ComposerStaticInita64313eabaa5623e576835b3db0430ad
         'ZipStream\\LocalFileHeader' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/LocalFileHeader.php',
         'ZipStream\\OperationMode' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/OperationMode.php',
         'ZipStream\\PackField' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/PackField.php',
+        'ZipStream\\Stream\\CallbackStreamWrapper' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/Stream/CallbackStreamWrapper.php',
         'ZipStream\\Time' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/Time.php',
         'ZipStream\\Version' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/Version.php',
         'ZipStream\\Zip64\\DataDescriptor' => __DIR__ . '/..' . '/maennchen/zipstream-php/src/Zip64/DataDescriptor.php',
@@ -8407,10 +8409,10 @@ class ComposerStaticInita64313eabaa5623e576835b3db0430ad
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita64313eabaa5623e576835b3db0430ad::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita64313eabaa5623e576835b3db0430ad::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInita64313eabaa5623e576835b3db0430ad::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInita64313eabaa5623e576835b3db0430ad::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit102f27516c7f2510d2ac9be24bd209fc::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit102f27516c7f2510d2ac9be24bd209fc::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit102f27516c7f2510d2ac9be24bd209fc::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit102f27516c7f2510d2ac9be24bd209fc::$classMap;
 
         }, null, ClassLoader::class);
     }

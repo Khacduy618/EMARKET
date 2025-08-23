@@ -14,6 +14,7 @@ import RelatedProductsSidebar from './FeaturedProductsSidebar';
 import { StoredCheckoutData } from '@/types';
 import { useRouter } from 'next/navigation'; 
 import { API_URL } from '@/lib/config';
+import Link from 'next/link';
 
 
 
@@ -289,6 +290,7 @@ useEffect(() => {
     if (finalVariant) {
         setSelectedVariant(finalVariant);
         if (finalVariant.ImageURL) {
+            console.log('Setting selected image to variant image:', finalVariant.ImageURL);
             setSelectedImage(finalVariant.ImageURL);
         }
         setQuantity(finalVariant.StockQuantity > 0 ? 1 : 0);
@@ -601,9 +603,7 @@ useEffect(() => {
             )}
             {/* Breadcrumb */}
             <div className="flex items-center text-sm text-gray-500 mb-6">
-                <span className="hover:text-orange-500 cursor-pointer">Trang chủ</span>
-                <ChevronRight size={16} className="mx-2" />
-                <span className="hover:text-orange-500 cursor-pointer">Danh mục</span>
+                <Link href="/"><span className="hover:text-orange-500 cursor-pointer">Trang chủ</span></Link>
                 <ChevronRight size={16} className="mx-2" />
                 <span className="text-orange-500">{product.Name}</span>
             </div>

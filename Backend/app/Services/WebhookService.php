@@ -10,7 +10,7 @@ class WebhookService
     public function sendWebhook(array $payload)
     {
         // Giả định URL webhook của app giao hàng (có thể cấu hình trong .env hoặc database)
-        $webhookUrl = env('INTERNAL_WEBHOOK_URL', 'http://nginx/api/webhook');
+        $webhookUrl = env('INTERNAL_WEBHOOK_URL', 'https://minhweb.click/api/webhook');
 
         $response = Http::post($webhookUrl, $payload);
 

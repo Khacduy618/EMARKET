@@ -141,7 +141,7 @@ class FortifyServiceProvider extends ServiceProvider
                 Log::error('Token hoặc Email bị rỗng. Không thể tạo redirect URL.');
             }
 
-            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+            $frontendUrl = config('app.frontend_url', 'https://minhweb.click');
             Log::info('Frontend URL from config: ' . $frontendUrl);
 
             $redirectUrl = $frontendUrl . '/reset-password?token=' . $token . '&email=' . urlencode($email);

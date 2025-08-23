@@ -404,6 +404,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     });
     // === RETURN REQUEST MANAGEMENT ===
+    Route::get('/return-requests/{id}', [AdminReturnRequestController::class, 'show']);
+    Route::post('/return-requests/{id}/confirm-bank-transfer', [AdminReturnRequestController::class, 'confirmBankTransfer']);
     Route::get('/return-requests/pending-refunds', [AdminReturnRequestController::class, 'listPendingRefunds']);
 });
 

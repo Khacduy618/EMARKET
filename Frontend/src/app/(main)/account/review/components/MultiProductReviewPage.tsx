@@ -72,7 +72,7 @@ export default function MultiProductReviewPage() {
         
         if (data.Status === 'Rated') {
           toast.info('Đơn hàng này đã được đánh giá trước đó.', { autoClose: 3000 });
-          window.location.href = '/account/purchase';
+          window.location.href = '/account/review/list';
           return;
         }
         setOrderInfo({

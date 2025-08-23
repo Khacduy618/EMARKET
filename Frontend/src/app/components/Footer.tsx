@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
+import { getStorageImageUrl } from '@/services/api';
 
 // Hàm helper để tạo URL picsum.photos dựa trên một keyword
 const getPicsumUrl = (keyword: string, width = 60, height = 30) => {
@@ -78,16 +79,14 @@ const Footer = () => {
           {/* THANH TOÁN */}
           <h3 className="font-bold mb-4 uppercase text-gray-800">Thanh toán</h3>
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2 mb-8 items-center">
-            {['visa', 'mastercard', 'jcb', 'american-express', 'cod', 'tragop', 'shopeepay', 'spaylater'].map((method) => (
-              <div key={method} className="flex-shrink-0 w-20 h-9 bg-white border border-gray-200 rounded-sm flex items-center justify-center overflow-hidden">
-                <Image
-                  src={getPicsumUrl(method)} // SỬ DỤNG HÀM HELPER VỚI PICSUM.PHOTOS
+            {['VNPay', 'Paypal'].map((method) => (
+              
+                <img
+                  src={getStorageImageUrl(`footer/${method}.png`)} // SỬ DỤNG HÀM HELPER VỚI PICSUM.PHOTOS
                   alt={method}
-                  width={60}
-                  height={30}
-                  className="object-contain"
+                  
+                  className="w-20 h-20 object-cover"
                 />
-              </div>
             ))}
           </div>
 
@@ -108,36 +107,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Cột 5: THEO DÕI SHOPEE & TẢI ỨNG DỤNG */}
-        <div>
-          {/* THEO DÕI SHOPEE */}
-          <h3 className="font-bold mb-4 uppercase text-gray-800">Theo dõi Shopee</h3>
-          <div className="flex space-x-4 mb-8">
-            <Link href="#" className="text-gray-700 hover:text-orange-500"><FaFacebookF size={20} /></Link>
-            <Link href="#" className="text-gray-700 hover:text-orange-500"><FaInstagram size={20} /></Link>
-            <Link href="#" className="text-gray-700 hover:text-orange-500"><FaLinkedinIn size={20} /></Link>
-          </div>
-
-          {/* TẢI ỨNG DỤNG SHOPEE */}
-          <h3 className="font-bold mb-4 uppercase text-gray-800">Tải ứng dụng Shopee</h3>
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-20 h-20 border border-gray-200 rounded-sm overflow-hidden">
-              {/* QR Code có thể vẫn dùng link shopee */}
-              <Image src="https://down-vn.img.susercontent.com/file/shopee-qr-code.png" alt="QR Code" width={80} height={80} className="object-contain" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Link href="https://play.google.com/store/apps/details?id=com.shopee.vn" target="_blank" rel="noopener noreferrer" className="block relative w-24 h-8">
-                <Image src="https://down-vn.img.susercontent.com/file/google-play-badge.png" alt="Google Play" layout="fill" objectFit="contain" />
-              </Link>
-              <Link href="https://apps.apple.com/vn/app/shopee-mua-s%E1%BA%AFm-tr%E1%BB%B1c-tuy%E1%BA%BFn/id959885063" target="_blank" rel="noopener noreferrer" className="block relative w-24 h-8">
-                <Image src="https://down-vn.img.susercontent.com/file/app-store-badge.png" alt="App Store" layout="fill" objectFit="contain" />
-              </Link>
-              <Link href="https://appgallery.huawei.com/#/app/C100650951" target="_blank" rel="noopener noreferrer" className="block relative w-24 h-8">
-                <Image src="https://down-vn.img.susercontent.com/file/app-gallery-badge.png" alt="AppGallery" layout="fill" objectFit="contain" />
-              </Link>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       {/* Phần cuối: CHÍNH SÁCH VÀ THÔNG TIN CÔNG TY */}
@@ -150,25 +120,6 @@ const Footer = () => {
           <Link href="#" className="hover:text-orange-500">CHÍNH SÁCH VẬN CHUYỂN</Link>
           <span className="text-400">|</span> {/* Đã sửa text-gray-400 */}
           <Link href="#" className="hover:text-orange-500">CHÍNH SÁCH TRẢ HÀNG VÀ HOÀN TIỀN</Link>
-        </div>
-
-        <div className="flex flex-col items-center md:items-center text-center md:text-left space-y-2">
-          <div className="flex gap-4 mb-2">
-            <Image src="https://down-vn.img.susercontent.com/file/vn-e-commerce-portal.png" alt="Đã Đăng Ký Bộ Công Thương" width={120} height={45} className="object-contain" />
-            <Image src="https://down-vn.img.susercontent.com/file/vn-ministry-of-industry-and-trade-certification.png" alt="Đã Đăng Ký Bộ Công Thương" width={120} height={45} className="object-contain" />
-          </div>
-          <p className="text-center">
-            Địa chỉ: Tầng 4-5-6, Tòa nhà Capital Place, số 29 đường Liễu Giai, Phường Ngọc Khánh, Quận Ba Đình, Thành phố Hà Nội, Việt Nam. Chăm sóc khách hàng: Gọi tổng đài Shopee (miễn phí) hoặc Trò chuyện với Shopee ngay trên Trung tâm trợ giúp
-          </p>
-          <p>
-            Chịu Trách Nhiệm Quản Lý Nội Dung: Nguyễn Bùi Anh Tuấn
-          </p>
-          <p>
-            Mã số doanh nghiệp: 0106773786 do Sở Kế hoạch và Đầu tư TP Hà Nội cấp lần đầu ngày 10/02/2015
-          </p>
-          <p>
-            © 2015 - Bản quyền thuộc về Công ty TNHH Shopee
-          </p>
         </div>
       </div>
     </footer>

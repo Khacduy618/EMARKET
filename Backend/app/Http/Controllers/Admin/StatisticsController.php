@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SellerOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -390,7 +391,7 @@ class StatisticsController extends Controller
         'ob.OrderCode',
         'u.FullName as BuyerName',
         'ob.OrderDate',
-        'os.TotalAmount',
+        'os.SubtotalAmount as TotalAmount',
         'os.Status as OverallStatus',
         'os.ShopID'
       )
@@ -469,16 +470,26 @@ class StatisticsController extends Controller
 
   public function showOderDetail(Request $request, $id)
   {
+    $user = Auth::user();
+
+    $shopID = DB::table('shops')
+      ->where('UserID', $user->UserID)
+      ->value('ShopID');
+
+    if (!$shopID) {
+      return response()->json(['message' => 'Shop not found'], 404);
+    }
     // Lấy đơn hàng
     $order = DB::table('ordersbuyer as o')
       ->join('users as u', 'o.UserID', '=', 'u.UserID')
+      ->join('ordersseller as os', 'o.OrderID', '=', 'os.OrderID')
       ->join('addresses as a', 'o.ShippingAddressID', '=', 'a.AddressID')
       ->select(
         'o.OrderID',
-        'o.OrderCode',
+        'os.SellerOrdercode as OrderCode',  
         'o.OrderDate',
-        'o.TotalAmount',
-        'o.SubtotalAmount',
+        'os.TotalAmount',
+        'os.SubtotalAmount',
         'o.ShippingFee',
         'o.DiscountAmount',
         'o.PaymentMethod',
@@ -488,9 +499,11 @@ class StatisticsController extends Controller
         'o.ShippingPhoneNumber',
         'u.FullName as BuyerName',
         'u.Email as BuyerEmail',
+        'os.Status as OverallStatus',
         DB::raw("CONCAT_WS(', ', a.Street, a.Ward, a.District, a.City) as ShippingAddress")
       )
       ->where('o.OrderID', $id)
+      ->where('os.ShopID', $shopID)
       ->first();
 
 
@@ -517,6 +530,7 @@ class StatisticsController extends Controller
         'os.ShopID'
       )
       ->where('os.OrderID', $id)
+      ->where('os.ShopID', $shopID)
       ->get();
 
     return response()->json([
@@ -527,5 +541,4 @@ class StatisticsController extends Controller
 
 
 }
-
 

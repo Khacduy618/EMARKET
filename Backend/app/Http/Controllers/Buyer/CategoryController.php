@@ -24,9 +24,9 @@ class CategoryController extends Controller
     
         if (in_array($currentMonth, [3, 4, 5])) {
             $currentSeason = 'Spring';
-        } elseif (in_array($currentMonth, [6, 7, 8])) {
+        } elseif (in_array($currentMonth, [6, 7])) {
             $currentSeason = 'Summer';
-        } elseif (in_array($currentMonth, [9, 10, 11])) {
+        } elseif (in_array($currentMonth, [8, 9, 10, 11])) {
             $currentSeason = 'Autumn';
         }
     

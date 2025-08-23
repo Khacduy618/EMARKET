@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.22.1.
+ * Generated for Laravel 12.25.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -1618,15 +1618,11 @@ namespace Illuminate\Support\Facades {
         }
 
         /**
-         * Finds an entry of the container by its identifier and returns it.
+         * {@inheritdoc}
          *
          * @template TClass of object
          * @param string|class-string<TClass> $id
          * @return ($id is class-string<TClass> ? TClass : mixed)
-         * @param string $id Identifier of the entry to look for.
-         * @throws NotFoundExceptionInterface  No entry was found for **this** identifier.
-         * @throws ContainerExceptionInterface Error while retrieving the entry.
-         * @return mixed Entry.
          * @static
          */
         public static function get($id)
@@ -2979,579 +2975,6 @@ namespace Illuminate\Support\Facades {
         public static function flushMacros()
         {
             \Illuminate\Auth\SessionGuard::flushMacros();
-        }
-
-            }
-    /**
-     * @see \Illuminate\View\Compilers\BladeCompiler
-     */
-    class Blade {
-        /**
-         * Compile the view at the given path.
-         *
-         * @param string|null $path
-         * @return void
-         * @static
-         */
-        public static function compile($path = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->compile($path);
-        }
-
-        /**
-         * Get the path currently being compiled.
-         *
-         * @return string
-         * @static
-         */
-        public static function getPath()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getPath();
-        }
-
-        /**
-         * Set the path currently being compiled.
-         *
-         * @param string $path
-         * @return void
-         * @static
-         */
-        public static function setPath($path)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->setPath($path);
-        }
-
-        /**
-         * Compile the given Blade template contents.
-         *
-         * @param string $value
-         * @return string
-         * @static
-         */
-        public static function compileString($value)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->compileString($value);
-        }
-
-        /**
-         * Evaluate and render a Blade string to HTML.
-         *
-         * @param string $string
-         * @param array $data
-         * @param bool $deleteCachedView
-         * @return string
-         * @static
-         */
-        public static function render($string, $data = [], $deleteCachedView = false)
-        {
-            return \Illuminate\View\Compilers\BladeCompiler::render($string, $data, $deleteCachedView);
-        }
-
-        /**
-         * Render a component instance to HTML.
-         *
-         * @param \Illuminate\View\Component $component
-         * @return string
-         * @static
-         */
-        public static function renderComponent($component)
-        {
-            return \Illuminate\View\Compilers\BladeCompiler::renderComponent($component);
-        }
-
-        /**
-         * Strip the parentheses from the given expression.
-         *
-         * @param string $expression
-         * @return string
-         * @static
-         */
-        public static function stripParentheses($expression)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->stripParentheses($expression);
-        }
-
-        /**
-         * Register a custom Blade compiler.
-         *
-         * @param callable $compiler
-         * @return void
-         * @static
-         */
-        public static function extend($compiler)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->extend($compiler);
-        }
-
-        /**
-         * Get the extensions used by the compiler.
-         *
-         * @return array
-         * @static
-         */
-        public static function getExtensions()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getExtensions();
-        }
-
-        /**
-         * Register an "if" statement directive.
-         *
-         * @param string $name
-         * @param callable $callback
-         * @return void
-         * @static
-         */
-        public static function if($name, $callback)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->if($name, $callback);
-        }
-
-        /**
-         * Check the result of a condition.
-         *
-         * @param string $name
-         * @param mixed $parameters
-         * @return bool
-         * @static
-         */
-        public static function check($name, ...$parameters)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->check($name, ...$parameters);
-        }
-
-        /**
-         * Register a class-based component alias directive.
-         *
-         * @param string $class
-         * @param string|null $alias
-         * @param string $prefix
-         * @return void
-         * @static
-         */
-        public static function component($class, $alias = null, $prefix = '')
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->component($class, $alias, $prefix);
-        }
-
-        /**
-         * Register an array of class-based components.
-         *
-         * @param array $components
-         * @param string $prefix
-         * @return void
-         * @static
-         */
-        public static function components($components, $prefix = '')
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->components($components, $prefix);
-        }
-
-        /**
-         * Get the registered class component aliases.
-         *
-         * @return array
-         * @static
-         */
-        public static function getClassComponentAliases()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getClassComponentAliases();
-        }
-
-        /**
-         * Register a new anonymous component path.
-         *
-         * @param string $path
-         * @param string|null $prefix
-         * @return void
-         * @static
-         */
-        public static function anonymousComponentPath($path, $prefix = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->anonymousComponentPath($path, $prefix);
-        }
-
-        /**
-         * Register an anonymous component namespace.
-         *
-         * @param string $directory
-         * @param string|null $prefix
-         * @return void
-         * @static
-         */
-        public static function anonymousComponentNamespace($directory, $prefix = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->anonymousComponentNamespace($directory, $prefix);
-        }
-
-        /**
-         * Register a class-based component namespace.
-         *
-         * @param string $namespace
-         * @param string $prefix
-         * @return void
-         * @static
-         */
-        public static function componentNamespace($namespace, $prefix)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->componentNamespace($namespace, $prefix);
-        }
-
-        /**
-         * Get the registered anonymous component paths.
-         *
-         * @return array
-         * @static
-         */
-        public static function getAnonymousComponentPaths()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getAnonymousComponentPaths();
-        }
-
-        /**
-         * Get the registered anonymous component namespaces.
-         *
-         * @return array
-         * @static
-         */
-        public static function getAnonymousComponentNamespaces()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getAnonymousComponentNamespaces();
-        }
-
-        /**
-         * Get the registered class component namespaces.
-         *
-         * @return array
-         * @static
-         */
-        public static function getClassComponentNamespaces()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getClassComponentNamespaces();
-        }
-
-        /**
-         * Register a component alias directive.
-         *
-         * @param string $path
-         * @param string|null $alias
-         * @return void
-         * @static
-         */
-        public static function aliasComponent($path, $alias = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->aliasComponent($path, $alias);
-        }
-
-        /**
-         * Register an include alias directive.
-         *
-         * @param string $path
-         * @param string|null $alias
-         * @return void
-         * @static
-         */
-        public static function include($path, $alias = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->include($path, $alias);
-        }
-
-        /**
-         * Register an include alias directive.
-         *
-         * @param string $path
-         * @param string|null $alias
-         * @return void
-         * @static
-         */
-        public static function aliasInclude($path, $alias = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->aliasInclude($path, $alias);
-        }
-
-        /**
-         * Register a handler for custom directives, binding the handler to the compiler.
-         *
-         * @param string $name
-         * @param callable $handler
-         * @return void
-         * @throws \InvalidArgumentException
-         * @static
-         */
-        public static function bindDirective($name, $handler)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->bindDirective($name, $handler);
-        }
-
-        /**
-         * Register a handler for custom directives.
-         *
-         * @param string $name
-         * @param callable $handler
-         * @param bool $bind
-         * @return void
-         * @throws \InvalidArgumentException
-         * @static
-         */
-        public static function directive($name, $handler, $bind = false)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->directive($name, $handler, $bind);
-        }
-
-        /**
-         * Get the list of custom directives.
-         *
-         * @return array
-         * @static
-         */
-        public static function getCustomDirectives()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getCustomDirectives();
-        }
-
-        /**
-         * Indicate that the following callable should be used to prepare strings for compilation.
-         *
-         * @param callable $callback
-         * @return \Illuminate\View\Compilers\BladeCompiler
-         * @static
-         */
-        public static function prepareStringsForCompilationUsing($callback)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->prepareStringsForCompilationUsing($callback);
-        }
-
-        /**
-         * Register a new precompiler.
-         *
-         * @param callable $precompiler
-         * @return void
-         * @static
-         */
-        public static function precompiler($precompiler)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->precompiler($precompiler);
-        }
-
-        /**
-         * Execute the given callback using a custom echo format.
-         *
-         * @param string $format
-         * @param callable $callback
-         * @return string
-         * @static
-         */
-        public static function usingEchoFormat($format, $callback)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->usingEchoFormat($format, $callback);
-        }
-
-        /**
-         * Set the echo format to be used by the compiler.
-         *
-         * @param string $format
-         * @return void
-         * @static
-         */
-        public static function setEchoFormat($format)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->setEchoFormat($format);
-        }
-
-        /**
-         * Set the "echo" format to double encode entities.
-         *
-         * @return void
-         * @static
-         */
-        public static function withDoubleEncoding()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->withDoubleEncoding();
-        }
-
-        /**
-         * Set the "echo" format to not double encode entities.
-         *
-         * @return void
-         * @static
-         */
-        public static function withoutDoubleEncoding()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->withoutDoubleEncoding();
-        }
-
-        /**
-         * Indicate that component tags should not be compiled.
-         *
-         * @return void
-         * @static
-         */
-        public static function withoutComponentTags()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->withoutComponentTags();
-        }
-
-        /**
-         * Get the path to the compiled version of a view.
-         *
-         * @param string $path
-         * @return string
-         * @static
-         */
-        public static function getCompiledPath($path)
-        {
-            //Method inherited from \Illuminate\View\Compilers\Compiler 
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->getCompiledPath($path);
-        }
-
-        /**
-         * Determine if the view at the given path is expired.
-         *
-         * @param string $path
-         * @return bool
-         * @throws \ErrorException
-         * @static
-         */
-        public static function isExpired($path)
-        {
-            //Method inherited from \Illuminate\View\Compilers\Compiler 
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->isExpired($path);
-        }
-
-        /**
-         * Get a new component hash for a component name.
-         *
-         * @param string $component
-         * @return string
-         * @static
-         */
-        public static function newComponentHash($component)
-        {
-            return \Illuminate\View\Compilers\BladeCompiler::newComponentHash($component);
-        }
-
-        /**
-         * Compile a class component opening.
-         *
-         * @param string $component
-         * @param string $alias
-         * @param string $data
-         * @param string $hash
-         * @return string
-         * @static
-         */
-        public static function compileClassComponentOpening($component, $alias, $data, $hash)
-        {
-            return \Illuminate\View\Compilers\BladeCompiler::compileClassComponentOpening($component, $alias, $data, $hash);
-        }
-
-        /**
-         * Compile the end-component statements into valid PHP.
-         *
-         * @return string
-         * @static
-         */
-        public static function compileEndComponentClass()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->compileEndComponentClass();
-        }
-
-        /**
-         * Sanitize the given component attribute value.
-         *
-         * @param mixed $value
-         * @return mixed
-         * @static
-         */
-        public static function sanitizeComponentAttribute($value)
-        {
-            return \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($value);
-        }
-
-        /**
-         * Compile an end-once block into valid PHP.
-         *
-         * @return string
-         * @static
-         */
-        public static function compileEndOnce()
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->compileEndOnce();
-        }
-
-        /**
-         * Add a handler to be executed before echoing a given class.
-         *
-         * @param string|callable $class
-         * @param callable|null $handler
-         * @return void
-         * @static
-         */
-        public static function stringable($class, $handler = null)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            $instance->stringable($class, $handler);
-        }
-
-        /**
-         * Compile Blade echos into valid PHP.
-         *
-         * @param string $value
-         * @return string
-         * @static
-         */
-        public static function compileEchos($value)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->compileEchos($value);
-        }
-
-        /**
-         * Apply the echo handler for the value if it exists.
-         *
-         * @param string $value
-         * @return string
-         * @static
-         */
-        public static function applyEchoHandler($value)
-        {
-            /** @var \Illuminate\View\Compilers\BladeCompiler $instance */
-            return $instance->applyEchoHandler($value);
         }
 
             }
@@ -6167,6 +5590,7 @@ namespace Illuminate\Support\Facades {
          * @param array<string, mixed> $data
          * @param array<string, mixed> $hidden
          * @return mixed
+         * @throws \Throwable
          * @static
          */
         public static function scope($callback, $data = [], $hidden = [])
@@ -10153,6 +9577,7 @@ namespace Illuminate\Support\Facades {
      * @method static \GuzzleHttp\Psr7\RequestInterface runBeforeSendingCallbacks(\GuzzleHttp\Psr7\RequestInterface $request, array $options)
      * @method static array mergeOptions(array ...$options)
      * @method static \Illuminate\Http\Client\PendingRequest stub(callable $callback)
+     * @method static bool isAllowedRequestUrl(string $url)
      * @method static \Illuminate\Http\Client\PendingRequest async(bool $async = true)
      * @method static \GuzzleHttp\Promise\PromiseInterface|null getPromise()
      * @method static \Illuminate\Http\Client\PendingRequest truncateExceptionsAt(int $length)
@@ -10350,15 +9775,16 @@ namespace Illuminate\Support\Facades {
         }
 
         /**
-         * Indicate that an exception should not be thrown if any request is not faked.
+         * Allow stray, unfaked requests entirely, or optionally allow only specific URLs.
          *
+         * @param array<int, string>|null $only
          * @return \Illuminate\Http\Client\Factory
          * @static
          */
-        public static function allowStrayRequests()
+        public static function allowStrayRequests($only = null)
         {
             /** @var \Illuminate\Http\Client\Factory $instance */
-            return $instance->allowStrayRequests();
+            return $instance->allowStrayRequests($only);
         }
 
         /**
@@ -13496,7 +12922,7 @@ namespace Illuminate\Support\Facades {
          * Reset the number of attempts for the given key.
          *
          * @param string $key
-         * @return mixed
+         * @return bool
          * @static
          */
         public static function resetAttempts($key)
@@ -23661,7 +23087,7 @@ namespace  {
     class Arr extends \Illuminate\Support\Arr {}
     class Artisan extends \Illuminate\Support\Facades\Artisan {}
     class Auth extends \Illuminate\Support\Facades\Auth {}
-    class Blade extends \Illuminate\Support\Facades\Blade {}
+    class Benchmark extends \Illuminate\Support\Benchmark {}
     class Broadcast extends \Illuminate\Support\Facades\Broadcast {}
     class Bus extends \Illuminate\Support\Facades\Bus {}
     class Cache extends \Illuminate\Support\Facades\Cache {}

@@ -1,63 +1,3 @@
-// // src/components/home/CategoryMenu.tsx (Phiên bản chỉ dành cho Desktop)
-// 'use client';
-
-// import { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import Link from 'next/link';
-
-// type Category = {
-//     CategoryID: number;
-//     Name: string;
-//     ImageURL: string | null;
-//     IsActive: boolean;
-// };
-
-// export default function CategoryMenu() { // <-- Không có props isOpen, onClose
-//     const [categories, setCategories] = useState<Category[]>([]);
-//     const [activeCategory, setActiveCategory] = useState<number | null>(null);
-
-//     useEffect(() => {
-//             .then((response) => {
-//                 const activeCategories = response.data.filter((cat: Category) => cat.IsActive);
-//                 setCategories(activeCategories);
-//                 if (activeCategories.length > 0) setActiveCategory(activeCategories[0].CategoryID);
-//             })
-//             .catch((error) => console.error('Lỗi khi tải danh mục:', error));
-//     }, []);
-
-//     const handleCategoryClick = (categoryId: number) => {
-//         setActiveCategory(categoryId);
-//     };
-
-//     return (
-//         <div className="w-full bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-//             <h2 className="text-base font-bold mb-3 text-gray-800">Danh mục</h2>
-//             <ul className="space-y-1">
-//                 {categories.map((cat) => (
-//                     <li key={cat.CategoryID}>
-//                         <Link
-//                             href="/categoryDetail"
-//                             onClick={(e) => { e.preventDefault(); handleCategoryClick(cat.CategoryID); }}
-//                             className={`flex items-center p-2 text-sm font-medium rounded-md transition-colors ${activeCategory === cat.CategoryID
-//                                 ? 'bg-orange-100 text-orange-600'
-//                                 : 'text-gray-700 hover:bg-gray-100'
-//                                 }`}
-//                         >
-//                             {cat.ImageURL && (
-//                                 <img
-//                                     alt={cat.Name}
-//                                     className="w-5 h-5 mr-3 object-contain"
-//                                 />
-//                             )}
-//                             <span>{cat.Name}</span>
-//                         </Link>
-//                     </li>
-//                 ))}
-//             </ul>
-//         </div>
-//     );
-// }
-// src/components/home/CategoryMenu.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -65,7 +5,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // <-- BƯỚC 1: Import hook usePathname
 import type { IHome } from '@/types/Ihome';
-import { getFullImageUrl, getPublicImageUrl } from '@/services/api';
+import { getStorageImageUrl } from '@/services/api';
 import { API_URL } from '@/lib/config';
 
 
@@ -77,11 +17,11 @@ export default function CategoryMenu() {
     // useEffect để lấy danh sách categories không thay đổi, giữ nguyên
     useEffect(() => {
         axios.get(`${API_URL}/categorySubMenu`, {
-           headers: {
-        'Content-Type': 'application/json'
-    },
-        withCredentials: true
-})
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        })
             .then((response) => {
                 const activeCategories = response.data.filter((cat: IHome.Category) => cat.IsActive);
                 setCategories(activeCategories);
@@ -116,7 +56,7 @@ export default function CategoryMenu() {
                             >
                                 {cat.ImageURL && (
                                     <img
-                                        src={getPublicImageUrl(cat.ImageURL)}
+                                        src={getStorageImageUrl(cat.ImageURL)}
                                         alt={cat.Name}
                                         className="w-5 h-5 mr-3 object-contain"
                                     />

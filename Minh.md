@@ -17,6 +17,4 @@ k6IXS6BGnh-R2hDFED9R9
 fuh7PqyNsK-TIsBAZqxni
 9EV0hpvSCU-aFlqxtgd7P
 EU8gBR5nbQ-jfbzDNnGcx
-cW2OL0C6eZ-LCm8Ayhljl
 kYnMeafqYd-JPXuWTgdYn
-wabLs1phuG-EbSbw5mQl0

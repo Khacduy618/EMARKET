@@ -258,7 +258,7 @@ export default function ComponentRevenue() {
       ) : (
         <>
           {/* Stats Grid */}
-          <div className="flex gap-6">
+          <div className="grid grid-cols-4 md:grid-cols-4 gap-6">
             <div className="relative group">
               <StatCard
                 statKey={dataChartSucess?.[0]?.key}

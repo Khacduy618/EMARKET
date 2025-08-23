@@ -40,7 +40,7 @@ class ResetPasswordMail extends Mailable
         $recipientEmail = $this->notifiable->getEmailForPasswordReset();
 
         // 2. Tạo URL đầy đủ
-        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+        $frontendUrl = config('app.frontend_url', 'https://minhweb.click');
         $this->url = $frontendUrl . '/reset-password?token=' . $this->token . '&email=' . urlencode($recipientEmail);
 
         // 3. Lấy thời gian hết hạn

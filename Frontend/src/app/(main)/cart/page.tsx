@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchCart, updateCartItemQuantity, removeCartItem, updateCartItemVariant, removeMultipleCartItems } from '@/services/cart';
-import { getAuthToken, getProductAttributes, getPublicImageUrl, getVariantImage } from '@/services/api';
+import { getAuthToken, getProductAttributes, getPublicImageUrl, getStorageImageUrl, getVariantImage } from '@/services/api';
 import { Cart, CartItem, AppliedVouchersCombined, AppliedShopVouchers, Voucher} from '@/types'; 
 import AttributeSelectionDropdown from '@/app/components/cart/AttributeSelectionDropdown';
 import ConfirmModal from '@/app/components/ConfirmModal';
@@ -834,8 +834,11 @@ const CartPage: React.FC = () => {
     }
 
     if (!cart || !Array.isArray(cart.cartItems) || cart.cartItems.length === 0) {
-        return  <div className="text-center py-8 text-gray-500 font-bold">
-                <img src={getPublicImageUrl('/')} alt="" />
+        return  <div className="flex flex-col justify-center text-center py-8 text-gray-500 font-bold">
+                <div className="flex justify-center">
+                    <img src={getStorageImageUrl('images/empty-cart.png')} alt="emty-cart" className="w-50 h-50" />
+                </div>
+                
                 <p>
                     Giỏ hàng của bạn đang trống.
                 </p>

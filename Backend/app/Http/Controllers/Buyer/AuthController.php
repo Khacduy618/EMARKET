@@ -19,7 +19,7 @@ class AuthController extends Controller
     public function verifyEmail(Request $request)
     {
         // Lấy URL của frontend từ file .env
-        $frontendUrl = 'http://localhost';
+        $frontendUrl = 'https://minhweb.click';
 
         $user = User::findOrFail($request->route('id'));
 

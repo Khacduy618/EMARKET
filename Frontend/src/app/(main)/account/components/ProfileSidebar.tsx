@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 // Import các icon từ react-icons
-import { FaUser, FaMapMarkerAlt, FaLock, FaTicketAlt, FaShoppingBag, FaPencilAlt } from 'react-icons/fa';
+import { FaUser, FaMapMarkerAlt, FaLock, FaTicketAlt, FaShoppingBag, FaPencilAlt, FaStar } from 'react-icons/fa';
 import { usePathname } from 'next/navigation';
 import { RiPassPendingLine } from 'react-icons/ri';
 import { MdOutlineSecurity } from "react-icons/md";
@@ -41,6 +41,7 @@ export default function ProfileSidebar() {
     { name: 'Đổi mật khẩu', icon: FaLock, href: '/account/password' },
     { name: 'Kho voucher', icon: FaTicketAlt, href: '/account/vouchers' },
     { name: 'Đơn mua', icon: FaShoppingBag, href: '/account/purchase' },
+    { name: 'Đánh giá', icon: FaStar, href: '/account/review/list' },
     { name: 'Chi tiêu', icon: RiPassPendingLine, href: '/account/spending'},
     { name: 'Bảo mật', icon: MdOutlineSecurity,href:'/account/security'}
   ];

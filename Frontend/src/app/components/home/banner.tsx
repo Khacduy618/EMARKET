@@ -16,6 +16,7 @@ import 'swiper/css/autoplay';
 import 'swiper/css/effect-fade';
 import type { IHome } from '@/types/Ihome';
 import { API_URL, WEB_URL } from '@/lib/config';
+import { getFullImageUrl, getStorageImageUrl } from '@/services/api';
 
 // API Endpoint đã được định nghĩa rõ ràng
 const URL = `${API_URL}/banners?position=homepage_carousel`;
@@ -74,15 +75,7 @@ const HeroBannerSlider: React.FC = () => {
         fetchBanners();
     }, []); // useEffect chạy một lần khi component mount
 
-    // Hàm này vẫn hữu ích nếu API có thể trả về URL tương đối
-    const getFullImageUrl = (imageUrl: string) => {
-        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-            return imageUrl;
-        }
-        // Nếu ImageURL luôn là path tương đối, ví dụ: /images/banners/mybanner.jpg
-        const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || `${WEB_URL}`;
-        return `${imageBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-    };
+    
 
     if (loading) {
         return (
@@ -146,27 +139,24 @@ const HeroBannerSlider: React.FC = () => {
                                     className="block w-full h-full cursor-pointer"
                                     aria-label={banner.Title || `Banner ${banner.BannerID}`}
                                 >
-                                    <Image
+                                    <img
                                         src={getFullImageUrl(banner.ImageURL)}
                                         alt={banner.Title || `Banner ${banner.BannerID}`}
-                                        layout="fill"
-                                        objectFit="cover" // 'cover' thường đẹp hơn cho banner
-                                        priority={index === 0} // Ưu tiên tải ảnh đầu tiên
+                                        
+                                        
+                                        
                                         className="transition-transform duration-500 ease-in-out group-hover:scale-105"
                                         // Unoptimize nếu ảnh là GIF hoặc từ localhost (nếu không muốn Next.js xử lý)
-                                        unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
                                         
                                     />
                                 </Link>
                             ) : (
-                                <Image
+                                <img
                                     src={getFullImageUrl(banner.ImageURL)}
                                     alt={banner.Title || `Banner ${banner.BannerID}`}
-                                    layout="fill"
-                                    objectFit="cover"
-                                    priority={index === 0}
+                                    
                                     className="transition-transform duration-500 ease-in-out group-hover:scale-105"
-                                    unoptimized={banner.ImageURL.endsWith('.gif') || banner.ImageURL.startsWith(`${WEB_URL}`)}
+                                   
                                     
                                 />
                             )}

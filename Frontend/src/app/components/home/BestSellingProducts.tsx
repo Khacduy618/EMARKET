@@ -172,7 +172,7 @@ export default function ProductsCart() {
                         </div>
                         <div className="p-2 flex flex-col flex-grow">
                             <h3
-                                className="text-xs sm:text-sm font-normal text-gray-800 mb-2 h-8 sm:h-10 leading-tight line-clamp-2"
+                                className="text-xs sm:text-sm font-normal text-gray-800 mb-2 h-8 sm:h-8 leading-tight line-clamp-2"
                                 title={product.ProductName}
                             >
                                 {product.ProductName}
@@ -187,15 +187,17 @@ export default function ProductsCart() {
                                         <span className="ml-1">({product.reviewCount})</span>
                                     </div>
                                 </div>
-                                <div className="flex items-baseline min-h-[28px]">
-                                    <span className="text-red-600 font-bold text-sm sm:text-base mr-2">
+                                <div className="flex flex-col">
+                                    <div className="flex"><span className="text-red-600 font-bold text-sm sm:text-base mr-2">
                                         {formatCurrency(product.FinalPrice)}
-                                    </span>
-                                    {product.originalPrice && (
+                                    </span></div>
+                                    <div className="flex">
+                                        {product.originalPrice && (
                                         <span className="line-through text-gray-400 text-xs sm:text-sm">
                                             {formatCurrency(product.originalPrice)}
                                         </span>
                                     )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

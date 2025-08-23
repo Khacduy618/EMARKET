@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingCart, ChevronDown, User, Menu, Store, LogOut, LayoutDashboard, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
 import axios from 'axios';
-import { getAuthToken } from '@/services/api';
+import { getAuthToken, getStorageImageUrl } from '@/services/api';
 import { usePathname } from 'next/navigation';
 
 // 1. IMPORT TỪ HỆ THỐNG AUTHCONTEXT (Lấy từ Code 1)
@@ -321,7 +321,7 @@ export default function Header() {
                         {/* Giữ logo bằng ảnh từ Code 2 */}
                         <Link href="/" className="text-2xl font-bold flex-shrink-0">
                             {/* <img src="/images/logo.png" alt="logo" className="h-10"/>     */}
-                            <span className="hidden sm:inline">Khắc Duy</span><span className="sm:hidden text-3xl font-extrabold">KD</span>
+                            <img src={getStorageImageUrl('/logo/logo.png')} alt="" className="w-60 h-20 object-cover bg-none" />
                         </Link>
                         {/* Thanh tìm kiếm và gợi ý (Giữ từ Code 2 với các cải tiến) */}
                         <div ref={searchContainerRef} className="flex-grow w-full order-3 md:order-2 mt-2 md:mt-0 relative">

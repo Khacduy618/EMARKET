@@ -1,6 +1,7 @@
 // // app/components/ShopInfo.tsx
 'use client';
 
+import { getStorageImageUrl } from '@/services/api';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -43,7 +44,7 @@ export default function ShopInfo({ shop }: { shop: Shop }) {
             <div className="flex items-center space-x-4">
                 <div className="relative">
                     <Image
-                        src={shop.LogoURL} // Dùng dữ liệu thật
+                        src={getStorageImageUrl(shop.LogoURL)} // Dùng dữ liệu thật
                         alt={`Logo của ${shop.ShopName}`}
                         width={80}
                         height={80}
@@ -64,7 +65,7 @@ export default function ShopInfo({ shop }: { shop: Shop }) {
                         </button>
                         <button className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                            <span>Xem Shop</span>
+                            <Link href={`/shop/${shop.ShopID}`} ><span>Xem Shop</span></Link>
                         </button>
                     </div>
                 </div>
