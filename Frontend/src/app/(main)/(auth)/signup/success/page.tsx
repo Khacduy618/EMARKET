@@ -24,7 +24,7 @@ export default function RegisterSuccessPage() {
 
                 <div className="mt-8">
                     <Link
-                        href="/login"
+                        href="/signin"
                         className="w-full px-6 py-3 tracking-wide text-white transition-colors duration-200 transform bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:bg-indigo-600"
                     >
                         Quay lại trang Đăng nhập

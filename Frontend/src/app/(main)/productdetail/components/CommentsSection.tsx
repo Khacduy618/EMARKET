@@ -317,7 +317,7 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
           </div>
         ) : (
             <div className="text-center p-4 border rounded-md bg-gray-50">
-                <p className="text-sm text-gray-600">Vui lòng <a href="/login" className="text-orange-500 font-semibold hover:underline">đăng nhập</a> để gửi bình luận.</p>
+                <p className="text-sm text-gray-600">Vui lòng <a href="/signin" className="text-orange-500 font-semibold hover:underline">đăng nhập</a> để gửi bình luận.</p>
             </div>
         )}
 

@@ -172,7 +172,7 @@ export default function ShopPage() {
           // Hiển thị toast cảnh báo thay vì confirm
           toast.warn("Bạn cần đăng nhập để theo dõi shop!", {
             autoClose: 3000,
-            onClick: () => router.push('/login'), // Cho phép click vào toast để chuyển trang
+            onClick: () => router.push('/signin'), // Cho phép click vào toast để chuyển trang
             style: { cursor: 'pointer' }
           });
         } else {

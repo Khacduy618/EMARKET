@@ -1,0 +1,21 @@
+# Backend/Dockerfile.dev
+FROM php:8.3-fpm-alpine
+
+# Cài đặt git, composer, và các dependencies hệ thống/php extensions
+RUN apk add --no-cache bash git curl openssl libzip-dev zip unzip libpng-dev jpeg-dev freetype-dev icu-dev oniguruma-dev libxml2-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql zip bcmath intl exif \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Sửa PHP-FPM để lắng nghe trên port 9000
+RUN sed -i 's/listen = \/var\/run\/php-fpm.sock/listen = 9000/' /usr/local/etc/php-fpm.d/www.conf.default
+
+# --- XÓA DÒNG NÀY ĐI ---
+# RUN addgroup -S www-data && adduser -S www-data -G www-data
+
+# Sử dụng user 'www-data' đã có sẵn
+USER www-data
+
+WORKDIR /var/www/html
+
+CMD ["php-fpm"]

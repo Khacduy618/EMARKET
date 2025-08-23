@@ -734,7 +734,7 @@ useEffect(() => {
         } catch (error: any) {
             if (error.response?.status === 401) { // Kiểm tra lỗi 401 cụ thể hơn
                 toast.warn("Bạn cần đăng nhập để mua hàng.", {
-                    onClick: () => router.push('/login'),
+                    onClick: () => router.push('/signin'),
                     style: { cursor: 'pointer' }
                 });
             } else {

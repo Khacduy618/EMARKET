@@ -14,6 +14,7 @@ services:
       - ./backend.env
     networks:
       - app-network
+    command: sh -c "php artisan storage:link && php-fpm"
 
   frontend:
     image: khduy555/frontend:latest

@@ -47,7 +47,7 @@ export default function ShopeeProductsPage() {
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
-      Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/login"))
+      Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/signin"))
       return
     }
     fetchData()

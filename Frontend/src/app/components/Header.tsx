@@ -168,7 +168,7 @@ export default function Header() {
         // 1. Kiểm tra nếu người dùng chưa đăng nhập
         if (!user) {
             toast.warn("Vui lòng đăng nhập để truy cập Kênh Người Bán.", {
-                onClick: () => router.push('/login'),
+                onClick: () => router.push('/signin'),
                 style: { cursor: 'pointer' }
             });
             return;
@@ -299,9 +299,9 @@ export default function Header() {
                             ) : (
                                 // Nếu không có user, hiển thị link Đăng ký/Đăng nhập (Giữ từ Code 2)
                                 <div className="hidden lg:flex items-center space-x-2 text-sm">
-                                    <Link href="/register" className="hover:text-gray-200">Đăng ký</Link>
+                                    <Link href="/signup" className="hover:text-gray-200">Đăng ký</Link>
                                     <div className="h-4 border-l border-orange-400"></div>
-                                    <Link href="/login" className="hover:text-gray-200">Đăng nhập</Link>
+                                    <Link href="/signin" className="hover:text-gray-200">Đăng nhập</Link>
                                 </div>
                             )}
                         </div>
