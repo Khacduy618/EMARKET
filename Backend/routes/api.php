@@ -180,7 +180,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
     Route::delete('/cart/items', [CartController::class, 'removeMultipleItems']);
-    
+
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
     Route::get('/vouchers/platform-eligible', [VoucherController::class, 'getEligiblePlatformVouchers']);
@@ -194,7 +194,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/addresses/{address}', [AddressController::class, 'update']); // Cập nhật địa chỉ
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::delete('addresses/{address}', [AddressController::class, 'destroy']);
-     
+
 
     Route::get('/orders', [OrderController::class, 'index']);
 
@@ -211,11 +211,11 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('/orders/{orderId}/complete', [OrderController::class, 'completeOrder']);
 
     Route::post('/vnpay/create-payment/{orderId}', [VNPayController::class, 'createPayment']);
-    
+
     Route::post('/orders/buy-now', [OrderController::class, 'buyNow']);
-    
+
     Route::post('/review/{id}/helpful', [ProductController::class, 'updateReviewHelpful']);
-    
+
     // API lưu đánh giá sản phẩm theo đơn hàng
     Route::post('/reviews/store', [ReviewController::class, 'store']);
 
@@ -224,7 +224,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/shops/{shop}/toggle-follow', [BuyerShopController::class, 'toggleFollow']);
 
     Route::post('/products/{productId}/comments', [CommentController::class, 'store']);
-    
+
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
 
     // Xóa một bình luận
@@ -257,7 +257,7 @@ Route::get('/products/{productId}/comments', [CommentController::class, 'index']
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // API cho Người Mua (Buyer)
     Route::post('/buyer/return-requests', [ReturnRequestController::class, 'createRequest']);
     Route::patch('/buyer/return-requests/{id}/cancel', [ReturnRequestController::class, 'cancelRequest']);
@@ -314,7 +314,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         Route::put('/seller/orders/{orderId}/cancel', [SellerOrderController::class, 'cancelOrder']);
         Route::put('/seller/orders/{orderId}/print', [SellerOrderController::class, 'printShippingLabel']);
-        
+
         Route::put('/seller/orders/{orderId}/ship', [SellerOrderController::class, 'shipOrder']);
         // Statistics
         Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
@@ -324,7 +324,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-//shipping_requests 
+//shipping_requests
 Route::post('/webhook', [SellerOrderController::class, 'handle']);
 
  Route::middleware('auth:sanctum')->group(function () {
@@ -380,8 +380,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/products', [ProductControllers::class, "index"]);
     Route::put('/products/{id}/approval-status', [ProductControllers::class, 'updateApprovalStatus']);
     Route::get('/products/{id}', [ProductControllers::class, 'detailProduct']);
-    
-    // === ORDER MANAGEMENT === 
+
+    // === ORDER MANAGEMENT ===
     // URL sẽ trở thành: /api/admin/orders
     Route::get('/orders', [AdminOrderController::class, 'index']);
     Route::get('/orders/export', [AdminOrderController::class, 'export']);
@@ -390,15 +390,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
     Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
     Route::get('/orders/seller/{sellerOrder}', [AdminOrderController::class, 'show']);
-
-    // === REVIEW MANAGEMENT === // 
+    // === REVIEW MANAGEMENT === //
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
 
-    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     Route::get('/reviews/stats', [ProductReviewController::class, 'getStats']); // <-- MỚI
     Route::post('/reviews/bulk-update', [ProductReviewController::class, 'bulkUpdateStatus']); // <-- MỚI
     Route::get('/reviews/export', [ProductReviewController::class, 'export']); // <-- MỚI
+    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     });
     // === RETURN REQUEST MANAGEMENT ===
     Route::get('/return-requests/pending-refunds', [AdminReturnRequestController::class, 'listPendingRefunds']);

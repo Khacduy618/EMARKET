@@ -1,4 +1,3 @@
-
 export interface Review {
   id: number;
   user: string;
@@ -27,6 +26,10 @@ export interface RatingStats {
 export type ReviewStatus = "pending" | "approved" | "rejected" | "under_review" | "hidden" | "flagged";
 
 export interface AdminReview {
+  shopReply?: {
+    content: string;
+    date: string;
+  } | null;
   id: number; 
   reviewerName: string;
   reviewerAvatar: string | null;
@@ -39,6 +42,7 @@ export interface AdminReview {
   productImage: string | null;
   shopName: string;
   shopId: number;
+ 
   requestFromShop: {
     open: boolean;
     reason?: string;

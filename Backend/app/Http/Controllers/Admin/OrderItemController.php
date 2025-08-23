@@ -21,10 +21,10 @@ class OrderItemController extends Controller
     {
         try {
             // Sử dụng eager loading để tải các quan hệ cần thiết, tránh N+1 query
-            $items = $order->orderItems()->with([
+            $items = $order->items()->with([
                 'variant.product.shop:ShopID,ShopName', // Chỉ lấy ID và tên của shop
                 'variant.attributes.attribute:AttributeID,Name',       // Chỉ lấy ID và tên của thuộc tính (Màu, Size)
-                'variant.attributes.attributeValues:AttributeValueID,Value'   // Chỉ lấy ID và giá trị của thuộc tính
+                'variant.attributes.attributeValue:AttributeValueID,Value'   // Chỉ lấy ID và giá trị của thuộc tính
             ])->get();
 
             return response()->json([
@@ -57,7 +57,7 @@ class OrderItemController extends Controller
                 'order.user', // Thông tin người mua của đơn hàng chứa item này
                 'variant.product.shop', // Thông tin đầy đủ của shop
                 'variant.attributes.attribute',
-                'variant.attributes.attributeValues'
+                'variant.attributes.attributeValue'
             ]);
 
            // Trả về đúng biến $orderItem

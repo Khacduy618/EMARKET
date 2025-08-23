@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Attribute;
 use App\Models\ProductVariant;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttributeValue extends Model
 {
@@ -20,12 +21,11 @@ class AttributeValue extends Model
     /**
      * Get the attribute that the value belongs to.
      */
-    public function attribute()
+   public function attribute(): BelongsTo
     {
         return $this->belongsTo(Attribute::class, 'AttributeID', 'AttributeID');
     }
 
-    
     /**
      * Get the product variants that have this attribute value.
      */

@@ -54,7 +54,12 @@ export interface OrderItem {
   ReturnStatus: ReturnItemStatus;
   CreatedAt: string;
   productVariant: ProductVariant & {
-    product: Product;
+  product: Product;
+  attributes: {
+      attribute: { Name: string };
+      attributeValue: { Value: string };
+  }[];
+
   };
   productName: string;
   productImageURL: string;
@@ -322,7 +327,9 @@ export interface SellerOrder {
       ShopID: number;
       ShopName: string;
   };
-  order_buyer: { // Lưu ý: snake_case
+  order_buyer: {
+      PaymentStatus: string;
+      PaymentMethod: string; // Lưu ý: snake_case
       OrderCode: string;
       OrderDate: string;
       user: User; // User interface của bạn nên có trường Avatar
@@ -354,43 +361,52 @@ export interface SellerOrderItem {
     Quantity: number;
     PriceAtPurchase: number;
     Subtotal: number;
-    variant: ProductVariantDetail & { // Giữ nguyên cấu trúc này nếu nó đúng
-        classification_string?: string; // Thêm classification_string vào đây
-    };
+    variant: ProductVariantDetail;
 }
 
-// Cấu trúc đầy đủ của dữ liệu chi tiết đơn hàng
+// Cấu trúc đầy đủ của dữ liệu chi tiết đơn hàng (ĐÃ SỬA LẠI THEO camelCase)
 export interface SellerOrderDetail {
-    sellerOrderId: number;           // Sửa: SellerOrderID -> sellerOrderId
-    sellerOrderCode: string;         // Sửa: SellerOrderCode -> sellerOrderCode
-    status: string;                  // Sửa: Status -> status
-    subtotalAmount: number;          // Sửa: SubtotalAmount -> subtotalAmount
-    shippingFee: number;             // Sửa: ShippingFee -> shippingFee
-    shopVoucherDiscount: number;     // Sửa: ShopVoucherDiscount -> shopVoucherDiscount
-    totalAmount: number;             // Sửa: TotalAmount -> totalAmount
-    notes: string | null;            // Sửa: Notes -> notes
-    shop: {                          // Sửa: Cập nhật các thuộc tính con
-        shopId: number;
-        shopName: string;
-        shopLevel: string; // Hoặc ShopLevel nếu bạn có enum
-    };
-    user: {                          // Sửa: Cập nhật các thuộc tính con
-        userId: number;
+    paymentStatus: string;  
+    paymentMethod: string;
+    sellerOrderId: number;
+    sellerOrderCode: string;
+    status: string;
+    notes: string | null;
+    subtotalAmount: number;
+    shippingFee: number;
+    shopVoucherDiscount: number;
+    totalAmount: number;
+    orderDate: string;
+    user: {
         fullName: string;
         email: string;
         avatar?: string;
     };
-    shippingAddress: {               // Sửa: Cập nhật các thuộc tính con
+    shippingAddress: {
         fullName: string;
         phoneNumber: string;
-        street: string;
-        ward: string;
-        district: string;
-        city: string;
+        fullAddress: string;
     };
-    orderItems: SellerOrderItem[];   // Sửa: items -> orderItems
+    shop: {
+        shopName: string;
+    };
+    items: {
+        orderItemId: number;
+        quantity: number;
+        priceAtPurchase: number;
+        subtotal: number;
+        productName: string;
+        productImage: string | null;
+        sku: string | null;
+        classification: string;
+    }[];
 }
+
 export interface OrderStats {
+  totalRevenue: number;
+  totalOrders: any;
+  pendingOrders: any;
+  completedOrders: any;
   pending: number;
   processing: number;
   shipped: number;

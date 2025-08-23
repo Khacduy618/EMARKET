@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Star } from "lucide-react"
+import { Star, Store } from "lucide-react"
+
 import { AdminReview, ReviewStatus } from "@/types"
 import { toast } from "react-toastify"
 import axios from 'axios' // <-- Thêm axios để gọi API
@@ -106,6 +107,19 @@ export function ReviewDetailDialog({
                   {review.images.map((img, idx) => (<img key={idx} src={img || "/placeholder.svg"} alt={`img-${idx}`} className="w-16 h-16 rounded border object-cover"/>))}
                 </div>
               )}
+              {review.shopReply && (
+            <>
+              <Separator />
+              <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="text-xs">Phản Hồi Của Shop</Badge>
+                  <span className="text-xs text-gray-500">{review.shopReply.date}</span>
+                </div>
+                <p className="text-gray-800 text-sm ms-2 md:text-base">{review.shopReply.content}</p>
+              </div>
+            </>
+          )}
+
             </div>
           </div>
 

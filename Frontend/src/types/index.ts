@@ -12,6 +12,7 @@ export * from './adminUser.interface';
 export * from './review.interface';
 export * from './shop-ui.interface';
 export * from './statistics.interface';
+
 export function formatError(error: any): string {
     if (error.name === 'ZodError') {
         // Handle Zod validation errors 
@@ -41,5 +42,6 @@ export function formatError(error: any): string {
             ? error.message
             : JSON.stringify(error);
     }
+    
 }
 

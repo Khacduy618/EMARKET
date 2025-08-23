@@ -42,10 +42,7 @@ class OrderSeller extends Model
         return $this->belongsTo(OrderBuyer::class, 'OrderID', 'OrderID');
     }
 
-    /**
-     * Đơn hàng con thuộc về shop
-     */
-    public function shop(): BelongsTo
+    public function shop()
     {
         return $this->belongsTo(Shop::class, 'ShopID', 'ShopID');
     }

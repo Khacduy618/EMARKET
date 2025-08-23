@@ -1,14 +1,10 @@
-// services/reviewService.ts
-
 import axios from 'axios';
-import { getAuthToken } from './api'; // Hàm lấy token của bạn
 import type { AdminReview, ReviewStatus } from '@/types';
 import { API_URL } from '@/lib/config';
 
-
 interface UpdateStatusPayload {
   status: ReviewStatus;
-  resolveRequest?: boolean; // Cờ để báo backend đóng yêu cầu của shop
+  resolveRequest?: boolean;
 }
 
 export const updateReviewStatus = async (
@@ -16,21 +12,12 @@ export const updateReviewStatus = async (
   payload: UpdateStatusPayload
 ): Promise<AdminReview> => {
   try {
-    const response = await axios.put(
-      `${API_URL}/admin/reviews/${reviewId}`,
-      payload,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        
-      }
-    );
-    // API nên trả về review đã được cập nhật
+    const response = await axios.put(`${API_URL}/admin/reviews/${reviewId}/status`, payload, {
+      withCredentials: true,
+    });
     return response.data.data;
   } catch (error) {
-    // Xử lý lỗi và ném ra để component có thể bắt được
-    console.error(`Lỗi khi cập nhật review #${reviewId}:`, error);
-    throw error;
+    console.error(`Error updating review #${reviewId}:`, error);
+    throw new Error('Cập nhật trạng thái thất bại.');
   }
 };

@@ -26,3 +26,8 @@ export interface ShopSummary {
     ShopPhone: string | null;
     Level: ShopLevel;
 }
+
+export interface ShopFilter {
+    ShopID: number;
+    ShopName: string;
+}
