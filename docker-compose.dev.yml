@@ -45,6 +45,7 @@ services:
     volumes:
       # Mount code backend để Nginx phục vụ file tĩnh (/storage)
       - ./Backend/public:/var/www/html/public:ro
+      - ./Backend/storage/app/public:/var/www/html/storage/app/public:ro
       # Mount file config Nginx dành riêng cho dev
       - ./docker/nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
