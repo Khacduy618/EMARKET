@@ -436,7 +436,7 @@ export default function CategoriesPage() {
                             </div>
                             <div className="p-4 space-y-3">
                                 <button
-                                    onClick={() => router.push("/seller-dashboard/add-product")}
+                                    onClick={() => router.push("/seller/products/add")}
                                     className="w-full flex items-center justify-center space-x-2 bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,7 +445,7 @@ export default function CategoriesPage() {
                                     <span>Thêm sản phẩm mới</span>
                                 </button>
                                 <button
-                                    onClick={() => router.push("/seller-dashboard/products")}
+                                    onClick={() => router.push("/seller/products")}
                                     className="w-full flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

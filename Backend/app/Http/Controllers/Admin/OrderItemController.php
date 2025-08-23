@@ -21,7 +21,7 @@ class OrderItemController extends Controller
     {
         try {
             // Sử dụng eager loading để tải các quan hệ cần thiết, tránh N+1 query
-            $items = $order->items()->with([
+            $items = $order->orderItems()->with([
                 'variant.product.shop:ShopID,ShopName', // Chỉ lấy ID và tên của shop
                 'variant.attributes.attribute:AttributeID,Name',       // Chỉ lấy ID và tên của thuộc tính (Màu, Size)
                 'variant.attributes.attributeValue:AttributeValueID,Value'   // Chỉ lấy ID và giá trị của thuộc tính

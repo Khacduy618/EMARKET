@@ -17,7 +17,6 @@ return array(
     'App\\Exports\\ReviewsExport' => $baseDir . '/app/Exports/ReviewsExport.php',
     'App\\Http\\Controllers\\Admin\\AdminReturnRequestController' => $baseDir . '/app/Http/Controllers/Admin/AdminReturnRequestController.php',
     'App\\Http\\Controllers\\Admin\\CategoryController' => $baseDir . '/app/Http/Controllers/Admin/CategoryController.php',
-    'App\\Http\\Controllers\\Admin\\DashboardController' => $baseDir . '/app/Http/Controllers/Admin/DashboardController.php',
     'App\\Http\\Controllers\\Admin\\OrderController' => $baseDir . '/app/Http/Controllers/Admin/OrderController.php',
     'App\\Http\\Controllers\\Admin\\OrderItemController' => $baseDir . '/app/Http/Controllers/Admin/OrderItemController.php',
     'App\\Http\\Controllers\\Admin\\ProductControllers' => $baseDir . '/app/Http/Controllers/Admin/ProductControllers.php',

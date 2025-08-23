@@ -676,7 +676,6 @@ class ComposerStaticInita64313eabaa5623e576835b3db0430ad
         'App\\Exports\\ReviewsExport' => __DIR__ . '/../..' . '/app/Exports/ReviewsExport.php',
         'App\\Http\\Controllers\\Admin\\AdminReturnRequestController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminReturnRequestController.php',
         'App\\Http\\Controllers\\Admin\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/CategoryController.php',
-        'App\\Http\\Controllers\\Admin\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/DashboardController.php',
         'App\\Http\\Controllers\\Admin\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/OrderController.php',
         'App\\Http\\Controllers\\Admin\\OrderItemController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/OrderItemController.php',
         'App\\Http\\Controllers\\Admin\\ProductControllers' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/ProductControllers.php',
