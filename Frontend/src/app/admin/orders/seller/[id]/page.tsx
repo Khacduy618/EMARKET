@@ -1,86 +1,102 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, User, MapPin, ShoppingCart, FileText } from 'lucide-react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Link from 'next/link';
+import { 
+    ArrowLeft, User, Phone, MapPin, ShoppingCart, FileText, CreditCard, 
+    Home, Loader2, Package, Truck, CheckCircle, Clock, XCircle, AlertCircle, Banknote 
+} from 'lucide-react';
 import { getFullImageUrl } from '@/services/api';
-import { SellerOrderDetail, SellerOrderItem } from '@/types/order.interface';
+import { API_URL } from '@/lib/config';
+import { SellerOrderDetail, SellerOrderItem } from '@/types';
+import { toast, ToastContainer } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { API_URL } from '@/lib/config';
 
-const formatCurrency = (amount: number): string => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
-
-// SỬA 1: Làm cho hàm an toàn hơn, chấp nhận status có thể là undefined
-const getStatusBadgeClass = (status?: string) => {
-    if (!status) {
-        return "bg-gray-100 text-gray-800";
-    }
-    const map: Record<string, string> = {
-        completed: "bg-green-100 text-green-800", rated: "bg-green-100 text-green-800", delivered: "bg-green-100 text-green-800",
-        pending: "bg-yellow-100 text-yellow-800", processing: "bg-blue-100 text-blue-800",
-        shipped: "bg-purple-100 text-purple-800", outfordelivery: "bg-purple-100 text-purple-800",
-        returned: "bg-gray-100 text-gray-800", returninprogress: "bg-gray-100 text-gray-800",
-        cancelledbybuyer: "bg-red-100 text-red-800", cancelledbyseller: "bg-red-100 text-red-800",
-    };
-    return map[status.toLowerCase().replace(/\s/g, '')] || "bg-gray-100 text-gray-800";
+// --- HÀM TIỆN ÍCH ---
+const formatCurrency = (amount?: number): string => {
+    if (typeof amount !== 'number' || isNaN(amount)) return '0 ₫';
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+};
+const formatDateTime = (dateString?: string): string => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
+const statusConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+    'Pending': { label: 'Chờ xử lý', icon: <Clock className="w-4 h-4"/>, color: 'text-yellow-600' },
+    'Processing': { label: 'Đang xử lý', icon: <Package className="w-4 h-4"/>, color: 'text-blue-600' },
+    'Shipped': { label: 'Đang giao', icon: <Truck className="w-4 h-4"/>, color: 'text-purple-600' },
+    'Delivered': { label: 'Đã giao', icon: <CheckCircle className="w-4 h-4"/>, color: 'text-green-600' },
+    'Completed': { label: 'Hoàn thành', icon: <CheckCircle className="w-4 h-4"/>, color: 'text-green-600' },
+    'Rated': { label: 'Đã đánh giá', icon: <CheckCircle className="w-4 h-4"/>, color: 'text-green-600' },
+    'CancelledByBuyer': { label: 'Khách hủy', icon: <XCircle className="w-4 h-4"/>, color: 'text-red-600' },
+    'CancelledBySeller': { label: 'Shop hủy', icon: <XCircle className="w-4 h-4"/>, color: 'text-red-600' },
+    'Returned': { label: 'Đã trả hàng', icon: <FileText className="w-4 h-4"/>, color: 'text-gray-600' },
+    'ReturnInProgress': { label: 'Đang trả hàng', icon: <FileText className="w-4 h-4"/>, color: 'text-gray-600' },
+    'Default': { label: 'Không xác định', icon: <AlertCircle className="w-4 h-4"/>, color: 'text-gray-600' },
+};
+
+const StatusBadge = ({ status }: { status?: string }) => {
+    if (!status) return null;
+    const config = statusConfig[status] || { ...statusConfig['Default'], label: status };
+    const colorMap: Record<string, string> = { 'text-yellow-600': 'bg-yellow-50 border-yellow-200', 'text-blue-600': 'bg-blue-50 border-blue-200', 'text-purple-600': 'bg-purple-50 border-purple-200', 'text-green-600': 'bg-green-50 border-green-200', 'text-red-600': 'bg-red-50 border-red-200', 'text-gray-600': 'bg-gray-50 border-gray-200' };
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border ${colorMap[config.color]} ${config.color}`}>
+            {config.icon} {config.label}
+        </span>
+    );
+};
+
+const getPaymentStatusClass = (status?: string) => {
+    if (!status) return "bg-gray-100 text-gray-800";
+    const map: Record<string, string> = {
+        paid: "bg-green-100 text-green-800",
+        pending: "bg-yellow-100 text-yellow-800",
+        failed: "bg-red-100 text-red-800",
+        refunded: "bg-gray-200 text-gray-800",
+    };
+    return map[status.toLowerCase()] || "bg-gray-100 text-gray-800";
+}
+
+// --- COMPONENT CHÍNH ---
 export default function SellerOrderDetailPage() {
-    const [order, setOrder] = useState<SellerOrderDetail | null>(null);
-    const [loading, setLoading] = useState(true);
     const params = useParams();
     const router = useRouter();
-    const { id } = params;
+    const sellerOrderId = params.id as string;
+
+    const [order, setOrder] = useState<SellerOrderDetail | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!id) return;
+        if (!sellerOrderId) return;
         const fetchOrderDetail = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${API_URL}/admin/orders/seller/${id}`, { credentials: 'include', headers: { "Accept": "application/json" } });
-                if (!res.ok) throw new Error(`Lỗi ${res.status}: Không thể tải chi tiết đơn hàng.`);
+                const res = await fetch(`${API_URL}/admin/orders/seller/${sellerOrderId}`, { credentials: 'include', headers: { "Accept": "application/json" } });
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || `Lỗi ${res.status}`);
+                }
                 const result = await res.json();
-                if (result.success) {
+                if (result.success && result.data) {
                     setOrder(result.data);
                 } else {
-                    throw new Error(result.message || 'Lỗi không xác định từ server');
+                    throw new Error("Dữ liệu API trả về không đúng định dạng.");
                 }
             } catch (error: any) {
                 toast.error(error.message);
-                // Bạn có thể comment dòng này lại nếu không muốn bị chuyển hướng ngay
-                // router.push('/admin/orders');
             } finally {
                 setLoading(false);
             }
         };
         fetchOrderDetail();
-    }, [id, API_URL, router]);
+    }, [sellerOrderId]);
     
-    // SỬA 2: Sửa lại hàm để khớp với cấu trúc dữ liệu mới từ backend
-    const getVariantClassification = (item: SellerOrderItem) => {
-    if (!item.variant?.attributes || item.variant.attributes.length === 0) {
-        return 'Không có phân loại';
-    }
-    
-    return item.variant.attributes
-        .map(pva => {
-            // Sử dụng optional chaining (?.) để truy cập an toàn
-            const attributeName = pva.attributeValue?.attribute?.Name;
-            const attributeValue = pva.attributeValue?.Value;
-
-            if (attributeName && attributeValue) {
-                return `${attributeName}: ${attributeValue}`;
-            }
-            return null; // Trả về null nếu thiếu dữ liệu
-        })
-        .filter(Boolean) // Lọc bỏ các giá trị null
-        .join(', ');
-};
     if (loading) {
-        return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div></div>;
+        return <div className="flex justify-center items-center h-screen"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div>;
     }
     
     if (!order) {
@@ -95,74 +111,94 @@ export default function SellerOrderDetailPage() {
                     <div className="mb-6">
                         <Button onClick={() => router.back()} variant="outline" size="sm" className="mb-4">
                             <ArrowLeft className="w-4 h-4 mr-2" />
-                            Quay lại danh sách
+                            Quay lại
                         </Button>
                         <div className="flex justify-between items-start">
                              <div>
-                                <h1 className="text-3xl font-bold">Chi tiết đơn hàng #{order.SellerOrderCode}</h1>
-                                <p className="text-gray-500">Shop: <strong>{order.shop.ShopName}</strong></p>
+                                <h1 className="text-3xl font-bold">Chi tiết đơn hàng #{order.sellerOrderCode}</h1>
+                                <p className="text-gray-500">Shop: <strong>{order.shop.shopName}</strong></p>
                              </div>
-                             <span className={`px-4 py-2 text-sm font-semibold rounded-full ${getStatusBadgeClass(order.Status)}`}>
-                                {order.Status || 'Không rõ'}
-                            </span>
+                             <StatusBadge status={order.status} />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1 flex flex-col gap-6">
+                        <div className="lg:col-span-2 space-y-6">
                             <Card>
-                                <CardHeader><CardTitle className="flex items-center text-lg"><User className="mr-2 h-5 w-5"/>Khách hàng</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="font-semibold">{order.order_buyer.user.FullName}</p>
-                                    <p className="text-sm text-gray-600">{order.order_buyer.user.Email}</p>
+                                <CardHeader><CardTitle className="flex items-center"><ShoppingCart className="mr-2"/>Sản phẩm</CardTitle></CardHeader>
+                                <CardContent className="divide-y">
+                                    {order.items.map(item => (
+                                        <div key={item.orderItemId} className="flex items-start gap-4 py-4">
+                                            <img src={getFullImageUrl(item.productImage)} alt={item.productName} className="w-20 h-20 object-cover rounded-md border" />
+                                            <div className="flex-grow">
+                                                <p className="font-semibold">{item.productName}</p>
+                                                <p className="text-sm text-gray-500">SKU: {item.sku || 'N/A'}</p>
+                                                <p className="text-sm text-gray-500">{item.classification}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-semibold">{formatCurrency(item.priceAtPurchase)}</p>
+                                                <p className="text-sm text-gray-500">x {item.quantity}</p>
+                                                <p className="font-bold mt-1">{formatCurrency(item.subtotal)}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </CardContent>
                             </Card>
                              <Card>
-                                <CardHeader><CardTitle className="flex items-center text-lg"><MapPin className="mr-2 h-5 w-5"/>Địa chỉ giao hàng</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="font-semibold">{order.order_buyer.shippingAddress.FullName}</p>
-                                    <p className="text-sm text-gray-600">{order.order_buyer.shippingAddress.PhoneNumber}</p>
-                                    <p className="text-sm text-gray-600 mt-2">{`${order.order_buyer.shippingAddress.Street}, ${order.order_buyer.shippingAddress.Ward}, ${order.order_buyer.shippingAddress.District}, ${order.order_buyer.shippingAddress.City}`}</p>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader><CardTitle className="flex items-center text-lg"><FileText className="mr-2 h-5 w-5"/>Ghi chú từ khách hàng</CardTitle></CardHeader>
-                                <CardContent><p className="text-sm text-gray-600 italic">{order.Notes || "Không có ghi chú."}</p></CardContent>
+                               <CardHeader><CardTitle className="flex items-center"><CreditCard className="mr-2"/>Chi tiết tài chính</CardTitle></CardHeader>
+                               <CardContent className="w-full max-w-sm ml-auto space-y-2">
+                                    <div className="flex justify-between"><p>Tổng tiền hàng:</p><p>{formatCurrency(order.subtotalAmount)}</p></div>
+                                    <div className="flex justify-between"><p>Phí vận chuyển:</p><p>{formatCurrency(order.shippingFee)}</p></div>
+                                    <div className="flex justify-between text-red-600"><p>Voucher Shop:</p><p>- {formatCurrency(order.shopVoucherDiscount)}</p></div>
+                                    <hr className="my-1 border-dashed"/>
+                                    <div className="flex justify-between font-bold text-lg"><p>Thành tiền:</p><p className="text-orange-600">{formatCurrency(order.totalAmount)}</p></div>
+                               </CardContent>
                             </Card>
                         </div>
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-1 space-y-6">
                             <Card>
-                                 <CardHeader><CardTitle className="flex items-center text-lg"><ShoppingCart className="mr-2 h-5 w-5"/>Sản phẩm trong đơn hàng</CardTitle></CardHeader>
-                                 <CardContent>
-                                    <div className="divide-y divide-gray-200">
-                                        {order.items.map(item => (
-                                            <div key={item.OrderItemID} className="flex items-start gap-4 py-4">
-                                                <img 
-                                                    src={getFullImageUrl(item.variant.ImageURL || item.variant.product.primaryImage?.ImageURL)} 
-                                                    alt={item.variant.product.Name}
-                                                    className="w-20 h-20 object-cover rounded-md border bg-gray-100"
-                                                />
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-gray-800">{item.variant.product.Name}</p>
-                                                    <p className="text-sm text-gray-500">SKU: {item.variant.SKU || 'N/A'}</p>
-                                                    <p className="text-sm text-gray-500">{getVariantClassification(item)}</p>
-                                                </div>
-                                                <div className="text-right flex-shrink-0">
-                                                    <p className="font-semibold text-gray-800">{formatCurrency(item.PriceAtPurchase)}</p>
-                                                    <p className="text-sm text-gray-500 text-right">x {item.Quantity}</p>
-                                                    <p className="font-bold mt-1 text-gray-900">{formatCurrency(item.Subtotal)}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                <CardHeader><CardTitle className="flex items-center"><User className="mr-2"/>Người mua</CardTitle></CardHeader>
+                                <CardContent className="flex items-center gap-3">
+                                    <img className="w-12 h-12 rounded-full object-cover" src={getFullImageUrl(order.user.avatar)} alt="Avatar"/>
+                                    <div>
+                                        <p className="font-semibold">{order.user.fullName}</p>
+                                        <p className="text-sm text-gray-500">{order.user.email}</p>
                                     </div>
-                                    <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
-                                        <div className="flex justify-between text-sm text-gray-600"><p>Tổng tiền hàng:</p><p>{formatCurrency(order.SubtotalAmount)}</p></div>
-                                        <div className="flex justify-between text-sm text-gray-600"><p>Phí vận chuyển:</p><p>{formatCurrency(order.ShippingFee)}</p></div>
-                                        <div className="flex justify-between text-sm text-red-600"><p>Giảm giá voucher shop:</p><p>- {formatCurrency(order.ShopVoucherDiscount)}</p></div>
-                                        <div className="flex justify-between text-lg font-bold mt-2 pt-2 border-t border-dashed"><p>Thành tiền:</p><p className="text-orange-600">{formatCurrency(order.TotalAmount)}</p></div>
-                                    </div>
-                                 </CardContent>
+                                </CardContent>
                             </Card>
+                             <Card>
+                                <CardHeader><CardTitle className="flex items-center"><Home className="mr-2"/>Địa chỉ giao hàng</CardTitle></CardHeader>
+                                <CardContent className="space-y-2">
+                                    <p className="flex items-center"><User className="w-4 h-4 mr-2"/> {order.shippingAddress.fullName}</p>
+                                    <p className="flex items-center"><Phone className="w-4 h-4 mr-2"/> {order.shippingAddress.phoneNumber}</p>
+                                    <p className="flex items-start"><MapPin className="w-4 h-4 mr-2 mt-1"/> {order.shippingAddress.fullAddress}</p>
+                                </CardContent>
+                            </Card>
+                            {/* ▼▼▼ KHỐI THÔNG TIN THANH TOÁN ĐÃ THÊM ▼▼▼ */}
+                            <Card>
+                                <CardHeader><CardTitle className="flex items-center"><Banknote className="mr-2"/>Thông tin thanh toán</CardTitle></CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Phương thức:</span>
+                                        <span className="font-semibold px-2 py-1 bg-gray-100 rounded-md text-sm">{order.paymentMethod}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Trạng thái:</span>
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusClass(order.paymentStatus)}`}>
+                                            {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 
+                                             order.paymentStatus === 'Pending' ? 'Chờ thanh toán' : 
+                                             order.paymentStatus === 'Failed' ? 'Thất bại' : 
+                                             order.paymentStatus === 'Refunded' ? 'Đã hoàn tiền' : 'Không rõ'}
+                                        </span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            {order.notes && (
+                                 <Card>
+                                    <CardHeader><CardTitle className="flex items-center"><FileText className="mr-2"/>Ghi chú</CardTitle></CardHeader>
+                                    <CardContent><p className="italic bg-yellow-50 p-3 rounded-lg">"{order.notes}"</p></CardContent>
+                                 </Card>
+                            )}
                         </div>
                     </div>
                 </div>

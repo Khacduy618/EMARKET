@@ -306,7 +306,9 @@ export interface SellerOrder {
       ShopID: number;
       ShopName: string;
   };
-  order_buyer: { // Lưu ý: snake_case
+  order_buyer: {
+      PaymentStatus: string;
+      PaymentMethod: string; // Lưu ý: snake_case
       OrderCode: string;
       OrderDate: string;
       user: User; // User interface của bạn nên có trường Avatar
@@ -338,25 +340,53 @@ export interface SellerOrderItem {
     Subtotal: number;
     variant: ProductVariantDetail;
 }
-// Cấu trúc đầy đủ của dữ liệu chi tiết đơn hàng
+
+// Cấu trúc đầy đủ của dữ liệu chi tiết đơn hàng (ĐÃ SỬA LẠI THEO camelCase)
 export interface SellerOrderDetail {
-    SellerOrderID: number;
-    SellerOrderCode: string;
-    Status: string;
-    SubtotalAmount: number;
-    ShippingFee: number;
-    ShopVoucherDiscount: number;
-    TotalAmount: number;
-    Notes: string | null;
-    shop: Shop; // Lưu ý: snake_case
-    user: User;
-    shippingAddress: Address;
-   
-    items: SellerOrderItem[];
+    paymentStatus: string;  
+    paymentMethod: string;
+    sellerOrderId: number;
+    sellerOrderCode: string;
+    status: string;
+    notes: string | null;
+    subtotalAmount: number;
+    shippingFee: number;
+    shopVoucherDiscount: number;
+    totalAmount: number;
+    orderDate: string;
+    user: {
+        fullName: string;
+        email: string;
+        avatar?: string;
+    };
+    shippingAddress: {
+        fullName: string;
+        phoneNumber: string;
+        fullAddress: string;
+    };
+    shop: {
+        shopName: string;
+    };
+    items: {
+        orderItemId: number;
+        quantity: number;
+        priceAtPurchase: number;
+        subtotal: number;
+        productName: string;
+        productImage: string | null;
+        sku: string | null;
+        classification: string;
+    }[];
 }
+
 export interface OrderStats {
+  totalRevenue: number;
+  totalOrders: any;
+  pendingOrders: any;
+  completedOrders: any;
   pending: number;
   processing: number;
   shipped: number;
   total: number;
+  
 }

@@ -139,6 +139,7 @@ export default function OrderDetailPage() {
                     <p className="text-2xl font-bold font-mono text-gray-800">{order.OrderCode}</p>
                 </div>
                 <StatusBadge status={order.OverallStatus}/>
+                
             </div>
             
             {/* ... Phần còn lại của giao diện JSX của bạn ... */}

@@ -11,6 +11,10 @@ export * from './order.interface';
 export * from './adminUser.interface';
 export * from './review.interface';
 export * from './shop-ui.interface';
+export interface ShopFilter {
+    ShopID: number;
+    ShopName: string;
+}
 export function formatError(error: any): string {
     if (error.name === 'ZodError') {
         // Handle Zod validation errors 
@@ -40,5 +44,6 @@ export function formatError(error: any): string {
             ? error.message
             : JSON.stringify(error);
     }
+    
 }
 

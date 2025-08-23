@@ -502,10 +502,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
     Route::get('/', [ProductReviewController::class, 'index'])->name('index');
 
-    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     Route::get('/reviews/stats', [ProductReviewController::class, 'getStats']); // <-- MỚI
     Route::post('/reviews/bulk-update', [ProductReviewController::class, 'bulkUpdateStatus']); // <-- MỚI
     Route::get('/reviews/export', [ProductReviewController::class, 'export']); // <-- MỚI
+    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
     });
 
     // Route này sẽ tự tạo:
