@@ -89,9 +89,9 @@ Route::get('/test', function () {
     return response()->json(['message' => 'Laravel API is alive and working!']);
 });
 // Lấy API của Category Trả về dạng json theo CRUD
-Route::get('/category' ,[CategoryController::class , 'index']);
-Route::get('/categorySubMenu' ,[CategoryController::class , 'category_cha_con']);
-Route::get('/categorySubMenu/{id}/products' ,[CategoryController::class , 'category_cha_con']);
+Route::get('/category', [CategoryController::class, 'index']);
+Route::get('/categorySubMenu', [CategoryController::class, 'category_cha_con']);
+Route::get('/categorySubMenu/{id}/products', [CategoryController::class, 'category_cha_con']);
 Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
 //api router cho sản phẩm nổi bật cho category
 Route::get('/featuredRelated-products/{id}', [FeaturedProductController::class, 'getRelatedProducts']);
@@ -156,7 +156,7 @@ Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
 });
 
 Route::get('/user', function (Request $request) {
-  return $request->user();
+    return $request->user();
 })->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard', function () {
@@ -170,7 +170,7 @@ Route::middleware(['auth:sanctum', 'role:Seller,Admin'])->get('/seller/dashboard
 
 
 
-Route::middleware('auth:sanctum')->group(function (){
+Route::middleware('auth:sanctum')->group(function () {
 
     // Cart routes - require authentication
 
@@ -187,7 +187,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('/vouchers/{voucher}/collect', [VoucherController::class, 'collectVoucher']);
     Route::get('/shops/{shopId}/eligible-vouchers', [VoucherController::class, 'getEligibleVouchersForShop']);
 
-     //checkout
+    //checkout
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::put('/addresses/{addressId}/set-default', [AddressController::class, 'setDefault']);
     Route::get('/addresses/{address}', [AddressController::class, 'show']); // Lấy chi tiết 1 địa chỉ
@@ -274,7 +274,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
 
 
-Route::get('/products/{product_id}/variants/filter',[ProductController::class, 'filterVariants']);
+Route::get('/products/{product_id}/variants/filter', [ProductController::class, 'filterVariants']);
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
 
@@ -352,8 +352,8 @@ Route::post('/webhook', [SellerOrderController::class, 'handle']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
-  Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
-  Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
+    Route::get('/seller/statistics', [StatisticsController::class, "getRevenueByDate"]);
+    Route::get('/seller/orderss', [StatisticsController::class, "getOrderByDate"]);
 });
 
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
@@ -362,6 +362,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // === USER MANAGEMENT ===
     Route::apiResource('users', AdminUserController::class)->except(['show']);
     Route::patch('/users/{user:UserID}/status', [AdminUserController::class, 'updateStatus']);
+    Route::delete('/users/{user:UserID}/two-factor-authentication', [AdminUserController::class, 'disableTwoFactorForUser']);
+    Route::post('/users/bulk-update-status', [AdminUserController::class, 'bulkUpdateStatus']);
+    Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDestroy']);
+    Route::post('/users/bulk-disable-2fa', [AdminUserController::class, 'bulkDisableTwoFactor']);
 
     // === CATEGORY MANAGEMENT ===
     Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);

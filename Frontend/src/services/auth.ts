@@ -57,7 +57,8 @@ export async function handleResponse<T>(response: Response): Promise<T> {
 
 export const getCsrfCookie = async (): Promise<void> => {
     await fetch(`${WEB_URL}/sanctum/csrf-cookie`, {
-        credentials: 'include' ,});
+        credentials: 'include',
+    });
 };
 
 // HÀM LOGIN ĐÃ ĐƯỢC SỬA LẠI ĐỂ XỬ LÝ 2FA
@@ -92,7 +93,7 @@ export const login = async (credentials: LoginPayload): Promise<LoginResponse> =
 
 export const getMe = async (): Promise<User> => {
     const response = await fetch(`${API_URL}/me`, {
-        method: 'GET', credentials: 'include', headers: { 'Accept': 'application/json','Content-Type': 'application/json' },
+        method: 'GET', credentials: 'include', headers: { 'X-XSRF-TOKEN': getDecodedXsrfToken() },
     });
     return handleResponse<User>(response);
 };
@@ -174,8 +175,24 @@ export const confirmTwoFactorAuth = async (code: string): Promise<void> => {
 };
 
 export const disableTwoFactorAuth = async (): Promise<void> => {
+
+    // BƯỚC 1: LUÔN LUÔN LẤY COOKIE MỚI TRƯỚC.
+    // Dù cho session hiện tại là gì, lệnh này sẽ đảm bảo một session
+    // và CSRF token hợp lệ được thiết lập.
+    await getCsrfCookie();
+
+    // Lấy giá trị token vừa được làm mới
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    const decodedXsrfToken = xsrfToken ? decodeURIComponent(xsrfToken) : undefined;
+
+    // BƯỚC 2: GỬI YÊU CẦU DELETE VỚI TOKEN HỢP LỆ
     await fetch(`${API_URL}/user/two-factor-authentication`, {
-        method: 'DELETE', credentials: 'include', headers: { 'X-XSRF-TOKEN': getDecodedXsrfToken() }
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': decodedXsrfToken || '',
+        },
     });
 };
 
