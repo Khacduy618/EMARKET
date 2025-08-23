@@ -10,12 +10,13 @@ import { Star, Store } from "lucide-react"
 import { AdminReview, ReviewStatus } from "@/types"
 import { toast } from "react-toastify"
 import axios from 'axios' // <-- Thêm axios để gọi API
+import { API_URL } from "@/lib/config"
 
 // ▼▼▼ TẠO HÀM GỌI API NGAY TẠI ĐÂY (hoặc trong file services/api.ts) ▼▼▼
 const updateReviewStatus = async (reviewId: number, payload: { status: ReviewStatus, resolveRequest?: boolean }): Promise<AdminReview> => {
     try {
         const response = await axios.put(
-            `http://localhost:8001/api/admin/reviews/${reviewId}`,
+            `${API_URL}/admin/reviews/${reviewId}`,
             payload,
             { withCredentials: true }
         );

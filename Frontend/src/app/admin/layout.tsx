@@ -10,6 +10,7 @@ import {
   BarChart3,
   X,
   Tag,
+  Star,
   Truck,
   CreditCard,
   Gift,
@@ -28,12 +29,6 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
-    {
-      href: '/dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      description: 'Tổng quan hệ thống'
-    },
     {
       href: '/admin/products',
       label: 'Sản phẩm',
@@ -65,35 +60,24 @@ export default function AdminLayout({
       description: 'Quản lý giao dịch'
     },
     {
-      href: '/admin/customers',
+      href: '/admin/users',
       label: 'Khách hàng',
       icon: Users,
       description: 'Quản lý khách hàng'
     },
     {
-      href: '/admin/analytics',
-      label: 'Thống kê',
-      icon: BarChart3,
-      description: 'Báo cáo & phân tích'
+      href: '/admin/reviews',
+      label: 'Đánh giá',
+      icon: Star,
+      description: 'Quản lý đánh giá',
     },
-    {
-      href: '/admin/promotions',
-      label: 'Khuyến mãi',
-      icon: Gift,
-      description: 'Quản lý khuyến mãi'
-    },
-    {
-      href: '/admin/shipping',
-      label: 'Vận chuyển',
-      icon: Truck,
-      description: 'Quản lý vận chuyển'
-    },
-    {
-      href: '/admin/payments',
-      label: 'Thanh toán',
-      icon: CreditCard,
-      description: 'Quản lý thanh toán'
-    },
+    // {
+    //   href: '/admin/statistics',
+    //   label: 'Thống kê',
+    //   icon: BarChart3,
+    //   description: 'Báo cáo & phân tích'
+    // }
+    
   ];
 
   const router = useRouter();

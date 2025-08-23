@@ -71,7 +71,7 @@ interface AuthContextType {
 const getRedirectPathByRole = (role: string): string => {
     switch (role.toLowerCase()) {
         case 'admin':
-            return '/admin/dashboard';
+            return '/admin/products';
         case 'seller':
             return '/seller'; // Hoặc /seller/dashboard
         default:
