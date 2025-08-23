@@ -16,6 +16,7 @@ import {
     Eye,
     Lock,
 } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 export default function ShopRegistrationForm() {
     const router = useRouter();
@@ -45,7 +46,7 @@ export default function ShopRegistrationForm() {
         const checkTwoFA = async () => {
             try {
                 const response = await axios.get(
-                    `http://localhost:8001/api/seller/register`,
+                    `${API_URL}/seller/register`,
                     {
                         headers: {
                             "Content-Type": "application/json",
@@ -125,7 +126,7 @@ export default function ShopRegistrationForm() {
 
         try {
             const response = await axios.post(
-                "http://localhost:8001/api/seller/register",
+                `${API_URL}/seller/register`,
                 formDataToSend,
                 {
                     headers: { "Content-Type": "multipart/form-data" },

@@ -178,7 +178,7 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
                 </>
             )}
         </div>
-
+        
         {isReplying && (
           <div className="flex gap-3 pt-2">
             <Avatar className="w-8 h-8">
@@ -210,10 +210,10 @@ function CommentItem({ comment, productId, currentUser, onActionSuccess }: {
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-200">
             {comment.replies.map(reply => (
-              <CommentItem
-                key={reply.id}
-                comment={reply}
-                productId={productId}
+              <CommentItem 
+                key={reply.id} 
+                comment={reply} 
+                productId={productId} 
                 currentUser={currentUser}
                 onActionSuccess={onActionSuccess}
               />
@@ -258,13 +258,13 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !currentUser || newCommentHasProfanity) {
-      if (!currentUser) toast.warn("Vui lòng đăng nhập để bình luận.");
-      if (newCommentHasProfanity) toast.error("Vui lòng loại bỏ từ ngữ không phù hợp.");
-      return;
+        if (!currentUser) toast.warn("Vui lòng đăng nhập để bình luận.");
+        if (newCommentHasProfanity) toast.error("Vui lòng loại bỏ từ ngữ không phù hợp.");
+        return;
     }
     setIsSubmitting(true);
     try {
-      const token = getAuthToken();
+      const token = getAuthToken(); 
       await axios.post(
         `${API_URL}/products/${productId}/comments`,
         { content: newComment },
@@ -295,23 +295,23 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
               <AvatarImage src={currentUser.Avatar ? getFullImageUrl(currentUser.Avatar) : undefined} />
               <AvatarFallback>{currentUser.FullName?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <CommentTextArea
-                id="new-comment-input"
-                placeholder="Viết bình luận của bạn..."
-                value={newComment}
-                onChange={setNewComment}
-                onProfanityChange={setNewCommentHasProfanity}
-                maxLength={1000}
-              />
-              <div className="flex justify-end mt-2">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!newComment.trim() || isSubmitting || newCommentHasProfanity}
-                >
-                  {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
-                </Button>
-              </div>
+             <div className="flex-1">
+                <CommentTextArea
+                    id="new-comment-input"
+                    placeholder="Viết bình luận của bạn..."
+                    value={newComment}
+                    onChange={setNewComment}
+                    onProfanityChange={setNewCommentHasProfanity}
+                    maxLength={1000}
+                />
+                <div className="flex justify-end mt-2">
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={!newComment.trim() || isSubmitting || newCommentHasProfanity}
+                    >
+                        {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
+                    </Button>
+                </div>
             </div>
           </div>
         ) : (
@@ -327,10 +327,10 @@ export function CommentsSection({ productId, currentUser }: CommentsSectionProps
             <p className="text-sm text-gray-500">Đang tải bình luận...</p>
           ) : comments.length > 0 ? (
             comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                productId={productId}
+              <CommentItem 
+                key={comment.id} 
+                comment={comment} 
+                productId={productId} 
                 currentUser={currentUser}
                 onActionSuccess={fetchComments}
               />

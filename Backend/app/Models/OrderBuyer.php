@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderBuyer extends Model
 {
@@ -59,6 +61,11 @@ class OrderBuyer extends Model
 
     // Mối quan hệ với bảng addresses
     public function address()
+    {
+        return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
+    }
+
+    public function shippingAddress(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'ShippingAddressID', 'AddressID');
     }

@@ -13,144 +13,152 @@ use App\Exports\SimpleCollectionExport;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 use Illuminate\Validation\Rule;
-use App\Models\Review;
+use App\Models\ProductReview;
 
 class ProductReviewController extends Controller
 {
-    /**
-     * Lấy danh sách reviews cho trang quản lý của Admin.
-     * Hỗ trợ lọc, tìm kiếm và phân trang.
-     */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        // Validate các tham số đầu vào
-        $request->validate([
-            'page' => 'integer|min:1',
-            'pageSize' => 'integer|min:1|max:100',
-            'query' => 'string|nullable',
-            'status' => 'string|in:all,pending,approved,rejected,under_review,hidden,flagged',
-            'minRating' => 'integer|min:1|max:5',
-            'onlyRequests' => 'boolean',
-        ]);
+        try {
+            $request->validate([
+                'page' => 'integer|min:1',
+                'pageSize' => 'integer|min:1|max:100',
+                'query' => 'string|nullable',
+                'status' => ['nullable', 'string', Rule::in(['pending', 'approved', 'rejected', 'under_review', 'hidden', 'flagged'])],
+                'minRating' => 'integer|min:1|max:5',
+                'onlyRequests' => 'boolean',
+            ]);
 
-        $pageSize = $request->input('pageSize', 10);
+            $pageSize = $request->input('pageSize', 10);
+            
+            $query = ProductReview::with([
+                'user:UserID,FullName,Avatar',
+                'variant.product:ProductID,Name,ShopID',
+                'variant.product.shop:ShopID,ShopName',
+                'variant.product.primaryImage:ProductImageID,ProductID,ImageURL'
+            ]);
 
-        // Bắt đầu xây dựng query
-        $query = DB::table('productreviews as pr')
-            ->join('users as u', 'pr.UserID', '=', 'u.UserID')
-            ->join('productvariants as pv', 'pr.VariantID', '=', 'pv.VariantID')
-            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->join('shops as s', 'p.ShopID', '=', 's.ShopID')
-            // LeftJoin để lấy ảnh chính của sản phẩm (nếu có)
-            ->leftJoin('productimages as pi', function ($join) {
-                $join->on('p.ProductID', '=', 'pi.ProductID')
-                     ->where('pi.IsPrimary', '=', 1);
-            })
-            ->select(
-                'pr.ReviewID as id',
-                'u.FullName as reviewerName',
-                'u.Avatar as reviewerAvatar',
-                'pr.Rating as rating',
-                'pr.Comment as content',
-                DB::raw("DATE_FORMAT(pr.CreatedAt, '%d/%m/%Y %H:%i') as date"),
-                'pr.ReviewImages as images',
-                'pr.Status as status',
-                'p.Name as productName',
-                'pi.ImageURL as productImage',
-                's.ShopName as shopName',
-                's.ShopID as shopId',
-                // Tạo object 'requestFromShop'
-                DB::raw("CASE WHEN pr.ShopRequestStatus = 'Open' THEN JSON_OBJECT(
-                    'open', true,
-                    'reason', pr.ShopRequestReason,
-                    'createdAt', DATE_FORMAT(pr.ShopRequestAt, '%d/%m/%Y %H:%i')
-                ) ELSE JSON_OBJECT('open', false) END as requestFromShop")
-            );
+            if ($request->filled('query')) {
+                $searchTerm = $request->input('query');
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('Comment', 'LIKE', "%{$searchTerm}%")
+                      ->orWhereHas('user', fn($userQuery) => $userQuery->where('FullName', 'LIKE', "%{$searchTerm}%"))
+                      ->orWhereHas('variant.product', fn($prodQuery) => $prodQuery->where('Name', 'LIKE', "%{$searchTerm}%"))
+                      ->orWhereHas('variant.product.shop', fn($shopQuery) => $shopQuery->where('ShopName', 'LIKE', "%{$searchTerm}%"));
+                });
+            }
 
-        // Áp dụng các bộ lọc
-        // 1. Lọc theo từ khóa (query)
-        if ($request->filled('query')) {
-            $searchTerm = '%' . $request->input('query') . '%';
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('s.ShopName', 'LIKE', $searchTerm)
-                  ->orWhere('p.Name', 'LIKE', $searchTerm)
-                  ->orWhere('u.FullName', 'LIKE', $searchTerm)
-                  ->orWhere('pr.Comment', 'LIKE', $searchTerm);
-            });
+            if ($request->filled('status') && $request->input('status') !== 'all') {
+                $query->where('Status', $request->input('status'));
+            }
+
+            if ($request->filled('minRating')) {
+                $query->where('Rating', '>=', $request->input('minRating'));
+            }
+
+            if ($request->boolean('onlyRequests')) {
+                $query->where('ShopRequestStatus', 'Open');
+            }
+
+            $query->orderBy('CreatedAt', 'desc');
+
+            $reviews = $query->paginate($pageSize);
+            
+            return response()->json(['success' => true, 'data' => $reviews]);
+
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Dữ liệu không hợp lệ.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy danh sách reviews: ' . $e->getMessage());
+            return response()->json(['message' => 'Lỗi server khi lấy danh sách reviews.'], 500);
         }
-
-        // 2. Lọc theo trạng thái
-        if ($request->filled('status') && $request->input('status') !== 'all') {
-            $query->where('pr.Status', $request->input('status'));
-        }
-
-        // 3. Lọc theo rating tối thiểu
-        if ($request->filled('minRating')) {
-            $query->where('pr.Rating', '>=', $request->input('minRating'));
-        }
-
-        // 4. Lọc theo yêu cầu từ shop
-        if ($request->boolean('onlyRequests')) {
-            $query->where('pr.ShopRequestStatus', '=', 'Open');
-        }
-
-        // Sắp xếp
-        $query->orderBy('s.ShopName', 'asc')->orderBy('pr.CreatedAt', 'desc');
-
-        // Phân trang
-        $reviews = $query->paginate($pageSize);
-
-        // Xử lý dữ liệu trước khi trả về (ví dụ: parse JSON)
-        $reviews->getCollection()->transform(function ($review) {
-            // Chuyển chuỗi JSON của ảnh thành mảng
-            $review->images = json_decode($review->images, true) ?? [];
-            // Chuyển chuỗi JSON của request thành object
-            $review->requestFromShop = json_decode($review->requestFromShop);
-            return $review;
-        });
-        
-        return response()->json([
-            'success' => true,
-            'data' => $reviews
-        ]);
     }
-    /**
-     * Cập nhật trạng thái của một review.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Review  $review
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function updateStatus(Request $request, Review $review)
+
+    public function updateStatus(Request $request, ProductReview $review): JsonResponse
     {
-        // Validate dữ liệu đầu vào
         $validated = $request->validate([
-            'status' => [
-                'required',
-                // Đảm bảo status gửi lên là một trong các giá trị hợp lệ
-                Rule::in(['pending', 'approved', 'rejected', 'under_review', 'hidden', 'flagged']),
-            ],
-            // Thêm validation cho việc xử lý yêu cầu của shop (nếu cần)
+            'status' => ['required', 'string', Rule::in(['pending', 'approved', 'rejected', 'under_review', 'hidden', 'flagged'])],
             'resolveRequest' => 'boolean|nullable',
         ]);
 
-        // Cập nhật trạng thái chính của review
-        $review->Status = $validated['status'];
+        try {
+            $review->Status = $validated['status'];
+            if ($request->boolean('resolveRequest')) {
+                $review->ShopRequestStatus = 'Closed';
+            }
+            $review->save();
 
-        // Nếu có cờ 'resolveRequest' được gửi lên, đóng yêu cầu của shop lại
-        if ($request->boolean('resolveRequest')) {
-            $review->ShopRequestStatus = 'Closed';
+            $review->load('user', 'variant.product.shop', 'variant.product.primaryImage');
+            
+            $formattedReview = [
+                'id' => $review->ReviewID,
+                'reviewerName' => $review->user->FullName,
+                'reviewerAvatar' => $review->user->Avatar,
+                'rating' => $review->Rating,
+                'content' => $review->Comment,
+                'date' => $review->created_at->format('d/m/Y H:i'),
+                'images' => $review->ReviewImages,
+                'status' => $review->Status,
+                'productName' => $review->variant->product->Name,
+                'productImage' => $review->variant->product->primaryImage->ImageURL ?? null,
+                'shopName' => $review->variant->product->shop->ShopName,
+                'shopId' => $review->variant->product->shop->ShopID,
+                'requestFromShop' => [
+                    'open' => $review->ShopRequestStatus === 'Open',
+                    'reason' => $review->ShopRequestReason,
+                    'createdAt' => $review->ShopRequestAt ? $review->ShopRequestAt->format('d/m/Y H:i') : null
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật trạng thái review thành công.',
+                'data' => $formattedReview
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi cập nhật trạng thái review ID ' . $review->ReviewID . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Cập nhật trạng thái thất bại.'], 500);
         }
+    }
 
-        // Lưu thay đổi vào database
-        $review->save();
-
-        // Trả về response thành công
-        return response()->json([
-            'success' => true,
-            'message' => 'Cập nhật trạng thái review thành công.',
-            // Trả về review đã được cập nhật để frontend có thể cập nhật UI
-            'data' => $review 
+    public function getStats(): JsonResponse
+    {
+        try {
+            $stats = [
+                'total' => ProductReview::count(),
+                'pending' => ProductReview::where('Status', 'pending')->count(),
+                'requests' => ProductReview::where('ShopRequestStatus', 'Open')->count(),
+            ];
+            return response()->json($stats);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy thống kê reviews: ' . $e->getMessage());
+            return response()->json(['message' => 'Không thể lấy thống kê.'], 500);
+        }
+    }
+    
+    public function bulkUpdateStatus(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'reviewIds' => 'required|array|min:1',
+            'reviewIds.*' => 'integer|exists:productreviews,ReviewID',
+            'status' => ['required', 'string', Rule::in(['approved', 'rejected', 'hidden'])],
         ]);
+
+        try {
+            ProductReview::whereIn('ReviewID', $validated['reviewIds'])
+                  ->update(['Status' => $validated['status']]);
+
+            return response()->json(['success' => true, 'message' => 'Cập nhật hàng loạt thành công!']);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi cập nhật reviews hàng loạt: ' . $e->getMessage());
+            return response()->json(['message' => 'Cập nhật hàng loạt thất bại.'], 500);
+        }
+    }
+    
+    public function export(Request $request)
+    {
+        $filters = $request->all();
+        $fileName = 'danh-sach-danh-gia-' . now()->format('d-m-Y') . '.xlsx';
+        return Excel::download(new ReviewsExport($filters), $fileName);
     }
 }

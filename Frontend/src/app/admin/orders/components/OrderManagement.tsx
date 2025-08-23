@@ -1,69 +1,46 @@
+'use client';
 
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
+import { ChevronDown, ChevronsUpDown, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw, ChevronUp, FileSpreadsheet, ShoppingBag, Box, Ship, Store } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { getFullImageUrl } from "@/services/api";
+import { SellerOrder, OrderStats } from "@/types/order.interface";
+import { Shop } from "@/types/shop.interface";
+import { API_URL } from "@/lib/config";
 
-
-"use client"
-
-import type React from "react"
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import {
-  ChevronDown, ChevronsUpDown, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw,
-  ChevronUp,
-} from "lucide-react"
-import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TableBody, TableCell, TableHead, TableHeader, TableRow, Table } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { getAuthToken, getFullImageUrl } from "@/services/api"
-import { API_URL } from "@/lib/config"
-
-// --- TYPESCRIPT & HÀM TIỆN ÍCH ---
-export interface User { UserID: number; FullName: string; Email: string; avatar?: string; }
-export interface OrderItem { OrderItemID: number; VariantID: number; Quantity: number; PriceAtPurchase: number; }
-export interface Order { OrderID: number; OrderCode: string; UserID: number; OrderDate: string; TotalAmount: number; PaymentMethod: "COD" | "BankTransfer" | "OnlineGateway"; PaymentStatus: "Pending" | "Paid" | "Failed" | "Refunded"; OverallStatus: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled" | "Completed"; user: User; items: OrderItem[]; }
-export interface PaginatedOrders { current_page: number; data: Order[]; last_page: number; total: number; }
-
+// --- HÀM TIỆN ÍCH ---
 const formatCurrency = (amount: number): string => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
-
-const formatDateForDisplay = (dateString: string): string => new Date(dateString).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-
+const formatDateForDisplay = (dateString: string): string => new Date(dateString).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const getStatusBadgeClass = (status: string) => {
-  const map: Record<string, string> = {
-    paid: "bg-green-50 text-green-700 border-green-200",
-    delivered: "bg-green-50 text-green-700 border-green-200",
-    completed: "bg-green-50 text-green-700 border-green-200",
-    pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    processing: "bg-blue-50 text-blue-700 border-blue-200",
-    shipped: "bg-purple-50 text-purple-700 border-purple-200",
-    failed: "bg-red-50 text-red-700 border-red-200",
-    cancelled: "bg-red-50 text-red-700 border-red-200",
-  };
-  return map[status] || "bg-gray-50 text-gray-700 border-gray-200";
+    const map: Record<string, string> = {
+        completed: "bg-green-50 text-green-700 border-green-200", rated: "bg-green-50 text-green-700 border-green-200", delivered: "bg-green-50 text-green-700 border-green-200",
+        pending: "bg-yellow-50 text-yellow-700 border-yellow-200", processing: "bg-blue-50 text-blue-700 border-blue-200",
+        shipped: "bg-purple-50 text-purple-700 border-purple-200", outfordelivery: "bg-purple-50 text-purple-700 border-purple-200",
+        returned: "bg-gray-50 text-gray-700 border-gray-200", returninprogress: "bg-gray-50 text-gray-700 border-gray-200",
+        cancelledbybuyer: "bg-red-50 text-red-700 border-red-200", cancelledbyseller: "bg-red-50 text-red-700 border-red-200", deliveryfailed: "bg-red-50 text-red-700 border-red-200",
+    };
+    return map[status.toLowerCase().replace(/\s/g, '')] || "bg-gray-50 text-gray-700 border-gray-200";
 };
-
 const getStatusIcon = (status: string) => {
-  const iconClass = "w-4 h-4";
-  switch (status.toLowerCase()) {
-    case "completed": case "delivered": return <CheckCircle className={`${iconClass} text-green-600`} />;
-    case "shipped": return <Truck className={`${iconClass} text-purple-600`} />;
-    case "processing": return <Package className={`${iconClass} text-blue-600`} />;
-    case "pending": return <Clock className={`${iconClass} text-yellow-600`} />;
-    case "cancelled": case "failed": return <XCircle className={`${iconClass} text-red-600`} />;
-    default: return <AlertCircle className={`${iconClass} text-gray-600`} />;
-  }
+    const iconClass = "w-4 h-4"; const lowerStatus = status.toLowerCase();
+    if (lowerStatus === "completed" || lowerStatus === "delivered" || lowerStatus === "rated") return <CheckCircle className={`${iconClass} text-green-600`} />;
+    if (lowerStatus === "shipped" || lowerStatus === "outfordelivery") return <Truck className={`${iconClass} text-purple-600`} />;
+    if (lowerStatus === "processing") return <Package className={`${iconClass} text-blue-600`} />;
+    if (lowerStatus === "pending") return <Clock className={`${iconClass} text-yellow-600`} />;
+    if (lowerStatus.startsWith("cancelled") || lowerStatus.includes("failed")) return <XCircle className={`${iconClass} text-red-600`} />;
+    return <AlertCircle className={`${iconClass} text-gray-600`} />;
 };
+const formatDateToYyyyMmDd = (date: Date): string => date.toISOString().split('T')[0];
 
-// Hàm định dạng Date object thành chuỗi 'YYYY-MM-DD'
-const formatDateToYyyyMmDd = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-};
-
-// --- COMPONENT CHÍNH ---
 export default function OrderManagement() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [keyword, setKeyword] = useState("");
   const [sortColumn, setSortColumn] = useState("OrderDate");
   const [sortType, setSortType] = useState<"asc" | "desc">("desc");
@@ -73,148 +50,95 @@ export default function OrderManagement() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
-  
-  // State cho bộ lọc ngày
+  const [filterShop, setFilterShop] = useState("all");
   const [dateFilter, setDateFilter] = useState({ start_date: "", end_date: "" });
   const [activeDatePreset, setActiveDatePreset] = useState<string>('all');
+ 
 
+  
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        search: keyword,
-        sort_by: sortColumn,
-        sort_order: sortType,
-        page: currentPage.toString(),
-        per_page: limitItem.toString(),
-      });
+      const params = new URLSearchParams({ search: keyword, sort_by: sortColumn, sort_order: sortType, page: currentPage.toString(), per_page: limitItem.toString() });
+      if (filterStatus !== "all") params.set("status", filterStatus);
+      if (filterShop !== "all") params.set("shop_id", filterShop);
+      if (dateFilter.start_date) params.set('start_date', dateFilter.start_date);
+      if (dateFilter.end_date) params.set('end_date', dateFilter.end_date);
 
-      if (filterStatus !== "all") {
-        params.set("status", filterStatus);
-      }
-
-      if (dateFilter.start_date) {
-        params.set('start_date', dateFilter.start_date);
-      }
-      if (dateFilter.end_date) {
-        params.set('end_date', dateFilter.end_date);
-      }
-
-      const authToken = getAuthToken()
-      if (!authToken) {
-        toast.error("Không tìm thấy token xác thực");
-        setLoading(false);
-        return;
-      }
-
-      const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, {
-         headers: { "Accept": "application/json" },
-         credentials: 'include', 
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error("Phiên đăng nhập không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
-        } else {
-          toast.error(`Lỗi máy chủ: ${res.statusText}`);
-        }
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
+      const res = await fetch(`${API_URL}/admin/orders?${params.toString()}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const json = await res.json();
       setOrders(json.data || []);
       setTotalPage(json.last_page || 1);
       setTotalOrders(json.total || 0);
       setCurrentPage(json.current_page || 1);
-
-    } catch (err) {
-      console.error("Lỗi khi fetch đơn hàng:", err);
-    } finally {
-      setLoading(false);
+    } catch (err) { 
+        toast.error("Không thể tải danh sách đơn hàng.");
+    } finally { 
+        setLoading(false); 
     }
-  }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter]);
+  }, [keyword, sortColumn, sortType, currentPage, limitItem, filterStatus, dateFilter, filterShop, API_URL]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  
+  const groupedOrders = useMemo(() => {
+    if (!orders) return {};
+    return orders.reduce<Record<string, SellerOrder[]>>((acc, order) => {
+      const shopId = order.shop.ShopID.toString();
+      if (!acc[shopId]) acc[shopId] = [];
+      acc[shopId].push(order);
+      return acc;
+    }, {});
+  }, [orders]);
 
-  // Hàm xử lý khi chọn các bộ lọc ngày có sẵn
-  const handleDatePresetClick = (preset: string) => {
-    setActiveDatePreset(preset);
-    setCurrentPage(1);
-
-    const today = new Date();
-    let startDate = new Date();
-    let endDate = new Date(today); // Mặc định ngày kết thúc là hôm nay
-
-    switch (preset) {
-        case '7days':
-            startDate.setDate(today.getDate() - 6); // 7 ngày bao gồm cả hôm nay
-            break;
-        case '30days':
-            startDate.setDate(today.getDate() - 29); // 30 ngày bao gồm cả hôm nay
-            break;
-        case 'thisMonth':
-            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            break;
-        case 'thisYear':
-            startDate = new Date(today.getFullYear(), 0, 1);
-            endDate = new Date(today.getFullYear(), 11, 31);
-            break;
-        case 'custom':
-            // Khi chọn tùy chỉnh, không cần đặt ngày, để người dùng tự chọn
-            return;
-        case 'all':
-        default:
-            setDateFilter({ start_date: "", end_date: "" });
-            return;
-    }
-    setDateFilter({
-        start_date: formatDateToYyyyMmDd(startDate),
-        end_date: formatDateToYyyyMmDd(endDate)
-    });
-  };
-
-  // Hàm xử lý khi người dùng thay đổi ngày trong input tùy chỉnh
-  const handleCustomDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setDateFilter(prev => ({ ...prev, [name]: value }));
+  const handleSort = (col: string) => {
+    if (col === sortColumn) setSortType(sortType === 'asc' ? 'desc' : 'asc');
+    else { setSortColumn(col); setSortType('desc'); }
     setCurrentPage(1);
   };
   
-  const handleSort = (col: string) => {
-    if (col === sortColumn) {
-      setSortType(sortType === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(col);
-      setSortType("desc");
-    }
-     setCurrentPage(1);
-  };
-
   const renderSortIcon = (col: string) => {
     if (sortColumn !== col) return <ChevronsUpDown className="w-4 h-4 text-gray-300" />;
     return sortType === "asc" ? <ChevronUp className="w-4 h-4 text-orange-600" /> : <ChevronDown className="w-4 h-4 text-orange-600" />;
   };
+
+  // --- PHẦN BỊ THIẾU ĐÃ ĐƯỢC THÊM LẠI ---
+  const handleDatePresetClick = (preset: string) => {
+    setActiveDatePreset(preset); 
+    setCurrentPage(1);
+    const today = new Date(); 
+    let startDate = new Date(); 
+    let endDate = new Date(today);
+    switch (preset) {
+        case '7days': startDate.setDate(today.getDate() - 6); break;
+        case '30days': startDate.setDate(today.getDate() - 29); break;
+        case 'thisMonth': startDate = new Date(today.getFullYear(), today.getMonth(), 1); endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); break;
+        case 'thisYear': startDate = new Date(today.getFullYear(), 0, 1); endDate = new Date(today.getFullYear(), 11, 31); break;
+        case 'custom': return;
+        default: setDateFilter({ start_date: "", end_date: "" }); return;
+    }
+    setDateFilter({ start_date: formatDateToYyyyMmDd(startDate), end_date: formatDateToYyyyMmDd(endDate) });
+  };
   
-  const orderStatuses: { value: string; label: string }[] = [
-    { value: "all", label: "Tất cả trạng thái" },
-    { value: "Pending", label: "Chờ xử lý" },
-    { value: "Processing", label: "Đang xử lý" },
-    { value: "Shipped", label: "Đang giao" },
-    { value: "Delivered", label: "Đã giao" },
-    { value: "Completed", label: "Hoàn thành" },
-    { value: "Cancelled", label: "Đã hủy" },
+  const handleCustomDateChange = (e: React.ChangeEvent<HTMLInputElement>) => { 
+    setDateFilter(prev => ({ ...prev, [e.target.name]: e.target.value })); 
+    setCurrentPage(1); 
+  };
+
+  const datePresets = [ 
+    { key: 'all', label: 'Tất cả'}, 
+    { key: '7days', label: '7 ngày qua' }, 
+    { key: '30days', label: '30 ngày qua' }, 
+    { key: 'thisMonth', label: 'Tháng này' }, 
+    { key: 'thisYear', label: 'Năm này' }, 
+    { key: 'custom', label: 'Tùy chọn' }, 
   ];
-  
-  const datePresets = [
-      { key: 'all', label: 'Tất cả'},
-      { key: '7days', label: '7 ngày qua' },
-      { key: '30days', label: '30 ngày qua' },
-      { key: 'thisMonth', label: 'Tháng này' },
-      { key: 'thisYear', label: 'Năm này' },
-      { key: 'custom', label: 'Tùy chọn' },
+  // --- KẾT THÚC PHẦN THÊM LẠI ---
+
+  const orderStatuses = [
+      { value: "all", label: "Tất cả trạng thái" }, { value: "Pending", label: "Chờ xử lý" }, { value: "Processing", label: "Đang xử lý" },
+      { value: "Shipped,OutForDelivery", label: "Đang giao" }, { value: "Delivered", label: "Đã giao" }, { value: "Completed,Rated", label: "Hoàn thành" },
+      { value: "CancelledByBuyer,CancelledBySeller", label: "Đã hủy" }, { value: "Returned,ReturnInProgress", label: "Trả hàng/Hoàn tiền" },
   ];
 
   return (
@@ -223,162 +147,101 @@ export default function OrderManagement() {
       <div className="w-auto bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-8xl mx-auto p-4 md:p-6">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Quản lý đơn hàng</h1>
-            <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
+            <h1 className="text-3xl font-bold text-gray-900">Quản lý đơn hàng (Theo Shop)</h1>
+            <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng được gom nhóm theo từng nhà bán hàng</p>
           </div>
 
+          
+          
           <Card>
-            <CardHeader>
-              <CardTitle>Bộ lọc và tìm kiếm</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Bộ lọc và tìm kiếm</CardTitle></CardHeader>
             <CardContent className="flex flex-col gap-4">
-                {/* Dòng 1: Tìm kiếm, Trạng thái, Số mục/trang */}
                 <div className="flex flex-col md:flex-row gap-4 items-end flex-wrap">
-                    <div className="flex-grow">
-                        <label className="text-sm font-medium">Tìm kiếm</label>
-                        <Input
-                            placeholder="Mã đơn, tên khách hàng..."
-                            value={keyword}
-                            onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }}
-                        />
-                    </div>
-                    <div>
-                        <label className="text-sm font-medium">Trạng thái</label>
-                        <Select
-                            value={filterStatus}
-                            onValueChange={(value) => { setFilterStatus(value); setCurrentPage(1); }}
-                        >
-                            <SelectTrigger className="w-full md:w-[180px]">
-                                <SelectValue placeholder="Chọn trạng thái" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {orderStatuses.map(status => (
-                                    <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
-                                ))}
-                            </SelectContent>
+                    <div className="flex-grow"><label className="text-sm font-medium">Tìm kiếm</label><Input placeholder="Mã đơn, tên khách..." value={keyword} onChange={(e) => { setKeyword(e.target.value); setCurrentPage(1); }} /></div>
+                   
+                    <div><label className="text-sm font-medium">Trạng thái</label>
+                        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setCurrentPage(1); }}>
+                            <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="Chọn trạng thái" /></SelectTrigger>
+                            <SelectContent>{orderStatuses.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
-                    <div>
-                        <label className="text-sm font-medium">Mục/Trang</label>
-                        <Select
-                            value={limitItem.toString()}
-                            onValueChange={(value) => { setLimitItem(Number(value)); setCurrentPage(1); }}
-                        >
+                    <div><label className="text-sm font-medium">Mục/Trang</label>
+                        <Select value={limitItem.toString()} onValueChange={(v) => { setLimitItem(Number(v)); setCurrentPage(1); }}>
                             <SelectTrigger className="w-full md:w-[100px]"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                {[10, 20, 50].map((n) => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
-                            </SelectContent>
+                            <SelectContent>{[10, 20, 50].map(n => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
-                    <Button onClick={() => fetchOrders()}><RefreshCw className="w-4 h-4 mr-2" />Làm mới</Button>
+                    <Button onClick={fetchOrders}><RefreshCw className="w-4 h-4 mr-2" />Làm mới</Button>
                 </div>
-                {/* Dòng 2: Bộ lọc ngày */}
                 <div className="pt-2">
                     <label className="text-sm font-medium mb-2 block">Lọc theo ngày đặt hàng</label>
                     <div className="flex flex-wrap items-center gap-2">
-                        {datePresets.map(preset => (
-                            <Button
-                                key={preset.key}
-                                variant={activeDatePreset === preset.key ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleDatePresetClick(preset.key)}
-                                className={activeDatePreset === preset.key ? "bg-orange-600 hover:bg-orange-700" : ""}
-                            >
-                                {preset.label}
-                            </Button>
-                        ))}
+                        {datePresets.map(preset => (<Button key={preset.key} variant={activeDatePreset === preset.key ? "default" : "outline"} size="sm" onClick={() => handleDatePresetClick(preset.key)} className={activeDatePreset === preset.key ? "bg-orange-600 hover:bg-orange-700" : ""}>{preset.label}</Button>))}
                     </div>
-                    {/* Hiển thị input chọn ngày khi 'Tùy chọn' được kích hoạt */}
-                    {activeDatePreset === 'custom' && (
-                        <div className="flex flex-col md:flex-row gap-4 mt-3 p-4 bg-gray-50 rounded-lg border">
-                            <div>
-                                <label htmlFor="start_date" className="text-sm font-medium">Từ ngày</label>
-                                <Input
-                                    type="date"
-                                    id="start_date"
-                                    name="start_date"
-                                    value={dateFilter.start_date}
-                                    onChange={handleCustomDateChange}
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="end_date" className="text-sm font-medium">Đến ngày</label>
-                                <Input
-                                    type="date"
-                                    id="end_date"
-                                    name="end_date"
-                                    value={dateFilter.end_date}
-                                    onChange={handleCustomDateChange}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    {activeDatePreset === 'custom' && (<div className="flex flex-col md:flex-row gap-4 mt-3 p-4 bg-gray-50 rounded-lg border">
+                            <div><label htmlFor="start_date" className="text-sm font-medium">Từ ngày</label><Input type="date" id="start_date" name="start_date" value={dateFilter.start_date} onChange={handleCustomDateChange} /></div>
+                            <div><label htmlFor="end_date" className="text-sm font-medium">Đến ngày</label><Input type="date" id="end_date" name="end_date" value={dateFilter.end_date} onChange={handleCustomDateChange} /></div>
+                    </div>)}
                 </div>
             </CardContent>
           </Card>
-
+          
           <div className="mt-6">
-            {loading ? (
-              <div className="text-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div><p className="mt-2">Đang tải...</p></div>
-            ) : (
-              <Card>
+            {loading ? <div className="text-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div><p className="mt-2">Đang tải...</p></div> : <Card>
                 <CardContent className="pt-6">
                   <div className="rounded-lg border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
+                        <TableRow className="bg-gray-50 hover:bg-gray-100">
                           <TableHead className="w-[25%]">Khách hàng</TableHead>
-                          <TableHead className="w-[15%]">Mã đơn hàng</TableHead>
-                          <TableHead className="cursor-pointer hover:bg-gray-100" onClick={() => handleSort('OrderDate')}>
-                            <div className="flex items-center gap-2">Ngày đặt {renderSortIcon('OrderDate')}</div>
-                          </TableHead>
-                          <TableHead className="text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('TotalAmount')}>
-                            <div className="flex items-center gap-2 justify-end">Thành tiền {renderSortIcon('TotalAmount')}</div>
-                          </TableHead>
+                          <TableHead className="w-[15%]">Mã đơn shop</TableHead>
+                          <TableHead className="cursor-pointer hover:bg-gray-200" onClick={() => handleSort('OrderDate')}><div className="flex items-center gap-2">Ngày đặt {renderSortIcon('OrderDate')}</div></TableHead>
+                          <TableHead className="text-right cursor-pointer hover:bg-gray-200" onClick={() => handleSort('TotalAmount')}><div className="flex items-center gap-2 justify-end">Thành tiền {renderSortIcon('TotalAmount')}</div></TableHead>
                           <TableHead className="text-center">Trạng thái</TableHead>
                           <TableHead className="text-center">Hành động</TableHead>
-                        </TableRow>
-                      </TableHeader>
+                      </TableRow>
+                    </TableHeader>
                       <TableBody>
-                        {orders.length > 0 ? (
-                          orders.map((order) => (
-                            <TableRow key={order.OrderID} className="hover:bg-orange-50/50">
-                              <TableCell>
-                                <div className="flex items-center gap-3">
-                                  <img className="h-10 w-10 rounded-full object-cover" src={getFullImageUrl(order.user.avatar)} alt="Avatar" />
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{order.user.FullName}</p>
-                                    <p className="text-sm text-gray-500">{order.user.Email}</p>
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell><code className="bg-gray-100 px-2 py-1 rounded text-xs">{order.OrderCode}</code></TableCell>
-                              <TableCell>{formatDateForDisplay(order.OrderDate)}</TableCell>
-                              <TableCell className="text-right font-bold text-orange-600">{formatCurrency(order.TotalAmount)}</TableCell>
-                              <TableCell className="text-center"><span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border ${getStatusBadgeClass(order.OverallStatus)}`}>{getStatusIcon(order.OverallStatus)} {order.OverallStatus}</span></TableCell>
-                              <TableCell className="text-center">
-                                <Link href={`/admin/orders/${order.OrderID}`} className="text-orange-600 hover:text-orange-800"><Eye className="w-5 h-5 inline-block" /></Link>
-                              </TableCell>
-                            </TableRow>
+                        {Object.keys(groupedOrders).length > 0 ? (
+                          Object.keys(groupedOrders).map(shopId => (
+                            <React.Fragment key={shopId}>
+                              <TableRow className="bg-orange-50/50 hover:bg-orange-100/70 border-b-2 border-orange-200">
+                                <TableCell colSpan={6} className="font-bold text-orange-700 py-3">
+                                  <div className="flex items-center gap-2"><Store className="h-5 w-5"/><span>{groupedOrders[shopId][0].shop.ShopName}</span></div>
+                                </TableCell>
+                              </TableRow>
+                              {groupedOrders[shopId].map(order => (
+                                <TableRow key={order.SellerOrderID} className="hover:bg-gray-50">
+                                  <TableCell><div className="flex items-center gap-3">
+                                      <img className="h-10 w-10 rounded-full object-cover" src={getFullImageUrl(order.order_buyer.user.Avatar)} alt="Avatar" />
+                                      <div><p className="font-semibold text-gray-900">{order.order_buyer.user.FullName}</p><p className="text-sm text-gray-500">{order.order_buyer.user.Email}</p></div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell><code className="bg-gray-100 px-2 py-1 rounded text-xs">{order.SellerOrderCode}</code></TableCell>
+                                  <TableCell>{formatDateForDisplay(order.order_buyer.OrderDate)}</TableCell>
+                                  <TableCell className="text-right font-bold text-orange-600">{formatCurrency(order.TotalAmount)}</TableCell>
+                                  <TableCell className="text-center"><span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border ${getStatusBadgeClass(order.Status)}`}>{getStatusIcon(order.Status)} {order.Status}</span></TableCell>
+                                  <TableCell className="text-center"><Link href={`/admin/orders/seller/${order.SellerOrderID}`} className="text-orange-600 hover:text-orange-800"><Eye className="w-5 h-5 inline-block" /></Link></TableCell>
+                                </TableRow>
+                              ))}
+                            </React.Fragment>
                           ))
-                        ) : (
-                          <TableRow><TableCell colSpan={6} className="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào.</TableCell></TableRow>
+                        ) : ( 
+                          <TableRow><TableCell colSpan={6} className="text-center py-16 text-gray-500">Không tìm thấy đơn hàng nào.</TableCell></TableRow> 
                         )}
                       </TableBody>
                     </Table>
                   </div>
-                  
                   <div className="flex items-center justify-between mt-4">
-                    <p className="text-sm text-gray-600">Hiển thị {orders.length} trên tổng số {totalOrders} đơn hàng</p>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Trước</Button>
-                      <span className="text-sm">Trang {currentPage} / {totalPage}</span>
-                      <Button variant="outline" size="sm" disabled={currentPage === totalPage} onClick={() => setCurrentPage(p => p + 1)}>Sau</Button>
-                    </div>
+                        <p className="text-sm text-gray-600">Hiển thị {orders.length} trên tổng số {totalOrders} đơn hàng</p>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Trước</Button>
+                            <span className="text-sm">Trang {currentPage} / {totalPage}</span>
+                            <Button variant="outline" size="sm" disabled={currentPage === totalPage} onClick={() => setCurrentPage(p => p + 1)}>Sau</Button>
+                        </div>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </div>
         </div>
       </div>

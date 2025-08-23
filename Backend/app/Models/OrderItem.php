@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\OrdersSeller;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ProductVariant;
 
 class OrderItem extends Model {
@@ -42,10 +42,7 @@ class OrderItem extends Model {
     {
         return is_numeric($value) ? (float) $value : 0.0;
     }
-    public function sellerOrder()
-    {
-        return $this->belongsTo(SellerOrder::class, 'SellerOrderID', 'SellerOrderID');
-    }
+
     public function getSubtotalAttribute($value)
     {
         return is_numeric($value) ? (float) $value : 0.0;
@@ -56,7 +53,7 @@ class OrderItem extends Model {
      */
     public function order(): BelongsTo
     {
-        return $this->belongsTo(OrdersSeller::class, 'SellerOrderID', 'SellerOrderID');
+        return $this->belongsTo(OrderSeller::class, 'SellerOrderID', 'SellerOrderID');
     }
 
     /**

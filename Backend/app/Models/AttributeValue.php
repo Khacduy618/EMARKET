@@ -25,7 +25,7 @@ class AttributeValue extends Model
         return $this->belongsTo(Attribute::class, 'AttributeID', 'AttributeID');
     }
 
-
+    
     /**
      * Get the product variants that have this attribute value.
      */

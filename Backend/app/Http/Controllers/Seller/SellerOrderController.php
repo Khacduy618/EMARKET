@@ -92,7 +92,7 @@ class SellerOrderController extends Controller
     // Tính subtotal theo shop (SubtotalAmount đã có trong bảng, 
     // nhưng nếu muốn tính lại từ orderItems thì vẫn giữ như sau)
     $orders->getCollection()->transform(function ($order) {
-        $shopSubtotal = $order->items->sum('Subtotal');
+        $shopSubtotal = $order->orderItems->sum('Subtotal');
         $order->shop_subtotal = $shopSubtotal;
         $order->ShippingFullName = $order->orderBuyer->ShippingFullName ?? null;
         return $order;
@@ -330,6 +330,7 @@ public function handle(Request $request)
         }
 
         $order->Status = 'Shipped';
+        $order->ShippedAt = now(); // Cập nhật thời gian gửi
         $order->save();
 
         // Lấy thông tin seller và địa chỉ giao hàng

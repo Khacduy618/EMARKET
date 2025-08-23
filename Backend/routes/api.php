@@ -383,15 +383,22 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     
     // === ORDER MANAGEMENT === 
     // URL sẽ trở thành: /api/admin/orders
-    Route::get('/orders', [AdminOrderController::class, 'index']); 
-    Route::get('/orders/{id}', [AdminOrderController::class, 'show']); 
+    Route::get('/orders', [AdminOrderController::class, 'index']);
+    Route::get('/orders/export', [AdminOrderController::class, 'export']);
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
+    Route::get('/orders/shop-filters', [AdminOrderController::class, 'getShopFilters']);
     Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
+    Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+    Route::get('/orders/seller/{sellerOrder}', [AdminOrderController::class, 'show']);
 
     // === REVIEW MANAGEMENT === // 
     Route::prefix('reviews')->name('admin.reviews.')->group(function () {
-        Route::get('/', [ProductReviewController::class, 'index'])->name('index');
-        
-        Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
+    Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+
+    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
+    Route::get('/reviews/stats', [ProductReviewController::class, 'getStats']); // <-- MỚI
+    Route::post('/reviews/bulk-update', [ProductReviewController::class, 'bulkUpdateStatus']); // <-- MỚI
+    Route::get('/reviews/export', [ProductReviewController::class, 'export']); // <-- MỚI
     });
     // === RETURN REQUEST MANAGEMENT ===
     Route::get('/return-requests/pending-refunds', [AdminReturnRequestController::class, 'listPendingRefunds']);

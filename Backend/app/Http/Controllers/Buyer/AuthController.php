@@ -19,7 +19,7 @@ class AuthController extends Controller
     public function verifyEmail(Request $request)
     {
         // Lấy URL của frontend từ file .env
-        $frontendUrl = env('CORS_ALLOWED_ORIGINS', '');
+        $frontendUrl = 'http://localhost';
 
         $user = User::findOrFail($request->route('id'));
 

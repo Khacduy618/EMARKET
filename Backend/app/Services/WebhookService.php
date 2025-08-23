@@ -10,8 +10,7 @@ class WebhookService
     public function sendWebhook(array $payload)
     {
         // Giả định URL webhook của app giao hàng (có thể cấu hình trong .env hoặc database)
-        // $webhookUrl = config('services.shipping_webhook_url', 'http://localhost:8000/api/webhook');
-        $webhookUrl = 'http://localhost:8000/api/webhook';
+        $webhookUrl = env('INTERNAL_WEBHOOK_URL', 'http://nginx/api/webhook');
 
         $response = Http::post($webhookUrl, $payload);
 
