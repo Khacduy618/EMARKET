@@ -32,18 +32,40 @@ services:
     restart: always
     ports:
       - "80:80" # <-- Chỉ cần cổng 80
+      - "443:443"
     volumes:
-      - ../Backend:/var/www/html:ro
+      - ../Backend/public:/var/www/html/public:ro
+      - backend_storage:/var/www/html/storage
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
     networks:
       - app-network
     depends_on:
       - frontend
       - backend
 
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot:rw
+      - ./certbot/conf:/etc/letsencrypt:rw
+  worker:
+    image: khduy555/backend:latest
+    container_name: worker-app
+    volumes:
+      - ../Backend:/var/www/html
+      - backend_storage:/var/www/html/storage
+    env_file:
+      - ./backend.env
+    
+    command: php artisan queue:work --tries=3 --timeout=60
+    restart: unless-stopped
+    networks:
+      - app-network
 networks:
   app-network:
     driver: bridge
-
 volumes:
-  backend_storage:
+    backend_storage:
