@@ -11,6 +11,7 @@ import { AdminReview, ReviewStatus } from "@/types"
 import { toast } from "react-toastify"
 import axios from 'axios' // <-- Thêm axios để gọi API
 import { API_URL } from "@/lib/config"
+import { getStorageImageUrl } from "@/services/api"
 
 // ▼▼▼ TẠO HÀM GỌI API NGAY TẠI ĐÂY (hoặc trong file services/api.ts) ▼▼▼
 const updateReviewStatus = async (reviewId: number, payload: { status: ReviewStatus, resolveRequest?: boolean }): Promise<AdminReview> => {
@@ -78,7 +79,7 @@ export function ReviewDetailDialog({
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <img src={review.productImage || "/placeholder.svg"} alt={review.productName} className="w-16 h-16 rounded object-cover border"/>
+            <img src={getStorageImageUrl(review.productImage) || "/placeholder.svg"} alt={review.productName} className="w-16 h-16 rounded object-cover border"/>
             <div className="flex-1">
               <div className="text-sm text-gray-600">{review.shopName}</div>
               <div className="font-medium">{review.productName}</div>
@@ -93,7 +94,7 @@ export function ReviewDetailDialog({
           <Separator />
 
           <div className="flex items-start gap-3">
-            <Avatar><AvatarImage src={review.reviewerAvatar || undefined} /><AvatarFallback>{review.reviewerName?.[0] || "U"}</AvatarFallback></Avatar>
+            <Avatar><AvatarImage src={getStorageImageUrl(review.reviewerAvatar) || undefined} /><AvatarFallback>{review.reviewerName?.[0] || "U"}</AvatarFallback></Avatar>
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <div className="font-medium">{review.reviewerName}</div>
@@ -105,7 +106,7 @@ export function ReviewDetailDialog({
               <p className="mt-2 text-sm text-gray-800 leading-relaxed">{review.content}</p>
               {review.images && review.images.length > 0 && (
                 <div className="mt-2 flex gap-2 flex-wrap">
-                  {review.images.map((img, idx) => (<img key={idx} src={img || "/placeholder.svg"} alt={`img-${idx}`} className="w-16 h-16 rounded border object-cover"/>))}
+                  {review.images.map((img, idx) => (<img key={idx} src={getStorageImageUrl(img) || "/placeholder.svg"} alt={`img-${idx}`} className="w-16 h-16 rounded border object-cover"/>))}
                 </div>
               )}
               {review.shopReply && (

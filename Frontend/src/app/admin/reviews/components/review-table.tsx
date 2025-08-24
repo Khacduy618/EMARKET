@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Eye, ChevronLeft, ChevronRight, Store } from "lucide-react";
 import { ReviewDetailDialog } from "./review-detail-dialog";
 import { AdminReview, ReviewStatus } from "@/types";
+import { getStorageImageUrl } from "@/services/api";
 
 // Định nghĩa kiểu cho các props mà component này nhận
 interface ReviewTableProps {
@@ -92,7 +93,6 @@ export function ReviewTable({
               <TableHead className="min-w-[180px]">Người đánh giá</TableHead>
               <TableHead className="min-w-[120px]">Rating</TableHead>
               <TableHead>Ngày</TableHead>
-              <TableHead>Trạng thái</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -126,7 +126,7 @@ export function ReviewTable({
                         <TableCell className="align-top">
                           <div className="flex items-start gap-3">
                             <img
-                              src={r.productImage || "/placeholder.svg?height=60&width=60"}
+                              src={getStorageImageUrl(r.productImage) || "/placeholder.svg?height=60&width=60"}
                               alt={r.productName}
                               className="w-14 h-14 rounded-md object-cover border"
                             />
@@ -156,7 +156,7 @@ export function ReviewTable({
                         </TableCell>
 
                         <TableCell className="align-top text-sm text-gray-600">{r.date}</TableCell>
-                        <TableCell className="align-top">{statusBadge(r.status)}</TableCell>
+                        
                         <TableCell className="align-top text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="outline" size="sm" onClick={() => setOpenId(r.id)}>

@@ -178,13 +178,7 @@ export default function AdminReviewsList() {
                            <SelectContent><SelectItem value="all">Tất cả cửa hàng</SelectItem>{shops.map(shop => <SelectItem key={shop.ShopID} value={String(shop.ShopID)}>{shop.ShopName}</SelectItem>)}</SelectContent>
                        </Select>
                    </div>
-                   <div>
-                       <Label htmlFor="status" className="text-sm font-bold text-blue-700 mb-2 block">Trạng thái</Label>
-                       <Select value={status} onValueChange={(v: string) => { setStatus(v); setPage(1); }}>
-                           <SelectTrigger id="status" className="h-11 text-base"><SelectValue /></SelectTrigger>
-                           <SelectContent>{reviewStatuses.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                       </Select>
-                   </div>
+                   
                    <div>
                        <Label htmlFor="rating" className="text-sm font-bold text-blue-700 mb-2 block">Rating</Label>
                        <Select value={rating} onValueChange={(v: string) => { setRating(v); setPage(1); }}>
@@ -213,13 +207,16 @@ export default function AdminReviewsList() {
                                <Input type="date" name="end_date" value={dateFilter.end_date} onChange={handleCustomDateChange} className="h-11 text-base"/>
                        </div>)}
                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                     <div className="flex items-center gap-2 pt-1 h-11">
-                         <Checkbox id="only-req" checked={onlyRequests} onCheckedChange={(v) => { setOnlyRequests(Boolean(v)); setPage(1); }} />
-                         <Label htmlFor="only-req" className="font-medium">Có yêu cầu từ Shop</Label>
-                     </div>
-                     <Button onClick={fetchReviews} className="h-11 text-base bg-gray-800 text-white hover:bg-gray-900"><RefreshCw className="w-4 h-4 mr-2" />Làm mới</Button>
-                     {isFiltered && (<Button onClick={handleClearFilters} variant="destructive" className="h-11 text-base"><X className="w-4 h-4 mr-2" />Xóa bộ lọc</Button>)}
+                   <div className="flex items-center gap-4 flex-shrink-0">
+                    
+                        <Button onClick={fetchReviews} className="h-11 text-base bg-gray-800 text-white hover:bg-gray-900">
+                            <RefreshCw className="w-4 h-4 mr-2" />Làm mới
+                        </Button>
+                        {isFiltered && (
+                            <Button onClick={handleClearFilters} variant="destructive" className="h-11 text-base">
+                                <X className="w-4 h-4 mr-2" />Xóa bộ lọc
+                            </Button>
+                        )}
                    </div>
                </div>
            </CardContent>
