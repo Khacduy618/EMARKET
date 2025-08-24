@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react"
+import { getStorageImageUrl } from "@/services/api"
 
 interface ImageGalleryModalProps {
     images: string[]
@@ -58,7 +59,7 @@ export default function ImageGalleryModal({ images, isOpen, onClose, initialInde
                 {/* Main Image */}
                 <div className="relative w-full h-[70vh] bg-gray-900 rounded-lg overflow-hidden">
                     <Image
-                        src={`${images[currentIndex]}`}
+                        src={getStorageImageUrl(images[currentIndex])}
                         alt={`Proof Image ${currentIndex + 1}`}
                         fill
                         className="object-contain"

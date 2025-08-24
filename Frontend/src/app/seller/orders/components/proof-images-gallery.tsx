@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { ZoomIn, Camera } from "lucide-react"
 import ImageGalleryModal from "./image-gallery-modal"
+import { getStorageImageUrl } from "@/services/api"
 
 interface ProofImagesGalleryProps {
     proof_image1?: string | null
@@ -41,7 +42,7 @@ export default function ProofImagesGallery({ proof_image1, proof_image2 }: Proof
                             onClick={() => openModal(index)}
                         >
                             <Image
-                                src={image}
+                                src={getStorageImageUrl(image)}
                                 alt={`Proof Image ${index + 1}`}
                                 fill
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
