@@ -22,7 +22,6 @@ export const sidebarItems = [
 ]
 
 export const adminSidebarItems = [
-  { icon: BarChart3, label: "Dashboard", href: "/admin/dashboard" },
   { icon: TrendingUp, label: "Thống kê", href: "/admin/analytics" },
   { icon: Package, label: "Tất cả sản phẩm", href: "/admin/products" },
   { icon: Package, label: "Thêm sản phẩm", href: "/admin/products/add" },

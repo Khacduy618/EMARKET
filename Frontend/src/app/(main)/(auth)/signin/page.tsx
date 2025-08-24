@@ -34,32 +34,6 @@ export default function LoginPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showResendLink, setShowResendLink] = useState(false);
 
-//     useEffect(() => {
-//     // Chỉ thực hiện khi có thông tin user (đăng nhập thành công)
-//     if (user) {
-//         // Thông báo đăng nhập thành công cho người dùng
-//         toast.success(`Đăng nhập thành công! Đang chuyển hướng...`, {
-//             autoClose: 2000,
-//         });
-
-//         // Xác định đường dẫn điều hướng dựa trên vai trò của user
-//         let redirectPath = '/'; // Đường dẫn mặc định cho Buyer hoặc vai trò không xác định
-
-//         // Sử dụng toLowerCase() để tránh lỗi do phân biệt chữ hoa/thường (vd: 'Admin' vs 'admin')
-//         switch (user.Role.toLowerCase()) {
-//             case 'admin':
-//                 redirectPath = '/admin/dashboard';
-//                 break;
-//             case 'seller':
-//                 redirectPath = '/seller'; // Hoặc '/seller' tùy theo cấu trúc route của bạn
-//                 break;
-//             // Không cần case 'buyer' vì đã có giá trị mặc định
-//         }
-
-//         // Thực hiện điều hướng
-//         router.push(redirectPath);
-//     }
-// }, [user, router]); // Dependencies không đổi
 
     // Kiểm tra form có hợp lệ không để kích hoạt nút Đăng nhập
     const isFormValid = useMemo(() => {

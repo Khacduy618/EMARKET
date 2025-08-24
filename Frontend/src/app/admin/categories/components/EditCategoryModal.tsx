@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { API_URL } from "@/lib/config"
+import { getStorageImageUrl } from "@/services/api"
 
 type Category = {
   CategoryID: number
@@ -218,7 +219,7 @@ export default function EditCategoryModal({ categoryId, categoryTree, onClose, o
                   {previewUrl ? (
                     <div className="flex items-center space-x-4">
                       <Avatar className="h-16 w-16 rounded-lg">
-                        <AvatarImage src={previewUrl || "/placeholder.svg"} alt="Preview" className="object-cover" />
+                        <AvatarImage src={getStorageImageUrl(previewUrl) || "/placeholder.svg"} alt="Preview" className="object-cover" />
                         <AvatarFallback className="rounded-lg">
                           <ImageIcon className="h-6 w-6" />
                         </AvatarFallback>

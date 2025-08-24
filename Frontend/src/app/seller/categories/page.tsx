@@ -33,11 +33,7 @@ export default function CategoriesPage() {
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
-        const token = getAuthToken();
-        if (!token) {
-            Swal.fire("Unauthorized!", "Please log in to access the dashboard.", "error").then(() => router.push("/signin"))
-            return
-        }
+        
         fetchCategories()
     }, [router])
 
@@ -298,9 +294,7 @@ export default function CategoriesPage() {
                                             <thead>
                                                 <tr className="border-b border-gray-200">
                                                     <th className="text-left py-3 px-4 font-medium text-gray-700">Tên ngành hàng</th>
-                                                    <th className="text-left py-3 px-4 font-medium text-gray-700">Trạng thái</th>
-                                                    <th className="text-left py-3 px-4 font-medium text-gray-700">Ngày đăng ký</th>
-                                                    <th className="text-left py-3 px-4 font-medium text-gray-700">Thao tác</th>
+                                                    
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -308,49 +302,6 @@ export default function CategoriesPage() {
                                                     <tr key={category.ShopCategoryID} className="border-b border-gray-100 hover:bg-gray-50">
                                                         <td className="py-4 px-4">
                                                             <div className="font-medium text-gray-900">{category.CategoryName}</div>
-                                                        </td>
-                                                        <td className="py-4 px-4">
-                                                            <div className="flex flex-col">
-                                                                <span
-                                                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit ${category.Status === "Approved"
-                                                                            ? "bg-green-100 text-green-800"
-                                                                            : category.Status === "Rejected"
-                                                                                ? "bg-red-100 text-red-800"
-                                                                                : "bg-yellow-100 text-yellow-800"
-                                                                        }`}
-                                                                >
-                                                                    {category.Status === "Approved"
-                                                                        ? "Đã phê duyệt"
-                                                                        : category.Status === "Rejected"
-                                                                            ? "Bị từ chối"
-                                                                            : "Chờ phê duyệt"}
-                                                                </span>
-                                                                {category.RejectedReason && (
-                                                                    <p className="text-red-600 text-xs mt-1 max-w-xs">{category.RejectedReason}</p>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-4 px-4 text-sm text-gray-500">
-                                                            {new Date(category.RequestedAt).toLocaleDateString("vi-VN")}
-                                                        </td>
-                                                        <td className="py-4 px-4">
-                                                            {category.Status === "PendingApproval" && (
-                                                                <button
-                                                                    onClick={() => handleDelete(category.ShopCategoryID, category.CategoryName)}
-                                                                    className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
-                                                                    title="Xóa yêu cầu đăng ký"
-                                                                    disabled={loading}
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            strokeWidth={2}
-                                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                                        />
-                                                                    </svg>
-                                                                </button>
-                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))}

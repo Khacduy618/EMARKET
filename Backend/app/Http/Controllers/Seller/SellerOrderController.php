@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers\Seller;
+
 
 use App\Http\Controllers\Controller;
 use App\Models\OrderBuyer;
@@ -10,10 +12,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request; // ✅ để ở đây
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log; // ✅ để ở đây
-use App\Services\WebhookService; 
+use App\Services\WebhookService;
 class SellerOrderController extends Controller
 {
      protected $webhookService;
+
 
     public function __construct(WebhookService $webhookService)
     {
@@ -23,21 +26,26 @@ class SellerOrderController extends Controller
 {
     $shop = Shop::where('UserID', Auth::id() )->firstOrFail();
 
+
     if (!$shop) {
         return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 404);
     }
+
 
     $shopId = $shop->ShopID;
     $status = $request->query('status');
     $searchTerm = $request->query('search');
 
+
     // Lấy danh sách đơn hàng theo ShopID
     $ordersQuery = OrderSeller::where('ShopID', $shopId);
+
 
     // Lọc theo trạng thái (Status trong bảng ordersseller)
     if ($status && $status !== 'all') {
         $ordersQuery->where('Status', $status);
     }
+
 
     // Lọc theo mã đơn hàng hoặc tên khách hàng (dùng quan hệ với OrderBuyer)
     if ($searchTerm) {
@@ -46,6 +54,7 @@ class SellerOrderController extends Controller
         $q->where('SellerOrderCode', 'like', '%' . $searchTerm . '%')
           ->orWhere('Status', 'like', '%' . $searchTerm . '%');
 
+
         // Lọc thêm trong orderBuyer
         $q->orWhereHas('orderBuyer', function ($sub) use ($searchTerm) {
             $sub->where('OrderCode', 'like', '%' . $searchTerm . '%')
@@ -53,6 +62,7 @@ class SellerOrderController extends Controller
         });
     });
 }
+
 
     $orders = $ordersQuery
         ->with([
@@ -89,7 +99,8 @@ class SellerOrderController extends Controller
         ->orderBy('CreatedAt', 'desc')
         ->paginate(15);
 
-    // Tính subtotal theo shop (SubtotalAmount đã có trong bảng, 
+
+    // Tính subtotal theo shop (SubtotalAmount đã có trong bảng,
     // nhưng nếu muốn tính lại từ orderItems thì vẫn giữ như sau)
     $orders->getCollection()->transform(function ($order) {
         $shopSubtotal = $order->orderItems->sum('Subtotal');
@@ -99,8 +110,12 @@ class SellerOrderController extends Controller
     });
 
 
+
+
     return response()->json($orders);
 }
+
+
 
 
  public function show($SellerOrderID)
@@ -110,7 +125,9 @@ class SellerOrderController extends Controller
         return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 403);
     }
 
+
     $shopId = $shop->ShopID;
+
 
     $order = OrderSeller::where('SellerOrderID', $SellerOrderID)
         ->whereHas('orderItems.variant.product', function ($query) use ($shopId) {
@@ -129,6 +146,7 @@ class SellerOrderController extends Controller
         ])
         ->firstOrFail();
 
+
     $transformedData = [
         'sellerOrderId'       => $order->SellerOrderID,
         'orderCode'           => $order->SellerOrderCode,
@@ -142,7 +160,7 @@ class SellerOrderController extends Controller
         'totalAmount'         => $order->TotalAmount,
         'shopSubtotal'        => $order->orderItems->sum('Subtotal'),
         'paymentMethod'       => $order->orderBuyer->PaymentMethod,
-        'paymentStatus'       => $order->orderBuyer->PaymentStatus,
+        'paymentStatus'       => $order->PaymentStatus,
         'user' => $order->orderBuyer->user ? [
             'username' => $order->orderBuyer->user->Username,
             'email'    => $order->orderBuyer->user->Email,
@@ -178,8 +196,12 @@ class SellerOrderController extends Controller
         'delivery_date'  => $order->orderBuyer->delivery_date,
     ];
 
+
     return response()->json($transformedData);
 }
+
+
+
 
 
 
@@ -195,8 +217,10 @@ class SellerOrderController extends Controller
         $order->Status = 'Processing';
         $order->save();
 
+
         return response()->json(['message' => 'Đơn hàng đã được xác nhận và đang chuẩn bị.', 'order' => $order], 200);
     }
+
 
     public function cancelOrder($orderId)
 {
@@ -210,19 +234,24 @@ class SellerOrderController extends Controller
     $order->Status = 'CancelledBySeller';
     $order->save();
 
+
     return response()->json(['message' => 'Đơn hàng đã được hủy.', 'order' => $order], 200);
 }
+
 
   public function printShippingLabel($orderId)
 {
     $user = Auth::user();
     $shop = $user->shop;
 
+
     if (!$shop) {
         return response()->json(['message' => 'Bạn không sở hữu cửa hàng nào.'], 403);
     }
 
+
     $shopId = $shop->ShopID;
+
 
     // Tìm đơn hàng con (OrderSeller) thuộc shop này
     $order = OrderSeller::where('SellerOrderID', $orderId)
@@ -243,9 +272,11 @@ class SellerOrderController extends Controller
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
 
+
     try {
         $pdf = Pdf::loadView('pdf.shipping_label', ['order' => $order ,'orderBuyer' => $order->orderBuyer]);
         $pdf->setOptions(['defaultFont' => 'DejaVu Sans']);
+
 
         return response($pdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
@@ -256,6 +287,7 @@ class SellerOrderController extends Controller
     } catch (\Exception $e) {
         Log::error('PDF Generation Error for SellerOrder ' . $orderId . ': ' . $e->getMessage());
 
+
         return response()->json([
             'message' => 'Lỗi tạo PDF: ' . $e->getMessage()
         ], 500);
@@ -264,22 +296,28 @@ class SellerOrderController extends Controller
 
 
 
+
+
+
 public function handle(Request $request)
 {
     Log::info('>>>>>>> Received webhook from Shipping Manager:', $request->all());
 
+
     $status   = $request->input('status');
     $order_code = $request->input('orderId');
     $deliver_date = $request->input('deliver_date');
-    
+   
     // Base rules áp dụng cho tất cả status
     $baseRules = [
         'orderId' => 'required|string',
         'status'   => 'required|string',
     ];
 
+
     // Custom rules tùy theo status
     $customRules = [];
+
 
     if ($status === 'Delivered') {
         $customRules = [
@@ -291,15 +329,17 @@ public function handle(Request $request)
             'reason' => 'required|string',
         ];
     }
-    
+   
     // Validate dữ liệu
     $validated = $request->validate(array_merge($baseRules, $customRules));
+
 
     // Lấy order
      $order = OrderSeller::where('SellerOrderCode', $order_code)->first();
     if (!$order) {
         return response()->json(['message' => 'Order not found'], 404);
     }
+
 
     // Cập nhật dữ liệu
       $updateData = [
@@ -309,13 +349,20 @@ public function handle(Request $request)
         'reason'        => $validated['reason'] ?? null,
     ];
 
+
     // Chỉ set DeliveredAt khi status là Delivered
     if ($status === 'Delivered') {
         $updateData['DeliveredAt'] = $deliver_date ?? now();
+        if($order->orderBuyer->PaymentMethod === 'COD'){
+            $updateData['PaymentStatus'] = 'Paid' ;
+            $updateData['paidAt']  = $deliver_date ?? now();
+        }
     }
+
 
     $order->update($updateData);
     Log::info("✅ Order {$order_code} updated to status {$status}");
+
 
     return response()->json(['message' => 'Order updated successfully'], 200);
 }
@@ -329,9 +376,10 @@ public function handle(Request $request)
             return response()->json(['message' => 'Chỉ có thể xác nhận đã gửi khi đơn hàng đang chuẩn bị.'], 400);
         }
 
+
         $order->Status = 'Shipped';
-        $order->ShippedAt = now(); // Cập nhật thời gian gửi
         $order->save();
+
 
         // Lấy thông tin seller và địa chỉ giao hàng
         $shop = Shop::where('UserID', Auth::id())->firstOrFail();
@@ -344,6 +392,7 @@ public function handle(Request $request)
             $order->address->City,
         ])) : 'Unknown Address';
 
+
         // Chuẩn bị payload cho webhook
         $payload = [
             'order_code' => $order->SellerOrderCode,
@@ -354,6 +403,7 @@ public function handle(Request $request)
          Log::info('>>>>>>> Received webhook from Shipping Manager:', $payload);
         // Gửi webhook sang app giao hàng
         $this->webhookService->sendWebhook($payload);
+
 
         return response()->json(['message' => 'Đơn hàng đã được xác nhận là đã gửi.', 'order' => $order], 200);
     }

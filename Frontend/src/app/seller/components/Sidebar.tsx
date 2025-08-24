@@ -23,11 +23,11 @@ const sidebarItems = [
   { icon: ShoppingCart, label: "Quản lý đơn hàng", href: "/seller/orders", badge: "5" },
   { icon: Truck, label: "Quản lý trả hàng & hoàn tiền", href: "/seller/return-requests", badge: "8" },
   { icon: BarChart3, label: "Thống kê bán hàng", href: "/seller/statistics" },
-  { icon: Megaphone, label: "Marketing & Khuyến mãi", href: "/seller/marketing" },
-  { icon: Wallet, label: "Tài chính", href: "/seller/finance" },
-  { icon: MessageCircle, label: "Chăm sóc khách hàng", href: "/seller/support", badge: "3" },
-  { icon: Settings, label: "Cài đặt Shop", href: "/seller/settings" },
-  { icon: HelpCircle, label: "Hỗ trợ", href: "/help" },
+  // { icon: Megaphone, label: "Marketing & Khuyến mãi", href: "/seller/marketing" },
+  // { icon: Wallet, label: "Tài chính", href: "/seller/finance" },
+  // { icon: MessageCircle, label: "Chăm sóc khách hàng", href: "/seller/support", badge: "3" },
+  // { icon: Settings, label: "Cài đặt Shop", href: "/seller/settings" },
+  // { icon: HelpCircle, label: "Hỗ trợ", href: "/help" },
 ]
 
 function Sidebar({ className }: { className?: string }) {

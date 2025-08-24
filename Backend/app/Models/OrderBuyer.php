@@ -35,7 +35,6 @@ class OrderBuyer extends Model
         'delivery_date',
         'Notes',
         'PaymentMethod',
-        'PaymentStatus',
         'OverallStatus',
         'PlatformVoucherCode',
         'PlatformDiscountAmount',
@@ -49,7 +48,6 @@ class OrderBuyer extends Model
         'CreatedAt' => 'datetime',
         'UpdatedAt' => 'datetime',
         'PaymentMethod' => 'string',
-        'PaymentStatus' => 'string',
         'OverallStatus' => 'string',
     ];
 

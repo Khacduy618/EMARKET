@@ -43,7 +43,7 @@ export default function OrderProductList({ orderItems, formatCurrency }: OrderPr
                                     <img
                                         src={
                                             item.variant?.imageUrl
-                                                ? `${WEB_URL}/storage/${item.variant.imageUrl}`
+                                                ? `${item.variant.imageUrl}`
                                                 : "/placeholder.svg?height=80&width=80&query=product"
                                         }
                                         alt={item.variant?.product?.name || "Sản phẩm"}

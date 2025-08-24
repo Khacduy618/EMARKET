@@ -16,11 +16,11 @@ import { getMyOrders } from '@/services/order';
  */
 const uiTabToDbStatusMapping: { [key in OrderTabStatus]?: OrderStatus[] } = {
     all: [],
+    Pending: ['Pending'],
     Processing: ['Processing'],
     Shipped: ['Shipped', 'OutForDelivery'], // Gộp cả hai vào tab Vận chuyển
     Delivered: ['Delivered'],
     Completed: ['Completed'], // Gộp cả hai vào tab Hoàn thành
-    Rated: ['Rated'],
     Cancelled: ['CancelledByBuyer', 'CancelledBySeller'],
     ReturnedRefunded: ['Returned', 'ReturnInProgress'],
 };
@@ -75,12 +75,12 @@ export default function ProfileOrderHistory() {
     
     const statusTabs: StatusTab[] = [
         { id: 'all', name: 'Tất cả', count: getStatusCount('all') },
+        { id: 'Pending', name: 'Chờ xác nhận', count: getStatusCount('Pending') },
         { id: 'Processing', name: 'Chờ giao hàng', count: getStatusCount('Processing') },
         { id: 'Shipped', name: 'Đang giao', count: getStatusCount('Shipped') },
         { id: 'Delivered', name: 'Đã giao', count: getStatusCount('Delivered') },
         { id: 'Completed', name: 'Hoàn thành', count: getStatusCount('Completed') },
         { id: 'Cancelled', name: 'Đã hủy', count: getStatusCount('Cancelled') },
-        { id: 'Rated', name: 'Đã đánh giá', count: getStatusCount('Rated') },
         { id: 'ReturnedRefunded', name: 'Trả hàng/Hoàn tiền', count: getStatusCount('ReturnedRefunded') },
     ];
 
@@ -106,8 +106,8 @@ export default function ProfileOrderHistory() {
             return true;
         })
         .sort((a, b) => { 
-        const dateA = new Date(a.CreatedAt).getTime();
-        const dateB = new Date(b.CreatedAt).getTime();
+        const dateA = new Date(a.UpdatedAt).getTime();
+        const dateB = new Date(b.UpdatedAt).getTime();
        
         return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });

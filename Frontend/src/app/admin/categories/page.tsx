@@ -15,7 +15,7 @@ import CreateCategoryModal from "./components/CreateCategoryModal"
 import EditCategoryModal from "./components/EditCategoryModal"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { getAuthToken } from "@/services/api"
+import { getAuthToken, getStorageImageUrl } from "@/services/api"
 import { API_URL } from "@/lib/config"
 
 type Category = {
@@ -148,15 +148,12 @@ export default function CategoryPage() {
             <div className="w-6 mr-2" />
           )}
 
-          <Avatar className="h-6 w-6 mr-2">
-            <AvatarImage src={node.ImageURL || "/placeholder.svg"} alt={node.Name} />
-            <AvatarFallback className="text-xs bg-orange-100 text-orange-600">{node.Name.charAt(0)}</AvatarFallback>
-          </Avatar>
+          <img src={getStorageImageUrl(node.ImageURL)} alt="" width="50px"/>
 
           <span className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors">{node.Name}</span>
 
           <Badge variant="secondary" className="ml-auto text-xs">
-            {categories.filter((c) => c.ParentCategoryID === node.CategoryID).length}
+            {node.children?.length}
           </Badge>
         </div>
 
@@ -263,12 +260,7 @@ export default function CategoryPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={item.ImageURL || "/placeholder.svg"} alt={item.Name} />
-                                  <AvatarFallback className="bg-orange-100 text-orange-600 text-xs">
-                                    {item.Name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <img src={getStorageImageUrl(item.ImageURL)} alt="" width="30px"/>
                                 <div>
                                   <p className="font-medium text-gray-900">{item.Name}</p>
                                   {item.ParentCategoryID && <p className="text-xs text-gray-500">Danh mục con</p>}
@@ -277,16 +269,7 @@ export default function CategoryPage() {
                             </TableCell>
                             <TableCell>
                               {item.ImageURL ? (
-                                <Avatar className="h-12 w-12 rounded-lg">
-                                  <AvatarImage
-                                    src={item.ImageURL || "/placeholder.svg"}
-                                    alt={item.Name}
-                                    className="object-cover"
-                                  />
-                                  <AvatarFallback className="rounded-lg bg-gray-100">
-                                    <ImageIcon className="h-4 w-4 text-gray-400" />
-                                  </AvatarFallback>
-                                </Avatar>
+                                <img src={getStorageImageUrl(item.ImageURL)} alt="" width="50px"/>
                               ) : (
                                 <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
                                   <ImageIcon className="h-4 w-4 text-gray-400" />

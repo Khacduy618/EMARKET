@@ -462,7 +462,7 @@ const handlePaymentMethodChange = () => {
             localStorage.removeItem('checkoutData');
             if (checkoutData.paymentMethod.type === 'COD') {
                 // Nếu là COD, đơn hàng đã được xử lý, chuyển thẳng đến trang lịch sử
-                router.push('/account/purchase?status=Processing');
+                router.push('/account/purchase?status=Pending');
             } else {
                 // Nếu là VNPay/PayPal, chuyển đến trang checkout để tiếp tục thanh toán
                 router.push(`/checkout?orderId=${result.orderId}`);
@@ -509,7 +509,7 @@ const handlePaymentMethodChange = () => {
             
             toast.success(`Đơn hàng ${result.orderCode} đã được xác nhận!`);
             localStorage.removeItem('checkoutData');
-            router.push('/account/purchase?status=Processing');
+            router.push('/account/purchase?status=Pending');
 
         } catch (error: any) {
             console.error(`[handleCompleteOrder] FAILED for orderId: ${orderId}`, error);
@@ -543,7 +543,7 @@ const handlePaymentMethodChange = () => {
 
             localStorage.removeItem('checkoutData');
             toast.success("Thanh toán thành công!");
-            router.push(`/purchase?status=Processing`);
+            router.push(`/purchase?status=Pending`);
 
         } catch (error: any) {
             toast.error(error.message);

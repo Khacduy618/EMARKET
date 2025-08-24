@@ -15,7 +15,7 @@ class Order extends Model
     protected $fillable = [
         'OrderCode', 'UserID', 'TotalAmount', 'SubtotalAmount', 'ShippingFee', 
         'DiscountAmount', 'ShippingAddressID', 'ShippingFullName', 
-        'ShippingPhoneNumber', 'Notes', 'PaymentMethod', 'PaymentStatus', 
+        'ShippingPhoneNumber', 'Notes', 'PaymentMethod', 
         'OverallStatus', 'PlatformVoucherCode', 'PlatformDiscountAmount'
     ];
 

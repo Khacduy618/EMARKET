@@ -23,7 +23,7 @@ export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
                 // Có thể chuyển hướng đến trang 403 Forbidden hoặc trang chủ
                 // Ở đây chúng ta sẽ chuyển về trang chủ
                 toast.error("Bạn không có quyền truy cập trang này.");
-                router.push('/');
+                router.push('/signin');
             }
         }
     }, [user, isLoading, allowedRoles, router]);

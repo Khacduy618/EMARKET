@@ -269,7 +269,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/seller/return-requests/{id}/respond', [SellerReturnRequestController::class, 'respond']);
     Route::post('seller/return-requests/{id}/confirm-receipt', [SellerReturnRequestController::class, 'confirmReceipt']);
     Route::post('seller/return-requests/{id}/confirm-bank-transfer', [SellerReturnRequestController::class, 'confirmBankTransfer']);
-    
+    Route::get('admin/return-requests/pending-refunds', [AdminReturnRequestController::class, 'listPendingRefunds']);
+     // Xem chi tiết một yêu cầu
+    // GET /api/admin/return-requests/{id}
+    Route::get('admin/return-requests/{id}', [AdminReturnRequestController::class, 'show']);
+       // POST /api/admin/return-requests/{id}/confirm-bank-transfer
+    Route::post('admin/return-requests/{id}/confirm-bank-transfer', [AdminReturnRequestController::class, 'confirmBankTransfer']);
+
 });
 Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnpay.return');
 
@@ -386,23 +392,25 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/products/{id}', [ProductControllers::class, 'detailProduct']);
 
     // === ORDER MANAGEMENT ===
-    // URL sẽ trở thành: /api/admin/orders
-    Route::get('/orders', [AdminOrderController::class, 'index']);
-    Route::get('/orders/export', [AdminOrderController::class, 'export']);
-    Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
-    Route::get('/orders/shop-filters', [AdminOrderController::class, 'getShopFilters']);
-    Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
-    Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
-    Route::get('/orders/seller/{sellerOrder}', [AdminOrderController::class, 'show']);
-    // === REVIEW MANAGEMENT === //
-    Route::prefix('reviews')->name('admin.reviews.')->group(function () {
-    Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+   // URL sẽ trở thành: /api/admin/orders
+   Route::get('/orders', [AdminOrderController::class, 'index']);
+   Route::get('/orders/export', [AdminOrderController::class, 'export']);
+   Route::get('/orders/shop-filters', [AdminOrderController::class, 'getShopFilters']);
+   Route::get('/orders/stats', [AdminOrderController::class, 'getStats']);
+   Route::get('/orders/{id}', [AdminOrderController::class, 'show']);
+   Route::get('/orders/{order}/items', [OrderItemController::class, 'index']);
+   Route::get('/order-items/{orderItem}', [OrderItemController::class, 'show']);
+   Route::get('/orders/seller/{sellerOrder}', [AdminOrderController::class, 'show']);
+   // === REVIEW MANAGEMENT === //
+   Route::prefix('reviews')->name('admin.reviews.')->group(function () {
+    Route::get('/shop-filters', [ProductReviewController::class, 'getShopFilters']);
+   Route::get('/stats', [ProductReviewController::class, 'getStats']);
+   Route::post('/bulk-update', [ProductReviewController::class, 'bulkUpdateStatus']);
+   Route::get('/export', [ProductReviewController::class, 'export']);
+   Route::get('/', [ProductReviewController::class, 'index'])->name('index');
+   Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
+   });
 
-    Route::get('/reviews/stats', [ProductReviewController::class, 'getStats']); // <-- MỚI
-    Route::post('/reviews/bulk-update', [ProductReviewController::class, 'bulkUpdateStatus']); // <-- MỚI
-    Route::get('/reviews/export', [ProductReviewController::class, 'export']); // <-- MỚI
-    Route::put('{review}', [ProductReviewController::class, 'updateStatus'])->name('updateStatus');
-    });
     // === RETURN REQUEST MANAGEMENT ===
     Route::get('/return-requests/{id}', [AdminReturnRequestController::class, 'show']);
     Route::post('/return-requests/{id}/confirm-bank-transfer', [AdminReturnRequestController::class, 'confirmBankTransfer']);

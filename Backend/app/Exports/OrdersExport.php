@@ -46,7 +46,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, ShouldA
                 'os.TotalAmount as OrderTotal',
                 'os.Status as OrderStatus',
                 'ob.PaymentMethod',
-                'ob.PaymentStatus'
+                'os.PaymentStatus'
             );
 
         // Các bộ lọc từ request (đã đúng)
@@ -75,7 +75,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, ShouldA
             $query->where('ob.PaymentMethod', $this->filters['payment_method']);
         }
         if (!empty($this->filters['payment_status'])) {
-            $query->where('ob.PaymentStatus', $this->filters['payment_status']);
+            $query->where('os.PaymentStatus', $this->filters['payment_status']);
         }
 
         // Sắp xếp (đã đúng)

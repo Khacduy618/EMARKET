@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { ReturnRequest } from '@/types/return-request';
 import StatusBadge from './StatusBadge';
 import { API_URL } from '@/lib/config';
+import { getStorageImageUrl } from '@/services/api';
 
 
 // --- Helper Function ---
@@ -70,10 +71,10 @@ const ReturnRequestTable: React.FC<ReturnRequestTableProps> = ({ requests }) => 
                                             // LOGIC PHẢI NẰM Ở ĐÂY
                                             src={
                                                 req.order_item.variant.ImageURL
-                                                    ? `${API_URL}${req.order_item.variant.ImageURL}`
+                                                    ? getStorageImageUrl(req.order_item.variant.ImageURL)
                                                     : '/images/placeholder.png'
                                             }
-                                            alt={`ngu`}
+                                            alt={`Ảnh sp`}
                                         />
                                     </div>
                                     <div className="ml-4">

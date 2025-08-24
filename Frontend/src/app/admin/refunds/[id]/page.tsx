@@ -1,13 +1,17 @@
 "use client"; // Bắt buộc vì có sử dụng hooks
 
+
 import { useRouter, useParams } from 'next/navigation'; // Sửa lại import cho App Router
 import axios, { AxiosError } from 'axios';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react'; // Thêm ChangeEvent
 import type { NextPage } from 'next';
 import React from 'react';
 import { WEB_URL } from '@/lib/config';
+import { toast } from 'react-toastify';
+import { getStorageImageUrl } from '@/services/api';
 
-//=========== TYPE DEFINITIONS (trong cùng file) ===========
+
+//=========== TYPE DEFINITIONS ===========
 interface RefundRequestDetail {
     ReturnRequestID: number;
     RequestCode: string;
@@ -19,6 +23,7 @@ interface RefundRequestDetail {
     RefundAccountHolderName: string;
     ResolvedAt?: string;
     AdminNote?: string;
+    RefundTransactionProof?: string; // Thêm trường mới để hiển thị bằng chứng
     user: {
         FullName: string;
         Phone?: string;
@@ -27,65 +32,51 @@ interface RefundRequestDetail {
         ShopName: string;
         ShopPhone?: string;
     };
-    // Thêm các trường khác từ API response nếu bạn cần hiển thị
 }
 //=========================================================
 
-//=========== HELPER FUNCTIONS (trong cùng file) ===========
+
+//=========== HELPER FUNCTIONS ===========
 const formatCurrency = (amount: string | number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(amount));
 };
 const formatDateTime = (dateTimeString?: string): string => {
     if (!dateTimeString) return 'Chưa có';
-    return new Date(dateTimeString).toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
+    return new Date(dateTimeString).toLocaleString('vi-VN');
 };
 //=========================================================
 
+
 //=========== MAIN PAGE COMPONENT ===========
 const AdminRefundDetailPage: NextPage = () => {
-    // Sử dụng hooks mới từ 'next/navigation'
     const router = useRouter();
     const params = useParams();
-    const id = params.id as string; // Lấy id từ params và ép kiểu
+    const id = params.id as string;
 
-    // States để quản lý dữ liệu, tải và lỗi
+
     const [requestData, setRequestData] = useState<RefundRequestDetail | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
 
+
     // States cho form xác nhận
     const [note, setNote] = useState<string>('');
+    const [proofFile, setProofFile] = useState<File | null>(null); // << THAY ĐỔI 1: State cho file
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submitError, setSubmitError] = useState<string>('');
 
-    // Fetch dữ liệu chi tiết khi component mount hoặc `id` thay đổi
+
     useEffect(() => {
-        // Chỉ chạy khi `id` đã có giá trị
         if (!id) return;
+
 
         const fetchRequestDetail = async () => {
             setIsLoading(true);
             setFetchError(null);
             try {
-                // Tạo instance axios với cấu hình cho Sanctum SPA
-                const apiClient = axios.create({
-                    baseURL: `${WEB_URL}`,
-                    withCredentials: true,
-                });
-
-                // Lấy CSRF token trước
+                const apiClient = axios.create({ baseURL: `${WEB_URL}`, withCredentials: true });
                 await apiClient.get('/sanctum/csrf-cookie');
-
-                // Gọi API để lấy chi tiết yêu cầu
                 const response = await apiClient.get<RefundRequestDetail>(`/api/admin/return-requests/${id}`);
-
                 setRequestData(response.data);
             } catch (err) {
                 const error = err as AxiosError<{ message: string }>;
@@ -95,71 +86,101 @@ const AdminRefundDetailPage: NextPage = () => {
             }
         };
 
+
         fetchRequestDetail();
     }, [id]);
 
-    // Hàm xử lý khi Admin nhấn nút xác nhận đã chuyển khoản
+
+    // << THAY ĐỔI 2: Cập nhật hàm xử lý upload file
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setProofFile(e.target.files[0]);
+        }
+    };
+
+
+    // << THAY ĐỔI 3: Cập nhật hàm submit để gửi FormData
     const handleConfirmTransfer = async () => {
         if (!note.trim()) {
-            alert('Ghi chú của Admin là bắt buộc.');
+            toast.error("❌ Ghi chú của Admin là bắt buộc.");
             return;
         }
-        if (!confirm('Hành động này không thể hoàn tác! Bạn có chắc chắn đã chuyển khoản thành công?')) {
-            return;
-        }
+
+
+        // Nếu ok thì show success
+
+
+
 
         setIsSubmitting(true);
         setSubmitError('');
+
+
+        // Sử dụng FormData để gửi file và text
+        const formData = new FormData();
+        formData.append('admin_note', note);
+        if (proofFile) {
+            formData.append('refund_proof', proofFile);
+        }
+
+
         try {
-            // Tái sử dụng instance axios đã cấu hình
             const apiClient = axios.create({
                 baseURL: `${WEB_URL}`,
                 withCredentials: true,
+                headers: {
+                    // Trình duyệt sẽ tự set 'Content-Type': 'multipart/form-data'
+                    'Accept': 'application/json',
+                }
             });
             await apiClient.get('/sanctum/csrf-cookie');
 
-            // Gửi yêu cầu xác nhận
+
             const response = await apiClient.post<{ data: RefundRequestDetail }>(
                 `/api/admin/return-requests/${id}/confirm-bank-transfer`,
-                { admin_note: note }
+                formData // Gửi formData thay vì object JSON
             );
+            toast.success('Xác nhận hoàn tiền thành công!');
+            setRequestData(response.data.data);
+            setNote('');
+            setProofFile(null); // Reset cả file input
 
-            alert('Xác nhận hoàn tiền thành công!');
-            setRequestData(response.data.data); // Cập nhật giao diện với dữ liệu mới nhất
-            setNote(''); // Xóa nội dung ghi chú sau khi thành công
 
         } catch (err) {
-            const error = err as AxiosError<{ message: string }>;
-            setSubmitError(error.response?.data?.message || 'Có lỗi xảy ra khi xác nhận.');
+            const error = err as AxiosError<{ message: string, errors?: Record<string, string[]> }>;
+            let errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi xác nhận.';
+           
+            // Xử lý lỗi validation chi tiết hơn
+            if (error.response?.data?.errors) {
+                const validationErrors = Object.values(error.response.data.errors).flat().join('\n');
+                errorMessage += `\n${validationErrors}`;
+            }
+            setSubmitError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Render trạng thái tải
-    if (isLoading) {
-        return <div className="p-8 text-center text-lg">Đang tải chi tiết yêu cầu...</div>;
-    }
 
-    // Render trạng thái lỗi
-    if (fetchError) {
-        return <div className="p-8 text-center text-lg text-red-600">Lỗi: {fetchError}</div>;
-    }
+    // ... các phần render loading, error, no data giữ nguyên
 
-    // Render khi không có dữ liệu
-    if (!requestData) {
-        return <div className="p-8 text-center text-lg text-gray-600">Không tìm thấy thông tin yêu cầu.</div>;
-    }
+
+    if (isLoading) return <div className="p-8 text-center text-lg">Đang tải chi tiết yêu cầu...</div>;
+    if (fetchError) return <div className="p-8 text-center text-lg text-red-600">Lỗi: {fetchError}</div>;
+    if (!requestData) return <div className="p-8 text-center text-lg text-gray-600">Không tìm thấy thông tin yêu cầu.</div>;
+
 
     const isAwaitingAdminAction = requestData.Status === 'Approved_WaitForAdmin';
 
-    // Render giao diện chính
+
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
             <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                {/* ... Header và các thông tin chi tiết giữ nguyên */}
                 <button onClick={() => router.back()} className="mb-6 text-indigo-600 hover:text-indigo-800 font-semibold">
                     &larr; Quay lại danh sách
                 </button>
+
 
                 <div className="border-b pb-4 mb-6">
                     <h1 className="text-3xl font-bold text-gray-800">Chi tiết yêu cầu: {requestData.RequestCode}</h1>
@@ -167,6 +188,7 @@ const AdminRefundDetailPage: NextPage = () => {
                         <span className="font-bold text-blue-700 ml-2">{requestData.Status}</span>
                     </p>
                 </div>
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div>
@@ -183,10 +205,12 @@ const AdminRefundDetailPage: NextPage = () => {
                     </div>
                 </div>
 
+
                 {isAwaitingAdminAction ? (
                     <div className="mt-8 p-6 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg">
                         <h2 className="text-xl font-bold text-gray-900 mb-4">Hành động: Hoàn tiền (COD)</h2>
                         <div className="p-4 bg-white rounded-lg shadow-inner">
+                            {/* ... Thông tin chuyển khoản giữ nguyên ... */}
                             <p className="text-sm text-gray-600 mb-3">Vui lòng chuyển khoản chính xác thông tin dưới đây:</p>
                             <ul className="space-y-2">
                                 <li><strong>Ngân hàng:</strong> <span className="font-mono">{requestData.RefundBankName}</span></li>
@@ -206,6 +230,28 @@ const AdminRefundDetailPage: NextPage = () => {
                                 placeholder="VD: Đã chuyển khoản từ VCB ngày 23/05. Mã GD: FT24143XYZ..."
                             />
                         </div>
+
+
+                        {/* << THAY ĐỔI 4: Thêm input upload file >> */}
+                        <div className="mt-6">
+                            <label htmlFor="refund_proof" className="block text-sm font-medium text-gray-700">
+                                Bằng chứng chuyển khoản (tùy chọn)
+                            </label>
+                            <input
+                                type="file"
+                                id="refund_proof"
+                                onChange={handleFileChange}
+                                accept="image/jpeg, image/png, image/jpg"
+                                className="mt-1 block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-indigo-50 file:text-indigo-700
+                                hover:file:bg-indigo-100"
+                            />
+                        </div>
+
+
                         <button
                             onClick={handleConfirmTransfer}
                             disabled={isSubmitting || !note}
@@ -213,7 +259,7 @@ const AdminRefundDetailPage: NextPage = () => {
                         >
                             {isSubmitting ? 'Đang xác nhận...' : 'Tôi đã chuyển khoản & Hoàn tất yêu cầu'}
                         </button>
-                        {submitError && <p className="text-red-500 mt-2 text-center">{submitError}</p>}
+                        {submitError && <p className="text-red-500 mt-2 text-center whitespace-pre-line">{submitError}</p>}
                     </div>
                 ) : (
                     <div className="mt-8 p-6 bg-green-50 border border-green-300 rounded-lg text-center">
@@ -221,6 +267,21 @@ const AdminRefundDetailPage: NextPage = () => {
                         <p className="mt-2"><strong>Trạng thái cuối cùng:</strong> {requestData.Status}</p>
                         <p className="mt-1"><strong>Ghi chú của Admin:</strong> {requestData.AdminNote || 'Không có'}</p>
                         <p className="mt-1"><strong>Thời gian xử lý:</strong> {formatDateTime(requestData.ResolvedAt)}</p>
+
+
+                        {/* << THAY ĐỔI 5: Hiển thị bằng chứng đã upload >> */}
+                        {requestData.RefundTransactionProof && (
+                            <div className="mt-4">
+                                <p className="font-semibold text-gray-700">Bằng chứng chuyển khoản:</p>
+                                <a href={getStorageImageUrl(requestData.RefundTransactionProof)} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                        src={getStorageImageUrl(requestData.RefundTransactionProof)}
+                                        alt="Bằng chứng chuyển khoản"
+                                        className="mt-2 max-w-xs mx-auto rounded-lg border shadow-sm"
+                                    />
+                                </a>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -228,4 +289,6 @@ const AdminRefundDetailPage: NextPage = () => {
     );
 };
 
+
 export default AdminRefundDetailPage;
+

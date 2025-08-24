@@ -274,12 +274,12 @@ export default function ProductDetailModal({
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
-                                  <span className="font-medium text-green-600">{(variant.Price ?? 0).toLocaleString()}₫</span>
+                                  <span className="font-medium text-green-600">{(variant.CompareAtPrice ?? 0).toLocaleString()}₫</span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <span className="text-gray-500 line-through">
-                                  {(variant.CompareAtPrice ?? 0).toLocaleString()}₫
+                                  {(variant.Price ?? 0).toLocaleString()}₫
                                 </span>
                               </TableCell>
                               <TableCell>

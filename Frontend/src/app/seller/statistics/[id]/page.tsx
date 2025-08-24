@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getAuthToken } from "@/services/api"
+import { getAuthToken, getStorageImageUrl } from "@/services/api"
 import { API_URL, WEB_URL } from "@/lib/config"
 
 interface OrderItem {
@@ -417,7 +417,7 @@ export default function Page() {
                   <TableRow key={item.OrderItemID}>
                     <TableCell>
                       <img
-                        src={`${WEB_URL}/storage/${item.ImageURL}`}
+                        src={getStorageImageUrl(item.ImageURL)}
                         className="w-full h-auto"
                       />
                     </TableCell>

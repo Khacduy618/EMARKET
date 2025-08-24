@@ -17,7 +17,7 @@ export type OrderStatus =
   'Rated' | 'DeliveryFailed' | 'OutForDelivery';
 
 export type OrderTabStatus =
-  'all' | 'Processing' | 'Shipped' |
+  'all' | 'Pending'| 'Processing' | 'Shipped' |
   'Completed' | 'Cancelled' | 'ReturnedRefunded' | 'Delivered' | 'Rated';
 
 export type ReturnItemStatus =
@@ -319,6 +319,7 @@ export type BuyerOrder = {
 };
 
 export interface SellerOrder {
+  PaymentStatus: string;
   SellerOrderID: number;
   SellerOrderCode: string;
   TotalAmount: number;

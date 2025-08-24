@@ -7,6 +7,7 @@ import { Search, Filter, Star, ChevronDown, ChevronLeft, ChevronRight, Heart, Sh
 import PriceRangeFilter from "../categoryDetail/components/PriceRangeFilter"
 import Link from "next/link"
 import { API_URL } from "@/lib/config"
+import { getStorageImageUrl } from "@/services/api"
 
 const fetcher = (url: string) => fetch(url, {
                     method: 'GET',
@@ -21,7 +22,7 @@ const ProductCard = ({ product }: { product: any }) => (
             <div className="aspect-square bg-gray-50 flex items-center justify-center relative">
                 {product.ImageURL ? (
                     <img
-                        src={product.ImageURL || "/placeholder.svg"}
+                        src={getStorageImageUrl(product.ImageURL) || "/placeholder.svg"}
                         alt={product.Name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />

@@ -15,7 +15,7 @@ export default function VnPayReturnPage() {
 
         if (success === 'true') {
             toast.success(`Thanh toán thành công cho đơn hàng ${orderCode}!`);
-            router.push('/account/purchase?status=Processing');
+            router.push('/account/purchase?status=Pending');
         } else {
             toast.error(`Thanh toán cho đơn hàng ${orderCode} đã thất bại hoặc bị hủy.`);
             router.push('/checkout'); // Hoặc về trang chi tiết đơn hàng thất bại

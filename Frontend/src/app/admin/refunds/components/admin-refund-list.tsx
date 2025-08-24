@@ -1,11 +1,13 @@
 "use client" // Bắt buộc đối với component sử dụng hooks
 
+
 import axios, { type AxiosError } from "axios"
 import Link from "next/link"
 import type { NextPage } from "next"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { WEB_URL } from "@/lib/config"
+
 
 //=========== TYPE DEFINITIONS (trong cùng file) ===========
 interface RefundRequestSummary {
@@ -18,11 +20,13 @@ interface RefundRequestSummary {
     RefundAmount: string
 }
 
+
 interface PaginatedResponse {
     data: RefundRequestSummary[]
     total: number
 }
 //=========================================================
+
 
 //=========== HELPER FUNCTIONS (trong cùng file) ===========
 const formatCurrency = (amount: string | number): string => {
@@ -32,6 +36,7 @@ const formatDateTime = (dateTimeString: string): string => {
     return new Date(dateTimeString).toLocaleString("vi-VN")
 }
 //=========================================================
+
 
 //=========== REUSABLE COMPONENT: RefundCard (trong cùng file) ===========
 interface RefundCardProps {
@@ -75,12 +80,14 @@ const RefundCard: React.FC<RefundCardProps> = ({ request }) => (
 )
 //======================================================================
 
+
 //=========== MAIN PAGE COMPONENT ===========
 const AdminRefundListPage: NextPage = () => {
     const [requests, setRequests] = useState<RefundRequestSummary[]>([])
     const [total, setTotal] = useState<number>(0)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null)
+
 
     useEffect(() => {
         const fetchRefundRequests = async () => {
@@ -97,11 +104,14 @@ const AdminRefundListPage: NextPage = () => {
                     withCredentials: true, // Bắt buộc để gửi cookie session
                 })
 
+
                 // Lấy CSRF cookie trước (bước quan trọng của Sanctum SPA)
                 await apiClient.get("/sanctum/csrf-cookie")
 
+
                 // Bây giờ mới gọi API chính
                 const response = await apiClient.get<PaginatedResponse>("/api/admin/return-requests/pending-refunds")
+
 
                 setRequests(response.data.data)
                 setTotal(response.data.total)
@@ -117,11 +127,14 @@ const AdminRefundListPage: NextPage = () => {
             }
         }
 
+
         fetchRefundRequests()
     }, []) // Mảng rỗng đảm bảo useEffect chỉ chạy 1 lần
 
+
     if (isLoading) return <div className="p-8 text-center">Đang tải danh sách yêu cầu...</div>
     if (error) return <div className="p-8 text-center text-red-500">Lỗi: {error}</div>
+
 
     return (
         <div className="min-h-screen bg-gray-100 p-8">
@@ -139,4 +152,10 @@ const AdminRefundListPage: NextPage = () => {
     )
 }
 
+
 export default AdminRefundListPage
+
+
+
+
+

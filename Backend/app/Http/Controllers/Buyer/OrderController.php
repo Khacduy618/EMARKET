@@ -45,7 +45,7 @@ class OrderController extends Controller
                 'os.Notes',
                 'os.DeliveredAt',
                 // Thông tin từ ordersbuyer (đơn hàng tổng)
-                'ob.OrderID', 'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
+                'ob.OrderID', 'ob.OrderCode', 'ob.PaymentMethod', 'os.PaymentStatus', 'ob.OrderDate',
                 'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount', 'ob.shopvoucher',
                 'ob.ShippingAddressID', 
                 // Thông tin từ shop
@@ -96,7 +96,11 @@ class OrderController extends Controller
             
             // Xác định xem item có thể review không
             foreach($items as $item) {
-                $item->canReview = in_array($sellerOrder->Status, ['Completed', 'Delivered', 'Rated']);
+                $isReview = false;
+                if (in_array($sellerOrder->Status, ['Delivered']) &&  in_array($sellerOrder->PaymentStatus, ['Paid']) && $sellerOrder->DeliveredAt && Carbon::parse($sellerOrder->DeliveredAt)->addDays(3)->isFuture()) {
+                $isReview = true;
+            }
+                $item->canReview = $isReview;
             }
             
             $sellerOrder->items = $items;
@@ -113,7 +117,7 @@ class OrderController extends Controller
             // Điều kiện: Trạng thái phải là "Đã giao" hoặc "Hoàn thành" VÀ
             // ngày giao hàng phải tồn tại VÀ
             // ngày giao hàng cộng 3 ngày phải ở trong tương lai (tức là chưa hết hạn).
-            if (in_array($sellerOrder->Status, ['Delivered']) && $sellerOrder->DeliveredAt && Carbon::parse($sellerOrder->DeliveredAt)->addDays(3)->isFuture()) {
+            if (in_array($sellerOrder->Status, ['Delivered']) &&  in_array($sellerOrder->PaymentStatus, ['Paid']) && $sellerOrder->DeliveredAt && Carbon::parse($sellerOrder->DeliveredAt)->addDays(3)->isFuture()) {
                 $isEligible = true;
             }
             $sellerOrder->is_return_eligible = $isEligible;
@@ -172,7 +176,7 @@ class OrderController extends Controller
                 ->where('ob.UserID', $user->UserID)
                 ->select(
                     'os.*',
-                    'ob.OrderCode', 'ob.PaymentMethod', 'ob.PaymentStatus', 'ob.OrderDate',
+                    'ob.OrderCode', 'ob.PaymentMethod', 'os.PaymentStatus', 'ob.OrderDate',
                     'ob.PlatformVoucherCode', 'ob.PlatformDiscountAmount', 'ob.shopvoucher',
                     'ob.ShippingFee as TotalShippingFee', // Lấy tổng phí ship của cả đơn
                     's.ShopName', 's.Level as shopLevel',
@@ -243,7 +247,7 @@ class OrderController extends Controller
                 foreach ($items as $item) {
                     $itemAttributes = $allAttributes->get($item->VariantID, collect());
                     $item->classification = $itemAttributes->pluck('Value')->implode(', ');
-                    $item->canReview = in_array($sellerOrder->Status, ['Completed', 'Delivered', 'Rated']);
+                    $item->canReview = in_array($sellerOrder->Status, ['Delivered']);
                 }
             }
             
@@ -579,8 +583,6 @@ public function placeOrder(Request $request)
                 'ShippingAddressID' => $validatedData['shippingAddressId'], 'ShippingFullName' => $address->FullName,
                 'ShippingPhoneNumber' => $address->PhoneNumber, 
                 'PaymentMethod' => $paymentMethod,
-                    // **LOGIC MỚI: Quyết định trạng thái dựa trên phương thức thanh toán**
-                'PaymentStatus' => $isCOD ? 'Pending' : 'Pending', // COD là pending, Online là Paid sau khi xác nhận
                 'PlatformVoucherCode' => json_encode($platformVoucherCodesApplied),
                 'PlatformDiscountAmount' => json_encode(['saleOff' => $platformSaleOffDiscount, 'freeShip' => $platformFreeshipDiscount]),
                 'shopvoucher' => json_encode($shopVouchersAppliedDetails),
@@ -602,6 +604,7 @@ public function placeOrder(Request $request)
                     'SubtotalAmount' => $shopData['subtotal'],
                     'ShippingFee' => $shopData['shippingFee'], 'ShopVoucherDiscount' => $shopData['voucherDiscount'],
                     'TotalAmount' => $shopTotalAmount, // LƯU GIÁ TRỊ ĐÃ TÍNH TOÁN LẠI
+                    'PaymentStatus' => 'Pending',
                     'Notes' => $validatedData['shopNotes'][$shopId] ?? null,
                     'TrackingCode' => 'PENDING_' . strtoupper(Str::random(8)),
                     'CreatedAt' => now(), 'UpdatedAt' => now(),
@@ -658,20 +661,24 @@ public function completeOrder(Request $request, $orderId)
     }
     $validatedData = $validator->validated();
 
-    $order = DB::table('ordersbuyer')
-        ->where('OrderID', $orderId)
-        ->where('UserID', $user->UserID)
-        ->where('PaymentStatus', 'Pending')
+    $order = DB::table('ordersbuyer as ob')
+        ->join('ordersseller as os', 'ob.OrderID', '=', 'os.OrderID')
+        ->where('ob.OrderID', $orderId)
+        ->where('ob.UserID', $user->UserID)
+        ->where('os.PaymentStatus', 'Pending') // Kiểm tra trạng thái đơn con
+        ->select('ob.*') // Chỉ lấy thông tin từ đơn tổng
+        ->distinct()     // Đảm bảo chỉ trả về 1 kết quả duy nhất cho đơn tổng
         ->first();
 
     if (!$order) {
         return response()->json(['message' => 'Order not found or already processed.'], 404);
     }
 
-    try {
-        $completedOrderDetails = DB::transaction(function () use ($validatedData, $order, $orderId, $user) {
+   try {
+        // === SỬA ĐỔI CHÍNH Ở ĐÂY ===
+        $completedOrderDetails = DB::transaction(function () use ($validatedData, $order, $orderId) {
 
-            // **BƯỚC 1: CẬP NHẬT LỜI NHẮN (NẾU CÓ)**
+            // Cập nhật lời nhắn (nếu có)
             if (!empty($validatedData['shopNotes'])) {
                 foreach ($validatedData['shopNotes'] as $shopId => $note) {
                     DB::table('ordersseller')
@@ -682,39 +689,56 @@ public function completeOrder(Request $request, $orderId)
                 Log::info("Updated notes for OrderID {$orderId}", $validatedData['shopNotes']);
             }
             
-
-            $updates = ['UpdatedAt' => now()];
             $paymentMethod = $validatedData['paymentMethod'];
-             $shouldProcessOrder = false;
+            $isPaidOnline = ($paymentMethod === 'Paypal' && ($validatedData['paymentDetails']['status'] ?? '') === 'COMPLETED')
+                         || ($paymentMethod === 'VNPay' && ($validatedData['paymentDetails']['vnp_ResponseCode'] ?? '') === '00');
+            $isCOD = ($paymentMethod === 'COD');
 
-           if (($paymentMethod === 'Paypal' && ($validatedData['paymentDetails']['status'] ?? '') === 'COMPLETED') || $paymentMethod === 'COD') {
-                    
-                    if ($paymentMethod !== 'COD') {
-                        $updates['PaymentStatus'] = 'Paid';
-                        $updates['paidAt'] = now();
-                    }
-                    $shouldProcessOrder = true;
-                }
+            // Chỉ xử lý nếu thanh toán online thành công hoặc là COD
+            if ($isPaidOnline || $isCOD) {
+
+                // 1. Cập nhật bảng ordersbuyer (chỉ thời gian cập nhật)
+                DB::table('ordersbuyer')
+                    ->where('OrderID', $orderId)
+                    ->update(['UpdatedAt' => now()]);
                 
-                if ($shouldProcessOrder) {
-                    DB::table('ordersbuyer')->where('OrderID', $orderId)->update($updates);
-                    DB::table('ordersseller')->where('OrderID', $orderId)->update(['Status' => 'Processing', 'UpdatedAt' => now()]);
-                    Log::info("Order {$orderId} status updated to Processing.");
-                    
-                    $fullOrderDetails = DB::table('ordersbuyer')->where('OrderID', $orderId)->first();
-                    
-                    $this->processConfirmedOrder($fullOrderDetails);
-                    $this->updateUserVoucherUsage($fullOrderDetails);
+                // 2. Chuẩn bị dữ liệu cập nhật cho ordersseller
+                $sellerUpdates = [
+                    'Status'      => 'Pending',
+                    'UpdatedAt'   => now(),
+                    // Mặc định PaymentStatus vẫn là Pending (cho trường hợp COD)
+                    'PaymentStatus' => 'Pending' 
+                ];
+
+                // Nếu thanh toán online, cập nhật thêm trạng thái và thời gian
+                if ($isPaidOnline) {
+                    $sellerUpdates['PaymentStatus'] = 'Paid';
+                    $sellerUpdates['paidAt'] = now();
                 }
 
-            return response()->json([
-                'message' => 'Đơn hàng đã được xác nhận thành công!',
-                'orderCode' => $order->OrderCode,
-            ]);
+                // 3. Cập nhật bảng ordersseller
+                DB::table('ordersseller')
+                    ->where('OrderID', $orderId)
+                    ->update($sellerUpdates);
+
+                Log::info("Order {$orderId} status updated to Processing.");
+                
+                // 4. Các bước xử lý sau khi xác nhận đơn
+                $fullOrderDetails = DB::table('ordersbuyer')->where('OrderID', $orderId)->first();
+                $this->processConfirmedOrder($fullOrderDetails);
+                $this->updateUserVoucherUsage($fullOrderDetails);
+                
+                // Trả về dữ liệu để biết đã thành công
+                return ['orderCode' => $order->OrderCode];
+            }
+            
+            // Nếu không rơi vào trường hợp nào, trả về null để báo lỗi
+            return null; 
         });
 
         if (!$completedOrderDetails) {
-            throw new \Exception("Transaction failed without throwing an exception.");
+            // Trường hợp isPaidOnline và isCOD đều false
+            return response()->json(['message' => 'Payment was not successful or could not be verified.'], 400);
         }
         
         return response()->json([

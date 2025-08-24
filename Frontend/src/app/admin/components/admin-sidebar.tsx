@@ -36,11 +36,6 @@ const menuItems = [
     title: "Tổng quan",
     items: [
       {
-        title: "Dashboard",
-        url: "/admin/dashboard",
-        icon: BarChart3,
-      },
-      {
         title: "Thống kê",
         url: "/admin/analytics",
         icon: TrendingUp,
