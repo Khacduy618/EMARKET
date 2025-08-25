@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-toastify';
 
@@ -53,6 +53,7 @@ const getErrorMessage = (error: any, defaultMessage: string): string => {
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
+    isLoggedIn: boolean;
     error: string | null;
     fetchUser: () => Promise<void>;
     token: string | null;
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const router = useRouter();
     const pathname = usePathname();
     const [token, setToken] = useState<string | null>(null);
-
+    const isLoggedIn = useMemo(() => !!user, [user]);
     // const fetchUser = async () => {
     //     try {
     //         const userData = await apiGetMe();
@@ -328,7 +329,7 @@ deleteAllCookies();
     return (
         <AuthContext.Provider
             value={{
-                user, isLoading, error, fetchUser, token, login, register, logout,
+                user, isLoading,isLoggedIn, error, fetchUser, token, login, register, logout,
                 forgotPassword, resetPassword, updatePassword, updateProfile,
                 resendVerificationEmail, requiresTwoFactor, twoFactorChallenge
             }}

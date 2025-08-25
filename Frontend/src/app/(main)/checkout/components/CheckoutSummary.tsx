@@ -11,7 +11,7 @@ import type { OrderResponseBody } from "@paypal/paypal-js";
 import { toast } from 'react-toastify';
 import { Loader, AlertTriangle, Loader2 } from 'lucide-react';
 import { formatVND } from '@/services/api';
-
+const VND_TO_USD_RATE = 25000;
 // --- Helper component cho các nút PayPal (để giữ cho code chính gọn gàng) ---
 const PaypalButtonWrapper = ({ currency, summary, onCompleteOrder }: { currency: string, summary: CheckoutData['summary'], onCompleteOrder: (details: OrderResponseBody) => void }) => {
     const [{ isPending, isRejected }] = usePayPalScriptReducer();
@@ -29,14 +29,15 @@ const PaypalButtonWrapper = ({ currency, summary, onCompleteOrder }: { currency:
     
     // Các hàm xử lý của PayPal
     const createOrder = (data: any, actions: any) => {
+      const amountInUSD = (summary.finalTotal / VND_TO_USD_RATE).toFixed(2); // Làm tròn đến 2 chữ số thập phân
         const amountValue = summary.finalTotal.toFixed(2); // PayPal cần giá trị dạng chuỗi
-        console.log("Attempting to create PayPal order with amount:", amountValue, "and currency:", currency);
-        if (parseFloat(amountValue) <= 0) {
+        console.log("Attempting to create PayPal order with amount:", amountInUSD, "and currency:", currency);
+        if (parseFloat(amountInUSD) <= 0) {
             toast.error("Tổng tiền phải lớn hơn 0.");
             return Promise.reject(new Error("Invalid order amount."));
         }
         return actions.order.create({
-            purchase_units: [{ amount: { currency_code: currency, value: amountValue } }],
+            purchase_units: [{ amount: { currency_code: currency, value: amountInUSD } }],
         });
     };
 
@@ -74,6 +75,7 @@ interface CheckoutSummaryProps {
   summary: CheckoutData['summary'];
   paymentMethod: CheckoutData['paymentMethod'];
   payPalClientID: string;
+  isProcessing: boolean;
   orderId: number | null;
   onPlaceOrder: () => void;
   onCompleteOrder: (paypalDetails?: OrderResponseBody) => void;
@@ -110,6 +112,7 @@ console.log("--- CheckoutSummary RENDERED ---");
       actionButton = (
           <button
             onClick={onPlaceOrder}
+            disabled={isProcessing}
             className="w-full bg-blue-500 text-white px-4 py-3 rounded-sm text-base font-semibold hover:bg-blue-700 transition-colors"
           >
             Tiến hành Thanh toán

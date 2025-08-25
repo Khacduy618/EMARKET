@@ -1,14 +1,16 @@
 
 // src/types/cart.interface.ts
 import { CartItem } from './cartItem.interface';
+import { Shop } from './shop.interface';
 
 export interface Cart {
     CartID: number | null;
     UserID: number;
     CreatedAt: string | null;
     UpdatedAt: string | null;
-    cartItems: CartItem[];
+    cart_items: CartItem[];
     message?: string;
+    
 }
 
 export interface AddCartItemResponse {

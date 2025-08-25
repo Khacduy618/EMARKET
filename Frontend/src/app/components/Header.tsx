@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingCart, ChevronDown, User, Menu, Store, LogOut, LayoutDashboard, Loader2 } from 'lucide-react';
 import useSWR from 'swr';
 import axios from 'axios';
-import { getAuthToken, getStorageImageUrl } from '@/services/api';
 import { usePathname } from 'next/navigation';
 
 // 1. IMPORT TỪ HỆ THỐNG AUTHCONTEXT (Lấy từ Code 1)
@@ -18,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getActiveSeasonTheme, SeasonTheme } from '@/types/seasonalThemes';
 import { toast } from 'react-toastify';
 import { API_URL } from '@/lib/config';
+import { getStorageImageUrl } from '@/services/api';
 
 // --- Fetcher cho SWR (Sử dụng phiên bản an toàn hơn từ Code 1) ---
 const fetcher = (url: string) => axios.get(url, {
@@ -237,9 +237,9 @@ export default function Header() {
     return (
         <div className="sticky top-0 z-30 bg-white shadow-sm">
             {/* PHẦN 1: HEADER CHÍNH (Giữ layout từ Code 2) */}
-            <header className="bg-gradient-to-b from-orange-500 to-orange-600 text-white py-2">
+            <header className="bg-amber-50 text-white py-2">
                 <div className="container mx-auto px-4">
-                    <div className="hidden md:flex justify-end items-center text-xs space-x-4 mb-2">
+                    <div className="hidden md:flex justify-end bg-gray-300 items-center text-xs space-x-4 mb-2">
                         <a
                             href="/seller" // href vẫn giữ để người dùng có thể chuột phải mở tab mới
                             onClick={handleSellerChannelClick}
@@ -316,7 +316,7 @@ export default function Header() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 md:gap-4">
+                    <div className="flex items-center justify-between bg-white gap-2 md:gap-4">
                         <button className="md:hidden p-2 -ml-2" onClick={() => setIsMobileMenuOpen(true)}><Menu size={24} /></button>
                         {/* Giữ logo bằng ảnh từ Code 2 */}
                         <Link href="/" className="text-2xl font-bold flex-shrink-0">

@@ -368,6 +368,7 @@ private function showForCheckout(Request $request, $orderId)
     $responsePayload = [
         'OrderID' => $order->OrderID,
         'OrderCode' => $order->OrderCode,
+        'expiresAt' => $order->expires_at,
         'address' => $address,
         'shopOrders' => $checkoutShopOrders,
         'appliedPlatformVouchers' => [
@@ -573,6 +574,7 @@ public function placeOrder(Request $request)
 
             $paymentMethod = $validatedData['paymentMethod'];
             $isCOD = ($paymentMethod === 'COD');
+            $expiresAt = null;
 
             $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
 
@@ -588,6 +590,7 @@ public function placeOrder(Request $request)
                 'shopvoucher' => json_encode($shopVouchersAppliedDetails),
                 'shopdiscountamount' => json_encode($shopDiscountAmountsById),
                 'CreatedAt' => now(), 'UpdatedAt' => now(),
+                'expires_at' => $expiresAt,
             ]);
 
             foreach ($itemsByShop as $shopId => $shopData) {
@@ -600,7 +603,7 @@ public function placeOrder(Request $request)
 
                 $sellerOrderId = DB::table('ordersseller')->insertGetId([
                     'SellerOrderCode' => $orderCode . '-' . $shopId, 'OrderID' => $orderId,
-                    'ShopID' => $shopId, 'Status' => $isCOD ? 'Processing' : 'Pending', // Trạng thái gói hàng con cũng thay đổi theo, 
+                    'ShopID' => $shopId, 'Status' => 'Pending', // Trạng thái gói hàng con cũng thay đổi theo, 
                     'SubtotalAmount' => $shopData['subtotal'],
                     'ShippingFee' => $shopData['shippingFee'], 'ShopVoucherDiscount' => $shopData['voucherDiscount'],
                     'TotalAmount' => $shopTotalAmount, // LƯU GIÁ TRỊ ĐÃ TÍNH TOÁN LẠI
@@ -646,6 +649,7 @@ public function completeOrder(Request $request, $orderId)
 {
 
     $user = $request->user();
+    
     $validator = Validator::make($request->all(), [
         'paymentMethod'      => 'required|string|in:Paypal,COD,VNPay',
         'paymentDetails'     => 'nullable|array',
@@ -800,7 +804,50 @@ public function completeOrder(Request $request, $orderId)
         return response()->json(['message' => 'Ghi chú đơn hàng đã được cập nhật.']);
     }
 
+    public function updatePaymentMethod(Request $request, $orderId)
+    {
+        $user = $request->user();
 
+        $validator = Validator::make($request->all(), [
+            'paymentMethod' => 'required|string|in:COD,Paypal,VNPay',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Tìm đơn hàng nháp thuộc sở hữu của user và chưa được thanh toán
+        $order = DB::table('ordersbuyer as ob')
+            ->leftJoin('ordersseller as os', 'ob.OrderID', '=', 'os.OrderID')
+            ->where('ob.OrderID', $orderId)
+            ->where('ob.UserID', $user->UserID)
+            // Đảm bảo không có seller order nào đã được thanh toán
+            ->where(function ($query) {
+                $query->where('os.PaymentStatus', '=', 'Pending')
+                      ->orWhereNull('os.SellerOrderID');
+            })
+            ->select('ob.OrderID')
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Đơn hàng không tồn tại hoặc đã được xử lý.'], 404);
+        }
+
+        try {
+            DB::table('ordersbuyer')
+                ->where('OrderID', $orderId)
+                ->update([
+                    'PaymentMethod' => $request->input('paymentMethod'),
+                    'UpdatedAt' => now()
+                ]);
+            
+            return response()->json(['message' => 'Phương thức thanh toán đã được cập nhật thành công.']);
+
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi cập nhật phương thức thanh toán cho OrderID ' . $orderId . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Đã có lỗi xảy ra.'], 500);
+        }
+    }
 
     /**
      * Hủy một đơn hàng nháp để người dùng có thể tạo lại.
@@ -840,9 +887,11 @@ public function completeOrder(Request $request, $orderId)
                 // Thao tác này sẽ tự động được thực hiện nếu bạn đã thiết lập
                 // 'ON DELETE CASCADE' ở khóa ngoại trong CSDL.
                 // Nhưng để chắc chắn, chúng ta vẫn có thể xóa tường minh.
-                DB::table('orderitems')->where('OrderID', $orderId)->delete();
+                DB::table('orderitems')->where('SellerOrderID', $SellerOrderID)->delete();
 
                 // 3. Xóa đơn hàng chính
+                DB::table('ordersseller')->where('OrderSellerOrderIDID', $SellerOrderID)->delete();
+
                 DB::table('ordersbuyer')->where('OrderID', $orderId)->delete();
 
                 // Lưu ý: Logic khôi phục giỏ hàng ở đây có thể không cần thiết,
@@ -856,6 +905,7 @@ public function completeOrder(Request $request, $orderId)
             return response()->json(['message' => 'An error occurred while cancelling the draft order.'], 500);
         }
     }
+    
 
     /**
      * TÍCH HỢP CHỨC NĂNG "MUA NGAY"
@@ -903,7 +953,7 @@ public function completeOrder(Request $request, $orderId)
             $attributes = DB::table('productvariantattribute as pva')
                 ->join('attributevalues as av', 'pva.AttributeValueID', '=', 'av.AttributeValueID')
                 ->where('pva.VariantID', $variantId)
-                ->select('av.Value')
+                ->select('av.Value', 'av.AttributeValueID')
                 ->get();
             
             // Tạo một "mock CartItem" để frontend có thể tái sử dụng logic
@@ -913,7 +963,7 @@ public function completeOrder(Request $request, $orderId)
                 'VariantID' => $variantId,
                 'ShopID' => $itemData->ShopID,
                 'Quantity' => $quantity,
-                'productVariant' => [
+                'product_variant' => [
                     'VariantID' => $variantId,
                     'ProductID' => $itemData->ProductID,
                     'Price' => $itemData->Price,
@@ -926,7 +976,11 @@ public function completeOrder(Request $request, $orderId)
                         'Description' => $itemData->ProductDescription,
                         'Discount' => $itemData->ProductDiscount,
                     ],
-                    'attributeValues' => $attributes->map(fn($attr) => ['Value' => $attr->Value])->toArray()
+                    // 'attribute_values' => $attributes->map(fn($attr) => ['Value' => $attr->Value])->toArray()
+                    'attribute_values' => $attributes->map(fn($attr) => [
+                        'Value' => $attr->Value,
+                        'AttributeValueID' => $attr->AttributeValueID
+                    ])->toArray()
                 ],
                 'shop' => [
                     'ShopID' => $itemData->ShopID,
@@ -937,9 +991,9 @@ public function completeOrder(Request $request, $orderId)
             ];
             
             // Tính toán giá cuối cùng và giá gốc
-            $price = (float)$mockCartItem['productVariant']['Price'];
-            $originalPrice = $mockCartItem['productVariant']['CompareAtPrice'] ? (float)$mockCartItem['productVariant']['CompareAtPrice'] : null;
-            $discountPercent = (float)$mockCartItem['productVariant']['product']['Discount'];
+            $price = (float)$mockCartItem['product_variant']['Price'];
+            $originalPrice = $mockCartItem['product_variant']['CompareAtPrice'] ? (float)$mockCartItem['product_variant']['CompareAtPrice'] : null;
+            $discountPercent = (float)$mockCartItem['product_variant']['product']['Discount'];
             
             // Áp dụng % discount từ sản phẩm
             if ($discountPercent > 0) {

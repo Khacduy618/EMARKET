@@ -39,22 +39,6 @@ const ProductCard = ({ product }: { product: any }) => (
                     </div>
                 )}
 
-                {/* Hover Actions */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-2">
-                    <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-colors">
-                        <Heart className="w-4 h-4 text-gray-600 hover:text-red-500" />
-                    </button>
-                    <button className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-colors">
-                        <ShoppingCart className="w-4 h-4 text-gray-600 hover:text-blue-500" />
-                    </button>
-                </div>
-
-                {/* Quick View Overlay */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="text-white text-sm font-medium bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                        Xem nhanh
-                    </span>
-                </div>
             </div>
         </div>
 

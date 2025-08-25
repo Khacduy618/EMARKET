@@ -193,7 +193,7 @@ const detailPageUrl = `/account/purchase/seller-order/${order.SellerOrderID}`;
 
                 <div className="relative">
                   <button
-                    className="flex items-center bg-white text-gray-700 px-4 py-1.5 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"
+                    className="flex items-center bg-white text-gray-700 px-4 py-2 rounded-md font-semibold text-xs border border-gray-300 hover:bg-gray-100 transition-colors"
                     onClick={(e) => { e.preventDefault(); setIsDropdownOpen(!isDropdownOpen); }}
                   >
                     Thêm <FaChevronDown className={`ml-1 text-xs transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />

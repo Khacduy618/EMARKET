@@ -118,7 +118,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <Card className="shadow-sm">
+        <Card className="shadow-sm max-w-150 mx-auto mt-10 p-6 bg-white">
         <CardHeader className="space-y-2">
             <CardTitle className="text-2xl">Đăng ký</CardTitle>
             <CardDescription>Tạo tài khoản mới để mua sắm nhanh chóng hơn.</CardDescription>

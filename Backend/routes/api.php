@@ -201,6 +201,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route để tạo đơn hàng nháp (khi nhấn "Place Order")
     Route::post('/orders/place', [OrderController::class, 'placeOrder']);
+    Route::put('/orders/{orderId}/payment-method', [OrderController::class, 'updatePaymentMethod']);
         Route::get('seller-orders/{sellerOrderId}', [OrderController::class, 'showSellerOrder']);
     Route::get('/orders/{orderId}', [OrderController::class, 'show']);
 
@@ -247,6 +248,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Endpoint cho Modal danh sách đơn hàng (tái sử dụng từ OrderController hoặc tạo mới)
     Route::get('/statistics/orders-summary', [BuyerStatisticsController::class, 'getOrdersSummary']);
 
+    Route::get('/user/reviews/summary',[ReviewController::class, 'getReviewSummary']);
 
 });
 
@@ -372,6 +374,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/users/bulk-update-status', [AdminUserController::class, 'bulkUpdateStatus']);
     Route::post('/users/bulk-delete', [AdminUserController::class, 'bulkDestroy']);
     Route::post('/users/bulk-disable-2fa', [AdminUserController::class, 'bulkDisableTwoFactor']);
+    Route::post('/users/bulk-update-role', [AdminUserController::class, 'bulkUpdateRole']);
 
     // === CATEGORY MANAGEMENT ===
     Route::get('/categories/getAllCategory', [AdminCategory::class, "getAllCategory"]);

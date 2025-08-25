@@ -187,7 +187,7 @@ export interface Order {
 export interface CheckoutShopOrder {
   shopId: number;
   shopName: string;
-  shopLevel: ShopLevel;
+  shopLevel?: ShopLevel;
   items: CheckoutProductItem[];
   shippingMethod: string;
   shippingFee: number;
@@ -226,6 +226,8 @@ export interface CheckoutSummaryDetails {
 
 export interface CheckoutData {
   orderId?: number;
+  orderCode: string | null;     // <-- THÊM DÒNG NÀY (hoặc đổi ? thành | null)
+  expiresAt?: string | null;
   address: Address | null;
   shopOrders: CheckoutShopOrder[];
   appliedPlatformVouchers: AppliedVouchersCombined;

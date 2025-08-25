@@ -15,7 +15,7 @@ export interface ProductVariant {
     // SỬA LỖI: Thêm '?' và '| null' để làm cho kiểu dữ liệu tương thích
     CreatedAt?: string | null; 
     UpdatedAt?: string | null;
-    attributeValues?: AttributeValue[]; // Các thuộc tính của phiên bản này
+    attribute_values?: AttributeValue[]; // Các thuộc tính của phiên bản này
     // Thêm trường product nếu ProductVariant cần tham chiếu ngược lại Product đầy đủ
     // product?: Product; // Tránh vòng lặp nếu Product cũng có productVariants
 }
@@ -91,6 +91,8 @@ export interface ProductSummary {
     Discount: number;
     ImageURL?: string | null; // Ảnh đại diện chính (nếu có)
     images: ProductImage[];   //
+     AdminApprovalStatus: 'Pending' | 'Approved' | 'Rejected';
+     IsActive: boolean;
     
 }
 
@@ -106,5 +108,5 @@ export interface ProductVariantSummary {
     CreatedAt?: string | null;
     UpdatedAt?: string | null;
     product: ProductSummary; // Sử dụng ProductSummary
-    attributeValues: AttributeValue[]; // Sử dụng AttributeValue
+    attribute_values: AttributeValue[]; // Sử dụng AttributeValue
 }

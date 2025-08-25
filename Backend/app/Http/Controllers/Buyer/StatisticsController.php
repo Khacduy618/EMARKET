@@ -170,45 +170,63 @@ class StatisticsController extends Controller
         
         $baseQuery = $this->getBaseOrderQuery($request);
         
-        $orderIdsQuery = (clone $baseQuery)->select('ob.OrderID');
-
+        // Áp dụng bộ lọc category hoặc shop nếu có
         if ($filterType === 'category' && $filterId) {
-            $orderIdsQuery
-                ->join('orderitems as oi', 'os.SellerOrderID', '=', 'oi.SellerOrderID')
-                ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-                ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-                ->where('p.CategoryID', $filterId);
+            $baseQuery
+                ->join('orderitems as oi_filter', 'os.SellerOrderID', '=', 'oi_filter.SellerOrderID')
+                ->join('productvariants as pv_filter', 'oi_filter.VariantID', '=', 'pv_filter.VariantID')
+                ->join('products as p_filter', 'pv_filter.ProductID', '=', 'p_filter.ProductID')
+                ->where('p_filter.CategoryID', $filterId);
         } elseif ($filterType === 'shop' && $filterId) {
-            $orderIdsQuery->where('os.ShopID', $filterId);
+            $baseQuery->where('os.ShopID', $filterId);
         }
         
-        $orderIds = $orderIdsQuery->distinct()->pluck('ob.OrderID');
-        
-        if ($orderIds->isEmpty()) {
+        // Lấy thông tin cần thiết từ các seller orders đã được lọc
+        $sellerOrders = $baseQuery
+            ->join('shops as s', 'os.ShopID', '=', 's.ShopID') // Join thêm bảng shops
+            ->orderBy('ob.OrderDate', 'desc')
+            ->select(
+                'os.SellerOrderID',
+                'os.SellerOrderCode',
+                'os.TotalAmount',
+                'os.Status',          // Lấy Status từ ordersseller
+                'os.PaymentStatus',   // Lấy PaymentStatus từ ordersseller
+                'ob.OrderDate',       // Vẫn lấy ngày từ đơn hàng tổng
+                's.ShopName'          // Lấy thêm tên Shop
+            )
+            ->distinct() // Đảm bảo không bị trùng lặp seller order do join với items
+            ->get();
+
+        if ($sellerOrders->isEmpty()) {
             return response()->json([]);
         }
         
-        $orders = DB::table('ordersbuyer')
-            ->whereIn('OrderID', $orderIds)
-            ->orderBy('OrderDate', 'desc')
-            ->select('OrderID', 'OrderCode as orderCode', 'TotalAmount as totalAmount', 'OrderDate as orderDate')
-            ->get();
-        
+        // Lấy tất cả items cho các seller orders này trong một query
+        $sellerOrderIds = $sellerOrders->pluck('SellerOrderID');
         $orderItems = DB::table('orderitems as oi')
-            ->join('ordersseller as os', 'oi.SellerOrderID', '=', 'os.SellerOrderID')
-            ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID')
-            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')
-            ->whereIn('os.OrderID', $orderIds)
-            ->select('os.OrderID', 'p.Name as productName')
-            ->get()->groupBy('OrderID');
+            ->join('productvariants as pv', 'oi.VariantID', '=', 'pv.VariantID') // BƯỚC 1: Từ item -> variant
+            ->join('products as p', 'pv.ProductID', '=', 'p.ProductID')       // BƯỚC 2: Từ variant -> product
+            ->whereIn('oi.SellerOrderID', $sellerOrderIds)
+            ->select('oi.SellerOrderID', 'p.Name as productName')
+            ->get()->groupBy('SellerOrderID');
 
-        foreach($orders as $order) {
-            $itemsForOrder = $orderItems->get($order->OrderID, collect());
-            // Lấy tên các sản phẩm, loại bỏ trùng lặp và chuyển về mảng bình thường
-            $order->productNames = $itemsForOrder->pluck('productName')->unique()->values()->all();
-        }
+        // Ghép tên sản phẩm vào từng seller order
+        $results = $sellerOrders->map(function ($order) use ($orderItems) {
+            $itemsForOrder = $orderItems->get($order->SellerOrderID, collect());
+            
+            return [
+                'sellerOrderId' => $order->SellerOrderID,
+                'sellerOrderCode' => $order->SellerOrderCode,
+                'productNames' => $itemsForOrder->pluck('productName')->unique()->values()->all(),
+                'totalAmount' => $order->TotalAmount,
+                'orderDate' => $order->OrderDate,
+                'shopName' => $order->ShopName,
+                'status' => $order->Status,
+                'paymentStatus' => $order->PaymentStatus,
+            ];
+        });
 
-        return response()->json($orders);
+        return response()->json($results);
     }
     
     /**

@@ -48,13 +48,13 @@ export const useCheckoutData = () => {
           VariantID: item.variantId,
           ShopID: item.shopId,
           Quantity: item.quantity,
-          productVariant: { // Cần xây dựng lại cấu trúc này
+          product_variant: { // Cần xây dựng lại cấu trúc này
             ...item.product, // Giả sử item.product là một đối tượng Product đầy đủ
             VariantID: item.variantId,
             Price: item.price, // Dùng giá đã tính toán
             CompareAtPrice: item.originalPrice,
             ImageURL: item.imageUrl,
-            attributeValues: [], // Thông tin này có thể bị mất nếu không được lưu trữ đúng cách
+            attribute_values: [], // Thông tin này có thể bị mất nếu không được lưu trữ đúng cách
             product: item.product,
           },
           shop: {
@@ -100,7 +100,7 @@ export const useCheckoutData = () => {
 
       try {
         const storedData: StoredCheckoutData = JSON.parse(storedDataString);
-        
+         console.log("Data from localStorage:", storedData); 
         const addressData = await fetchUserAddresses();
         const defaultAddress = addressData.default_address;
         setAllUserAddresses(addressData.addresses || []);
@@ -119,23 +119,27 @@ export const useCheckoutData = () => {
 
             const checkoutItems = itemsInShop.map(cartItem => {
                 const finalPrice = calculateFinalItemPrice(
-                    cartItem.productVariant.Price,
-                    cartItem.productVariant.CompareAtPrice,
-                    cartItem.productVariant.product?.Discount
+                    cartItem.product_variant.Price,
+                    cartItem.product_variant.CompareAtPrice,
+                    cartItem.product_variant.product?.Discount
                 );
+                const classification = (cartItem.product_variant.attribute_values && Array.isArray(cartItem.product_variant.attribute_values))
+                            ? cartItem.product_variant.attribute_values.map(v => v.Value).join(', ')
+                            : ''; 
                 return {
                     variantId: cartItem.VariantID,
-                    productId: cartItem.productVariant.product.ProductID,
+                    productId: cartItem.product_variant.product.ProductID,
                     shopId: cartItem.ShopID,
                     hasInsurance: false,
-                    name: cartItem.productVariant.product.Name,
-                    imageUrl: cartItem.productVariant.ImageURL,
-                    classification: cartItem.productVariant.attributeValues.map(v => v.Value).join(', '),
+                    name: cartItem.product_variant.product.Name,
+                    imageUrl: cartItem.product_variant.ImageURL,
+                    // classification: cartItem.product_variant.attribute_values.map(v => v.Value).join(', '),
+                    classification: classification, 
                     price: finalPrice,
-                    originalPrice: cartItem.productVariant.CompareAtPrice ?? (cartItem.productVariant.product?.Discount > 0 ? cartItem.productVariant.Price : null),
+                    originalPrice: cartItem.product_variant.CompareAtPrice ?? (cartItem.product_variant.product?.Discount > 0 ? cartItem.product_variant.Price : null),
                     quantity: cartItem.Quantity,
                     subtotal: finalPrice * cartItem.Quantity,
-                    product: cartItem.productVariant.product
+                    product: cartItem.product_variant.product
                 };
             });
             
@@ -157,6 +161,8 @@ export const useCheckoutData = () => {
         const initialData: CheckoutData = {
           orderId: storedData.orderId, // sẽ là null
           address: defaultAddress,
+          orderCode: null, // Thêm giá trị mặc định là null
+          expiresAt: null,
           shopOrders,
           appliedPlatformVouchers: storedData.appliedPlatformVouchers,
           summary: { ...summary, address: defaultAddress },

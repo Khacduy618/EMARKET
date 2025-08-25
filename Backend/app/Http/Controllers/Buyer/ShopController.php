@@ -120,6 +120,15 @@ class ShopController extends Controller
             ->where('p.ShopID', $shopId)
             ->where('p.IsActive', true)
             ->where('p.AdminApprovalStatus', 'Approved');
+                $productQuery->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                  ->from('productvariants as pv_check')
+                  // Join để kiểm tra xem variant có được gán attribute value nào không
+                  ->join('productvariantattribute as pva_check', 'pv_check.VariantID', '=', 'pva_check.VariantID')
+                  ->whereColumn('pv_check.ProductID', 'p.ProductID')
+                  // Yêu cầu biến thể đó phải được kích hoạt (IsActive = 1)
+                  ->where('pv_check.IsActive', 1);
+        });
 
         // --- LỌC KHOẢNG GIÁ TRÊN GIÁ CUỐI CÙNG ---
         if ($request->filled('priceMin')) {

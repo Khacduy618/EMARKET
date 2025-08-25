@@ -42,7 +42,21 @@ const vietnameseBadwords: string[] = [
     'dit', 'du', 'lon', 'cac', 'buoi', 'cu',
     'ngu', 'dan', 'suc vat', 'cho chet','cút'
 ];
+const englishBadwords: string[] = [
+  // --- Nhóm 1: Chửi thề cơ bản ---
+  "fuck", "shit", "bitch", "bastard", "asshole", "damn", "crap",
 
+  // --- Nhóm 2: Bộ phận sinh dục / xúc phạm tình dục ---
+  "dick", "cock", "pussy", "cunt", "slut", "whore", "motherfucker",
+
+  // --- Nhóm 3: Miệt thị trí tuệ ---
+  "idiot", "moron", "stupid", "dumb", "retard",
+
+  // --- Nhóm 4: Miệt thị nặng / phân biệt ---
+  "nigger", "faggot", "kike", "spic", "chink"
+];
+
+const allBadwords: string[] = [...vietnameseBadwords, ...englishBadwords];
 /**
  * (ĐÃ CẬP NHẬT) Tạo một biểu thức chính quy (Regex) lớn từ toàn bộ danh sách.
  * 
@@ -50,7 +64,7 @@ const vietnameseBadwords: string[] = [
  * - `\b`: Word Boundary, đảm bảo chỉ khớp với các từ hoàn chỉnh.
  * - `gi`: g (global - tìm tất cả các từ khớp) và i (case-insensitive - không phân biệt hoa thường).
  */
-const profaneRegex = new RegExp(`\\b(${vietnameseBadwords.join('|')})\\b`, 'gi');
+const profaneRegex = new RegExp(`\\b(${allBadwords.join('|')})\\b`, 'gi');
 
 /**
  * Kiểm tra xem văn bản có chứa từ cấm hay không.

@@ -16,6 +16,8 @@ import Link from 'next/link';
 import VoucherSelectionModal from '@/app/components/cart/VoucherSelectionModal';
 import { fetchAllVoucher, fetchEligiblePlatformVouchers } from '@/services/voucher';
 import { API_URL } from '@/lib/config';
+import { useAuth } from '@/context/AuthContext';
+import { AlertCircle } from 'lucide-react'; // Thêm icon cảnh báo
 
 //format giá
 const formatPrice = (price: number): string => {
@@ -42,12 +44,23 @@ const calculateDiscountForVoucher = (voucher: Voucher, subtotal: number): number
     }
     return Math.round(discount);
 };
+const isItemSelectable = (item: CartItem): { selectable: boolean; reason: string | null } => {
+    if (item.shop?.Status !== 'Approved') {
+        return { selectable: false, reason: 'Cửa hàng này đang tạm ngưng hoạt động.' };
+    }
+    if (item.product_variant?.product?.AdminApprovalStatus !== 'Approved' || !item.product_variant?.product?.IsActive) {
+        return { selectable: false, reason: 'Sản phẩm này đã ngừng kinh doanh.' };
+    }
+    if (item.product_variant?.StockQuantity <= 0) {
+        return { selectable: false, reason: 'Sản phẩm đã hết hàng.' };
+    }
+    return { selectable: true, reason: null };
+};
 
 const CartPage: React.FC = () => {
     //khai báo biến
     const [cart, setCart] = useState<Cart | null>(null);
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
 
     const [localError, setLocalError] = useState<string | null>(null);
     const [openDropdownItemId, setOpenDropdownItemId] = useState<number | null>(null);
@@ -91,6 +104,10 @@ const CartPage: React.FC = () => {
     const [selectedShopIdForVoucher, setSelectedShopIdForVoucher] = useState<number | null>(null);
     const [appliedShopVouchers, setAppliedShopVouchers] = useState<AppliedShopVouchers>({});
 
+
+    const { user, isLoggedIn, isLoading: isAuthLoading } = useAuth();
+    const [isCartLoading, setIsCartLoading] = useState(true); 
+
     // thông báo toastr
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
         switch (type) {
@@ -111,28 +128,30 @@ const CartPage: React.FC = () => {
         }
     }, []);
 
+    
 
     // Refetch cart function (to be called after successful mutations)
     const refreshCart = useCallback(async () => {
         try {
-            setLoading(true);
+            setIsCartLoading(true);
             // const cartData = await fetchCart();
             const [cartData, voucherData] = await Promise.all([
                 fetchCart(),
                 fetchAllVoucher()
             ]);
+            
             setAllShopVouchers(voucherData.shopVouchers || []);
             const hardLimit = 10;
             let notificationsOnLoad: { message: string; type: 'error' | 'warning' }[] = [];
 
-            const processedCartItems = cartData.cartItems.map(item => {
+            const processedCartItems = cartData.cart_items.map(item => {
                 let currentQuantity = item.Quantity;
-                const maxStock = item.productVariant?.StockQuantity || 0;
+                const maxStock = item.product_variant?.StockQuantity || 0;
 
                 if (maxStock === 0) {
                     if (currentQuantity > 0) {
                         notificationsOnLoad.push({
-                            message: `Sản phẩm "${item.productVariant?.product?.Name}" hiện đã hết hàng. Số lượng được điều chỉnh về 0.`,
+                            message: `Sản phẩm "${item.product_variant?.product?.Name}" hiện đã hết hàng. Số lượng được điều chỉnh về 0.`,
                             type: 'error'
                         });
                     }
@@ -145,12 +164,12 @@ const CartPage: React.FC = () => {
                     if (currentQuantity > ultimateMax) {
                         if (ultimateMax === hardLimit) {
                             notificationsOnLoad.push({
-                                message: `Số lượng của sản phẩm "${item.productVariant?.product?.Name}" đã được giới hạn về ${hardLimit} (số lượng tối đa cho phép).`,
+                                message: `Số lượng của sản phẩm "${item.product_variant?.product?.Name}" đã được giới hạn về ${hardLimit} (số lượng tối đa cho phép).`,
                                 type: 'warning'
                             });
                         } else {
                             notificationsOnLoad.push({
-                                message: `Số lượng của sản phẩm "${item.productVariant?.product?.Name}" đã được giới hạn về ${maxStock} (do tồn kho).`,
+                                message: `Số lượng của sản phẩm "${item.product_variant?.product?.Name}" đã được giới hạn về ${maxStock} (do tồn kho).`,
                                 type: 'warning'
                             });
                         }
@@ -200,20 +219,24 @@ const CartPage: React.FC = () => {
             showNotification(errorMessage, 'error');
             return null;
         } finally {
-            setLoading(false);
+            setIsCartLoading(false);
         }
     }, [showNotification]);
 
-
-    useEffect(() => {
-        const authToken = getAuthToken();
-        if (!authToken) {
-            router.push('/signin');
-            return;
+    
+   useEffect(() => {
+        // Chỉ chạy logic khi AuthContext đã load xong
+        if (!isAuthLoading) { 
+            if (isLoggedIn) {
+                // Nếu đã đăng nhập, fetch giỏ hàng
+                setIsCartLoading(true); // Bắt đầu loading của trang cart
+                refreshCart().finally(() => setIsCartLoading(false)); // Kết thúc loading sau khi fetch xong
+            } else {
+                // Nếu chưa đăng nhập, không làm gì cả, chỉ dừng loading
+                setIsCartLoading(false);
+            }
         }
-
-        refreshCart();
-    }, [router, refreshCart]);
+    }, [isLoggedIn, isAuthLoading, refreshCart]);
 
 
     // Handle individual item checkbox changes
@@ -233,10 +256,10 @@ const CartPage: React.FC = () => {
     const handleSelectAllChange = (isChecked: boolean) => {
         setSelectedCartItemIds(prev => {
             const newSet = new Set<number>();
-            if (isChecked && cart && Array.isArray(cart.cartItems)) {
-                cart.cartItems.forEach(item => {
+            if (isChecked && cart && Array.isArray(cart.cart_items)) {
+                cart.cart_items.forEach(item => {
 
-                    if (item.Quantity > 0) {
+                    if (isItemSelectable(item).selectable) {
                         newSet.add(item.CartItemID);
                     }
 
@@ -255,11 +278,12 @@ const CartPage: React.FC = () => {
 
             if (itemsInShop) {
                 itemsInShop.forEach(item => {
-                    if (isChecked && item.Quantity > 0) {
-
-                        newSet.add(item.CartItemID);
-                    } else {
-                        newSet.delete(item.CartItemID);
+                    if (isItemSelectable(item).selectable) {
+                        if (isChecked) {
+                            newSet.add(item.CartItemID);
+                        } else {
+                            newSet.delete(item.CartItemID);
+                        }
                     }
                 });
             }
@@ -297,7 +321,7 @@ const CartPage: React.FC = () => {
         if (itemToDelete) {
             setCart(prevCart => {
                 if (!prevCart) return null;
-                const updatedItems = prevCart.cartItems.map(cartItem =>
+                const updatedItems = prevCart.cart_items.map(cartItem =>
                     cartItem.CartItemID === itemToDelete.CartItemID
                         ? { ...cartItem }
                         : cartItem
@@ -373,9 +397,9 @@ const CartPage: React.FC = () => {
             return;
         }
         setVariantOptions(null); // CHỈ set null ở đây để lần đầu mở ra có loading
-        const initialValueIds = item.productVariant.attributeValues.map(av => av.AttributeValueID);
+        const initialValueIds = item.product_variant.attribute_values.map(av => av.AttributeValueID);
         setEditingItemId(item.CartItemID);
-        filterVariantsForEditing(item.productVariant.ProductID, initialValueIds);
+        filterVariantsForEditing(item.product_variant.ProductID, initialValueIds);
     }, [editingItemId, filterVariantsForEditing]);
 
 
@@ -384,7 +408,7 @@ const CartPage: React.FC = () => {
     const handleNewOptionSelect = (attributeId: number, attributeValueId: number) => {
         if (!variantOptions || !editingItemId) return;
         
-        const currentItem = cart?.cartItems.find(item => item.CartItemID === editingItemId);
+        const currentItem = cart?.cart_items.find(item => item.CartItemID === editingItemId);
         if (!currentItem) return;
 
         const currentSelections = variantOptions.current_selected_attribute_value_ids;
@@ -413,7 +437,7 @@ const CartPage: React.FC = () => {
         }
         
         // Gọi lại API filter với danh sách ID đã được cập nhật
-        filterVariantsForEditing(currentItem.productVariant.ProductID, newSelectedValueIds);
+        filterVariantsForEditing(currentItem.product_variant.ProductID, newSelectedValueIds);
     };
 
     const handleCancelVariantChange = () => {
@@ -459,7 +483,7 @@ const CartPage: React.FC = () => {
             return;
         }
 
-        const maxStock = item.productVariant?.StockQuantity || 0;
+        const maxStock = item.product_variant?.StockQuantity || 0;
         const hardLimit = 10;
         const originalItemQuantity = item.Quantity;
 
@@ -496,7 +520,7 @@ const CartPage: React.FC = () => {
                 if (!prevCart) return null;
                 return {
                     ...prevCart,
-                    cartItems: prevCart.cartItems.map(cartItem =>
+                    cartItems: prevCart.cart_items.map(cartItem =>
                         cartItem.CartItemID === item.CartItemID
                             ? { ...cartItem, Quantity: finalQuantity }
                             : cartItem
@@ -528,7 +552,7 @@ const CartPage: React.FC = () => {
 
             setCart(prevCart => {
                 if (!prevCart) return null;
-                const updatedItems = prevCart.cartItems.map(cartItem =>
+                const updatedItems = prevCart.cart_items.map(cartItem =>
                     cartItem.CartItemID === item.CartItemID
                         ? { ...cartItem, Quantity: originalItemQuantity }
                         : cartItem
@@ -546,7 +570,7 @@ const CartPage: React.FC = () => {
             return;
         }
 
-        if (!item.productVariant?.ProductID) {
+        if (!item.product_variant?.ProductID) {
             console.warn('Product ID is missing');
 
             showNotification('Không thể lấy thông tin thuộc tính: Thiếu ID sản phẩm.', 'warning');
@@ -554,7 +578,7 @@ const CartPage: React.FC = () => {
             return;
         }
         try {
-            const responseData = await getProductAttributes(item.productVariant.ProductID);
+            const responseData = await getProductAttributes(item.product_variant.ProductID);
             const actualAttributes = responseData.attributes;
 
             const transformedAttributes: {
@@ -623,8 +647,8 @@ const CartPage: React.FC = () => {
     };
 
     // Group items by shop first, as it's needed for shop-level checkboxes and rendering
-    const groupedItems = cart && Array.isArray(cart.cartItems)
-        ? cart.cartItems.reduce((acc, item) => {
+    const groupedItems = cart && Array.isArray(cart.cart_items)
+        ? cart.cart_items.reduce((acc, item) => {
             const shopId = item.ShopID;
             if (!acc[shopId]) {
                 acc[shopId] = [];
@@ -649,7 +673,7 @@ const CartPage: React.FC = () => {
                 if (selectedCartItemIds.has(item.CartItemID)) {
                     // Sử dụng giá bán thực tế (Price), không phải CompareAtPrice
                     // Vì CompareAtPrice là giá gốc trước khi giảm giá
-                    const price = item.productVariant.CompareAtPrice ? Math.floor(item.productVariant?.CompareAtPrice * (1 - item.productVariant?.product.Discount / 100)) : 0 ;
+                    const price = item.product_variant.CompareAtPrice ? Math.floor(item.product_variant?.CompareAtPrice * (1 - item.product_variant?.product.Discount / 100)) : 0 ;
                     subtotals[shopId] += item.Quantity * price;
                 }
             });
@@ -660,16 +684,16 @@ const CartPage: React.FC = () => {
     
     // Calculate total amount of selected items
     const calculateTotalAmount = () => {
-        if (!cart || !Array.isArray(cart.cartItems) || selectedCartItemIds.size === 0) {
+        if (!cart || !Array.isArray(cart.cart_items) || selectedCartItemIds.size === 0) {
             return 0;
         }
 
         let total = 0;
         let finalprice= 0;
         
-        cart.cartItems.forEach(item => {
+        cart.cart_items.forEach(item => {
             if (selectedCartItemIds.has(item.CartItemID)) {
-                finalprice = (item.productVariant?.CompareAtPrice || item.productVariant?.Price) * (1 - item.productVariant?.product.Discount / 100);
+                finalprice = (item.product_variant?.CompareAtPrice || item.product_variant?.Price) * (1 - item.product_variant?.product.Discount / 100);
                 // console.log(`price:${price}`);
                 total += (Math.floor(finalprice) || 0) * item.Quantity;
             }
@@ -683,7 +707,7 @@ const CartPage: React.FC = () => {
 
         // 2. Tính tổng phí vận chuyển của các shop có sản phẩm được CHỌN
         const selectedShopIds = new Set(
-            cart?.cartItems
+            cart?.cart_items
                 .filter(item => selectedCartItemIds.has(item.CartItemID))
                 .map(item => item.ShopID) || []
         );
@@ -729,10 +753,14 @@ const CartPage: React.FC = () => {
             finalTotal: finalTotal > 0 ? finalTotal : 0,
         };
     }, [cart, selectedCartItemIds, subtotalByShop, appliedShopVouchers, appliedVouchers]);
-
+    
+    const selectableItemsCount = useMemo(() => {
+        return cart?.cart_items.filter(item => isItemSelectable(item).selectable).length || 0;
+    }, [cart]);
 
     // Determine the state of the "Select All" checkbox (global)
-    const isAllItemsSelected = !!(cart && Array.isArray(cart.cartItems) && cart.cartItems.length > 0 && selectedCartItemIds.size === cart.cartItems.length);
+    // const isAllItemsSelected = !!(cart && Array.isArray(cart.cartItems) && cart.cartItems.length > 0 && selectedCartItemIds.size === cart.cartItems.length);
+    const isAllItemsSelected = selectableItemsCount > 0 && selectedCartItemIds.size === selectableItemsCount;
     // Determine the number of selected items to display
     const numberOfSelectedItems = selectedCartItemIds.size;
 
@@ -765,7 +793,7 @@ const CartPage: React.FC = () => {
             return;
         }
 
-        const selectedItems = cart?.cartItems.filter(item => selectedCartItemIds.has(item.CartItemID)) || [];
+        const selectedItems = cart?.cart_items.filter(item => selectedCartItemIds.has(item.CartItemID)) || [];
 
         // Lọc ra các voucher của shop đã được áp dụng cho các shop có sản phẩm được chọn
         const appliedShopVouchersForCheckout: AppliedShopVouchers = {};
@@ -827,13 +855,32 @@ const CartPage: React.FC = () => {
 
 
 
-    if (loading) {
+    
+     if (isAuthLoading) {
         return <div className="flex justify-center items-center h-screen bg-white">
                 <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
             </div>;
     }
-
-    if (!cart || !Array.isArray(cart.cartItems) || cart.cartItems.length === 0) {
+ if (!isLoggedIn) {
+        return (
+            <div className="flex flex-col justify-center items-center text-center py-20 text-gray-600">
+                <ShoppingCart size={64} className="mb-4 text-gray-400" />
+                <h2 className="text-xl font-semibold mb-2">Giỏ hàng của bạn đang chờ</h2>
+                <p className="mb-6">Vui lòng đăng nhập để xem sản phẩm và tiến hành mua sắm.</p>
+                <Link href="/signin">
+                    <button className="px-8 py-3 bg-orange-500 text-white font-bold rounded-md hover:bg-orange-600 transition-colors">
+                        Đăng nhập ngay
+                    </button>
+                </Link>
+            </div>
+        );
+    }
+    if (isCartLoading) {
+         return <div className="flex justify-center items-center h-screen bg-white">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+            </div>;
+    }
+    if (!cart || !Array.isArray(cart.cart_items) || cart.cart_items.length === 0) {
         return  <div className="flex flex-col justify-center text-center py-8 text-gray-500 font-bold">
                 <div className="flex justify-center">
                     <img src={getStorageImageUrl('images/empty-cart.png')} alt="emty-cart" className="w-50 h-50" />
@@ -844,6 +891,7 @@ const CartPage: React.FC = () => {
                 </p>
                 </div>;
     }
+    
 
     return (
             <div className="container mx-auto px-4">
@@ -851,7 +899,7 @@ const CartPage: React.FC = () => {
             {showDeleteConfirm && itemToDelete && (
                 <ConfirmModal
                     isOpen={showDeleteConfirm}
-                    message={`Bạn có chắc chắn muốn xoá sản phẩm "${itemToDelete.productVariant?.product?.Name}" khỏi giỏ hàng?`}
+                    message={`Bạn có chắc chắn muốn xoá sản phẩm "${itemToDelete.product_variant?.product?.Name}" khỏi giỏ hàng?`}
                     onConfirm={handleConfirmDelete}
                     onCancel={handleCancelDelete}
                 />
@@ -861,7 +909,7 @@ const CartPage: React.FC = () => {
             {showLargeQuantityConfirm && itemForLargeQuantity && (
                 <ConfirmModal
                     isOpen={showLargeQuantityConfirm}
-                    message={`Quý khách muốn đặt số lượng lớn cho sản phẩm "${itemForLargeQuantity.productVariant?.product?.Name}"? Vui lòng liên hệ cửa hàng: ${itemForLargeQuantity.shop?.ShopPhone || 'Chưa có SĐT'}`}
+                    message={`Quý khách muốn đặt số lượng lớn cho sản phẩm "${itemForLargeQuantity.product_variant?.product?.Name}"? Vui lòng liên hệ cửa hàng: ${itemForLargeQuantity.shop?.ShopPhone || 'Chưa có SĐT'}`}
                     onConfirm={handleConfirmLargeQuantity}
                     onCancel={handleCancelLargeQuantity}
                 />
@@ -903,7 +951,7 @@ const CartPage: React.FC = () => {
             />
 
             {/* Persistent error banner (optional, can remove if floating notification is enough) */}
-           {localError && (
+           {/* {localError && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <strong className="font-bold">Lỗi!</strong>
                     <span className="block sm:inline"> {localError}</span>
@@ -911,7 +959,7 @@ const CartPage: React.FC = () => {
                         <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.03a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15L6.252 6.1a1.2 1.2 0 1 1 1.697-1.697l2.758 3.15 2.651-3.03a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.15 2.758 3.15a1.2 1.2 0 0 1 0 1.697z"/></svg>
                     </span>
                 </div>
-            )}
+            )} */}
 
                 {/* Cart Items List */}
                 <div className="mb-6">
@@ -925,7 +973,8 @@ const CartPage: React.FC = () => {
                                 className="form-checkbox text-red-500 rounded"
                                 checked={isAllItemsSelected}
                                 onChange={(e) => handleSelectAllChange(e.target.checked)}
-                                disabled={cart.cartItems.length === 0}
+                                // disabled={cart.cartItems.length === 0}
+                                disabled={selectableItemsCount === 0}
                             />
                             Sản Phẩm
                         </div>
@@ -947,7 +996,8 @@ const CartPage: React.FC = () => {
                             // Giả sử API chưa sắp xếp, chúng ta sắp xếp ở đây
                             .sort((a, b) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
                             .slice(0, 3);
-                            
+                            const shopSelectableItemsCount = items.filter(item => isItemSelectable(item).selectable).length;
+                    const shopSelectedCount = items.filter(item => selectedCartItemIds.has(item.CartItemID)).length;
                         return (
                             <div key={shopId} className="shop-group bg-white rounded-sm shadow-sm last:border-b-0 mb-4">
                                 {/* Shop Header */}
@@ -958,20 +1008,29 @@ const CartPage: React.FC = () => {
 
                                         ref={el => {
                                             if (el) {
+                                                // shopCheckboxRefs.current.set(shopId, el);
                                                 shopCheckboxRefs.current.set(shopId, el);
+                                            // Logic set indeterminate không đổi
+                                            el.indeterminate = shopSelectedCount > 0 && shopSelectedCount < shopSelectableItemsCount;
+                                            el.checked = shopSelectableItemsCount > 0 && shopSelectedCount === shopSelectableItemsCount;
+                                            
                                             } else {
                                                 shopCheckboxRefs.current.delete(shopId);
                                             }
                                         }}
                                         onChange={(e) => handleShopCheckboxChange(shopId, e.target.checked)}
+                                        disabled={shopSelectableItemsCount === 0} 
 
                                     />
                                     <span className="text-lg text-red-500">🏪</span>
                                     <Link href={`/shop/${shopId}`} ><span className="font-bold text-sm text-gray-800">{shopName || `Shop ID: ${shopId}`}</span></Link>
                                 </div>
                                 {/* Cart Items for this shop */}
-                                {items.map((item: CartItem) => (
-                                    
+                               {items.map((item: CartItem) => {
+                                // **BƯỚC 2: Kiểm tra từng item**
+                                const { selectable, reason } = isItemSelectable(item);
+
+                                return (
                                     <div
                                         key={item.CartItemID}
                                         // Điều kiện để áp dụng hiệu ứng: chỉ khi item này KHÔNG đang được sửa
@@ -990,26 +1049,30 @@ const CartPage: React.FC = () => {
                                                 <input
                                                     type="checkbox"
                                                     className="form-checkbox text-red-500 rounded"
-                                                    checked={!!selectedCartItemIds.has(item.CartItemID)}
+                                                    checked={selectedCartItemIds.has(item.CartItemID)}
                                                     onChange={(e) => handleItemCheckboxChange(item.CartItemID, e.target.checked)}
-
-                                                    disabled={item.Quantity === 0}
-
+                                                    disabled={!selectable} // **VÔ HIỆU HÓA CHECKBOX**
                                                 />
-                                                <Link href={`/productdetail/${item.productVariant.product.ProductID}`} // Sửa lại slug thành ProductID nếu trang chi tiết dùng ID
-                                                    key={item.productVariant.VariantID}
+                                                <Link href={`/productdetail/${item.product_variant.product.ProductID}`} // Sửa lại slug thành ProductID nếu trang chi tiết dùng ID
+                                                    key={item.product_variant.VariantID}
                                                     className="flex items-center"
                                                     >
-                                                        <div className="w-16 h-16 bg-gray-100 rounded-sm mr-4 flex items-center justify-center text-gray-500 overflow-hidden border">
-                                                            {/* <img src={item.productVariant?.ImageURL || '/images/placeholder.png'} alt={item.productVariant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" /> */}
+                                                        <div className="w-35 h-25 bg-gray-100 rounded-sm mr-4 flex items-center justify-center text-gray-500 overflow-hidden border">
+                                                            {/* <img src={item.product_variant?.ImageURL || '/images/placeholder.png'} alt={item.product_variant?.product?.Name || 'Product Image'} className="object-cover w-full h-full" /> */}
                                                              <img 
-                                                                src={getVariantImage(item.productVariant, item.productVariant.product)} 
-                                                                alt={item.productVariant?.product?.Name || 'Product Image'}
+                                                                src={getVariantImage(item.product_variant, item.product_variant.product)} 
+                                                                alt={item.product_variant?.product?.Name || 'Product Image'}
                                                                 className="object-cover w-full h-full"
                                                             />
                                                         </div>
+                                                        {!selectable && reason && (
+                                            <div className="absolute start-200 px-6 py-2 bg-yellow-50 border-t text-yellow-700 text-xs flex items-center">
+                                                <AlertCircle size={14} className="mr-2" />
+                                                {reason}
+                                            </div>
+                                        )}
                                                         <div className="flex flex-col">
-                                                            <span className="font-semibold text-sm text-gray-800">{item.productVariant?.product?.Name}</span>
+                                                            <span className="font-semibold text-sm text-gray-800">{item.product_variant?.product?.Name}</span>
                                                         </div>
                                                 </Link>
                                             </div>
@@ -1017,7 +1080,7 @@ const CartPage: React.FC = () => {
 
                                                 {/* Attributes/Classification */}
                                             <div className="col-span-2 text-sm text-gray-700 bg-white relative">
-                                                {item.productVariant?.attributeValues && item.productVariant.attributeValues.length > 0 ? (
+                                                {item.product_variant?.attribute_values && item.product_variant.attribute_values.length > 0 ? (
                                                     <div className="flex flex-col">
                                                         <div className="flex items-center gap-1">
                                                             <button
@@ -1027,7 +1090,7 @@ const CartPage: React.FC = () => {
                                                                             <span className="text-xs text-gray-500">Phân Loại Hàng:</span>
                                                                 <div className="flex items-center text-xs text-gray-600">
                                                                     <span className="truncate">
-                                                                        {item.productVariant?.attributeValues?.map(attrValue => attrValue.Value).join(' - ') || 'N/A'}
+                                                                        {item.product_variant?.attribute_values?.map(attrValue => attrValue.Value).join(' - ') || 'N/A'}
                                                                     </span>
                                                                     <span className="text-gray-400 ml-1">▼</span>
                                                                 </div>
@@ -1047,49 +1110,20 @@ const CartPage: React.FC = () => {
                                                     <span className="text-xs text-gray-500">Chọn phân loại</span>
                                                 )}
                                             </div>
-                                                {/* End Attributes/Classification */}
-                                                {/* Newwww */}
-
-                                                {/* <div className="col-span-2 text-sm text-gray-700 relative">
-                                                    
-                                                {editingItemId === item.CartItemID ? (
-                                                    <AttributeSelectionDropdown
-                                                        optionsData={variantOptions}
-                                                        onSelectOption={handleNewOptionSelect}
-                                                        onConfirm={handleConfirmVariantChange}
-                                                        onCancel={handleCancelVariantChange}
-                                                        isConfirming={isSwapping}
-                                                    />
-                                                    
-                                                    
-                                                ) : (
-                                                    <button
-                                                        className="flex flex-col items-start gap-1 p-1 -ml-1 rounded-sm hover:bg-gray-50 w-full"
-                                                        onClick={() => handleStartVariantChange(item)}
-                                                    >
-                                                        <span className="text-xs text-gray-500">Phân Loại Hàng:</span>
-                                                        <div className="flex items-center text-xs text-gray-600">
-                                                            <span className="truncate">
-                                                                {item.productVariant?.attributeValues?.map(attrValue => attrValue.Value).join(' - ') || 'N/A'}
-                                                            </span>
-                                                            <span className="text-gray-400 ml-1">▼</span>
-                                                        </div>
-                                                    </button>
-                                                )}
-                                            </div> */}
+                                               
 
                                             {/* end neww */}
                                             {/* Price */}
                                             <div className="col-span-2 text-sm text-gray-700 text-center">
-                                                {item.productVariant?.CompareAtPrice && item.productVariant.CompareAtPrice > item.productVariant.Price ? (
+                                                {item.product_variant?.CompareAtPrice && item.product_variant.CompareAtPrice > item.product_variant.Price ? (
                                                     <div className="flex flex-col items-center">
-                                                        {item.productVariant?.product.Discount != 0 ? <span className="line-through text-gray-500 text-xs">{Math.floor(item.productVariant.CompareAtPrice).toLocaleString('vi-VN')}₫</span> : ''}
-                                                        <span className="text-red-500 font-semibold">{Math.floor(item.productVariant?.CompareAtPrice * (1 - item.productVariant?.product.Discount / 100)).toLocaleString('vi-VN') || '0'}₫</span>
+                                                        {item.product_variant?.product.Discount != 0 ? <span className="line-through text-gray-500 text-xs">{Math.floor(item.product_variant.CompareAtPrice).toLocaleString('vi-VN')}₫</span> : ''}
+                                                        <span className="text-red-500 font-semibold">{Math.floor(item.product_variant?.CompareAtPrice * (1 - item.product_variant?.product.Discount / 100)).toLocaleString('vi-VN') || '0'}₫</span>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center">
-                                                    {item.productVariant?.product.Discount != 0 ? <span className="line-through text-gray-500 text-xs">{Math.floor(item.productVariant.Price).toLocaleString('vi-VN')}₫</span> : ''}
-                                                        <span className="text-red-500 font-semibold">{Math.floor(item.productVariant?.Price * (1 - item.productVariant?.product.Discount / 100)).toLocaleString('vi-VN') || '0'}₫</span>
+                                                    {item.product_variant?.product.Discount != 0 ? <span className="line-through text-gray-500 text-xs">{Math.floor(item.product_variant.Price).toLocaleString('vi-VN')}₫</span> : ''}
+                                                        <span className="text-red-500 font-semibold">{Math.floor(item.product_variant?.Price * (1 - item.product_variant?.product.Discount / 100)).toLocaleString('vi-VN') || '0'}₫</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1117,7 +1151,7 @@ const CartPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleUpdateQuantity(item, item.Quantity + 1)}
                                                         className="px-2 py-1 text-gray-600 hover:text-gray-800"
-                                                        disabled={item.Quantity >= (item.productVariant?.StockQuantity || 0) || item.Quantity >= 10 || item.Quantity === 0}
+                                                        disabled={item.Quantity >= (item.product_variant?.StockQuantity || 0) || item.Quantity >= 10 || item.Quantity === 0}
 
                                                     >
                                                         +
@@ -1127,15 +1161,15 @@ const CartPage: React.FC = () => {
 
                                             {/* Subtotal */}
                                             <div className="col-span-1 text-red-500 font-semibold text-sm text-center">
-                                                {item.productVariant?.CompareAtPrice && item.productVariant.CompareAtPrice > item.productVariant.Price ? (
+                                                {item.product_variant?.CompareAtPrice && item.product_variant.CompareAtPrice > item.product_variant.Price ? (
                                                     <div className="flex flex-col items-center">
                                                         
-                                                        <span className="text-red-500 font-semibold">{Math.floor(item.productVariant?.CompareAtPrice * (1 - item.productVariant?.product.Discount / 100) * item.Quantity).toLocaleString('vi-VN') || '0'}₫</span>
+                                                        <span className="text-red-500 font-semibold">{Math.floor(item.product_variant?.CompareAtPrice * (1 - item.product_variant?.product.Discount / 100) * item.Quantity).toLocaleString('vi-VN') || '0'}₫</span>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center">
                                                         
-                                                        <span className="text-red-500 font-semibold">{Math.floor(item.productVariant?.Price * (1 - item.productVariant?.product.Discount / 100) * item.Quantity).toLocaleString('vi-VN') || '0'}₫</span>
+                                                        <span className="text-red-500 font-semibold">{Math.floor(item.product_variant?.Price * (1 - item.product_variant?.product.Discount / 100) * item.Quantity).toLocaleString('vi-VN') || '0'}₫</span>
                                                     </div>
                                                     
                                                 )}
@@ -1156,9 +1190,11 @@ const CartPage: React.FC = () => {
                                                     Tìm sản phẩm tương tự
                                                 </button>
                                             </div>
+                                            
                                         </div>  
                                     </div>
-                                ))}
+                                     );
+                    })}
 
                                 {/* Khuyến mãi tĩnh của Shop - Sửa lại để không báo lỗi */}
                                 {latestShopVouchers.length > 0 && (<div className=" p-4 border-b ">
@@ -1257,9 +1293,9 @@ const CartPage: React.FC = () => {
                                 className="form-checkbox text-red-500 rounded"
                                 checked={isAllItemsSelected}
                                 onChange={(e) => handleSelectAllChange(e.target.checked)}
-                                disabled={cart.cartItems.length === 0}
+                                disabled={cart.cart_items.length === 0}
                             />
-                            <span className="text-sm text-gray-800">Chọn Tất Cả ({cart.cartItems.length})</span>
+                            <span className="text-sm text-gray-800">Chọn Tất Cả ({cart.cart_items.length})</span>
                             <button  onClick={handleDeleteSelectedClick}
                                 disabled={selectedCartItemIds.size === 0}
                                 className="text-gray-600 hover:text-red-500 text-sm disabled:opacity-50">Xóa</button>

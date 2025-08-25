@@ -1,5 +1,5 @@
 import { ProductVariantSummary } from './product.interface';
-import { ShopSummary } from './shop.interface';
+import { Shop, ShopSummary } from './shop.interface';
 
 export interface CartItem {
     CartItemID: number;
@@ -9,7 +9,7 @@ export interface CartItem {
     Quantity: number;
     AddedAt: string;
     UpdatedAt: string;
-    productVariant: ProductVariantSummary;
-    shop: ShopSummary;
+    product_variant: ProductVariantSummary;
+    shop: Shop;
     ShopName?: string;
 }

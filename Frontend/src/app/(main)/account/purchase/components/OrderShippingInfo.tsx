@@ -5,11 +5,34 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Order } from '@/types'; // Import Order type
 import { FaCheckCircle, FaMapMarkerAlt } from 'react-icons/fa';
+import { Badge } from '@/components/ui/badge';
 
 interface OrderShippingInfoProps {
   order: Order; // Nhận toàn bộ object Order
 }
+// Hàm helper để dịch Payment Method
+const translatePaymentMethod = (method: string) => {
+    const map: { [key: string]: string } = {
+        'COD': 'Thanh toán khi nhận hàng',
+        'Paypal': 'PayPal',
+        'VNPay': 'Cổng thanh toán VNPay'
+    };
+    return map[method] || method;
+}
 
+// Hàm helper để dịch Payment Status và lấy màu badge
+const getPaymentStatusInfo = (status: string) => {
+    switch (status.toLowerCase()) {
+        case 'paid':
+            return { text: 'Đã thanh toán', variant: 'default' as const };
+        case 'pending':
+            return { text: 'Chờ thanh toán', variant: 'outline' as const };
+        case 'returned':
+            return { text: 'Đã hoàn tiền', variant: 'destructive' as const };
+        default:
+            return { text: status, variant: 'secondary' as const };
+    }
+}
 const OrderShippingInfo: React.FC<OrderShippingInfoProps> = ({ order }) => {
   const [showAllTracking, setShowAllTracking] = useState(false);
 
@@ -19,6 +42,7 @@ const OrderShippingInfo: React.FC<OrderShippingInfoProps> = ({ order }) => {
   
   // Xây dựng chuỗi địa chỉ đầy đủ
 const fullAddress = [order.Street, order.Ward, order.District, order.City].filter(Boolean).join(', ');
+    const paymentStatusInfo = getPaymentStatusInfo(order.PaymentStatus);
 
   return (
     <div className="bg-white rounded-sm shadow-sm border-b px-6 py-8">
@@ -37,6 +61,12 @@ const fullAddress = [order.Street, order.Ward, order.District, order.City].filte
           <p className="text-gray-600">{order.ShippingPhoneNumber}</p>
           <p className="text-gray-600 mt-1">{fullAddress}</p>
         </div>
+        {/* --- PHẦN MỚI THÊM VÀO --- */}
+                    <div className="mt-2 flex flex-col items-end gap-1">
+                        <p className="text-gray-500">{translatePaymentMethod(order.PaymentMethod)}</p>
+                        <Badge  variant={paymentStatusInfo.variant}>{paymentStatusInfo.text}</Badge>
+                    </div>
+                    {/* --- KẾT THÚC PHẦN MỚI --- */}
       </div>
     </div>
   );

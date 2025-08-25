@@ -156,3 +156,16 @@ export const bulkDisable2FA = async (userIds: number[]): Promise<any> => {
         body: JSON.stringify({ userIds }),
     }).then(handleResponse);
 };
+
+export const bulkUpdateUserRole = async (userIds: number[], role: string): Promise<any> => {
+    return fetch(`${API_URL}/admin/users/bulk-update-role`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-XSRF-TOKEN': getDecodedXsrfToken(),
+        },
+        body: JSON.stringify({ userIds, role }),
+    }).then(handleResponse);
+};

@@ -232,7 +232,7 @@ export default function MultiProductReviewPage() {
         }), {}))
         setOrderInfo(prev => prev ? { ...prev, status: 'Rated' } : prev);
         //Redirect to purchase history
-        window.location.href = '/account/purchase';
+        window.location.href = '/account/review/list';
         console.log('All reviews saved successfully:', result);
         toast.success('Gửi đánh giá thành công!', { autoClose: 3000 });
       } else {

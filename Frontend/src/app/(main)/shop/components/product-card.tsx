@@ -17,7 +17,7 @@ export function ProductCard({ product }: Props) {
    const hasDiscount = !!product.discountPercent && product.discountPercent > 0;
 
    return (
-    <Link href={`/product/${product.id}`} className="block group"> 
+    <Link href={`/productdetail/${product.id}`} className="block group"> 
     <Card className="hover:shadow-md transition-shadow border-gray-200">
       <CardContent className="p-0">
         <div className="relative">

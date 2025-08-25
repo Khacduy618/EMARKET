@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link'; // Import Link để điều hướng
 import { SummaryOrder } from '@/types';
+import { Badge } from '@/components/ui/badge';
 
 // Định nghĩa kiểu dữ liệu cho một đơn hàng tóm tắt
 
@@ -14,7 +15,65 @@ interface OrderListModalProps {
 }
 
 const ORDERS_PER_PAGE = 10; // Số lượng đơn hàng hiển thị mỗi lần "Xem thêm"
-
+const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status.toLowerCase()) {
+        case 'delivered':
+        case 'completed':
+        case 'rated':
+            return 'default'; // Màu xanh lá
+        case 'processing':
+        case 'shipped':
+        case 'outfordelivery':
+            return 'secondary'; // Màu xanh dương/xám
+        case 'cancelledbybuyer':
+        case 'cancelledbyseller':
+        case 'failed':
+            return 'destructive'; // Màu đỏ
+        case 'pending':
+        default:
+            return 'outline'; // Màu xám
+    }
+};
+const getPaymentStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status.toLowerCase()) {
+        case 'paid':
+            return 'default';
+        case 'pending':
+            return 'outline';
+        case 'returned':
+        case 'refunded':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
+}
+const translateStatus = (status: string): string => {
+    const statusMap: { [key: string]: string } = {
+        'Pending': 'Chờ xử lý',
+        'Processing': 'Đang xử lý',
+        'Shipped': 'Đã gửi hàng',
+        'OutForDelivery': 'Đang giao',
+        'Delivered': 'Đã giao',
+        'Completed': 'Hoàn thành',
+        'Rated': 'Đã đánh giá',
+        'CancelledByBuyer': 'Đã hủy bởi người mua',
+        'CancelledBySeller': 'Đã hủy bởi người bán',
+        'Returned': 'Đã trả hàng',
+        'ReturnInProgress': 'Đang trả hàng',
+        'Failed': 'Thất bại'
+    };
+    return statusMap[status] || status; // Trả về giá trị gốc nếu không tìm thấy
+};
+// --- HÀM MỚI ĐỂ DỊCH TRẠNG THÁI THANH TOÁN ---
+const translatePaymentStatus = (paymentStatus: string): string => {
+    const paymentStatusMap: { [key: string]: string } = {
+        'Pending': 'Chờ thanh toán',
+        'Paid': 'Đã thanh toán',
+        'Returned': 'Đã trả hàng', // Giữ nguyên hoặc có thể đổi thành "Đã hoàn tiền" tùy logic
+        'Refunded': 'Đã hoàn tiền' // Thêm trạng thái này nếu có
+    };
+    return paymentStatusMap[paymentStatus] || paymentStatus;
+};
 const OrderListModal: React.FC<OrderListModalProps> = ({ isOpen, onClose, orders, title = "Danh sách Đơn hàng" }) => {
   // State để quản lý số lượng đơn hàng đang được hiển thị
   const [visibleCount, setVisibleCount] = useState(ORDERS_PER_PAGE);
@@ -54,60 +113,63 @@ const OrderListModal: React.FC<OrderListModalProps> = ({ isOpen, onClose, orders
           </button>
         </div>
 
-        {/* Thân Modal (với thanh cuộn) */}
-        <div className="p-6 overflow-y-auto flex-grow">
+       <div className="p-6 overflow-y-auto flex-grow">
           {orders && orders.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {visibleOrders.map((order) => (
-                <li key={order.orderCode} className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold text-indigo-600">Mã ĐH: {order.orderCode}</p>
+                <li key={order.sellerOrderCode} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-grow">
+                      <p className="font-semibold text-indigo-700">Mã gói hàng: {order.sellerOrderCode}</p>
+                      <p className="text-sm text-gray-600 font-medium">{order.shopName}</p>
                       <p className="text-sm text-gray-700 mt-1">
                         Sản phẩm: {order.productNames.join(', ').substring(0, 100)}{order.productNames.join(', ').length > 100 ? '...' : ''}
                       </p>
+                      {/* **THÊM HIỂN THỊ TRẠNG THÁI** */}
+                      <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={getStatusBadgeVariant(order.status)}>{translateStatus(order.status)}</Badge>
+                          <Badge variant={getPaymentStatusBadgeVariant(order.paymentStatus)}>{translatePaymentStatus(order.paymentStatus)}</Badge>
+                      </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-4">
-                      <p className="font-medium text-gray-800">
+                      <p className="font-semibold text-gray-900 text-lg">
                         {order.totalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        Ngày: {new Date(order.orderDate).toLocaleDateString('vi-VN')}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ngày đặt: {new Date(order.orderDate).toLocaleDateString('vi-VN')}
                       </p>
+                       {/* **SỬA LẠI LINK ĐIỀU HƯỚNG** */}
+                      <Link 
+                        href={`/account/purchase/seller-order/${order.sellerOrderId}`} 
+                        className="text-sm text-indigo-600 hover:underline mt-2 inline-block font-medium"
+                      >
+                        Xem chi tiết
+                      </Link>
                     </div>
                   </div>
-                  {/* Sửa lại nút thành thẻ <Link> */}
-                  <Link 
-                    href={`/account/purchase/order/${order.orderId}`} // Link đến trang chi tiết đơn hàng tổng
-                    className="text-xs text-indigo-500 hover:underline mt-1 inline-block"
-                  >
-                    Xem chi tiết
-                  </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500 text-center py-4">Không có đơn hàng nào để hiển thị.</p>
+            <p className="text-gray-500 text-center py-4">Không có gói hàng nào để hiển thị.</p>
           )}
 
-          {/* Nút "Xem thêm" */}
           {hasMoreOrders && (
-            <div className="text-center mt-4">
+            <div className="text-center mt-6">
               <button
                 onClick={handleShowMore}
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors text-sm font-medium"
               >
-                Xem thêm {Math.min(ORDERS_PER_PAGE, orders.length - visibleCount)} đơn hàng nữa
+                Xem thêm {Math.min(ORDERS_PER_PAGE, orders.length - visibleCount)}
               </button>
             </div>
           )}
         </div>
-
-        {/* Footer (giữ nguyên) */}
+        
         <div className="p-4 border-t border-gray-200 text-right flex-shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors font-semibold"
           >
             Đóng
           </button>

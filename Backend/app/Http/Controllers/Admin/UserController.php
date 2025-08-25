@@ -267,4 +267,34 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Đã tắt 2FA cho các tài khoản đã chọn.']);
     }
+
+    /**
+     * Cập nhật vai trò hàng loạt cho nhiều người dùng.
+     */
+    public function bulkUpdateRole(Request $request)
+    {
+        $validated = $request->validate([
+            'userIds' => 'required|array',
+            'userIds.*' => 'integer|exists:Users,UserID',
+            // Sử dụng Rule::in để đảm bảo vai trò hợp lệ
+            'role' => ['required', Rule::in(User::ROLES)],
+        ]);
+
+        // Ngăn Admin tự thay đổi vai trò của chính mình
+        $safeUserIds = collect($validated['userIds'])->reject(function ($userId) {
+            return $userId == Auth::id();
+        });
+
+        if ($safeUserIds->isEmpty() && count($validated['userIds']) > 0) {
+            return response()->json(['message' => 'Hành động không được phép trên tài khoản của chính bạn.'], 403);
+        }
+
+        User::whereIn('UserID', $safeUserIds)->update(['Role' => $validated['role']]);
+
+        return response()->json(['message' => 'Cập nhật vai trò hàng loạt thành công.']);
+    }
+
+
+
+
 }

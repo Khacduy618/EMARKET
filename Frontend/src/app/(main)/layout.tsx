@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import Header from "../components/Header";
-import SearchBar from "../components/SearchBar";
+// import SearchBar from "../components/SearchBar";
 // import NavMenu from "../components/NavMenu";
 import Footer from "../components/Footer";
 import { ToastContainer } from "react-toastify";

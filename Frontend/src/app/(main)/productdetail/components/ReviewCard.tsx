@@ -9,6 +9,7 @@ import { Review, User } from "@/types"
 import { toast } from 'react-toastify';
 import { Send, Star, ThumbsUp } from 'lucide-react'
 import { API_URL } from "@/lib/config"
+import { getStorageImageUrl } from "@/services/api"
 
 
 interface ReviewCardProps {
@@ -120,7 +121,7 @@ export function ReviewCard({ review,currentUser ,onReplySuccess}: ReviewCardProp
               {review.images.map((image, index) => (
                 <img
                   key={index}
-                  src={image || "/placeholder.svg"}
+                  src={getStorageImageUrl(image) || "/placeholder.svg"}
                   alt={`Review image ${index + 1}`}
                   className="w-16 h-16 md:w-20 md:h-20 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
                 />

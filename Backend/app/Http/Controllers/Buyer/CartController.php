@@ -21,154 +21,179 @@ class CartController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     try {
+    //         $cartData = DB::select("
+    //             WITH RankedVariantAttributes AS (
+    //         SELECT
+    //             pva.VariantID,
+    //             a.AttributeID,
+    //             a.Name AS AttributeName,
+    //             av.AttributeValueID,
+    //             av.Value AS AttributeValue,
+    //             ROW_NUMBER() OVER (PARTITION BY pva.VariantID ORDER BY a.AttributeID) as rn
+    //         FROM ProductVariantAttribute pva
+    //         JOIN AttributeValues av ON pva.AttributeValueID = av.AttributeValueID
+    //         JOIN Attributes a ON av.AttributeID = a.AttributeID
+    //     )
+    //     SELECT
+    //         c.CartID,
+    //         c.UserID,
+    //         c.CreatedAt,
+    //         c.UpdatedAt,
+    //         ci.CartItemID,
+    //         ci.VariantID,
+    //         ci.ShopID,
+    //         ci.Quantity,
+    //         ci.AddedAt,
+    //         ci.UpdatedAt AS CartItemUpdatedAt,
+    //         pv.SKU,
+    //         pv.Price AS VariantPrice,
+    //         pv.CompareAtPrice,
+    //         pv.StockQuantity,
+    //         pv.ImageURL AS VariantImageURL,
+    //         pv.IsActive as VariantIsActive,
+    //         p.ProductID,
+    //         p.Name AS ProductName,
+    //         p.Description AS ProductDescription,
+    //         p.Discount AS ProductDiscount,
+    //         p.IsActive as ProductIsActive, p.AdminApprovalStatus,
+    //         s.ShopName,
+    //         s.ShopPhone,
+    //         s.Status as ShopStatus,
+            
+    //         rva.AttributeID,
+    //         rva.AttributeName,
+    //         rva.AttributeValueID,
+    //         rva.AttributeValue
+    //     FROM Carts c
+    //     JOIN CartItems ci ON c.CartID = ci.CartID
+    //     JOIN ProductVariants pv ON ci.VariantID = pv.VariantID
+    //     JOIN Products p ON pv.ProductID = p.ProductID
+    //     JOIN Shops s ON ci.ShopID = s.ShopID
+    //     LEFT JOIN RankedVariantAttributes rva
+    //         ON pv.VariantID = rva.VariantID
+    //         AND rva.rn <= 3
+    //     WHERE c.UserID = ?
+    //         ", [$user->UserID]);
+
+    //         Log::info('Cart data fetched from DB. Number of rows: ' . count($cartData));
+
+    //         $cart = [
+    //             'CartID' => $cartData[0]->CartID,
+    //             'UserID' => $user->UserID,
+    //             'CreatedAt' => $cartData[0]->CartCreatedAt,
+    //             'UpdatedAt' => $cartData[0]->CartUpdatedAt,
+    //             'cartItems' => []
+    //         ];
+
+    //         $cartItems = [];
+
+    //         foreach ($cartData as $item) {
+    //             if (!isset($cartItems[$item->CartItemID])) {
+    //                 $cart['CartID'] = $item->CartID;
+    //                 $cart['UserID'] = $item->UserID;
+    //                 $cart['CreatedAt'] = $item->CreatedAt;
+    //                 $cart['UpdatedAt'] = $item->UpdatedAt;
+
+    //                 $cartItems[$item->CartItemID] = [
+    //                     'CartItemID' => $item->CartItemID,
+    //                     'CartID' => $item->CartID,
+    //                     'VariantID' => $item->VariantID,
+    //                     'ShopID' => $item->ShopID,
+    //                     'Quantity' => $item->Quantity,
+    //                     'AddedAt' => $item->AddedAt,
+    //                     'CartItemUpdatedAt' => $item->CartItemUpdatedAt,
+    //                     'productVariant' => [
+    //                         'VariantID' => $item->VariantID,
+    //                         'ProductID' => $item->ProductID,
+    //                         'SKU' => $item->SKU,
+    //                         'Price' => $item->VariantPrice,
+    //                         'CompareAtPrice' => $item->CompareAtPrice,
+    //                         'StockQuantity' => $item->StockQuantity,
+    //                         'ImageURL' => $item->VariantImageURL,
+    //                         'IsActive' => $item->VariantIsActive,
+    //                         'product' => [
+    //                             'ProductID' => $item->ProductID,
+    //                             'ShopID' => $item->ShopID,
+    //                             'Name' => $item->ProductName,
+    //                             'Description' => $item->ProductDescription,
+    //                             'Discount' => $item->ProductDiscount,
+    //                             'AdminApprovalStatus' => $item->AdminApprovalStatus,
+    //                             'IsActive' => $item->ProductIsActive,
+    //                         ],
+    //                         'attributeValues' => []
+    //                     ],
+    //                     'shop' => [
+    //                         'ShopID' => $item->ShopID,
+    //                         'UserID' => null,
+    //                         'ShopName' => $item->ShopName,
+    //                         'ShopPhone' => $item->ShopPhone, 
+    //                         'Status' => $item->ShopStatus,
+    //                     ]
+    //                 ];
+    //             }
+
+    //             if ($item->AttributeValueID !== null) {
+    //                 $cartItems[$item->CartItemID]['productVariant']['attributeValues'][] = [
+    //                     'AttributeValueID' => $item->AttributeValueID,
+    //                     'AttributeID' => $item->AttributeID,
+    //                     'Value' => $item->AttributeValue,
+    //                     'attribute' => [
+    //                         'AttributeID' => $item->AttributeID,
+    //                         'Name' => $item->AttributeName
+    //                     ]
+    //                 ];
+    //             }
+    //         }
+
+    //         $cart['cartItems'] = array_values($cartItems);
+
+    //         Log::info('Cart data structured successfully. Number of items: ' . count($cart['cartItems']));
+
+    //         return response()->json($cart);
+
+    //     } catch (\Exception $e) {
+    //         Log::error('Error fetching or structuring cart data: ' . $e->getMessage(), ['exception' => $e]);
+    //         return response()->json(['message' => 'Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'], 500);
+    //     }
+    // }
+     public function index(Request $request)
     {
         $user = Auth::user();
 
         try {
-            $cartData = DB::select("
-                WITH RankedVariantAttributes AS (
-            SELECT
-                pva.VariantID,
-                a.AttributeID,
-                a.Name AS AttributeName,
-                av.AttributeValueID,
-                av.Value AS AttributeValue,
-                ROW_NUMBER() OVER (PARTITION BY pva.VariantID ORDER BY a.AttributeID) as rn
-            FROM ProductVariantAttribute pva
-            JOIN AttributeValues av ON pva.AttributeValueID = av.AttributeValueID
-            JOIN Attributes a ON av.AttributeID = a.AttributeID
-        )
-        SELECT
-            c.CartID,
-            c.UserID,
-            c.CreatedAt,
-            c.UpdatedAt,
-            ci.CartItemID,
-            ci.VariantID,
-            ci.ShopID,
-            ci.Quantity,
-            ci.AddedAt,
-            ci.UpdatedAt AS CartItemUpdatedAt,
-            pv.SKU,
-            pv.Price AS VariantPrice,
-            pv.CompareAtPrice,
-            pv.StockQuantity,
-            pv.ImageURL AS VariantImageURL,
-            p.ProductID,
-            p.Name AS ProductName,
-            p.Description AS ProductDescription,
-            p.Discount AS ProductDiscount,
-            s.ShopName,
-            s.ShopPhone, -- THÊM DÒNG NÀY
-            rva.AttributeID,
-            rva.AttributeName,
-            rva.AttributeValueID,
-            rva.AttributeValue
-        FROM Carts c
-        JOIN CartItems ci ON c.CartID = ci.CartID
-        JOIN ProductVariants pv ON ci.VariantID = pv.VariantID
-        JOIN Products p ON pv.ProductID = p.ProductID
-        JOIN Shops s ON ci.ShopID = s.ShopID
-        LEFT JOIN RankedVariantAttributes rva
-            ON pv.VariantID = rva.VariantID
-            AND rva.rn <= 3
-        WHERE c.UserID = ?
-            ", [$user->UserID]);
+            // Sử dụng Eager Loading để tải tất cả dữ liệu liên quan
+            $cart = Cart::with([
+                'cartItems' => function ($query) {
+                    $query->orderBy('AddedAt', 'desc');
+                },
+                // Tải các thông tin cần thiết từ các mối quan hệ lồng nhau
+                'cartItems.shop:ShopID,ShopName,ShopPhone,Status,LogoURL',
+                'cartItems.productVariant:VariantID,ProductID,Price,CompareAtPrice,StockQuantity,ImageURL,IsActive',
+                'cartItems.productVariant.product:ProductID,Name,Discount,IsActive,AdminApprovalStatus',
+                'cartItems.productVariant.attributeValues.attribute:AttributeID,Name',
+            ])
+            ->where('UserID', $user->UserID)
+            ->first();
 
-            Log::info('Cart data fetched from DB. Number of rows: ' . count($cartData));
-
-            $cart = [
-                'CartID' => null,
-                'UserID' => $user->UserID,
-                'CreatedAt' => null,
-                'UpdatedAt' => null,
-                'cartItems' => []
-            ];
-
-            $cartItems = [];
-
-            foreach ($cartData as $item) {
-                if (!isset($cartItems[$item->CartItemID])) {
-                    $cart['CartID'] = $item->CartID;
-                    $cart['UserID'] = $item->UserID;
-                    $cart['CreatedAt'] = $item->CreatedAt;
-                    $cart['UpdatedAt'] = $item->UpdatedAt;
-
-                    $cartItems[$item->CartItemID] = [
-                        'CartItemID' => $item->CartItemID,
-                        'CartID' => $item->CartID,
-                        'VariantID' => $item->VariantID,
-                        'ShopID' => $item->ShopID,
-                        'Quantity' => $item->Quantity,
-                        'AddedAt' => $item->AddedAt,
-                        'CartItemUpdatedAt' => $item->CartItemUpdatedAt,
-                        'productVariant' => [
-                            'VariantID' => $item->VariantID,
-                            'ProductID' => $item->ProductID,
-                            'SKU' => $item->SKU,
-                            'Price' => $item->VariantPrice,
-                            'CompareAtPrice' => $item->CompareAtPrice,
-                            'StockQuantity' => $item->StockQuantity,
-                            'ImageURL' => $item->VariantImageURL,
-                            'CreatedAt' => null,
-                            'UpdatedAt' => null,
-                            'product' => [
-                                'ProductID' => $item->ProductID,
-                                'ShopID' => $item->ShopID,
-                                'CategoryID' => null,
-                                'Name' => $item->ProductName,
-                                'Description' => $item->ProductDescription,
-                                'Discount' => $item->ProductDiscount,
-                                'AdminApprovalStatus' => 'Approved',
-                                'ReasonForRejection' => null,
-                                'CreatedAt' => null,
-                                'UpdatedAt' => null
-                            ],
-                            'attributeValues' => []
-                        ],
-                        'shop' => [
-                            'ShopID' => $item->ShopID,
-                            'UserID' => null,
-                            'ShopName' => $item->ShopName,
-                            'ShopPhone' => $item->ShopPhone, // THÊM DÒNG NÀY
-                            'Description' => null,
-                            'LogoURL' => null,
-                            'CoverImageURL' => null,
-                            'AddressStreet' => null,
-                            'AddressWard' => null,
-                            'AddressDistrict' => null,
-                            'AddressCity' => null,
-                            // 'ShopPhone' => null, // Bạn có thể bỏ dòng này nếu đã có ở trên
-                            'Level' => null,
-                            'Status' => 'Approved',
-                            'CreatedAt' => null,
-                            'UpdatedAt' => null
-                        ]
-                    ];
-                }
-
-                if ($item->AttributeValueID !== null) {
-                    $cartItems[$item->CartItemID]['productVariant']['attributeValues'][] = [
-                        'AttributeValueID' => $item->AttributeValueID,
-                        'AttributeID' => $item->AttributeID,
-                        'Value' => $item->AttributeValue,
-                        'attribute' => [
-                            'AttributeID' => $item->AttributeID,
-                            'Name' => $item->AttributeName
-                        ]
-                    ];
-                }
+            // Nếu người dùng chưa có giỏ hàng, trả về một cấu trúc rỗng
+            if (!$cart) {
+                return response()->json([
+                    'CartID' => null,
+                    'UserID' => $user->UserID,
+                    'cartItems' => [],
+                ]);
             }
-
-            $cart['cartItems'] = array_values($cartItems);
-
-            Log::info('Cart data structured successfully. Number of items: ' . count($cart['cartItems']));
-
+            
+            // Eloquent sẽ tự động chuyển đổi cấu trúc này thành JSON hoàn hảo
             return response()->json($cart);
 
         } catch (\Exception $e) {
-            Log::error('Error fetching or structuring cart data: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error fetching cart with Eloquent: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['message' => 'Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'], 500);
         }
     }

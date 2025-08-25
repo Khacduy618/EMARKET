@@ -18,7 +18,7 @@ import {
 
 const sidebarItems = [
   { icon: Home, label: "Trang chủ", href: "/seller" },
-  { icon: Folder, label: "Quản lý danh mục", href: "/seller/categories" },
+  // { icon: Folder, label: "Quản lý danh mục", href: "/seller/categories" },
   { icon: Package, label: "Quản lý sản phẩm", href: "/seller/products", badge: "12" },
   { icon: ShoppingCart, label: "Quản lý đơn hàng", href: "/seller/orders", badge: "5" },
   { icon: Truck, label: "Quản lý trả hàng & hoàn tiền", href: "/seller/return-requests", badge: "8" },

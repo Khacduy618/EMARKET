@@ -43,7 +43,7 @@ export default function ShopInfo({ shop }: { shop: Shop }) {
             {/* Phần bên trái: Avatar, Tên shop, Nút bấm */}
             <div className="flex items-center space-x-4">
                 <div className="relative">
-                    <Image
+                    <img
                         src={getStorageImageUrl(shop.LogoURL)} // Dùng dữ liệu thật
                         alt={`Logo của ${shop.ShopName}`}
                         width={80}
@@ -59,10 +59,10 @@ export default function ShopInfo({ shop }: { shop: Shop }) {
                     {/* Dùng dữ liệu thật từ API */}
                     <p className="text-sm text-gray-500">{stats.online_status}</p>
                     <div className="flex space-x-2">
-                        <button className="px-4 py-2 text-sm border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 flex items-center space-x-1">
+                        {/* <button className="px-4 py-2 text-sm border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" /></svg>
                             <span>Chat Ngay</span>
-                        </button>
+                        </button> */}
                         <button className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             <Link href={`/shop/${shop.ShopID}`} ><span>Xem Shop</span></Link>

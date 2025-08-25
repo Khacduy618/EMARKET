@@ -17,7 +17,7 @@ export interface Shop {
     CreatedAt?: string | null;
     UpdatedAt?: string | null;
 }
-export type ShopLevel = 'Normal' | 'Mall' | 'Favorite';
+export type ShopLevel = 'Normal' | 'Mall' | 'Favorite' ;
 
 // Thêm ShopSummary để sử dụng trong các đối tượng lồng nhau nếu cần thiết
 export interface ShopSummary {

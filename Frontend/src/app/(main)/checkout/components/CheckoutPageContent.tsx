@@ -41,6 +41,7 @@ import { calculateFinalItemPrice,calculateDiscountForVoucher, recalculateSummary
 import VoucherSelectionModal from '@/app/components/cart/VoucherSelectionModal';
 import VoucherSelectModal from '@/app/components/cart/VoucherSelectModal';
 import { useCheckoutData } from '@/hooks/useCheckoutData';
+import CountdownTimer from '@/app/components/CountdownTimer';
 
     
 
@@ -63,6 +64,9 @@ const CheckoutPageContent = () => {
     const [isShopVoucherModalOpen, setIsShopVoucherModalOpen] = useState(false);
     const [selectedShopIdForVoucher, setSelectedShopIdForVoucher] = useState<number | null>(null);
 
+    const [expiresAt, setExpiresAt] = useState<string | null>(null); // State mới để lưu thời gian hết hạn
+    const [isOrderExpired, setIsOrderExpired] = useState(false); // State mới
+
     const { checkoutData, loading, error, allUserAddresses, updateCheckoutData, setAllUserAddresses } = useCheckoutData();
     console.log("--- COMPONENT RE-RENDERED ---");
     console.log("Current Order ID State:", orderId);
@@ -84,7 +88,9 @@ const CheckoutPageContent = () => {
                     
                     const reconstructedData: CheckoutData = {
                         orderId: orderDetails.OrderID,
+                        orderCode: orderDetails.OrderCode,
                         address: orderDetails.address,
+                        expiresAt: orderDetails.expiresAt,
                         shopOrders: orderDetails.shopOrders,
                         appliedPlatformVouchers: orderDetails.appliedPlatformVouchers,
                         summary: { ...orderDetails.summary, address: orderDetails.address },
@@ -95,15 +101,28 @@ const CheckoutPageContent = () => {
                         },
                     };
                     setOrderCode(orderDetails.OrderCode);
+                    setExpiresAt(orderDetails.expiresAt);
                     updateCheckoutData(reconstructedData);
                 } catch (e) {
                     console.error("Failed to fetch pending order:", e);
+                    
                     // setError('Không thể tải thông tin đơn hàng.'); // Lỗi đã được quản lý trong hook
                 }
             };
             fetchDraftOrder();
+        } else if (checkoutData?.orderId && checkoutData.expiresAt) {
+            // Nếu dữ liệu đã có trong hook, đồng bộ state
+            setOrderId(checkoutData.orderId);
+            setOrderCode(checkoutData.orderCode || null); // Giả sử orderCode có trong checkoutData
+            setExpiresAt(checkoutData.expiresAt);
         }
     }, [searchParams, updateCheckoutData, checkoutData?.orderId]);
+    
+    const handleOrderExpired = () => {
+        setIsOrderExpired(true);
+        toast.error("Đơn hàng của bạn đã hết hạn. Vui lòng đặt lại từ giỏ hàng.");
+        localStorage.removeItem('checkoutData');
+    };
     
     const handleSelectPlatformVoucher = () => {
         setIsPlatformVoucherModalOpen(true);
@@ -257,6 +276,7 @@ const handleApplyPlatformVouchers = useCallback((vouchers: AppliedVouchersCombin
         setIsAddressModalOpen(false);
     };
     
+    
 
     // --- CẬP NHẬT HÀM NÀY ĐỂ MỞ MODAL Ở CHẾ ĐỘ SỬA ---
     const handleOpenUpdateAddressModal = (addressId: number) => {
@@ -329,35 +349,64 @@ const handleApplyPlatformVouchers = useCallback((vouchers: AppliedVouchersCombin
   const handleShippingMethodChange = (shopId: number) => alert(`Thay đổi phương thức vận chuyển cho shop ${shopId} đang được phát triển!`);
 
 const handlePaymentMethodChange = () => {
-        // Nếu đã có đơn hàng nháp, dùng luồng hủy
-        if (orderId) {
-             handleCancelAndChange();
-        } else {
-            // Nếu chưa có, chỉ mở modal để chọn
             setIsPaymentModalOpen(true);
-        }
     };
 
     // HÀM MỚI: Xử lý khi người dùng xác nhận lựa chọn trong Modal
-    const handleConfirmPaymentMethod = (selectedType: PaymentMethodType) => {
-         console.log("handleConfirmPaymentMethod] User confirmed new method: ",selectedType);
+    const handleConfirmPaymentMethod = async (selectedType: PaymentMethodType) => {
+        if (!checkoutData) return;
+        
+        const originalType = checkoutData.paymentMethod.type;
+        
+        // Nếu người dùng không thay đổi gì, chỉ cần đóng modal
+        if (originalType === selectedType) {
+            setIsPaymentModalOpen(false);
+            return;
+        }
+
+        // Đóng modal ngay lập tức để người dùng thấy phản hồi
+        setIsPaymentModalOpen(false);
+
+        // **Logic mới: Nếu đã có orderId, gọi API để cập nhật**
+        if (orderId) {
+            const toastId = toast.loading("Đang cập nhật phương thức thanh toán...");
+            try {
+                const response = await fetch(`${API_URL}/orders/${orderId}/payment-method`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ paymentMethod: selectedType }),
+                });
+                
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || "Không thể cập nhật phương thức thanh toán.");
+                }
+                
+                // Cập nhật state ở client sau khi API thành công
+                updateLocalPaymentMethod(selectedType);
+                toast.update(toastId, { render: "Đã cập nhật thành công!", type: "success", isLoading: false, autoClose: 3000 });
+
+            } catch (error: any) {
+                toast.update(toastId, { render: error.message, type: "error", isLoading: false, autoClose: 5000 });
+            }
+        } else {
+            // **Logic cũ: Nếu chưa có orderId (chưa nhấn "Tiến hành thanh toán"), chỉ cập nhật state ở client**
+            updateLocalPaymentMethod(selectedType);
+        }
+    };
+    // Hàm helper để cập nhật state local, tránh lặp code
+    const updateLocalPaymentMethod = (selectedType: PaymentMethodType) => {
         let methodName = '';
         switch (selectedType) {
-            case 'Paypal':
-                methodName = 'PayPal';
-                break;
-            case 'VNPay':
-                methodName = 'Cổng thanh toán VNPay';
-                break;
-            case 'COD':
-            default:
-                methodName = 'Thanh toán khi nhận hàng';
-                break;
+            case 'Paypal': methodName = 'PayPal'; break;
+            case 'VNPay': methodName = 'Cổng thanh toán VNPay'; break;
+            case 'COD': default: methodName = 'Thanh toán khi nhận hàng'; break;
         }
 
         updateCheckoutData(prev => {
             if (!prev) return null;
-            const newState = {
+            return {
                 ...prev,
                 paymentMethod: {
                     ...prev.paymentMethod,
@@ -365,12 +414,8 @@ const handlePaymentMethodChange = () => {
                     method: methodName,
                 },
             };
-            return newState;
         });
-        
-        setIsPaymentModalOpen(false); // Đóng modal sau khi xác nhận
     };
-
     // HÀM HỦY ĐƠN HÀNG NHÁP (quan trọng)
     const handleCancelAndChange = async () => {
         if (!orderId) return;
@@ -486,10 +531,10 @@ const handlePaymentMethodChange = () => {
             return;
         }
 
-        const paymentMethod = checkoutData?.paymentMethod.type.toUpperCase() || 'COD';
+        const paymentMethod = checkoutData?.paymentMethod.type
         
         let payload: any = { paymentMethod };
-        if (paymentMethod === 'PAYPAL' && paypalDetails) {
+        if (paymentMethod === 'Paypal' && paypalDetails) {
             payload.paymentDetails = {
                 transactionId: paypalDetails.id,
                 status: paypalDetails.status,
@@ -499,7 +544,9 @@ const handlePaymentMethodChange = () => {
         try {
             const response = await fetch(`${API_URL}/orders/${orderId}/complete`,{
                     method: 'PUT',
-                    headers: { 'Accept': 'application/json' },
+                    headers: { 'Accept': 'application/json' ,
+                         'Content-Type': 'application/json'
+                    },
                     credentials: 'include', // Quan trọng để gửi cookie
                     body: JSON.stringify(payload),
                 });
@@ -592,8 +639,22 @@ return (
                     </div>
                 )}
             <div className="container mx-auto max-w-6xl px-4">
+                {expiresAt && <CountdownTimer expiryTimestamp={expiresAt} onExpire={handleOrderExpired} />}
 
-                <VoucherSelectModal
+                
+                {isOrderExpired ? (
+                    <div className="text-center bg-white p-10 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-bold text-red-600 mb-4">Phiên thanh toán đã hết hạn</h2>
+                        <p className="text-gray-700 mb-6">Đơn hàng của bạn đã được tự động hủy để giải phóng sản phẩm. Vui lòng quay lại giỏ hàng để bắt đầu lại.</p>
+                        <Link href="/cart">
+                             <button className="px-6 py-3 bg-orange-500 text-white font-bold rounded-md hover:bg-orange-600 transition-colors">
+                                Quay lại giỏ hàng
+                            </button>
+                        </Link>
+                    </div>
+                ) : (
+                   <>
+                    <VoucherSelectModal
                     isOpen={isPlatformVoucherModalOpen}
                     onClose={() => setIsPlatformVoucherModalOpen(false)}
                     onApplyVouchers={handleApplyPlatformVouchers}
@@ -680,7 +741,11 @@ return (
                     onPlaceOrder={handlePlaceOrder} // Gắn với nút "Tiến hành thanh toán"
                     onCompleteOrder={handleCompleteOrder}// Dành cho PayPal
                     onVnPayPayment={handleVnPayPayment} 
+                    isProcessing={isOrderExpired}
                 />
+                   </>
+                )}
+
             </div>
         </div>
     );

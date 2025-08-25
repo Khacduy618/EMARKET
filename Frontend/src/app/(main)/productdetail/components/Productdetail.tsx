@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'; 
 import axios from 'axios';
-import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap } from 'lucide-react';
+import { Loader2, Heart, Star, ChevronRight, ShoppingCart, Check, Truck, Shield, RotateCw, Zap, Ban } from 'lucide-react';
 import RelatedItems from './RelatedItems';
 import { toast } from 'react-toastify';
 import { getFullImageUrl } from '@/services/api';
@@ -15,6 +15,7 @@ import { StoredCheckoutData } from '@/types';
 import { useRouter } from 'next/navigation'; 
 import { API_URL } from '@/lib/config';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 
 
@@ -103,6 +104,7 @@ export interface Shop {
     ShopPhone?: string | null;
     UpdatedAt: string;
     stats: ShopStats; // <--- THÊM DÒNG NÀY
+    Status: 'PendingApproval' | 'Approved' | 'Suspended' | 'Rejected'; // THÊM DÒNG NÀY
 }
 const ORDER_VALUE_LIMIT = 50000000;
 
@@ -129,6 +131,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const [largeQuantityPromptInfo, setLargeQuantityPromptInfo] = useState<{ productName: string; shopPhone: string } | null>(null);
     const [isProcessingAddToCart, setIsProcessingAddToCart] = useState(false); 
 
+    const { isLoggedIn } = useAuth();
+
     // showNotification is now wrapped in useCallback and imported
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
         switch (type) {
@@ -149,6 +153,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
         }
     }, []); // Empty dependency array means it's created once
 
+     
 
     // --- REFACTORED: Initial Data Fetch ---
     useEffect(() => {
@@ -423,6 +428,13 @@ useEffect(() => {
 
     // Add to cart function
     const handleAddToCart = async () => {
+        if (!isLoggedIn) {
+            toast.warn("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.", {
+                onClick: () => router.push('/signin'),
+                style: { cursor: 'pointer' }
+            });
+            return;
+        }
         setIsProcessingAddToCart(true); // Bắt đầu xử lý
         // --- VALIDATION (bao gồm cả kiểm tra giá trị đơn hàng) ---
         if (!product || !selectedVariant || !pricingInfo.finalPrice) {
@@ -507,6 +519,13 @@ useEffect(() => {
     };
 
      const handleBuyNow = async () => {
+        if (!isLoggedIn) {
+            toast.warn("Vui lòng đăng nhập để mua hàng.", {
+                onClick: () => router.push('/signin'),
+                style: { cursor: 'pointer' }
+            });
+            return;
+        }
         // Validation cơ bản
         if (!product || !selectedVariant || !pricingInfo.finalPrice) {
             toast.error("Vui lòng chọn đầy đủ các tùy chọn của sản phẩm.");
@@ -573,6 +592,21 @@ useEffect(() => {
             setIsProcessingBuyNow(false);
         }
     };
+    const isProductSellable = useMemo(() => {
+        if (!product) return false;
+        
+        // Điều kiện 1: Sản phẩm phải được admin duyệt ('Approved')
+        const isProductApproved = product.AdminApprovalStatus === 'Approved';
+        
+        // Điều kiện 2: Cửa hàng phải được duyệt ('Approved')
+        const isShopApproved = product.shop?.Status === 'Approved';
+        
+        // Điều kiện 3: Sản phẩm phải được kích hoạt (IsActive là true hoặc 1)
+        const isProductActive = product.IsActive;
+
+        return isProductApproved && isShopApproved && isProductActive;
+    }, [product]);
+
 
     if (loading) {
         return <div className="flex justify-center items-center min-h-[50vh]"><Loader2 className="h-12 w-12 animate-spin text-orange-500" /></div>;
@@ -747,42 +781,43 @@ useEffect(() => {
                         <span className="text-sm text-gray-500">{pricingInfo.stockText}</span>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
-
-                        <button
-                            onClick={handleBuyNow} // Gắn hàm mới vào nút Mua Ngay
-                            disabled={!canAddToCart || isProcessingBuyNow || isProcessingAddToCart}
-                            className={`flex-1 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center
-                                ${(!canAddToCart || isProcessingBuyNow || isProcessingAddToCart)
-                                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                                    : 'bg-orange-500 text-white hover:bg-orange-600'
-                                }`}
-                        >
-                            {isProcessingBuyNow ? (
-                                <Loader2 size={20} className="mr-2 animate-spin" />
-                            ) : (
-                                <Zap size={20} className="mr-2" />
-                            )}
-                            Mua Ngay
-                        </button>
-
-
-
-                        <button
-                            onClick={handleAddToCart}
-                            className={`w-1/2 rounded-lg py-3 font-bold transition flex items-center justify-center space-x-2
-                                ${!canAddToCart || isProcessingAddToCart || isProcessingBuyNow
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                }`}
-                            disabled={!canAddToCart || isProcessingAddToCart || isProcessingBuyNow}
-                        >
-                            <ShoppingCart className="h-5 w-5" />
-                            <span>{selectedVariant ? 'Thêm vào giỏ' : 'Chọn tùy chọn'}</span>
-                        </button>
-
+                    <div className="pt-4">
+                        {isProductSellable ? (
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={!canAddToCart || isProcessingBuyNow || isProcessingAddToCart}
+                                    className={`flex-1 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center
+                                        ${(!canAddToCart || isProcessingBuyNow || isProcessingAddToCart)
+                                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                                            : 'bg-orange-500 text-white hover:bg-orange-600'
+                                        }`}
+                                >
+                                    {isProcessingBuyNow ? <Loader2 size={20} className="mr-2 animate-spin" /> : <Zap size={20} className="mr-2" />}
+                                    Mua Ngay
+                                </button>
+                                <button
+                                    onClick={handleAddToCart}
+                                    className={`w-1/2 rounded-lg py-3 font-bold transition flex items-center justify-center space-x-2
+                                        ${!canAddToCart || isProcessingAddToCart || isProcessingBuyNow
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        }`}
+                                    disabled={!canAddToCart || isProcessingAddToCart || isProcessingBuyNow}
+                                >
+                                    <ShoppingCart className="h-5 w-5" />
+                                    <span>{selectedVariant ? 'Thêm vào giỏ' : 'Chọn tùy chọn'}</span>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center p-3 border-2 border-dashed border-red-300 bg-red-50 rounded-lg">
+                                <Ban size={24} className="text-red-500 mr-3" />
+                                <span className="font-semibold text-red-600 text-base">
+                                    Sản phẩm này hiện đang ngừng bán
+                                </span>
+                            </div>
+                        )}
                     </div>
-
                     <div className="border-t border-gray-200 pt-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center">
@@ -822,8 +857,6 @@ useEffect(() => {
             </div>
             {/* Related Products */}
             <div className="mt-12">
-
-                <h2 className="text-xl font-semibold mb-6 text-gray-800">Sản phẩm tương tự</h2>
                 <RelatedItems currentProductId={productId} />
             </div>
             {/* Product Description and Sidebar */}
@@ -832,8 +865,8 @@ useEffect(() => {
                     <ProductReviewPage productId={productId} />
                 </div>
                 <aside className="w-full md:w-80 md:sticky md:top-24 h-fit bg-white border-l border-gray-200 p-4">
-            <RelatedProductsSidebar currentProductId={productId} />
-            </aside>
+                    <RelatedProductsSidebar currentProductId={productId} />
+                </aside>
             </div>
         </div>
     );
