@@ -12,9 +12,10 @@ services:
       - backend_storage:/var/www/html/storage
     env_file:
       - ./backend.env
+    environment:
+      - ROLE=app
     networks:
       - app-network
-    command: sh -c "php artisan storage:link && php-fpm"
 
   frontend:
     image: khduy555/frontend:latest
@@ -53,8 +54,8 @@ services:
       - backend_storage:/var/www/html/storage
     env_file:
       - ./backend.env
-
-    command: php artisan queue:work --sleep=3 --tries=3 --timeout=0
+    environment:
+      - ROLE=queue
     restart: unless-stopped
     networks:
       - app-network
@@ -74,7 +75,8 @@ services:
       - backend_storage:/var/www/html/storage
     env_file:
       - ./backend.env
-    command: sh -c "chmod 0644 /etc/cron.d/laravel-cron && crond -f -L /dev/stdout"
+    environment:
+      - ROLE=scheduler
     networks:
       - app-network
     depends_on:
