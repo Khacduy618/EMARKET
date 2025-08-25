@@ -21,7 +21,7 @@ export default function ProfileDetailsPage() {
     // formData chỉ dùng để quản lý các thay đổi "nháp" trên form
     const [formData, setFormData] = useState<Partial<UpdateProfilePayload>>({
         FullName: '',
-        Username: '',
+        // Username: '',
         Email: '',
         Phone: '',
         Avatar: '',
@@ -36,7 +36,7 @@ export default function ProfileDetailsPage() {
         if (user) {
             setFormData({
                 FullName: user.FullName || '',
-                Username: user.Username || '',
+                // Username: user.Username || '',
                 Email: user.Email || '',
                 Phone: user.Phone || '',
                 Avatar: user.Avatar || '',
@@ -51,7 +51,7 @@ export default function ProfileDetailsPage() {
         if (!user) return false;
         return (
             formData.FullName !== user.FullName ||
-            formData.Username !== user.Username ||
+            // formData.Username !== user.Username ||
             formData.Email !== user.Email ||
             formData.Phone !== user.Phone ||
             formData.Avatar !== user.Avatar
@@ -120,17 +120,17 @@ export default function ProfileDetailsPage() {
                     }
                 }
                 break;
-            case 'Username':
-                if (user && value !== user.Username) {
-                    try {
-                        const { isAvailable } = await checkUsernameAvailability(value);
-                        if (!isAvailable) {
-                            error = "Tên đăng nhập này đã được sử dụng";
-                        }
-                    } catch {
-                        error = "Lỗi kiểm tra tên đăng nhập. Vui lòng thử lại.";
-                    }
-                }
+            // case 'Username':
+            //     if (user && value !== user.Username) {
+            //         try {
+            //             const { isAvailable } = await checkUsernameAvailability(value);
+            //             if (!isAvailable) {
+            //                 error = "Tên đăng nhập này đã được sử dụng";
+            //             }
+            //         } catch {
+            //             error = "Lỗi kiểm tra tên đăng nhập. Vui lòng thử lại.";
+            //         }
+            //     }
                 break;
         }
 
@@ -163,12 +163,12 @@ export default function ProfileDetailsPage() {
             newErrors.Phone = validatePhoneLocal(formData.Phone || '');
 
             // Kiểm tra availability nếu thay đổi
-            if (formData.Username && formData.Username !== user.Username) {
-                const { isAvailable } = await checkUsernameAvailability(formData.Username);
-                if (!isAvailable) {
-                    newErrors.Username = "Tên đăng nhập này đã được sử dụng";
-                }
-            }
+            // if (formData.Username && formData.Username !== user.Username) {
+            //     const { isAvailable } = await checkUsernameAvailability(formData.Username);
+            //     if (!isAvailable) {
+            //         newErrors.Username = "Tên đăng nhập này đã được sử dụng";
+            //     }
+            // }
             if (formData.Email && formData.Email !== user.Email) {
                 const { isAvailable } = await checkEmailAvailability(formData.Email);
                 if (!isAvailable) {
@@ -260,11 +260,11 @@ export default function ProfileDetailsPage() {
                         <input id="FullName" name="FullName" type="text" required value={formData.FullName || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
                         {errors.FullName && <p className="mt-1 text-sm text-red-600">{errors.FullName}</p>}
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="Username">Tên đăng nhập</label>
                         <input id="Username" name="Username" type="text" required value={formData.Username || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />
                         {errors.Username && <p className="mt-1 text-sm text-red-600">{errors.Username}</p>}
-                    </div>
+                    </div> */}
                     <div>
                         <label className="text-sm font-medium text-gray-700" htmlFor="Email">Email</label>
                         <input id="Email" name="Email" type="email" required value={formData.Email || ''} onChange={handleChange} onBlur={handleBlur} className="w-full p-2.5 mt-1 border rounded-md" />

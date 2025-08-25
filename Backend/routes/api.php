@@ -180,7 +180,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/items/{cartItemId}', [CartController::class, 'updateItem']);
     Route::delete('/cart/items/{cartItemId}', [CartController::class, 'removeItem']);
     Route::delete('/cart/items', [CartController::class, 'removeMultipleItems']);
-
+    Route::get('/cart/count', [App\Http\Controllers\Buyer\CartController::class, 'getCartItemCount']);
     //voucher routes
     Route::get('/vouchers', [VoucherController::class, 'index']);
     Route::get('/vouchers/platform-eligible', [VoucherController::class, 'getEligiblePlatformVouchers']);
@@ -285,6 +285,7 @@ Route::get('/vnpay/return', [VnPayController::class, 'handleReturn'])->name('vnp
 Route::get('/products/{product_id}/variants/filter', [ProductController::class, 'filterVariants']);
 Route::get('/product-attributes/{productId}', [CartController::class, 'getProductAttributes']);
 
+Route::get('/getProductsAll', [ProductController::class, 'showAllProducts']);
 
 // Seller Register + Dashboard (auth required)
 Route::middleware('auth:sanctum')->group(function () {
@@ -299,8 +300,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/shop-categories', [ShopCategoryController::class, 'getShopCategories']);
         Route::post('/shop-categories', [ShopCategoryController::class, 'registerCategory']);
         Route::delete('/shop-categories/{shopCategoryID}', [ShopCategoryController::class, 'deleteCategory']);
+                // Shop products
 
-        // Shop products
         Route::get('/products', [ShopProductController::class, 'index']);
         Route::post('/shop/products', [ShopProductController::class, 'addProduct']);
         Route::get('/shop/products/{productID}', [ShopProductController::class, 'showProduct']);

@@ -163,15 +163,7 @@ export function ReviewTable({
                               <Eye className="w-4 h-4 mr-1.5" />
                               Xem
                             </Button>
-                            {r.requestFromShop?.open && (
-                              <Button
-                                size="sm"
-                                className="bg-orange-500 hover:bg-orange-600 text-white animate-pulse"
-                                onClick={() => setOpenId(r.id)}
-                              >
-                                Xem xét
-                              </Button>
-                            )}
+                            
                           </div>
                         </TableCell>
                       </TableRow>

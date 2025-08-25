@@ -96,13 +96,16 @@ class ShopController extends Controller
     // Cập nhật status
     $shop->Status = $validated['status'];
     $userId = $shop->UserID;
-
+   $user = User::find($userId);
     if ($shop->Status == "Approved") {
-      $user = User::find($userId);
+     
       if ($user) {
         $user->Role = 'Seller';
         $user->save();
       }
+    } else if ($shop->Status == "Suspended" && $user) {
+      $user->Role = 'Buyer';
+      $user->save();
     }
 
     $shop->save();

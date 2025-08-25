@@ -38,23 +38,23 @@ const ReturnRequestTable: React.FC<ReturnRequestTableProps> = ({ requests }) => 
                 <thead className="bg-gray-50">
                     <tr>
                         {/* THAY ĐỔI 1: Gộp thông tin sản phẩm và đơn hàng vào một cột */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="w-2/5 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Sản phẩm & Đơn hàng
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className=" px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Người Mua
                         </th>
                         {/* THAY ĐỔI 2: Gộp lý do và giá trị */}
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Lý do & Giá trị
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="w-2/5 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Ngày Yêu Cầu
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="w-2/5 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Trạng Thái
                         </th>
-                        <th scope="col" className="relative px-6 py-3">
+                        <th scope="col" className="relative w-2/5 px-3 py-3">
                             <span className="sr-only">Hành Động</span>
                         </th>
                     </tr>
@@ -63,8 +63,8 @@ const ReturnRequestTable: React.FC<ReturnRequestTableProps> = ({ requests }) => 
                     {requests.map((req) => (
                         <tr key={req.ReturnRequestID} className="hover:bg-gray-50">
                             {/* THAY ĐỔI 3: Hiển thị thông tin chi tiết sản phẩm và đơn hàng */}
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
+                            <td className="px-3 py-4 align-top whitespace-nowrap">
+                                <div className="flex items-start">
                                     <div className="flex-shrink-0 h-16 w-16">
                                         <img
                                             className="h-16 w-16 rounded object-cover"

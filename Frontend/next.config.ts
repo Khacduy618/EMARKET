@@ -23,6 +23,12 @@ const nextConfig = {
         port: '80', // Thêm port 8000 cho 127.0.0.1 nếu cần
         pathname: '/storage/**',
       },
+      {
+        protocol: 'http',
+        hostname: '46.137.254.54',
+        port: '8001',
+        pathname: '/storage/**',
+      },
       // Cho phép ảnh từ các nguồn bên ngoài khác
     
       { protocol: 'https', hostname: 'store.sony.com.vn' },

@@ -91,16 +91,13 @@ const Header = () => {
   const allItems = [...sidebarItems, ...adminSidebarItems]
 
   const currentPage = allItems.find(item => item.href === pathname)
-  const pageTitle = currentPage ? currentPage.label : "Không tìm thấy tiêu đề"
+  
 
 
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-lg font-semibold">{pageTitle}</h1>
-          </div>
+        <div className="flex items-center justify-end">
 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" className="relative">

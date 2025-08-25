@@ -1,3 +1,5 @@
+import { Address } from "./address.interface";
+
 export interface ApiUser {
     UserID: number;
     FullName: string;
@@ -8,6 +10,7 @@ export interface ApiUser {
 export interface ApiOrder {
     OrderID: number;
     OrderCode: string;
+    ShippingAddress: Address[];
     PaymentMethod: 'COD' | 'VNPay' | string;
 }
 
@@ -54,7 +57,7 @@ export interface ReturnRequest {
     user: ApiUser;
     order: ApiOrder;
     order_item: ApiOrderItem;
-    order_buyer: ApiOrder; // Thông tin đơn hàng của người mua
+    
     seller_order: SellerOrder;
 }
 

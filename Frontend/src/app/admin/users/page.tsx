@@ -81,7 +81,7 @@ const BulkActionBar = ({ selectedCount, canActivate, canDeactivate, onClear, onA
                 {canDeactivate && <button onClick={onDeactivate} className="px-3 py-1 text-sm bg-yellow-500 hover:bg-yellow-600 rounded">Vô hiệu hóa</button>}
                 <div className="relative">
                     <button onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)} onBlur={() => setTimeout(() => setIsRoleMenuOpen(false), 200)} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 rounded">Đổi vai trò <ChevronDown size={16} /></button>
-                    {isRoleMenuOpen && (<div className="absolute top-full left-0 mt-1 bg-white text-gray-800 rounded-md shadow-lg z-10 w-32"><button onClick={() => { onUpdateRole('Buyer'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Buyer</button><button onClick={() => { onUpdateRole('Seller'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Seller</button><button onClick={() => { onUpdateRole('Admin'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Admin</button></div>)}
+                    {isRoleMenuOpen && (<div className="absolute top-full left-0 mt-1 bg-white text-gray-800 rounded-md shadow-lg z-50 w-32"><button onClick={() => { onUpdateRole('Buyer'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Buyer</button><button onClick={() => { onUpdateRole('Seller'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Seller</button><button onClick={() => { onUpdateRole('Admin'); setIsRoleMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Thành Admin</button></div>)}
                 </div>
                 <button onClick={onDisable2FA} className="px-3 py-1 text-sm bg-orange-500 hover:bg-orange-600 rounded">Tắt 2FA</button>
                 <button onClick={onDelete} className="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 rounded">Xóa</button>
@@ -145,7 +145,26 @@ function AdminUsersContent() {
     const canDeactivateSelected = useMemo(() => selectedUsers.length > 0 && selectedUsers.some(user => user.IsActive), [selectedUsers]);
 
     const openStatusChangeConfirm = (user: User) => setConfirmAction({ action: async () => { await updateUserStatus(user.UserID, !user.IsActive); toast.success(`Đã ${!user.IsActive ? "kích hoạt" : "vô hiệu hóa"} tài khoản.`); mutate(); }, title: `Xác nhận ${!user.IsActive ? "Kích hoạt" : "Vô hiệu hóa"}`, message: `Bạn có chắc muốn ${!user.IsActive ? "kích hoạt" : "vô hiệu hóa"} tài khoản "${user.FullName}"?`, variant: !user.IsActive ? 'info' : 'danger' });
-    const openRemoveConfirm = (user: User) => setConfirmAction({ action: async () => { const res: any = await apiDeleteUser(user.UserID); toast.info(res.message || "Hành động thành công."); mutate(); }, title: 'Xác nhận Xóa / Vô hiệu hóa', message: `Hành động này trên tài khoản "${user.FullName}" không thể hoàn tác. Tiếp tục?`, variant: 'danger' });
+
+    const openRemoveConfirm = (userToRemove: User) => {
+        setConfirmAction({
+            action: async () => {
+                // `res` có thể là `{ message: ... }` hoặc `{}` (rỗng)
+                const res = await apiDeleteUser(userToRemove.UserID);
+
+                // KIỂM TRA `res` TRƯỚC KHI TRUY CẬP
+                if (res && res.action === 'deactivated') {
+                    toast.info(`Tài khoản "${userToRemove.FullName}" đã được vô hiệu hóa.`);
+                } else {
+                    toast.success(`Đã xóa vĩnh viễn tài khoản "${userToRemove.FullName}".`);
+                }
+                mutate();
+            },
+            title: 'Xác nhận Xóa / Vô hiệu hóa',
+            message: `Hành động này sẽ xóa vĩnh viễn tài khoản "${userToRemove.FullName}" nếu họ không có dữ liệu, hoặc vô hiệu hóa nếu có. Bạn chắc chứ?`,
+            variant: 'danger'
+        });
+    }
     const openDisable2FAConfirm = (user: User) => setConfirmAction({ action: async () => { await adminDisableTwoFactor(user.UserID); toast.success(`Đã tắt 2FA cho "${user.FullName}".`); mutate(); }, title: 'Xác nhận Tắt 2FA', message: `Bạn có chắc muốn tắt 2FA cho người dùng "${user.FullName}"?`, variant: 'danger' });
 
     const createBulkAction = (action: 'activate' | 'deactivate' | 'delete' | 'disable2fa' | 'updateRole', role?: string) => {
@@ -209,4 +228,3 @@ function AdminUsersContent() {
 export default function AdminUsersPage() {
     return (<RoleGuard allowedRoles={['Admin']}><AdminUsersContent /></RoleGuard>);
 }
-

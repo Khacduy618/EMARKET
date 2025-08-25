@@ -5,7 +5,7 @@ FROM composer:2.7 AS composer
 
 # --- STAGE 2: PHP Base Image ---
 FROM php:8.3-fpm-alpine AS base
-RUN apk add --no-cache bash git curl openssl libzip-dev zip unzip libpng-dev jpeg-dev freetype-dev icu-dev oniguruma-dev libxml2-dev
+RUN apk add --no-cache bash git curl openssl libzip-dev zip unzip libpng-dev jpeg-dev freetype-dev icu-dev oniguruma-dev libxml2-dev dcron
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql zip bcmath intl exif opcache pcntl soap
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer

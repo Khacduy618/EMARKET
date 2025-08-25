@@ -125,8 +125,8 @@ class UserController extends Controller
 
         // --- LOGIC MỚI: KIỂM TRA DỮ LIỆU LIÊN QUAN ---
         // Sử dụng `exists()` cho hiệu suất tốt nhất
-        $hasRelatedData = $user->orders()->exists() || $user->shops()->exists();
-
+        $hasRelatedData = $user->orders()->exists() || $user->shop()->exists();
+        
         if ($hasRelatedData) {
             // Trường hợp 1: Người dùng có dữ liệu -> Chỉ vô hiệu hóa
             $user->IsActive = false;

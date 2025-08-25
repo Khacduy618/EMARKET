@@ -3,7 +3,7 @@ import { User } from "lucide-react"
 
 interface OrderCustomerInfoProps {
     user?: {
-        username: string
+        fullname: string
         email: string
     }
 }
@@ -21,7 +21,7 @@ export default function OrderCustomerInfo({ user }: OrderCustomerInfoProps) {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Tên tài khoản:</span>
-                        <span className="font-medium text-gray-900">{user?.username || "N/A"}</span>
+                        <span className="font-medium text-gray-900">{user?.fullname || "N/A"}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Email:</span>

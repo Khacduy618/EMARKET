@@ -15,8 +15,8 @@ const OrderProgressTracker: React.FC<OrderProgressTrackerProps> = ({ statusHisto
   // Hàm chọn icon dựa trên trạng thái (cập nhật để khớp ảnh)
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Đơn Hàng Đã Đặt': return <FaRegFileAlt className="text-lg" />;
-      case 'Đã Xác Nhận Thông Tin Thanh Toán': return <FaDollarSign className="text-lg" />;
+      case 'Chờ xác nhận': return <FaRegFileAlt className="text-lg" />;
+      case 'Đã Xác Nhận Thông Tin': return <FaDollarSign className="text-lg" />;
       case 'Đã Giao Cho ĐVVC': return <FaTruck className="text-lg" />;
       case 'Đã Nhận Được Hàng': return <FaBoxOpen className="text-lg" />;
       case 'Đánh Giá': return <FaStar className="text-lg" />;

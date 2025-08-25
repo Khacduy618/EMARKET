@@ -385,8 +385,8 @@ private function showForCheckout(Request $request, $orderId)
 
      private function getMockOrderStatusHistory($status, $orderDate) {
         $history = [
-            ['status' => 'Đơn Hàng Đã Đặt', 'isCompleted' => false, 'isActive' => false, 'date' => Carbon::parse($orderDate)->format('d-m-Y'), 'time' => Carbon::parse($orderDate)->format('H:i')],
-            ['status' => 'Đã Xác Nhận Thông Tin Thanh Toán', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
+            ['status' => 'Chờ xác nhận', 'isCompleted' => false, 'isActive' => false, 'date' => Carbon::parse($orderDate)->format('d-m-Y'), 'time' => Carbon::parse($orderDate)->format('H:i')],
+            ['status' => 'Đã Xác Nhận Thông Tin', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
             ['status' => 'Đã Giao Cho ĐVVC', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
             ['status' => 'Đã Nhận Được Hàng', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
             ['status' => 'Đánh Giá', 'isCompleted' => false, 'isActive' => false, 'date' => '', 'time' => ''],
@@ -574,7 +574,11 @@ public function placeOrder(Request $request)
 
             $paymentMethod = $validatedData['paymentMethod'];
             $isCOD = ($paymentMethod === 'COD');
-            $expiresAt = null;
+
+            if (!$isCOD) {
+                // Nếu không phải COD, đặt thời gian hết hạn là 15 phút
+                $expiresAt = now()->addMinutes(15);
+            }
 
             $orderCode = 'EMK' . Carbon::now()->format('Ymd') . strtoupper(Str::random(6));
 
@@ -615,6 +619,11 @@ public function placeOrder(Request $request)
 
                 $itemsToInsert = collect($shopData['items'])->map(fn($item) => array_merge($item, ['SellerOrderID' => $sellerOrderId, 'CreatedAt' => now()]))->all();
                 DB::table('orderitems')->insert($itemsToInsert);
+                foreach($shopData['items'] as $item) {
+                    DB::table('productvariants')
+                        ->where('VariantID', $item['VariantID'])
+                        ->decrement('StockQuantity', $item['Quantity']);
+                }
             }
                 if ($isCOD) {
                     Log::info("Processing COD Order immediately. OrderID: {$orderId}");
@@ -625,10 +634,14 @@ public function placeOrder(Request $request)
 
 
             Log::info("placeOrder (Full Allocation): Successfully created OrderID: {$orderId}");
-            return ['orderId' => $orderId, 'orderCode' => $orderCode];
+            return [
+                'orderId' => $orderId, 
+                'orderCode' => $orderCode,
+                'expires_at' => $expiresAt ? $expiresAt->toIso8601String() : null
+            ];
         });
 
-        return response()->json(['message' => 'Order created!', 'orderId' => $order['orderId'], 'orderCode' => $order['orderCode']], 201);
+        return response()->json(['message' => 'Order created!', 'orderId' => $order['orderId'], 'orderCode' => $order['orderCode'],'expiresAt' => $order['expires_at']],   201);
 
     } catch (\Exception $e) {
         Log::error('Placing order failed (Full Allocation): ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
@@ -704,7 +717,10 @@ public function completeOrder(Request $request, $orderId)
                 // 1. Cập nhật bảng ordersbuyer (chỉ thời gian cập nhật)
                 DB::table('ordersbuyer')
                     ->where('OrderID', $orderId)
-                    ->update(['UpdatedAt' => now()]);
+                    ->update([
+                        'UpdatedAt' => now(),
+                        'expires_at' => null // <-- VÔ HIỆU HÓA BỘ ĐẾM GIỜ
+                    ]);
                 
                 // 2. Chuẩn bị dữ liệu cập nhật cho ordersseller
                 $sellerUpdates = [
@@ -718,6 +734,7 @@ public function completeOrder(Request $request, $orderId)
                 if ($isPaidOnline) {
                     $sellerUpdates['PaymentStatus'] = 'Paid';
                     $sellerUpdates['paidAt'] = now();
+                    $sellerUpdates['expires_at'] = null;
                 }
 
                 // 3. Cập nhật bảng ordersseller

@@ -157,7 +157,6 @@ export interface Order {
   items: OrderItem[];
   ReturnID?: number; // Chỉ có khi đơn hàng đã trả hàng
   shopOrders: OrderDetailShopOrder[];
-
   ShopID: number;
   ShopName: string;
   shopLevel: ShopLevel;

@@ -18,9 +18,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         // Tạo rules tùy theo trường nào được gửi
         $rules = [];
 
-        if (array_key_exists('Username', $input)) {
-            $rules['Username'] = ['string', 'max:255', Rule::unique('Users', 'Username')->ignore($user->UserID, 'UserID')];
-        }
+        // if (array_key_exists('Username', $input)) {
+        //     $rules['Username'] = ['string', 'max:255', Rule::unique('Users', 'Username')->ignore($user->UserID, 'UserID')];
+        // }
 
         if (array_key_exists('Email', $input)) {
             $rules['Email'] = ['string', 'email', 'max:255', Rule::unique('Users', 'Email')->ignore($user->UserID, 'UserID')];

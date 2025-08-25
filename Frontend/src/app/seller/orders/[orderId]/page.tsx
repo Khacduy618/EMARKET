@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import axios from "axios";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -42,7 +42,7 @@ interface Address {
 }
 
 interface User {
-    username: string;
+    fullname: string;
     email: string;
 }
 
@@ -70,8 +70,8 @@ interface TransformedOrderDetail {
     DeliveredAt?: string | null;
 }
 
-export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
-    const { orderId } = params;
+export default function OrderDetailsPage({ params }: { params: Promise<{ orderId: string }> }) {
+    const { orderId } =  use(params);
     const [order, setOrder] = useState<TransformedOrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

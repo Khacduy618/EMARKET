@@ -1,11 +1,12 @@
 "use client"
 
+
 import React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { getProduct, updateProduct, getShopCategories, getAttributes } from "@/services/seller-category"
 import Swal from "sweetalert2"
-import { WEB_URL } from "@/lib/config"
+
 
 // --- INTERFACES ---
 interface ShopCategory {
@@ -13,6 +14,7 @@ interface ShopCategory {
   CategoryID: number
   CategoryName: string
 }
+
 
 interface ImageFile {
   file?: File
@@ -23,11 +25,13 @@ interface ImageFile {
   existingUrl?: string | null
 }
 
+
 interface Attribute {
   AttributeID: number
   Name: string
   CategoryID: number
 }
+
 
 interface Variant {
   VariantID?: number
@@ -38,6 +42,7 @@ interface Variant {
   SKU: string
   AttributeValues: { [key: number]: string }
 }
+
 
 interface ProductData {
   ProductID: number
@@ -61,6 +66,7 @@ interface ProductData {
   }[]
 }
 
+
 // --- Category Dropdown Component ---
 interface CategoryDropdownProps {
   categories: ShopCategory[]
@@ -69,10 +75,12 @@ interface CategoryDropdownProps {
   loading: boolean
 }
 
+
 function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, loading }: CategoryDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const dropdownRef = useRef<HTMLDivElement>(null)
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -84,18 +92,22 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+
   const filteredCategories = categories.filter((category) =>
     category.CategoryName.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+
   const getSelectedCategoryName = () =>
     categories.find((cat) => cat.CategoryID === selectedCategoryID)?.CategoryName || "Chọn ngành hàng"
+
 
   const handleCategoryClick = (category: ShopCategory) => {
     onCategorySelect(category.CategoryID, category.CategoryName)
     setIsOpen(false)
     setSearchTerm("")
   }
+
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -159,14 +171,17 @@ function CategoryDropdown({ categories, selectedCategoryID, onCategorySelect, lo
   )
 }
 
+
 // --- MAIN COMPONENT ---
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
   const productID = Number(params.productID)
 
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const variantFileInputs = useRef<(HTMLInputElement | null)[]>([])
+
 
   // --- STATES ---
   const [loading, setLoading] = useState({ overall: true, attributes: false })
@@ -184,10 +199,12 @@ export default function EditProductPage() {
   const [activeTab, setActiveTab] = useState("basic")
   const [dragActive, setDragActive] = useState(false)
 
+
   // --- EFFECTS ---
   useEffect(() => {
     fetchInitialData()
   }, [router, productID])
+
 
   useEffect(() => {
     if (categoryID) {
@@ -196,6 +213,7 @@ export default function EditProductPage() {
       setAttributes([])
     }
   }, [categoryID])
+
 
   useEffect(() => {
     return () => {
@@ -210,14 +228,16 @@ export default function EditProductPage() {
     }
   }, [images, variants])
 
+
   // --- DATA FETCHING ---
   const fetchInitialData = async () => {
-    setLoading({ ...loading, overall: true })
+    setLoading({ ...loading, overall: false })
     try {
       if (!productID) {
         Swal.fire("Error!", "Invalid product ID.", "error").then(() => router.push("/seller/products"))
         return
       }
+
 
       const productData = await getProduct(productID)
       setInitialProduct(productData)
@@ -226,9 +246,10 @@ export default function EditProductPage() {
       setCategoryID(productData.CategoryID || null)
       setDiscount(productData.Discount || 0)
 
+
       setImages(
         productData.images.map((img) => ({
-          preview: `${WEB_URL}/storage/${img.ImageURL}`,
+          preview: `http://localhost:8001/storage/${img.ImageURL}`,
           isPrimary: !!img.IsPrimary,
           sortOrder: img.SortOrder || 0,
           ImageID: img.ImageID,
@@ -236,11 +257,12 @@ export default function EditProductPage() {
         }))
       )
 
+
       const variantsData = productData.variants.map((v) => ({
         VariantID: v.VariantID,
         Images: v.ImageURL
           ? [{
-            preview: `${WEB_URL}/storage/${v.ImageURL}`,
+            preview: `http://localhost:8001/storage/${v.ImageURL}`,
             isPrimary: true,
             sortOrder: 0,
             existingUrl: v.ImageURL
@@ -259,6 +281,7 @@ export default function EditProductPage() {
       }))
       setVariants(variantsData.length > 0 ? variantsData : [{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} }])
 
+
       const categoriesData = await getShopCategories()
       setShopCategories(categoriesData)
     } catch (err: any) {
@@ -268,6 +291,7 @@ export default function EditProductPage() {
       setLoading({ ...loading, overall: false })
     }
   }
+
 
   const fetchAttributesForCategory = async (catID: number) => {
     setLoading({ ...loading, attributes: true })
@@ -280,6 +304,7 @@ export default function EditProductPage() {
           CategoryID: catID,
         }))
         setAttributes(formattedAttributes)
+
 
         setVariants((prev) =>
           prev.map((v) => ({
@@ -302,12 +327,14 @@ export default function EditProductPage() {
     }
   }
 
+
   // --- HANDLERS ---
   const handleCategoryChange = (newCategoryID: number, categoryName: string) => {
     setCategoryID(newCategoryID)
     setVariants([{ Images: [], Price: 0, CompareAtPrice: null, StockQuantity: 0, SKU: "", AttributeValues: {} }])
     setAttributes([])
   }
+
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -319,6 +346,7 @@ export default function EditProductPage() {
     }
   }
 
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
@@ -328,15 +356,18 @@ export default function EditProductPage() {
     }
   }
 
+
   const handleImageSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files
       if (!files) return
 
+
       if (images.length + files.length > 9) {
         Swal.fire("Limit Reached!", "You can upload a maximum of 9 images.", "warning")
         return
       }
+
 
       const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
         file,
@@ -345,11 +376,13 @@ export default function EditProductPage() {
         sortOrder: images.length + index,
       }))
 
+
       setImages((prev) => [...prev, ...newImageFiles])
       if (event.target) event.target.value = ""
     },
     [images.length]
   )
+
 
   const handleRemoveImage = useCallback((indexToRemove: number) => {
     setImages((prev) => {
@@ -361,19 +394,23 @@ export default function EditProductPage() {
     })
   }, [])
 
+
   const setPrimaryImage = useCallback((indexToSet: number) => {
     setImages((prev) => prev.map((img, index) => ({ ...img, isPrimary: index === indexToSet })))
   }, [])
+
 
   const handleVariantImageSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>, variantIndex: number) => {
       const files = event.target.files
       if (!files) return
 
+
       if (variants[variantIndex].Images.length + files.length > 1) {
         Swal.fire("Limit Reached!", "Each variant can have only one image.", "warning")
         return
       }
+
 
       const newImageFiles: ImageFile[] = Array.from(files).map((file, index) => ({
         file,
@@ -382,14 +419,17 @@ export default function EditProductPage() {
         sortOrder: 0,
       }))
 
+
       setVariants((prev) =>
         prev.map((v, i) => (i === variantIndex ? { ...v, Images: newImageFiles } : v))
       )
+
 
       if (event.target) event.target.value = ""
     },
     [variants]
   )
+
 
   const handleRemoveVariantImage = (variantIndex: number, imageIndex: number) => {
     setVariants((prev) =>
@@ -403,6 +443,7 @@ export default function EditProductPage() {
       )
     )
   }
+
 
   const handleVariantChange = (
     index: number,
@@ -428,6 +469,7 @@ export default function EditProductPage() {
     )
   }
 
+
   const handleVariantAttributeChange = (variantIndex: number, attributeID: number, value: string) => {
     setVariants((prev) =>
       prev.map((v, i) =>
@@ -444,6 +486,7 @@ export default function EditProductPage() {
     )
   }
 
+
   const addVariant = () => {
     setVariants((prev) => [
       ...prev,
@@ -451,6 +494,7 @@ export default function EditProductPage() {
     ])
     variantFileInputs.current = [...variantFileInputs.current, null]
   }
+
 
   const handleRemoveVariant = (index: number) => {
     Swal.fire({
@@ -468,6 +512,7 @@ export default function EditProductPage() {
     })
   }
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!categoryID) {
@@ -475,25 +520,30 @@ export default function EditProductPage() {
       return
     }
 
+
     if (images.length === 0 && variants.every((v) => v.Images.length === 0)) {
       Swal.fire("Error!", "At least one image is required for the product or variants.", "error")
       return
     }
+
 
     if (variants.length === 0) {
       Swal.fire("Error!", "Please add at least one variant.", "error")
       return
     }
 
+
     if (variants.some((v) => v.Price <= 0 || v.StockQuantity < 0)) {
       Swal.fire("Error!", "Price must be greater than 0 and stock quantity must be valid for all variants.", "error")
       return
     }
 
+
     if (discount < 0 || discount > 100) {
       Swal.fire("Error!", "Discount must be between 0 and 100.", "error")
       return
     }
+
 
     const skus = variants.map((v) => v.SKU).filter((sku) => sku)
     if (new Set(skus).size !== skus.length) {
@@ -501,13 +551,16 @@ export default function EditProductPage() {
       return
     }
 
+
     setLoading({ ...loading, overall: true })
+
 
     const productFormData = new FormData()
     productFormData.append("CategoryID", String(categoryID))
     productFormData.append("Name", name)
     productFormData.append("Description", description)
     productFormData.append("Discount", String(discount))
+
 
     const imageData = images.map((img) => ({
       ImageID: img.ImageID,
@@ -523,6 +576,7 @@ export default function EditProductPage() {
       }
     })
 
+
     const variantData = variants.map((v) => ({
       VariantID: v.VariantID,
       Price: v.Price,
@@ -533,6 +587,7 @@ export default function EditProductPage() {
       existingImageUrl: v.Images[0]?.existingUrl || null,
     }))
     productFormData.append("Variants", JSON.stringify(variantData))
+
 
     const fetchPromises = variants.map(async (variant, variantIndex) => {
       if (variant.Images[0]?.file) {
@@ -554,7 +609,9 @@ export default function EditProductPage() {
       }
     })
 
+
     await Promise.all(fetchPromises)
+
 
     try {
       await updateProduct(productID, productFormData)
@@ -567,7 +624,9 @@ export default function EditProductPage() {
     }
   }
 
+
   const getPrimaryImage = () => images.find((img) => img.isPrimary) || images[0] || null
+
 
   // --- RENDER ---
   return (
@@ -653,6 +712,7 @@ export default function EditProductPage() {
             </div>
           </div>
 
+
           {/* Main Content */}
           <div className="col-span-6">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -672,9 +732,11 @@ export default function EditProductPage() {
                 ))}
               </div>
 
+
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div hidden={activeTab !== "basic"}>
                   <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin cơ bản</h3>
+
 
                   {/* Product Images */}
                   <div>
@@ -692,6 +754,7 @@ export default function EditProductPage() {
                       </div>
                       <a href="#" className="text-blue-500 text-sm hover:underline">Ví dụ</a>
                     </div>
+
 
                     <div
                       onDragEnter={handleDrag}
@@ -769,6 +832,7 @@ export default function EditProductPage() {
                     />
                   </div>
 
+
                   {/* Cover Image */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -797,6 +861,7 @@ export default function EditProductPage() {
                     </div>
                   </div>
 
+
                   {/* Video Section */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Video sản phẩm</label>
@@ -824,6 +889,7 @@ export default function EditProductPage() {
                     </button>
                   </div>
 
+
                   {/* Product Name */}
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -842,6 +908,7 @@ export default function EditProductPage() {
                     <div className="text-right text-sm text-gray-500 mt-1">{name.length}/120</div>
                   </div>
 
+
                   {/* Category */}
                   <div>
                     <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
@@ -854,6 +921,7 @@ export default function EditProductPage() {
                       loading={loading.overall || loading.attributes}
                     />
                   </div>
+
 
                   {/* Description */}
                   <div>
@@ -872,6 +940,7 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
+
                 <div hidden={activeTab !== "sales"}>
                   <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin bán hàng</h3>
                   <div className="space-y-6">
@@ -887,6 +956,7 @@ export default function EditProductPage() {
                             Xóa phân loại
                           </button>
                         </div>
+
 
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                           <div>
@@ -939,6 +1009,7 @@ export default function EditProductPage() {
                             </div>
                           </div>
 
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               <span className="text-red-500">*</span> Giá
@@ -953,6 +1024,7 @@ export default function EditProductPage() {
                             />
                           </div>
 
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Giá so sánh</label>
                             <input
@@ -963,6 +1035,7 @@ export default function EditProductPage() {
                               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             />
                           </div>
+
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -976,6 +1049,7 @@ export default function EditProductPage() {
                               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             />
                           </div>
+
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -991,6 +1065,7 @@ export default function EditProductPage() {
                             />
                           </div>
                         </div>
+
 
                         {/* Variant Attributes */}
                         {attributes.length > 0 && (
@@ -1024,15 +1099,18 @@ export default function EditProductPage() {
                   </div>
                 </div>
 
+
                 <div hidden={activeTab !== "shipping"}>
                   <h3 className="text-lg font-medium text-orange-600 mb-4">Vận chuyển</h3>
                   <p className="text-gray-500">Nội dung vận chuyển sẽ được thêm vào đây...</p>
                 </div>
 
+
                 <div hidden={activeTab !== "other"}>
                   <h3 className="text-lg font-medium text-orange-600 mb-4">Thông tin khác</h3>
                   <p className="text-gray-600">Nội dung thông tin khác sẽ được thêm vào đây...</p>
                 </div>
+
 
                 <div className="border-t p-6 flex justify-end space-x-4">
                   <button
@@ -1059,6 +1137,7 @@ export default function EditProductPage() {
               </form>
             </div>
           </div>
+
 
           {/* Right Sidebar - Preview */}
           <div className="col-span-3">

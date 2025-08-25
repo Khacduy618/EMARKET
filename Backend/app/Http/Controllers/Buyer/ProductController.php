@@ -1088,4 +1088,35 @@ public function destroy($id)
             'ratingStats' => $ratingStats,
         ]);
     }
+
+    public function showAllProducts()
+{
+    try {
+        // Lấy tất cả sản phẩm (toàn sàn) chỉ những cái đã approved
+        $products = Product::with([
+                'images' => function ($query) {
+                    $query->select('ImageID', 'ProductID', 'ImageURL', 'IsPrimary', 'SortOrder')
+                        ->whereNull('VariantID');
+                },
+                'variants' => function ($query) {
+                    $query->select('VariantID', 'ProductID', 'SKU', 'Price', 'CompareAtPrice', 'StockQuantity', 'ImageURL', 'IsActive')
+                        ->with(['attributeValues' => function ($query) {
+                            $query->select('attributevalues.AttributeValueID', 'attributevalues.AttributeID', 'attributevalues.Value')
+                                ->with(['attribute' => function ($query) {
+                                    $query->select('AttributeID', 'Name');
+                                }]);
+                        }]);
+                }
+            ])
+            ->select('ProductID', 'ShopID', 'CategoryID', 'Name', 'Description', 'Discount', 'StockQuantity', 'AdminApprovalStatus')
+            ->where('AdminApprovalStatus', 'Approved')  
+            ->get();
+
+
+        return response()->json(['data' => $products], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'An error occurred while fetching products: ' . $e->getMessage()], 500);
+    }
+}
+
 }

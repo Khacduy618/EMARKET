@@ -68,8 +68,7 @@ export const updateUser = async (userId: number, payload: Partial<UserPayload>):
     return handleResponse<User>(response);
 };
 
-// 6. API để xóa người dùng
-export const deleteUser = async (userId: number): Promise<void> => {
+export const deleteUser = async (userId: number): Promise<any> => {
     const response = await fetch(`${API_URL}/admin/users/${userId}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -78,9 +77,16 @@ export const deleteUser = async (userId: number): Promise<void> => {
             'X-XSRF-TOKEN': getDecodedXsrfToken(),
         },
     });
-    // Hàm này trả về Promise<void> vì API DELETE trả về 204 No Content
-    await handleResponse<void>(response);
+
+    // Nếu là 204 No Content (xóa thành công), trả về một object rỗng
+    if (response.status === 204) {
+        return {};
+    }
+
+    // Nếu là các status code khác, dùng handleResponse như bình thường
+    return handleResponse<any>(response);
 };
+
 
 export const adminDisableTwoFactor = async (userId: number): Promise<void> => {
     await fetch(`${API_URL}/admin/users/${userId}/two-factor-authentication`, {

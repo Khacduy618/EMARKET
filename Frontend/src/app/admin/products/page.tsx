@@ -87,6 +87,9 @@ export default function ProductListPage() {
       if (filterStatus !== "all") params.set("is_active", filterStatus)
       if (filterApproval !== "all") params.set("approval_status", filterApproval)
       if (filterCategory) params.set("category_name", filterCategory)
+        if (filterCategory == 'all') {
+        params.set("category_name", "")
+      }
 
       const authToken = getAuthToken()
       if (!authToken) {
@@ -252,7 +255,7 @@ export default function ProductListPage() {
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 items-end">
               {/* Tìm kiếm */}
               <div className="lg:col-span-2">
-                <Label className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center gap-2">
                   <Search className="h-4 w-4 text-blue-500" />
                   Tìm kiếm sản phẩm
                 </Label>
@@ -272,7 +275,7 @@ export default function ProductListPage() {
 
               {/* Trạng thái hiển thị */}
               <div>
-                <Label className="text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3  flex items-center gap-2">
                   <Eye className="h-4 w-4 text-green-500" />
                   Trạng thái hiển thị
                 </Label>
@@ -311,7 +314,7 @@ export default function ProductListPage() {
 
               {/* Trạng thái duyệt */}
               <div>
-                <Label className="text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-3  flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-amber-500" />
                   Trạng thái duyệt
                 </Label>
@@ -356,7 +359,7 @@ export default function ProductListPage() {
 
               {/* Danh mục */}
               <div>
-                <Label className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3  flex items-center gap-2">
                   <Package className="h-4 w-4 text-purple-500" />
                   Danh mục sản phẩm
                 </Label>
@@ -369,7 +372,7 @@ export default function ProductListPage() {
 
               {/* Số mục mỗi trang */}
               <div>
-                <Label className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-3 block flex items-center gap-2">
+                <Label className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-3  flex items-center gap-2">
                   <Grid3X3 className="h-4 w-4 text-indigo-500" />
                   Số lượng hiển thị
                 </Label>

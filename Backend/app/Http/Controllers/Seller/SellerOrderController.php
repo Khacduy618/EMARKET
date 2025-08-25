@@ -134,7 +134,7 @@ class SellerOrderController extends Controller
             $query->where('ShopID', $shopId);
         })
         ->with([
-            'orderBuyer.user:UserID,Username,Email',
+            'orderBuyer.user:UserID,FullName,Email',
             'orderBuyer.address',
             'orderItems' => function ($query) use ($shopId) {
                 $query->whereHas('variant.product', function ($subQuery) use ($shopId) {
@@ -162,7 +162,7 @@ class SellerOrderController extends Controller
         'paymentMethod'       => $order->orderBuyer->PaymentMethod,
         'paymentStatus'       => $order->PaymentStatus,
         'user' => $order->orderBuyer->user ? [
-            'username' => $order->orderBuyer->user->Username,
+            'fullname' => $order->orderBuyer->user->FullName,
             'email'    => $order->orderBuyer->user->Email,
         ] : null,
         'address' => $order->orderBuyer->address ? [

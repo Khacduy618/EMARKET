@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'timezone' => 'Asia/Ho_Chi_Minh',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Ho_Chi_Minh'),
     'internal_api_secret_key' => env('INTERNAL_API_SECRET_KEY', null),
 
     /*
@@ -67,7 +67,6 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -124,8 +123,6 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     'frontend_url' => env('FRONTEND_URL', 'https://minhweb.click'),
 ];

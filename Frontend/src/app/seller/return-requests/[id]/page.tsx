@@ -289,7 +289,7 @@ export default function ReturnRequestDetailPage() {
 
 
     const {
-        order,
+        order_buyer,
         order_item,
         user,
         ReasonDescription,
@@ -306,7 +306,7 @@ export default function ReturnRequestDetailPage() {
 
     const variant = order_item?.variant;
     const product = variant?.product;
-    const shippingAddress = order?.shipping_address;
+    const shippingAddress = order_buyer?.shipping_address;
 
 
     const formatCurrency = (amount: number) =>
@@ -394,13 +394,13 @@ export default function ReturnRequestDetailPage() {
                     <div className="space-y-6">
                         <InfoBlock title="Thông tin Người mua & Đơn hàng">
                             <InfoRow label="👤 Tên khách hàng" value={user?.FullName} />
-                            <InfoRow label="📞 Số điện thoại" value={user?.Phone} />
+                            <InfoRow label="📞 Số điện thoại"  value={shippingAddress.PhoneNumber} />
                             <InfoRow
                                 label="📋 Mã đơn hàng gốc"
                                 value={
-                                    order ? (
-                                        <Link href={`/seller/orders/${order.OrderID}`} className="text-primary hover:text-secondary transition-colors duration-300 font-medium">
-                                            {order.OrderCode}
+                                    order_buyer ? (
+                                        <Link href={`/seller/orders/${order_buyer.OrderID}`} className="text-primary hover:text-secondary transition-colors duration-300 font-medium">
+                                            {order_buyer.OrderCode}
                                         </Link>
                                     ) : ("N/A")
                                 }

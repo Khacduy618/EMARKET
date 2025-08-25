@@ -17,6 +17,7 @@ import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { getAuthToken, getStorageImageUrl } from "@/services/api"
 import { API_URL } from "@/lib/config"
+import Swal from "sweetalert2"
 
 type Category = {
   CategoryID: number
@@ -91,30 +92,95 @@ export default function CategoryPage() {
     setPage(1)
   }
 
-  const deleteCategory = async (id: number) => {
+  // const deleteCategory = async (id: number) => {
+  //   const hasChildren = categories.some((c) => c.ParentCategoryID === id)
+  //   if (hasChildren) {
+  //     toast.warning("Bạn cần xóa danh mục con trước!")
+  //     return
+  //   }
+
+  //   if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+  //     try {
+  //         const res = await fetch(`${API_URL}/admin/categories/delete/${id}`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         credentials: 'include', 
+  //         body: JSON.stringify({ _method: "DELETE" }),
+  //       })
+
+  //       const result = await res.json()
+  //       toast.success(result.message || "Xóa danh mục thành công")
+  //       fetchCategories()
+  //     } catch (error) {
+  //       console.error("Lỗi khi xóa danh mục:", error)
+  //       toast.error("Xảy ra lỗi khi xóa danh mục")
+  //     }
+  //   }
+  // }
+const deleteCategory = async (id: number) => {
     const hasChildren = categories.some((c) => c.ParentCategoryID === id)
     if (hasChildren) {
-      toast.warning("Bạn cần xóa danh mục con trước!")
+      await Swal.fire({
+        icon: "warning",
+        title: "Bạn cần xóa danh mục con trước!",
+        timer: 2000,
+        showConfirmButton: false,
+      })
       return
     }
 
-    if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Bạn có chắc chắn muốn xóa danh mục này?",
+      showCancelButton: true,
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+    })
+
+
+    if (result.isConfirmed) {
       try {
-          const res = await fetch(`${API_URL}/admin/categories/delete/${id}`, {
+        // Hiện loading trong khi gọi API
+        Swal.fire({
+          title: "Đang xóa...",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          },
+        })
+
+
+        const res = await fetch(`${API_URL}/admin/categories/delete/${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: 'include', 
+          credentials: "include",
           body: JSON.stringify({ _method: "DELETE" }),
         })
 
-        const result = await res.json()
-        toast.success(result.message || "Xóa danh mục thành công")
+
+        const data = await res.json()
+
+
+        Swal.fire({
+          icon: "success",
+          title: data.message || "Xóa danh mục thành công",
+          timer: 2000,
+          showConfirmButton: false,
+        })
+
+
         fetchCategories()
       } catch (error) {
         console.error("Lỗi khi xóa danh mục:", error)
-        toast.error("Xảy ra lỗi khi xóa danh mục")
+        Swal.fire({
+          icon: "error",
+          title: "Xảy ra lỗi khi xóa danh mục",
+        })
       }
     }
   }

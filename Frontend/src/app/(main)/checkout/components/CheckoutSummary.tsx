@@ -158,7 +158,7 @@ console.log("--- CheckoutSummary RENDERED ---");
   }
 
   return (
-    <div className='sticky bottom-0 mt-4'>
+    <div className='mt-4'>
       <div className="bg-white rounded-t-sm shadow-sm border">
         <div className="p-4 space-y-2 text-sm border-b">
           <h3 className="text-base font-semibold text-gray-800 mb-2">Chi tiết thanh toán</h3>

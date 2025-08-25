@@ -72,7 +72,7 @@ export function ReviewDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto" >
         <DialogHeader>
           <DialogTitle>Chi tiết đánh giá</DialogTitle>
         </DialogHeader>
@@ -82,7 +82,7 @@ export function ReviewDetailDialog({
             <img src={getStorageImageUrl(review.productImage) || "/placeholder.svg"} alt={review.productName} className="w-16 h-16 rounded object-cover border"/>
             <div className="flex-1">
               <div className="text-sm text-gray-600">{review.shopName}</div>
-              <div className="font-medium">{review.productName}</div>
+              <div className="font-medium break-all">{review.productName}</div>
               <div className="mt-1">
                 <Badge className={statusColor} variant="secondary">
                   {review.status === "pending" ? "Chờ duyệt" : review.status === "approved" ? "Đã duyệt" : review.status === "rejected" ? "Từ chối" : review.status === "hidden" ? "Đã ẩn" : review.status === "under_review" ? "Đang xem xét" : "Đã gắn cờ"}
@@ -125,7 +125,7 @@ export function ReviewDetailDialog({
             </div>
           </div>
 
-          {review.requestFromShop?.open && (
+          {/* {review.requestFromShop?.open && (
             <>
               <Separator />
               <div className="bg-amber-50 border border-amber-200 rounded p-3">
@@ -134,18 +134,16 @@ export function ReviewDetailDialog({
                 <div className="text-xs text-amber-700 mt-1">Gửi lúc: {review.requestFromShop.createdAt}</div>
               </div>
             </>
-          )}
+          )} */}
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-              {review.requestFromShop?.open && (
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+              {review.rating <= 3 && (
                 <>
                   <Button variant="outline" onClick={() => handleUpdate({ status: review.status, resolveRequest: true })}>Từ chối yêu cầu</Button>
                   <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => handleUpdate({ status: 'under_review', resolveRequest: true })}>Đánh dấu đã xem xét</Button>
                 </>
               )}
               <Button variant="destructive" onClick={() => handleUpdate({ status: 'rejected' })}>Từ chối Review</Button>
-              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleUpdate({ status: 'approved' })}>Duyệt Review</Button>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Đóng</Button>
             </div>
         </div>
       </DialogContent>

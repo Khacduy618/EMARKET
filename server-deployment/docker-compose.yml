@@ -65,6 +65,20 @@ services:
     volumes:
       - ./certbot/www:/var/www/certbot:rw
       - ./certbot/conf:/etc/letsencrypt:rw
+  cron:
+    image: khduy555/backend:latest
+    container_name: laravel_cron
+    restart: unless-stopped
+    volumes:
+      - ./crontab:/etc/cron.d/laravel-cron
+      - backend_storage:/var/www/html/storage
+    env_file:
+      - ./backend.env
+    command: sh -c "chmod 0644 /etc/cron.d/laravel-cron && crond -f -L /dev/stdout"
+    networks:
+      - app-network
+    depends_on:
+      - backend
 
 networks:
   app-network:

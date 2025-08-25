@@ -58,12 +58,12 @@ export default function ImageGalleryModal({ images, isOpen, onClose, initialInde
 
                 {/* Main Image */}
                 <div className="relative w-full h-[70vh] bg-gray-900 rounded-lg overflow-hidden">
-                    <Image
+                    <img
                         src={getStorageImageUrl(images[currentIndex])}
                         alt={`Proof Image ${currentIndex + 1}`}
-                        fill
+                        
                         className="object-contain"
-                        priority
+                        
                     />
                 </div>
 

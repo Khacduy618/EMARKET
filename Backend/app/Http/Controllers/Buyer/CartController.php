@@ -302,6 +302,31 @@ class CartController extends Controller
     }
 
     /**
+     * Get the total number of items in the user's cart.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCartItemCount(Request $request)
+    {
+        $user = $request->user();
+
+        // Find the user's cart
+        $cart = DB::table('carts')->where('UserID', $user->UserID)->first();
+
+        if (!$cart) {
+            return response()->json(['count' => 0]);
+        }
+
+        // Sum the quantities of all items in that cart
+        $count = DB::table('cartitems')
+            ->where('CartID', $cart->CartID)
+            ->sum('Quantity');
+
+        return response()->json(['count' => (int)$count]);
+    }
+    
+    /**
      * Add a product variant to the cart.
      *
      * @param  \Illuminate\Http\Request  $request

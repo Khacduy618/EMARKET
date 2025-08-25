@@ -118,11 +118,23 @@ const CheckoutPageContent = () => {
         }
     }, [searchParams, updateCheckoutData, checkoutData?.orderId]);
     
-    const handleOrderExpired = () => {
+
+    useEffect(() => {
+        // Chỉ chạy khi isOrderExpired là true
+        if (isOrderExpired) {
+            // Hiển thị toast và chỉ một lần duy nhất
+            toast.error("Đơn hàng của bạn đã hết hạn. Vui lòng đặt lại từ giỏ hàng.", {
+                toastId: 'order-expired-toast', // Thêm toastId để ngăn trùng lặp
+            });
+            // Xóa dữ liệu checkout khỏi localStorage
+            localStorage.removeItem('checkoutData');
+        }
+    }, [isOrderExpired]); 
+
+    
+    const handleOrderExpired = useCallback(() => {
         setIsOrderExpired(true);
-        toast.error("Đơn hàng của bạn đã hết hạn. Vui lòng đặt lại từ giỏ hàng.");
-        localStorage.removeItem('checkoutData');
-    };
+    }, []);
     
     const handleSelectPlatformVoucher = () => {
         setIsPlatformVoucherModalOpen(true);
@@ -639,11 +651,10 @@ return (
                     </div>
                 )}
             <div className="container mx-auto max-w-6xl px-4">
-                {expiresAt && <CountdownTimer expiryTimestamp={expiresAt} onExpire={handleOrderExpired} />}
+                {expiresAt && !isOrderExpired && <CountdownTimer expiryTimestamp={expiresAt} onExpire={handleOrderExpired} />}
 
-                
                 {isOrderExpired ? (
-                    <div className="text-center bg-white p-10 rounded-lg shadow-md">
+                    <div className="text-center bg-white p-10 rounded-lg shadow-md mt-4">
                         <h2 className="text-2xl font-bold text-red-600 mb-4">Phiên thanh toán đã hết hạn</h2>
                         <p className="text-gray-700 mb-6">Đơn hàng của bạn đã được tự động hủy để giải phóng sản phẩm. Vui lòng quay lại giỏ hàng để bắt đầu lại.</p>
                         <Link href="/cart">

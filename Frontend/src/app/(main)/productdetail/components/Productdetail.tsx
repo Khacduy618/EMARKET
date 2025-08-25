@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/config';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-
+import { useCart } from '@/context/CartContext'; 
 
 
 // --- INTERFACES ---
@@ -132,6 +132,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId}) => {
     const [isProcessingAddToCart, setIsProcessingAddToCart] = useState(false); 
 
     const { isLoggedIn } = useAuth();
+    const { fetchCartCount } = useCart();
+    
+    const [isAdding, setIsAdding] = useState(false);
+
 
     // showNotification is now wrapped in useCallback and imported
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info', duration: number = 3000) => {
@@ -470,13 +474,15 @@ useEffect(() => {
         }
        
         setIsProcessingAddToCart(true); // Đặt trạng thái "đang xử lý"
-
+        setIsAdding(true);
     try {
         const variantID = selectedVariant.VariantID;
         const shopID = product.ShopID;
 
         // Gọi service addCartItem
         const response = await addCartItem(variantID, quantity, shopID);
+
+        await fetchCartCount();
 
         // Xử lý phản hồi từ backend
         if (response.shouldShowLargeQuantityPrompt && response.productName && response.shopPhone) {
@@ -485,9 +491,7 @@ useEffect(() => {
                 shopPhone: response.shopPhone
             });
             setShowLargeQuantityConfirm(true);
-        } else {
-            showNotification(response.message || "Sản phẩm đã được thêm vào giỏ hàng!", 'success');
-        }
+        } 
 
         // Cập nhật lại số lượng trên UI sau khi thêm thành công
         if (response.finalQuantityInCart !== undefined && response.finalQuantityInCart < quantity) {
@@ -515,6 +519,7 @@ useEffect(() => {
         // --- ĐẢM BẢO TRẠNG THÁI "ĐANG XỬ LÝ" ĐƯỢC RESET ---
         // Khối này sẽ chạy dù try thành công hay catch bị lỗi.
         setIsProcessingAddToCart(false); 
+        setIsAdding(false);
     }
     };
 
@@ -805,7 +810,11 @@ useEffect(() => {
                                         }`}
                                     disabled={!canAddToCart || isProcessingAddToCart || isProcessingBuyNow}
                                 >
-                                    <ShoppingCart className="h-5 w-5" />
+                                    {isAdding ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <ShoppingCart className="mr-2 h-4 w-4" />
+                                    )}
                                     <span>{selectedVariant ? 'Thêm vào giỏ' : 'Chọn tùy chọn'}</span>
                                 </button>
                             </div>

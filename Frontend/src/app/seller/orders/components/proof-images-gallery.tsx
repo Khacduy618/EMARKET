@@ -41,10 +41,10 @@ export default function ProofImagesGallery({ proof_image1, proof_image2 }: Proof
                             className="group relative aspect-square bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
                             onClick={() => openModal(index)}
                         >
-                            <Image
+                            <img
                                 src={getStorageImageUrl(image)}
                                 alt={`Proof Image ${index + 1}`}
-                                fill
+                                
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
 
