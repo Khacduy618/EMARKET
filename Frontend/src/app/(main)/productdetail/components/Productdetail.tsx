@@ -343,8 +343,8 @@ useEffect(() => {
 
     if (selectedVariant) {
         // Khi đã chọn biến thể, lấy giá và tồn kho của nó
-        displayPrice = selectedVariant.CompareAtPrice;
-        comparePrice = selectedVariant.Price;
+        comparePrice = selectedVariant.CompareAtPrice;
+        displayPrice = selectedVariant.Price;
         stockText = `${selectedVariant.StockQuantity} sản phẩm có sẵn`;
     } else {
         // Khi chưa chọn, hiển thị khoảng giá nếu có

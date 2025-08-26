@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Address } from '@/types';
+import Modal from '../../account/components/modals/Modal';
 
 interface AddressSelectionModalProps {
   isOpen: boolean;
@@ -42,11 +43,12 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
   };
 
   return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Địa Chỉ Của Tôi" maxWidth="max-w-lg">
     <div className="fixed inset-0 z-50 rounded-sm flex justify-center items-center p-4">
       <div className="bg-white rounded-sm border-t shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <h2 className="text-lg font-semibold text-gray-800">Địa Chỉ Của Tôi</h2>
-        </div>
+        </div> */}
 
         <div className="p-4 flex-grow overflow-y-auto">
           {addresses.length > 0 ? (
@@ -115,6 +117,7 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
         </div>
       </div>
     </div>
+    </Modal>
   );
 };
 

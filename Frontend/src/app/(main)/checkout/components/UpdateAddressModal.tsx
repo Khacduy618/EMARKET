@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import AddressPicker from './AddressPicker'; // Import component mới
 import MapPicker from './MapPicker'; // Import component bản đồ
 import axios from 'axios';
+import Modal from '../../account/components/modals/Modal';
 
 
 interface UpdateAddressModalProps {
@@ -227,13 +228,14 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 mt-6 z-50 flex justify-center items-center p-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={isCreateMode ? 'Thêm địa chỉ mới' : 'Cập nhật địa chỉ'} maxWidth="max-w-lg">
+    <div className="fixed inset-0 z-50 flex justify-center items-center p-4">
       <form onSubmit={handleSubmit} className="bg-white border-t rounded-sm shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="p-4 border-b">
+        {/* <div className="p-4 border-b">
           <h2 className="text-xl font-semibold text-gray-800">
             {isCreateMode ? 'Thêm địa chỉ mới' : 'Cập nhật địa chỉ'}
           </h2>
-        </div>
+        </div> */}
 
         {loading ? (
             <div className="flex justify-center items-center h-96"><Loader2 className="animate-spin"/></div>
@@ -289,6 +291,7 @@ const UpdateAddressModal: React.FC<UpdateAddressModalProps> = ({
         </div>
       </form>
     </div>
+    </Modal>
   );
 };
 

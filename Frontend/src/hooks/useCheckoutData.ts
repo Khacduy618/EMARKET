@@ -118,11 +118,9 @@ export const useCheckoutData = () => {
             const firstItem = itemsInShop[0];
 
             const checkoutItems = itemsInShop.map(cartItem => {
-                const finalPrice = calculateFinalItemPrice(
-                    cartItem.product_variant.Price,
-                    cartItem.product_variant.CompareAtPrice,
-                    cartItem.product_variant.product?.Discount
-                );
+                const finalPrice = cartItem.product_variant.Price; // <<-- Lấy thẳng giá bán
+                const originalPrice = cartItem.product_variant.CompareAtPrice; // <<-- Lấy thẳng giá gốc
+
                 const classification = (cartItem.product_variant.attribute_values && Array.isArray(cartItem.product_variant.attribute_values))
                             ? cartItem.product_variant.attribute_values.map(v => v.Value).join(', ')
                             : ''; 
@@ -136,7 +134,7 @@ export const useCheckoutData = () => {
                     // classification: cartItem.product_variant.attribute_values.map(v => v.Value).join(', '),
                     classification: classification, 
                     price: finalPrice,
-                    originalPrice: cartItem.product_variant.CompareAtPrice ?? (cartItem.product_variant.product?.Discount > 0 ? cartItem.product_variant.Price : null),
+                    originalPrice: originalPrice,
                     quantity: cartItem.Quantity,
                     subtotal: finalPrice * cartItem.Quantity,
                     product: cartItem.product_variant.product

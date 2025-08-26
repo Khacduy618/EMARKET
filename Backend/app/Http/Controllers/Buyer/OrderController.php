@@ -574,7 +574,7 @@ public function placeOrder(Request $request)
 
             $paymentMethod = $validatedData['paymentMethod'];
             $isCOD = ($paymentMethod === 'COD');
-
+            $expiresAt = null; 
             if (!$isCOD) {
                 // Nếu không phải COD, đặt thời gian hết hạn là 15 phút
                 $expiresAt = now()->addMinutes(15);
